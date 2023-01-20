@@ -44,7 +44,7 @@ open import Equivalence.Erased.Contractible-preimages.Basics eq public
 -- Another conversion between _⁻¹_ and _⁻¹ᴱ_.
 
 @0 ⁻¹≃⁻¹ᴱ : f ⁻¹ y ≃ f ⁻¹ᴱ y
-⁻¹≃⁻¹ᴱ {f = f} {y = y} =
+⁻¹≃⁻¹ᴱ {f} {y} =
   (∃ λ x → f x ≡ y)           ↝⟨ (∃-cong λ _ → Eq.inverse $ Eq.↔⇒≃ $ erased Erased↔) ⟩□
   (∃ λ x → Erased (f x ≡ y))  □
 
@@ -81,7 +81,7 @@ private
   @0 Is-equivalence≃Is-equivalenceᴱ′ :
     {A : Type a} {B : Type b} {f : A → B} →
     CP.Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalenceᴱ f
-  Is-equivalence≃Is-equivalenceᴱ′ {a = a} {f = f} {k = k} ext =
+  Is-equivalence≃Is-equivalenceᴱ′ {a} {f} {k} ext =
     (∀ y → Contractible (f ⁻¹ y))    ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 ⁻¹≃⁻¹ᴱ) ⟩
     (∀ y → Contractible (f ⁻¹ᴱ y))   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Contractible≃Contractibleᴱ) ⟩□
     (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  □
@@ -154,7 +154,7 @@ _ = refl _
 @0 ≃≃≃ᴱ :
   {A : Type a} {B : Type b} →
   (A CP.≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A ≃ᴱ B)
-≃≃≃ᴱ {A = A} {B = B} ext =
+≃≃≃ᴱ {A} {B} ext =
   A CP.≃ B                       ↔⟨⟩
   (∃ λ f → CP.Is-equivalence f)  ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ ext) ⟩
   (∃ λ f → Is-equivalenceᴱ f)    ↔⟨⟩
@@ -171,7 +171,7 @@ _ = refl _
 Erased-⁻¹ᴱ↔Erased-⁻¹ :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
   Erased (f ⁻¹ᴱ y) ↔ Erased (f ⁻¹ y)
-Erased-⁻¹ᴱ↔Erased-⁻¹ {f = f} {y = y} =
+Erased-⁻¹ᴱ↔Erased-⁻¹ {f} {y} =
   Erased (∃ λ x → Erased (f x ≡ y))             ↝⟨ Erased-Σ↔Σ ⟩
   (∃ λ x → Erased (Erased (f (erased x) ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
   (∃ λ x → Erased (f (erased x) ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
@@ -205,7 +205,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   ⁻¹ᴱ-respects-extensional-equality :
     {@0 B : Type ℓ} {@0 f g : A → B} {@0 y : B} →
     @0 (∀ x → f x ≡ g x) → f ⁻¹ᴱ y ≃ g ⁻¹ᴱ y
-  ⁻¹ᴱ-respects-extensional-equality {f = f} {g = g} {y = y} f≡g =
+  ⁻¹ᴱ-respects-extensional-equality {f} {g} {y} f≡g =
     (∃ λ x → Erased (f x ≡ y))  ↝⟨ (∃-cong λ _ → Erased-cong-≃ (≡⇒↝ _ (cong (_≡ _) $ f≡g _))) ⟩□
     (∃ λ x → Erased (g x ≡ y))  □
 
@@ -214,7 +214,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   ⁻¹ᴱ[]↔⁻¹[] :
     {@0 B : Type ℓ} {f : A → Erased B} {@0 y : B} →
     f ⁻¹ᴱ [ y ] ↔ f ⁻¹ [ y ]
-  ⁻¹ᴱ[]↔⁻¹[] {f = f} {y = y} =
+  ⁻¹ᴱ[]↔⁻¹[] {f} {y} =
     (∃ λ x → Erased (f x ≡ [ y ]))       ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔)) ⟩
     (∃ λ x → Erased (erased (f x) ≡ y))  ↝⟨ (∃-cong λ _ → Erased-≡↔[]≡[]) ⟩□
     (∃ λ x → f x ≡ [ y ])                □
@@ -224,7 +224,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-⁻¹ᴱ :
     {@0 A : Type a} {@0 B : Type ℓ} {@0 f : A → B} {@0 y : B} →
     Erased (f ⁻¹ᴱ y) ↔ map f ⁻¹ᴱ [ y ]
-  Erased-⁻¹ᴱ {f = f} {y = y} =
+  Erased-⁻¹ᴱ {f} {y} =
     Erased (f ⁻¹ᴱ y)  ↝⟨ Erased-⁻¹ᴱ↔Erased-⁻¹ ⟩
     Erased (f ⁻¹ y)   ↝⟨ Erased-⁻¹ ⟩
     map f ⁻¹ [ y ]    ↝⟨ inverse ⁻¹ᴱ[]↔⁻¹[] ⟩□
@@ -238,7 +238,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
     {@0 A : Type ℓ} →
     Erased (Contractibleᴱ A) ↝[ ℓ ∣ ℓ ]ᴱ Contractibleᴱ (Erased A)
-  Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A = A} ext =
+  Erased-Contractibleᴱ↔Contractibleᴱ-Erased {A} ext =
     Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↔⟨ Erased-cong-↔ (∃-cong λ _ → erased Erased↔) ⟩
     Erased (∃ λ x → (y : A) → x ≡ y)                    ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ x → Erased ((y : A) → erased x ≡ y))           ↝⟨ (∃-cong λ _ →
@@ -258,7 +258,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Contractibleᴱ-Erased↔Contractible-Erased :
     {@0 A : Type ℓ} →
     Contractibleᴱ (Erased A) ↝[ ℓ ∣ ℓ ] Contractible (Erased A)
-  Contractibleᴱ-Erased↔Contractible-Erased {A = A} ext =
+  Contractibleᴱ-Erased↔Contractible-Erased {A} ext =
     Contractibleᴱ (Erased A)  ↝⟨ inverse-erased-ext? Erased-Contractibleᴱ↔Contractibleᴱ-Erased ext ⟩
     Erased (Contractibleᴱ A)  ↔⟨ Erased-Contractibleᴱ↔Erased-Contractible ⟩
     Erased (Contractible A)   ↝⟨ Erased-H-level↔H-level 0 ext ⟩□
@@ -284,7 +284,7 @@ module []-cong₂
     {A : Type ℓ₁} {B : Type ℓ₂} →
     @0 Extensionality? k′ (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     A ↔[ k ] B → Contractibleᴱ A ↝[ k′ ] Contractibleᴱ B
-  Contractibleᴱ-cong {A = A} {B = B} ext A↔B =
+  Contractibleᴱ-cong {A} {B} ext A↔B =
     (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong A≃B′ λ _ →
                                                   Erased-cong?
                                                     (λ ext → Π-cong ext A≃B′ λ _ →
@@ -315,7 +315,7 @@ module []-cong₂-⊔
     Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     @0 (∀ x → f x ≡ g x) →
     Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-  Is-equivalenceᴱ-cong {k = k} ext f≡g =
+  Is-equivalenceᴱ-cong {k} ext f≡g =
     ∀-cong (lower-extensionality? k ℓ₁ lzero ext) λ _ →
     []-cong₂.Contractibleᴱ-cong ax ax ext $ ∃-cong λ _ →
     Erased-cong.Erased-cong-≃ ax₂ ax₂ (≡⇒↝ _ $ cong (_≡ _) $ f≡g _)
@@ -329,7 +329,7 @@ module []-cong₂-⊔
     ∀ {B : Type ℓ₁} {C : Type ℓ₂} {z} →
     (f : B → C) (g : A → B) →
     f ∘ g ⁻¹ᴱ z ≃ ∃ λ (([ y , _ ]) : Erased (f ⁻¹ z)) → g ⁻¹ᴱ y
-  ∘⁻¹ᴱ≃ {z = z} f g =
+  ∘⁻¹ᴱ≃ {z} f g =
     f ∘ g ⁻¹ᴱ z                                                       ↔⟨⟩
     (∃ λ a → Erased (f (g a) ≡ z))                                    ↔⟨ (∃-cong λ _ → Erased-cong.Erased-cong-≃ ax₂ ax (other-∃-intro _ _)) ⟩
     (∃ λ a → Erased (∃ λ y → f y ≡ z × g a ≡ y))                      ↔⟨ (∃-cong λ _ → Erased-cong.Erased-cong-↔ ax ax Σ-assoc) ⟩
@@ -343,7 +343,7 @@ module []-cong₂-⊔
     {B : Type ℓ₁} {C : Type ℓ₂} {f : A → B} {z : C} →
     (B≃C : B ≃ C) →
     _≃_.to B≃C ∘ f ⁻¹ᴱ z ≃ f ⁻¹ᴱ _≃_.from B≃C z
-  to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from {f = f} {z = z} B≃C =
+  to-∘-⁻¹ᴱ-≃-⁻¹ᴱ-from {f} {z} B≃C =
     _≃_.to B≃C ∘ f ⁻¹ᴱ z                                      ↝⟨ ∘⁻¹ᴱ≃ _ _ ⟩
     (∃ λ (([ y , _ ]) : Erased (_≃_.to B≃C ⁻¹ z)) → f ⁻¹ᴱ y)  ↔⟨ drop-⊤-left-Σ $
                                                                  _⇔_.to contractible⇔↔⊤ $

@@ -63,13 +63,13 @@ record Elim {A : Type a} (P : ∥ A ∥ᴱ → Type p) : Type (a ⊔ p) where
 open Elim public
 
 elim : Elim P → (x : ∥ A ∥ᴱ) → P x
-elim {A = A} {P = P} e = C.elim λ where
-    .C.Elim.∣∣₀ʳ         → E.∣∣ʳ
-    .C.Elim.∣∣₊ʳ {n = n} → helper n
+elim {A} {P} e = C.elim λ where
+    .C.Elim.∣∣₀ʳ     → E.∣∣ʳ
+    .C.Elim.∣∣₊ʳ {n} → helper n
     .C.Elim.∣∣₊≡∣∣₀ʳ x   →
       subst P (C.∣∣₊≡∣∣₀ x) (subst P (sym (C.∣∣₊≡∣∣₀ x)) (E.∣∣ʳ x))  ≡⟨ subst-subst-sym _ _ _ ⟩∎
       E.∣∣ʳ x                                                        ∎
-    .C.Elim.∣∣₊≡∣∣₊ʳ {n = n} x →
+    .C.Elim.∣∣₊≡∣∣₊ʳ {n} x →
       subst P (C.∣∣₊≡∣∣₊ x) (subst P (sym (C.∣∣₊≡∣∣₊ x)) (helper n x))  ≡⟨ subst-subst-sym _ _ _ ⟩∎
       helper n x                                                        ∎
   where
@@ -97,7 +97,7 @@ _ = refl _
 -- erased contexts).
 
 @0 ∥∥ᴱ-proposition : Is-proposition ∥ A ∥ᴱ
-∥∥ᴱ-proposition {A = A} = elim lemma₅
+∥∥ᴱ-proposition {A} = elim lemma₅
   where
   lemma₀ : ∀ n (x : A) → C.∣ O.∣ x ∣-out-^ (1 + n) ∣₊ ≡ ∣ x ∣
   lemma₀ zero x =
@@ -208,7 +208,7 @@ _ = refl _
       (trans (cong C.∣_∣₊ (O.∣∣-constant _ _)) (C.∣∣₊≡∣∣₀ y))  ≡⟨⟩
 
     lemma₁₀ x y                                                ∎
-  lemma₄ x .C.Elim.∣∣₊≡∣∣₊ʳ {n = n} y =
+  lemma₄ x .C.Elim.∣∣₊≡∣∣₊ʳ {n} y =
     subst (∣ x ∣ ≡_) (C.∣∣₊≡∣∣₊ y) (lemma₁₊ (1 + n) x O.∣ y ∣)  ≡⟨ lemma₃ _ _ _ _ ⟩
 
     trans (sym (lemma₀ (1 + n) x))
@@ -232,7 +232,7 @@ _ = refl _
   {@0 g : (x : ∥ A ∥ᴱ) → P x} →
   (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g)) ≃
   (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))
-Σ-Π-∥∥ᴱ-Erased-≡-≃ {A = A} {P = P} {g = g} =
+Σ-Π-∥∥ᴱ-Erased-≡-≃ {A} {P} {g} =
   (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g))                         ↝⟨ (inverse $
                                                                               Σ-cong (inverse C.universal-property-Π) λ _ → F.id) ⟩
   (∃ λ (f :

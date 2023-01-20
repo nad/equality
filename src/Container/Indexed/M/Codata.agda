@@ -61,7 +61,7 @@ open M public
 η = _↔_.from ≡↔≡ η′
   where
   η′ : in-M (out-M x) P.≡ x
-  η′ {x = x} _ .out-M = x .out-M
+  η′ {x} _ .out-M = x .out-M
 
 -- M C is, in a certain sense, a fixpoint of ⟦ C ⟧.
 
@@ -81,7 +81,7 @@ M-coalgebra C = M C , λ _ → out-M
 M≃M :
   ∀ p {I : Type i} {C : V.Container I s (i ⊔ p)} {i} →
   M (_⇔_.to (V.Container⇔Container p) C) i ≃ VM.M C i
-M≃M p {C = C} =
+M≃M p {C} =
   Eq.↔→≃ to from
     (λ c → _↔_.from ≡↔≡ (to-from c))
     (λ c → _↔_.from ≡↔≡ (from-to c))
@@ -267,7 +267,7 @@ M≃M-lift-positions =
   Univalence (i ⊔ s ⊔ p) →
   Coalgebra≃Coalgebra-lift-positions _ (M-coalgebra C) ≡
   M-coalgebra (lift-positions C)
-≡M-coalgebra-lift-positions {C = C} univ =
+≡M-coalgebra-lift-positions {C} univ =
   Σ-≡,≡→≡
     (⟨ext⟩ lemma)
     (⟨ext⟩ λ i → ⟨ext⟩ λ x →
@@ -374,7 +374,7 @@ private
     Univalence (i ⊔ s ⊔ p) →
     Univalence (i ⊔ p) →
     Final′ (M-coalgebra C)
-  M-final′ p {C = C} univ₁ univ₂ =                                    $⟨ VM.M-final′ C′ ⟩
+  M-final′ p {C} univ₁ univ₂ =                                        $⟨ VM.M-final′ C′ ⟩
     VC.Final′ (VM.M-coalgebra C′)                                     ↝⟨ subst VC.Final′ $ sym $ _≃_.to-from C≃C $ sym $
                                                                          M-coalgebra≡M-coalgebra p C′ univ₁ ⟩
     VC.Final′ (_≃_.from C≃C (M-coalgebra (_⇔_.to C⇔C C′)))            ↔⟨ VC.Final′≃Final′ p C′ ext ext
@@ -396,7 +396,7 @@ private
     Univalence (i ⊔ s ⊔ p) →
     Univalence (i ⊔ p) →
     Final (M-coalgebra C)
-  M-final″ p {C = C} univ₁ univ₂ =
+  M-final″ p {C} univ₁ univ₂ =
     block λ b →
     Final′→Final
       ext
@@ -417,7 +417,7 @@ M-final :
   Univalence (i ⊔ s ⊔ p) →
   Univalence (i ⊔ p) →
   Final (M-coalgebra C)
-M-final {p = p} {C = C} univ₁ univ₂ =                        $⟨ M-final″ p univ₁ univ₂ ⟩
+M-final {p} {C} univ₁ univ₂ =                                $⟨ M-final″ p univ₁ univ₂ ⟩
   Final (M-coalgebra (lift-positions C))                     ↔⟨⟩
 
   (∀ Y → Contractible (Y ⇨ M-coalgebra (lift-positions C)))  ↝⟨ (Π-cong-contra-→ (Coalgebra≃Coalgebra-lift-positions _) λ Y →
@@ -446,7 +446,7 @@ H-level-M :
   Univalence (i ⊔ p) →
   (∀ i → H-level n (Shape C i)) →
   ∀ {i} → H-level n (M C i)
-H-level-M {C = C} univ₁ univ₂ h =
+H-level-M {C} univ₁ univ₂ h =
   F.H-level-final-coalgebra
     ext
     (M-coalgebra C , M-final univ₁ univ₂)

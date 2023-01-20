@@ -148,7 +148,7 @@ record Elimᴾ (P : T² → Type p) : Type p where
     spokeʳ : (x : 𝕊¹) → P.[ (λ i → P (spokeᴾ x i)) ] elimᴾ-rimᴾ x ≡ hubʳ
 
 elimᴾ : Elimᴾ P → (x : T²) → P x
-elimᴾ {P = P} e = helper
+elimᴾ {P} e = helper
   where
   module E = Elimᴾ e
 

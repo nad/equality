@@ -73,7 +73,7 @@ sig .Signature._≟S_          =
   Decidable-equality→Decidable-erased-equality Bool._≟_
 sig .Signature._≟V_ =
   Decidable-equality→Decidable-erased-equality Nat._≟_
-sig .Signature.fresh {s = s} xs =           $⟨ LM.fresh (L.map proj₂ xs) ⟩
+sig .Signature.fresh {s} xs =               $⟨ LM.fresh (L.map proj₂ xs) ⟩
   (∃ λ n → n ∉ L.map proj₂ xs)              ↝⟨ Σ-map id [_]→ ⟩
   (∃ λ n → Erased (n ∉ L.map proj₂ xs))     ↝⟨ (∃-cong λ n → E.map (
 

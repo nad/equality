@@ -161,7 +161,7 @@ abstract
       to : ∀ {X Y} {p : P X} {q : P Y} →
            (X≡Y : X ≡ Y) → subst P X≡Y p ≡ q →
            H p q (C.≡→≅ X≡Y C.¹) × H q p (C.≡→≅ X≡Y C.⁻¹)
-      to {X} {p = p} X≡Y p≡q = elim¹
+      to {X} {p} X≡Y p≡q = elim¹
         (λ X≡Y → ∀ {q} → subst P X≡Y p ≡ q →
                  H p q (C.≡→≅ X≡Y C.¹) × H q p (C.≡→≅ X≡Y C.⁻¹))
         (elim¹
@@ -194,7 +194,7 @@ abstract
     ≡≡≃≅HH : ∀ {X Y} {p : P X} {q : P Y} →
              (∃ λ (eq : X ≡ Y) → subst P eq p ≡ q) ≃
              (∃ λ (f : X C.≅ Y) → H p q (f C.¹) × H q p (f C.⁻¹))
-    ≡≡≃≅HH {X} {p = p} {q} =
+    ≡≡≃≅HH {X} {p} {q} =
       Σ-preserves C.≡≃≅ λ X≡Y →
         _↔_.to (⇔↔≃ ext (P-set _) (×-closure 1 (H-prop _) (H-prop _)))
                (record { to = ≡≡≃≅HH.to X≡Y ; from = from X≡Y })

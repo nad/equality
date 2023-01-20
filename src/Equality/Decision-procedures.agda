@@ -154,10 +154,10 @@ module ⊎ {a b} {A : Type a} {B : Type b} where
   -- The inj₁ and inj₂ constructors are cancellative.
 
   cancel-inj₁ : {x y : A} → _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y) → x ≡ y
-  cancel-inj₁ {x = x} = cong {A = A ⊎ B} {B = A} [ id , const x ]
+  cancel-inj₁ {x} = cong {A = A ⊎ B} {B = A} [ id , const x ]
 
   cancel-inj₂ : {x y : B} → _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y) → x ≡ y
-  cancel-inj₂ {x = x} = cong {A = A ⊎ B} {B = B} [ const x , id ]
+  cancel-inj₂ {x} = cong {A = A ⊎ B} {B = B} [ const x , id ]
 
   -- _⊎_ preserves decidability of equality.
 
@@ -267,5 +267,5 @@ module Fin where
   infix 4 _≟_
 
   _≟_ : ∀ {n} → Decidable-equality (Fin n)
-  _≟_ {(zero)} = λ ()
-  _≟_ {suc n}  = ⊎.Dec._≟_ (λ _ _ → yes (refl tt)) (_≟_ {n})
+  _≟_ {n = zero}  = λ ()
+  _≟_ {n = suc n} = ⊎.Dec._≟_ (λ _ _ → yes (refl tt)) (_≟_ {n})

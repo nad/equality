@@ -98,7 +98,7 @@ private
                      (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
                       F ⊙ (_∙_ C g f) ≡ _∙_ D (F ⊙ g) (F ⊙ f)))
 
-   functor-properties-propositional {ℓ₁} {ℓ₂} ext {D = D} _ = ×-closure 1
+   functor-properties-propositional {ℓ₁} {ℓ₂} ext {D} _ = ×-closure 1
      (implicit-Π-closure (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
       Precategory.Hom-is-set D)
      (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
@@ -206,7 +206,7 @@ private
        ≡
      ⊚F≡⊚G
 
-   cong-⊚-from-equality-characterisation⇨ ext {F = F} {G} ⊚F≡⊚G ⊙F≡⊙G =
+   cong-⊚-from-equality-characterisation⇨ ext {F} {G} ⊚F≡⊚G ⊙F≡⊙G =
      cong _⊚_ (_≃_.from (equality-characterisation⇨ ext {F = F} {G = G})
                         (⊚F≡⊚G , ⊙F≡⊙G))                                  ≡⟨ cong-∘ _ _ _ ⟩
 
@@ -228,7 +228,7 @@ private
      {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D}
      {eq₁ eq₂ : F ≡ G} →
      (eq₁ ≡ eq₂) ≃ (cong _⊚_ eq₁ ≡ cong _⊚_ eq₂)
-   equality-characterisation≡⇨ {ℓ₁} {ℓ₂} ext {D = D} {eq₁ = eq₁} {eq₂} =
+   equality-characterisation≡⇨ {ℓ₁} {ℓ₂} ext {D} {eq₁} {eq₂} =
      eq₁ ≡ eq₂                                              ↝⟨ inverse $ Eq.≃-≡ (equality-characterisation⇨ ext) ⟩
 
      _≃_.to (equality-characterisation⇨ ext) eq₁ ≡
@@ -257,7 +257,7 @@ _∙⇨_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
          {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
          {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆} →
        D ⇨ E → C ⇨ D → C ⇨ E
-functor (_∙⇨_ {C = C} {D = D} {E = E} G F) =
+functor (_∙⇨_ {C} {D} {E} G F) =
   (G ⊚_) ∘ (F ⊚_) ,
   (G ⊙_) ∘ (F ⊙_) ,
   (G ⊙ F ⊙ id C              ≡⟨ cong (G ⊙_) $ ⊙-id F ⟩
@@ -319,7 +319,7 @@ Natural-transformation :
   ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
     {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
   C ⇨ D → C ⇨ D → Type _
-Natural-transformation {C = C} {D = D} F G =
+Natural-transformation {C} {D} F G =
   -- Morphisms.
   ∃ λ (γ : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)) →
 
@@ -373,7 +373,7 @@ private
                      (G ⊙ f) ∙ transformation ≡
                      transformation ∙ (F ⊙ f))
 
-   naturality-propositional {ℓ₁} {ℓ₂} ext {D = D} _ _ =
+   naturality-propositional {ℓ₁} {ℓ₂} ext {D} _ _ =
      implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
      implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
      implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
@@ -394,7 +394,7 @@ private
      (∀ {X} → _⇾_.transformation γ {X = X} ≡
               _⇾_.transformation δ {X = X})
 
-   equality-characterisation⇾ {ℓ₁} {ℓ₂} ext {F = F} {G} {γ} {δ} =
+   equality-characterisation⇾ {ℓ₁} {ℓ₂} ext {F} {G} {γ} {δ} =
      γ ≡ δ                                                          ↝⟨ inverse $ Eq.≃-≡ $ ↔⇒≃ record
                                                                          { surjection = record
                                                                            { logical-equivalence = record
@@ -425,7 +425,7 @@ private
      Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
      {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
      Is-set (F ⇾ G)
-   ⇾-set {ℓ₁} {ℓ₂} ext {D = D} {F = F} {G = G} =
+   ⇾-set {ℓ₁} {ℓ₂} ext {D} {F} {G} =
      let surj = record
            { logical-equivalence = record
              { to   = λ γ → record { natural-transformation = γ }
@@ -448,7 +448,7 @@ open Dummy₄ public
 id⇾ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
         {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
       (F : C ⇨ D) → F ⇾ F
-id⇾ {C = C} {D = D} F =
+id⇾ {C} {D} F =
   record { natural-transformation = id , Dummy₅.nat }
   where
   open Precategory D
@@ -458,7 +458,7 @@ id⇾ {C = C} {D = D} F =
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
           (F ⊙ f) ∙ id ≡ id ∙ (F ⊙ f)
-    nat {f = f} =
+    nat {f} =
       (F ⊙ f) ∙ id  ≡⟨ right-identity ⟩
       F ⊙ f         ≡⟨ sym $ left-identity ⟩∎
       id ∙ (F ⊙ f)  ∎
@@ -471,7 +471,7 @@ _∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
          {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
          {F G H : C ⇨ D} →
        G ⇾ H → F ⇾ G → F ⇾ H
-_∙⇾_ {C = C} {D = D} {F} {G} {H} γ δ =
+_∙⇾_ {C} {D} {F} {G} {H} γ δ =
   record { natural-transformation = ε , Dummy₅.nat }
   where
   open Precategory D
@@ -485,7 +485,7 @@ _∙⇾_ {C = C} {D = D} {F} {G} {H} γ δ =
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
           (H ⊙ f) ∙ ε ≡ ε ∙ (F ⊙ f)
-    nat {f = f} =
+    nat {f} =
       (H ⊙ f) ∙ (transformation γ ∙ transformation δ)  ≡⟨ assoc ⟩
       ((H ⊙ f) ∙ transformation γ) ∙ transformation δ  ≡⟨ cong (λ f → f ∙ _) $ natural γ ⟩
       (transformation γ ∙ (G ⊙ f)) ∙ transformation δ  ≡⟨ sym assoc ⟩
@@ -511,7 +511,7 @@ _⇨∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
           {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆}
           {G H : C ⇨ D} →
         (F : D ⇨ E) → G ⇾ H → (F ∙⇨ G) ⇾ (F ∙⇨ H)
-_⇾_.natural-transformation (_⇨∙⇾_ {C = C} {D = D} {E = E} {G} {H} F γ) =
+_⇾_.natural-transformation (_⇨∙⇾_ {C} {D} {E} {G} {H} F γ) =
   ε , Dummy₅.nat
   where
   open Precategory
@@ -525,7 +525,7 @@ _⇾_.natural-transformation (_⇨∙⇾_ {C = C} {D = D} {E = E} {G} {H} F γ) 
 
     nat : ∀ {X Y} {f : Hom C X Y} →
           _∙_ E (F ⊙ H ⊙ f) ε ≡ _∙_ E ε (F ⊙ G ⊙ f)
-    nat {f = f} =
+    nat {f} =
       _∙_ E (F ⊙ H ⊙ f) (F ⊙ transformation)  ≡⟨ sym $ ⊙-∙ F ⟩
       F ⊙ _∙_ D (H ⊙ f) transformation        ≡⟨ cong (F ⊙_) natural ⟩
       F ⊙ _∙_ D transformation (G ⊙ f)        ≡⟨ ⊙-∙ F ⟩∎
@@ -571,7 +571,7 @@ private
      Is-isomorphism ((D ^ C) ext) γ ⇔
      (∀ {X} → Is-isomorphism D (_⇾_.transformation γ {X = X}))
 
-   natural-isomorphism-lemma ext {D = D} {F} {G} {γ} = record
+   natural-isomorphism-lemma ext {D} {F} {G} {γ} = record
      { to = λ { (δ , γδ , δγ) →
          transformation δ ,
          (transformation γ ∙ transformation δ  ≡⟨⟩

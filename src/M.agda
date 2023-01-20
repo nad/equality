@@ -84,7 +84,7 @@ abstract
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
        force (f b) {j = j} ≡ force (g (subst B p b))) ↔
     _≡_ {A = M A B i} (dns x f) (dns y g)
-  M-≡,≡↔≡ {a} {i = i} {A} {B} ext η {x} {y} {f} {g} =
+  M-≡,≡↔≡ {a} {i} {A} {B} ext η {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ b {j : Size< i} →
        force (f b) {j = j} ≡ force (g (subst B p b)))         ↝⟨ ∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → M′ A B i) p f ≡ g)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
@@ -175,7 +175,7 @@ lıɐʇ≡ (dns p q) y = force (q y)
 
 ≡⇒≡M : ∀ {a b i} {A : Type a} {B : A → Type b} {x y : M A B ∞} →
        x ≡ y → [ i ] x ≡M y
-≡⇒≡M {i = i} {B = B} {dns x f} {dns y g} p =
+≡⇒≡M {i} {B} {dns x f} {dns y g} p =
   dns (proj₁ q) helper
   where
   q = elim (λ {m m′} m≡m′ →
@@ -225,7 +225,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} → [ ∞ ] x ≡M y → x ≡ y) →
     Contractible A → Contractible (M A B ∞)
-  M-closure-contractible {A = A} {B} ext (z , irrA) = (x , ext ∘ irr)
+  M-closure-contractible {A} {B} ext (z , irrA) = (x , ext ∘ irr)
     where
     x : ∀ {i} → M A B i
     x = dns z λ _ → λ { .force → x }
@@ -242,7 +242,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} → [ ∞ ] x ≡M y → x ≡ y) →
     Is-proposition A → Is-proposition (M A B ∞)
-  M-closure-propositional {A = A} {B} ext p =
+  M-closure-propositional {A} {B} ext p =
     λ x y → ext $ irrelevant x y
     where
     irrelevant : ∀ {i} (x y : M A B ∞) → [ i ] x ≡M y
@@ -260,7 +260,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     ({x y : M A B ∞} {p q : x ≡ y} → [ ∞ ] ≡⇒≡M p ≡≡M ≡⇒≡M q → p ≡ q) →
     Is-set A → Is-set (M A B ∞)
-  M-closure-set {A = A} {B} ext s =
+  M-closure-set {A} {B} ext s =
     λ p q → ext $ uip (≡⇒≡M p) (≡⇒≡M q)
     where
     uip : ∀ {i} {x y : M A B ∞} (p q : [ ∞ ] x ≡M y) → [ i ] p ≡≡M q

@@ -54,7 +54,7 @@ xs ⊆ ys = All (_∈ ys) xs
 -- The _⊆_ relation matches _∼[ subset ]_.
 
 ⊆↔∼[subset] : xs ⊆ ys ↔ xs ∼[ subset ] ys
-⊆↔∼[subset] {xs = xs} {ys = ys} =
+⊆↔∼[subset] {xs} {ys} =
   xs ⊆ ys                  ↔⟨⟩
   All (_∈ ys) xs           ↔⟨⟩
   (∀ x → x ∈ xs → x ∈ ys)  ↔⟨⟩
@@ -66,7 +66,7 @@ All-[] :
   ∀ {k} {A : Type a} (P : A → Type p) →
   Extensionality? k a (a ⊔ p) →
   All P [] ↝[ k ] ⊤
-All-[] {a = a} {k = k} {A} P ext =
+All-[] {a} {k} {A} P ext =
   All P []              ↔⟨⟩
   (∀ y → y ∈ [] → P y)  ↔⟨⟩
   (∀ y → ⊥ → P y)       ↝⟨ (∀-cong ext λ _ → Π⊥↔⊤ (lower-extensionality? k a a ext)) ⟩
@@ -81,7 +81,7 @@ module _ {k} {A : Type a} {P : A → Type p}
     ext′ = lower-extensionality? k a a ext
 
   All-∷ : All P (x ∷ xs) ↝[ k ] P x × All P xs
-  All-∷ {x = x} {xs = xs} =
+  All-∷ {x} {xs} =
     All P (x ∷ xs)                              ↔⟨⟩
     (∀ y → y ∈ x ∷ xs → P y)                    ↔⟨⟩
     (∀ y → y ≡ x ⊎ y ∈ xs → P y)                ↝⟨ ∀-cong ext (λ _ → Π⊎↔Π×Π ext′) ⟩
@@ -91,7 +91,7 @@ module _ {k} {A : Type a} {P : A → Type p}
     P x × All P xs                              □
 
   All-++ : All P (xs ++ ys) ↝[ k ] All P xs × All P ys
-  All-++ {xs = xs} {ys = ys} =
+  All-++ {xs} {ys} =
     All P (xs ++ ys)                             ↔⟨⟩
     (∀ x → x ∈ xs ++ ys → P x)                   ↝⟨ (∀-cong ext λ _ → →-cong₁ ext′ (Any-++ _ _ _)) ⟩
     (∀ x → x ∈ xs ⊎ x ∈ ys → P x)                ↝⟨ (∀-cong ext λ _ → Π⊎↔Π×Π ext′) ⟩
@@ -115,7 +115,7 @@ All-map :
     {f : A → B} {xs : List A} →
   (ext : Extensionality? k (a ⊔ b) (a ⊔ b ⊔ p)) →
   All P (L.map f xs) ↝[ k ] All (P ∘ f) xs
-All-map {a = a} {b = b} {p = p} {k = k} {P = P} {f} {xs} ext =
+All-map {a} {b} {p} {k} {P} {f} {xs} ext =
   (∀ x → x ∈ L.map f xs → P x)              ↝⟨ (∀-cong ext₁ λ _ → →-cong₁ ext₂ (Any-map _ _ _)) ⟩
   (∀ x → Any (λ y → x ≡ f y) xs → P x)      ↝⟨ (∀-cong ext₃ λ _ → →-cong₁ ext₄ (Any-∈ _ _)) ⟩
   (∀ x → (∃ λ y → x ≡ f y × y ∈ xs) → P x)  ↝⟨ (∀-cong ext₃ λ _ → from-bijection currying) ⟩
@@ -136,7 +136,7 @@ All->>= :
   ∀ {k} {A B : Type ℓ} {P : B → Type p} {f : A → List B} {xs : List A} →
   (ext : Extensionality? k ℓ (ℓ ⊔ p)) →
   All P (xs >>= f) ↝[ k ] All (All P ∘ f) xs
-All->>= {P = P} {f = f} {xs = xs} ext =
+All->>= {P} {f} {xs} ext =
   All P (L.concat (L.map f xs))  ↝⟨ All-concat ext ⟩
   All (All P) (L.map f xs)       ↝⟨ All-map ext ⟩□
   All (All P ∘ f) xs             □
@@ -145,7 +145,7 @@ All-const :
   {A : Type a} {B : Type b} {xs : List B} →
   Extensionality? k b a →
   All (const A) xs ↝[ k ] Vec A (L.length xs)
-All-const {A = A} {xs = xs} ext =
+All-const {A} {xs} ext =
   (∀ x → x ∈ xs → A)       ↔⟨ inverse currying ⟩
   (∃ (_∈ xs) → A)          ↝⟨ →-cong₁ ext (Fin-length _) ⟩□
   (Fin (L.length xs) → A)  □
@@ -165,7 +165,7 @@ All-const-replicate :
   {A : Type a} →
   Extensionality? k lzero a →
   All (const A) (L.replicate n tt) ↝[ k ] Vec A n
-All-const-replicate {n = n} {A = A} ext =
+All-const-replicate {n} {A} ext =
   All (const A) (L.replicate n tt)     ↝⟨ All-const ext ⟩
   Vec A (L.length (L.replicate n tt))  ↝⟨ →-cong₁ ext $ ≡⇒↝ bijection $ cong Fin (L.length-replicate _) ⟩□
   Vec A n                              □
@@ -175,7 +175,7 @@ All-Σ :
   Extensionality? k a (a ⊔ p ⊔ q) →
   All (λ x → Σ (P x) (Q x)) xs ↝[ k ]
   ∃ λ (ps : All P xs) → ∀ x (x∈xs : x ∈ xs) → Q x (ps x x∈xs)
-All-Σ {P = P} {Q = Q} {xs = xs} ext =
+All-Σ {P} {Q} {xs} ext =
   All (λ x → Σ (P x) (Q x)) xs                                   ↔⟨⟩
 
   (∀ x → x ∈ xs → Σ (P x) (Q x))                                 ↝⟨ (∀-cong ext λ _ → from-isomorphism ΠΣ-comm) ⟩
@@ -191,7 +191,7 @@ All-Σ {P = P} {Q = Q} {xs = xs} ext =
 -- Some abbreviations.
 
 nil : All P []
-nil {P = P} = _⇔_.from (All-[] P _) _
+nil {P} = _⇔_.from (All-[] P _) _
 
 cons : P x → All P xs → All P (x ∷ xs)
 cons = curry (_⇔_.from (All-∷ _))
@@ -210,7 +210,7 @@ append = curry (_⇔_.from (All-++ _))
 List-Σ :
   {A : Type a} {P : A → Type p} →
   List (Σ A P) ↝[ a ∣ a ⊔ p ] Σ (List A) (All P)
-List-Σ {a = a} {p = p} {A = A} {P = P} =
+List-Σ {a} {p} {A} {P} =
   generalise-ext?
     (record { to = to; from = uncurry from })
     (λ ext →
@@ -257,7 +257,7 @@ Listᴾ-List-Σ :
   Listᴾ (R on proj₁) xs ys
 Listᴾ-List-Σ {xs = []} {ys = []} =
   ↑ _ ⊤  □
-Listᴾ-List-Σ {R = R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
+Listᴾ-List-Σ {R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
   R x y × Listᴾ R (List-Σ _ xs .proj₁) (List-Σ _ ys .proj₁)  ↝⟨ (∃-cong λ _ → Listᴾ-List-Σ) ⟩□
   R x y × Listᴾ (R on proj₁) xs ys                           □
 Listᴾ-List-Σ {xs = []} {ys = _ ∷ _} =
@@ -273,7 +273,7 @@ H-level-All :
   ∀ n →
   (∀ x → H-level n (P x)) →
   (∀ xs → H-level n (All P xs))
-H-level-All {a = a} ext n h xs =
+H-level-All {a} ext n h xs =
   Π-closure ext n λ _ →
   Π-closure (lower-extensionality a a ext) n λ _ →
   h _
@@ -285,7 +285,7 @@ append-Any-++-inj₁ :
   (x∈xs : x ∈ xs) →
   append ps qs _ (_↔_.from (Any-++ _ _ _) (inj₁ x∈xs)) ≡
   ps _ x∈xs
-append-Any-++-inj₁ {P = P} {x = x} {ps = ps} {qs} x∈xs =
+append-Any-++-inj₁ {P} {x} {ps} {qs} x∈xs =
   append ps qs _ (_↔_.from (Any-++ _ _ _) (inj₁ x∈xs))       ≡⟨⟩
 
   [ ps _ , qs _ ] (_↔_.to (Any-++ _ _ _)
@@ -299,7 +299,7 @@ append-Any-++-inj₂ :
   ∀ xs {ys} {ps : All P xs} {qs : All P ys} {y∈ys : y ∈ ys} →
   append ps qs _ (_↔_.from (Any-++ _ xs _) (inj₂ y∈ys)) ≡
   qs _ y∈ys
-append-Any-++-inj₂ {P = P} {y = y} xs {ps = ps} {qs} {y∈ys} =
+append-Any-++-inj₂ {P} {y} xs {ps} {qs} {y∈ys} =
   append ps qs _ (_↔_.from (Any-++ _ xs _) (inj₂ y∈ys))       ≡⟨⟩
 
   [ ps _ , qs _ ] (_↔_.to (Any-++ _ _ _)
@@ -317,7 +317,7 @@ All-cong :
   (∀ x → P x ↝[ ⌊ k ⌋-sym ] Q x) →
   xs ∼[ ⌊ k ⌋-sym ] ys →
   All P xs ↝[ ⌊ k ⌋-sym ] All Q ys
-All-cong {a = a} {k = k} {P = P} {Q} {xs} {ys} ext P↝Q xs∼ys =
+All-cong {a} {k} {P} {Q} {xs} {ys} ext P↝Q xs∼ys =
   All P xs              ↔⟨⟩
   (∀ x → x ∈ xs → P x)  ↝⟨ ∀-cong ext (λ _ → →-cong (lower-extensionality? ⌊ k ⌋-sym a a ext) (xs∼ys _) (P↝Q _)) ⟩
   (∀ x → x ∈ ys → Q x)  ↔⟨⟩
@@ -327,7 +327,7 @@ All-cong-→ :
   (∀ x → P x → Q x) →
   ys ∼[ implication ] xs →
   All P xs → All Q ys
-All-cong-→ {P = P} {Q = Q} {ys = ys} {xs = xs} P→Q ys∼xs =
+All-cong-→ {P} {Q} {ys} {xs} P→Q ys∼xs =
   All P xs              ↔⟨⟩
   (∀ x → x ∈ xs → P x)  ↝⟨ ∀-cong _ (λ _ → →-cong-→ (ys∼xs _) (P→Q _)) ⟩
   (∀ x → x ∈ ys → Q x)  ↔⟨⟩
@@ -383,7 +383,7 @@ map₂-⊎-map-id :
   Extensionality a (a ⊔ p) →
   ∀ {x xs ys} {f : ys ⊆ xs} {p : P x} {ps : All P xs} →
   map₂ (λ _ → ⊎-map id (f _)) (cons p ps) ≡ cons p (map₂ f ps)
-map₂-⊎-map-id {a = a} ext {f = f} {p} {ps} =
+map₂-⊎-map-id {a} ext {f} {p} {ps} =
   apply-ext ext λ _ →
   apply-ext (lower-extensionality lzero a ext)
     [ (λ _ → refl _) , (λ _ → refl _) ]
@@ -393,7 +393,7 @@ map₂-⊎-map-id-inj₂ :
   Extensionality a (a ⊔ p) →
   ∀ {x y xs} {p : P x} {q : P y} {ps : All P xs} →
   map₂ (λ _ → ⊎-map id inj₂) (cons p (cons q ps)) ≡ cons p ps
-map₂-⊎-map-id-inj₂ ext {p = p} {q} {ps} =
+map₂-⊎-map-id-inj₂ ext {p} {q} {ps} =
   map₂ (λ _ → ⊎-map id inj₂) (cons p (cons q ps))  ≡⟨ map₂-⊎-map-id ext ⟩
   cons p (map₂ (λ _ → inj₂) (cons q ps))           ≡⟨⟩
   cons p ps                                        ∎
@@ -405,7 +405,7 @@ map₂-++-cong :
   {f : xs₁ ⊆ xs₂} {g : ys₁ ⊆ ys₂} →
   map₂ (++-cong f g) (append ps qs) ≡
   append (map₂ f ps) (map₂ g qs)
-map₂-++-cong {a = a} ext _ {ps = ps} {qs} {f} {g} =
+map₂-++-cong {a} ext _ {ps} {qs} {f} {g} =
   apply-ext ext λ _ →
   apply-ext (lower-extensionality lzero a ext) λ x∈ →
 

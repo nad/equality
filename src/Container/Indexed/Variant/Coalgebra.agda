@@ -40,7 +40,7 @@ private
 -- The type of coalgebras for a (singly indexed) container.
 
 Coalgebra : {I : Type i} → Container I s p → Type (lsuc (i ⊔ s ⊔ p))
-Coalgebra {i = i} {s = s} {p = p} {I = I} C =
+Coalgebra {i} {s} {p} {I} C =
   ∃ λ (P : I → Type (i ⊔ s ⊔ p)) → P ⇾ ⟦ C ⟧ P
 
 -- Coalgebra morphisms.
@@ -203,8 +203,8 @@ Final′→Final≃Final :
   ((X , _) (Y , _) : Final-coalgebra′ C) →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Final X ↝[ lsuc (i ⊔ s ⊔ p) ∣ i ⊔ s ⊔ p ] Final Y
-Final′→Final≃Final {i = i} {s = s} {p = p} {C = C}
-  ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) ext {k = k} ext′ =
+Final′→Final≃Final {i} {s} {p} {C}
+  ((X₁ , out₁) , final₁) ((X₂ , out₂) , final₂) ext {k} ext′ =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
     (lower-extensionality? k _ lzero ext′)
@@ -271,7 +271,7 @@ Final-coalgebra-propositional :
   Extensionality (lsuc (i ⊔ s ⊔ p)) (lsuc (i ⊔ s ⊔ p)) →
   Univalence (i ⊔ s ⊔ p) →
   Is-proposition (Final-coalgebra C)
-Final-coalgebra-propositional {I = I} {C = C@(S ◁ P)}
+Final-coalgebra-propositional {I} {C = C@(S ◁ P)}
   ext univ F₁@((P₁ , out₁) , _) F₂@(X₂@(P₂ , out₂) , _) =
   block λ b →
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
@@ -286,7 +286,7 @@ Final-coalgebra-propositional {I = I} {C = C@(S ◁ P)}
     ∀ b x →
     map C (_≃_.to ∘ lemma₀ b) i (out₁ i (_≃_.from (lemma₀ b i) x)) ≡
     out₂ i x
-  lemma₀-lemma {i = i} ⊠ x =
+  lemma₀-lemma {i} ⊠ x =
     map C (_≃_.to ∘ lemma₀ ⊠) i (out₁ i (_≃_.from (lemma₀ ⊠ i) x))  ≡⟨ cong (λ f → f _ (_≃_.from (lemma₀ ⊠ i) x)) $
                                                                        out-related F₁ F₂ ⟩
     out₂ i (_≃_.to (lemma₀ ⊠ i) (_≃_.from (lemma₀ ⊠ i) x))          ≡⟨ cong (out₂ _) $
@@ -396,7 +396,7 @@ Coalgebra≃Coalgebra :
   ∀ p {I : Type i} (C : Container I s (i ⊔ p)) →
   Coalgebra C ↝[ i ⊔ s ⊔ p ∣ i ⊔ s ⊔ p ]
   CC.Coalgebra (_⇔_.to (Container⇔Container p) C)
-Coalgebra≃Coalgebra {s = s} p C {k = k} ext =
+Coalgebra≃Coalgebra {s} p C {k} ext =
   (∃ λ P → P ⇾ ⟦ C ⟧ P)                                   ↝⟨ (∃-cong λ _ →
                                                               ∀-cong (lower-extensionality? k (s ⊔ p) lzero ext) λ _ →
                                                               ∀-cong ext λ _ →
@@ -411,7 +411,7 @@ Coalgebra≃Coalgebra {s = s} p C {k = k} ext =
   (X Y : Coalgebra C) →
   (X ⇨ Y) ≃
   (Coalgebra≃Coalgebra p C _ X CC.⇨ Coalgebra≃Coalgebra p C _ Y)
-⇨≃⇨ {s = s} p C ext (P , f) (Q , g) =
+⇨≃⇨ {s} p C ext (P , f) (Q , g) =
   (∃ λ (h : P ⇾ Q) → g ∘⇾ h ≡ map _ h ∘⇾ f)     ↝⟨ (∃-cong λ h → inverse $ Eq.≃-≡ $
                                                     ∀-cong (lower-extensionality (s ⊔ p) lzero ext) λ _ →
                                                     ∀-cong ext λ _ →

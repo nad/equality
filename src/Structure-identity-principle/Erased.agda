@@ -74,7 +74,7 @@ Structure a b = Type a → Type b
 -- Types with a given structure.
 
 Type-with : Structure a b → Type (lsuc a ⊔ b)
-Type-with {a = a} F = ∃ λ (A : Type a) → F A
+Type-with {a} F = ∃ λ (A : Type a) → F A
 
 -- Axioms.
 --
@@ -146,7 +146,7 @@ Univalent-With-the-axioms :
   Univalent F P →
   Univalent (F With-the-axioms Ax) (Lift-With-the-axioms P)
 Univalent-With-the-axioms
-  {F = F} {Ax = Ax} {P = P} prop u .Univalent.univalent
+  {F} {Ax} {P} prop u .Univalent.univalent
   {A = A₁ , x₁ , ax₁} {B = A₂ , x₂ , ax₂} eq =
 
   P (A₁ , x₁) (A₂ , x₂) eq                                            ↝⟨ u .Univalent.univalent eq ⟩
@@ -168,7 +168,7 @@ Univalent-With-the-axioms
 @0 sip :
   Univalent F P →
   (A ≃[ P ]ᴱ B) ≃ (A ≡ B)
-sip {F = F} {P = P} {A = A} {B = B} u =
+sip {F} {P} {A} {B} u =
   (A ≃[ P ]ᴱ B)                                                    ↔⟨⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → Erased (P A B eq))              ↔⟨ (∃-cong λ _ → erased Erased↔) ⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → P A B eq)                       ↝⟨ Σ-cong
@@ -195,7 +195,7 @@ induced-structures :
   (A , x) ≃[ P ]ᴱ (B , y) →
   ∃ λ (ax : Erased (Ax (B , y))) →
     X ≃[ Lift-With-the-axioms P ]ᴱ (B , y , ax)
-induced-structures {Ax = Ax} u (A , x , ax) (B , y) eq =
+induced-structures {Ax} u (A , x , ax) (B , y) eq =
     Er.map (subst Ax (_≃_.to (sip u) eq)) ax
   , eq
 
@@ -319,7 +319,7 @@ Graph f x y = f x ≡ y
   (∀ x y → Is-proposition (R x y)) →
   Is-equivalence-relation R →
   Graph (Q.[_] {R = R}) ⟵ ≡ R
-Graph-[]-⟵≡ {R = R} prop equiv =
+Graph-[]-⟵≡ {R} prop equiv =
   ⟨ext⟩ λ x → ⟨ext⟩ λ y →
   let
     lemma =
@@ -346,7 +346,7 @@ Graph-[]-⟵≡ {R = R} prop equiv =
   (∀ x y → Is-proposition (R x y)) →
   Is-equivalence-relation R →
   R ;ᴱ Graph ([_] {R = R}) ≡ Graph ([_] {R = R})
-;ᴱ-Graph-[]≡Graph-[] {R = R} prop equiv =
+;ᴱ-Graph-[]≡Graph-[] {R} prop equiv =
   ⟨ext⟩ λ x → ⟨ext⟩ λ y →
   ≃⇒≡ U.univ $
   flip
@@ -418,7 +418,7 @@ Is-QERᴱ R =
 Is-QERᴱ≃Is-QER-Erased :
   {@0 R : A → B → Type r} →
   Is-QERᴱ R ≃ Is-QER (λ x y → Erased (R x y))
-Is-QERᴱ≃Is-QER-Erased {A = A} {B = B} {R = R} = ×-cong₁ λ _ →
+Is-QERᴱ≃Is-QER-Erased {A} {B} {R} = ×-cong₁ λ _ →
 
   Erased (∀ {x x′ y y′} → R x y → R x′ y → R x′ y′ → R x y′)  ↝⟨ Erased-cong lemma ⟩
 
@@ -496,7 +496,7 @@ Is-QER→Is-equivalence-relation-⟵ :
   Is-QER R →
   Is-equivalence-relation (R ⟵)
 Is-QER→Is-equivalence-relation-⟵ (qper , lr , rl) = λ where
-  .Is-equivalence-relation.reflexive {x = x} →
+  .Is-equivalence-relation.reflexive {x} →
     T.∥∥ᴱ-map (λ (y , Rxy) → y , Rxy , Rxy) (lr x)
   .Is-equivalence-relation.symmetric →
     T.∥∥ᴱ-map (Σ-map id swap)
@@ -515,7 +515,7 @@ Is-QER→Is-equivalence-relation-⟵ (qper , lr , rl) = λ where
 @0 Is-QERᴱ→Is-equivalence-relation-⟵ :
   Is-QERᴱ R →
   Is-equivalence-relation (R ⟵)
-Is-QERᴱ→Is-equivalence-relation-⟵ {R = R} =
+Is-QERᴱ→Is-equivalence-relation-⟵ {R} =
   Is-QERᴱ R                      ↔⟨ inverse Is-QER≃Is-QERᴱ ⟩
   Is-QER R                       ↝⟨ Is-QER→Is-equivalence-relation-⟵ ⟩□
   Is-equivalence-relation (R ⟵)  □
@@ -545,7 +545,7 @@ Is-QER→Is-equivalence-relation-⟶ (qper , lr , rl) = λ where
 @0 Is-QERᴱ→Is-equivalence-relation-⟶ :
   Is-QERᴱ R →
   Is-equivalence-relation (R ⟶)
-Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
+Is-QERᴱ→Is-equivalence-relation-⟶ {R} =
   Is-QERᴱ R                      ↔⟨ inverse Is-QER≃Is-QERᴱ ⟩
   Is-QER R                       ↝⟨ Is-QER→Is-equivalence-relation-⟶ ⟩□
   Is-equivalence-relation (R ⟶)  □
@@ -563,7 +563,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
     ∀ x y →
     ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → R x y) →
       Erased (Is-equivalence f)
-/ᴱ⟵≃ᴱ/ᴱ⟶ {A = A} {B = B} {R = R} qer@(qper , lr , rl) prop =
+/ᴱ⟵≃ᴱ/ᴱ⟶ {A} {B} {R} qer@(qper , lr , rl) prop =
     EEq.↔→≃ᴱ to from to-from from-to
   , (λ _ _ →
          to″
@@ -601,7 +601,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
 
     .Q.[]ʳ → to′ ∘ lr
 
-    .Q.[]-respects-relationʳ {x = x} {y = x′} → T.elim λ @0 where
+    .Q.[]-respects-relationʳ {x} {y = x′} → T.elim λ @0 where
       .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
       .T.∣∣ʳ (_ , Rxy , Rx′y)         →
         to′ (lr x)   ≡⟨ to′-lemma Rxy Rx′y (lr x) (lr x′) ⟩∎
@@ -646,7 +646,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
   @0 to′≡[] :
     R x y → (p : ∥ ∃ (R x) ∥ᴱ) →
     to′ p ≡ [ y ]
-  to′≡[] {x = x} {y = y} Rxy = T.elim λ @0 where
+  to′≡[] {x} {y} Rxy = T.elim λ @0 where
     .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
     .T.∣∣ʳ (y′ , Rxy′)              →
       [ y′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rxy′ , Rxy ∣ ⟩∎
@@ -671,7 +671,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
   @0 from′≡[] :
     R x y → (p : ∥ ∃ ((R ⁻¹) y) ∥ᴱ) →
     from′ p ≡ [ x ]
-  from′≡[] {x = x} {y = y} Rxy = T.elim λ @0 where
+  from′≡[] {x} {y} Rxy = T.elim λ @0 where
     .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
     .T.∣∣ʳ (x′ , Rx′y)              →
       [ x′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rx′y , Rxy ∣ ⟩∎
@@ -694,7 +694,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
       [ x ]              ∎
 
   to″ : to [ x ] ≡ [ y ] → R x y
-  to″ {x = x} {y = y} =
+  to″ {x} {y} =
     to′ (lr x) ≡ [ y ]  ↝⟨ flip (T.elim {P = λ p → to′ p ≡ [ y ] → R x y}) (lr x) (λ where
                              .T.truncation-is-propositionʳ _ →
                                Π-closure ext 1 λ _ →
@@ -712,7 +712,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
     R x y               □
 
   @0 from″ : R x y → to [ x ] ≡ [ y ]
-  from″ {x = x} {y = y} Rxy =
+  from″ {x} {y} Rxy =
     to′ (lr x)  ≡⟨ to′≡[] Rxy (lr x) ⟩∎
     [ y ]       ∎
 
@@ -729,7 +729,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
   @0 (∀ x y → Is-proposition (R x y)) →
   ∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
     Erased (∀ x y → (_≃ᴱ_.to eq [ x ] ≡ [ y ]) ≃ R x y)
-/ᴱ⟵≃ᴱ/ᴱ⟶ᴱ {A = A} {B = B} {R = R} qer prop =              $⟨ [ prop ] ⟩
+/ᴱ⟵≃ᴱ/ᴱ⟶ᴱ {A} {B} {R} qer prop =                          $⟨ [ prop ] ⟩
 
   Erased (∀ x y → Is-proposition (R x y))                 ↝⟨ (λ ([ hyp ]) x y → H-level-Erased 1 (hyp x y)) ⦂ (_ → _) ⟩
 
@@ -749,7 +749,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
     ∀ x y →
     ((λ x y → Erased (R₁ x y)) ;ᴱ (λ x y → Erased (R₂ x y))) x y ⇔
     (R₁ ;ᴱ R₂) x y
-  lemma {R₁ = R₁} {R₂ = R₂} x z =
+  lemma {R₁} {R₂} x z =
     ∥ (∃ λ y → Erased (R₁ x y) × Erased (R₂ y z)) ∥ᴱ  ↔⟨ (T.∥∥ᴱ-cong $ ∃-cong λ _ →
                                                           Erased↔ .erased
                                                             ×-cong
@@ -785,7 +785,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R = R} =
 
 Relation-transformer-for :
   Structure a b → Type (lsuc (a ⊔ b))
-Relation-transformer-for {a = a} {b = b} F =
+Relation-transformer-for {a} {b} F =
   ∀ {A B} → (A → B → Type a) → F A → F B → Type b
 
 -- A notion of "suitable" relation transformers.
@@ -847,7 +847,7 @@ record Suitable
 Univalentᴿ :
   {F : Structure a b} →
   @0 Relation-transformer-for F → Type (lsuc a ⊔ b)
-Univalentᴿ {F = F} G =
+Univalentᴿ {F} G =
   Suitable G ×
   Univalent F (λ (A , x) (B , y) eq → G (Graph (_≃ᴱ_.to eq)) x y)
 
@@ -880,20 +880,20 @@ Suitable-map :
   {@0 G H : Relation-transformer-for F} →
   @0 (∀ {A B} {R : A → B → _} {x y} → G R x y ≃ H R x y) →
   Suitable G → Suitable H
-Suitable-map {G = G} {H = H} G≃H s-G = λ where
+Suitable-map {G} {H} G≃H s-G = λ where
     .Suitable.preserves-is-set → S.preserves-is-set
 
-    .Suitable.preserves-is-proposition {R = R} →
+    .Suitable.preserves-is-proposition {R} →
       (∀ x y → Is-proposition (R x y))    ↝⟨ S.preserves-is-proposition ⟩
       (∀ x y → Is-proposition (G R x y))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → H-level-cong _ 1 G≃H) ⟩□
       (∀ x y → Is-proposition (H R x y))  □
 
-    .Suitable.symmetric {R = R} {x = x} {y = y} →
+    .Suitable.symmetric {R} {x} {y} →
       (∀ x y → Is-proposition (R x y))  ↝⟨ S.symmetric ⟩
       (G R x y → G (R ⁻¹) y x)          ↝⟨ →-cong-→ (_≃_.from G≃H) (_≃_.to G≃H) ⟩□
       (H R x y → H (R ⁻¹) y x)          □
 
-    .Suitable.transitive {R = R} {S = S} {x = x} {y = y} {z = z} → curry
+    .Suitable.transitive {R} {S} {x} {y} {z} → curry
       ((∀ x y → Is-proposition (R x y)) ×
        (∀ x y → Is-proposition (S x y))      ↝⟨ uncurry S.transitive ⟩
 
@@ -901,7 +901,7 @@ Suitable-map {G = G} {H = H} G≃H s-G = λ where
 
        (H R x y → H S y z → H (R ;ᴱ S) x z)  □)
 
-    .Suitable.descent {x = x} {R = R} prop equiv HRxx →   $⟨ [ HRxx ] ⟩
+    .Suitable.descent {x} {R} prop equiv HRxx →           $⟨ [ HRxx ] ⟩
       Erased (H R x x)                                    ↔⟨ Erased-cong (inverse G≃H) ⟩
       Erased (G R x x)                                    ↝⟨ (λ ([ hyp ]) → S.descent prop equiv hyp) ⦂ (_ → _) ⟩
       Contractibleᴱ (∃ λ y → Erased (G (Graph [_]) x y))  ↝⟨ ECP.Contractibleᴱ-cong _ (∃-cong λ _ → Erased-cong G≃H) ⟩□
@@ -933,7 +933,7 @@ Suitable→/ᴱ⟵×/ᴱ⟶ :
   Erased
     (G (Graph [_]) x x′ × G (Graph [_]) y y′ ×
      G (Graph (_≃ᴱ_.to (/ᴱ⟵≃ᴱ/ᴱ⟶ᴱ qer prop .proj₁))) x′ y′)
-Suitable→/ᴱ⟵×/ᴱ⟶ {F = F} (A , x) (B , y) {R = R} {G = G}
+Suitable→/ᴱ⟵×/ᴱ⟶ {F} (A , x) (B , y) {R} {G}
   s qer@([ qper ] , _) prop g =
   x″ , y″ , [ (Gxx″ , Gyy″ , g″) ]
   where
@@ -985,7 +985,7 @@ Suitable→/ᴱ⟵×/ᴱ⟶ {F = F} (A , x) (B , y) {R = R} {G = G}
   @0 to :
     ∀ {x y} →
     (Graph [_] ⁻¹ ;ᴱ R ;ᴱ Graph [_]) [ x ] [ y ] → R x y
-  to {x = x} {y = y} =
+  to {x} {y} =
     T.rec λ @0 where
       .T.truncation-is-propositionʳ →
         prop _ _
@@ -1070,7 +1070,7 @@ Univalentᴿ→/ᴱ⟵×/ᴱ⟶ :
   Erased (G (Graph [_]) x x′ × G (Graph [_]) y y′ ×
           _≡_ {A = Type-with F}
             (A /ᴱ R ⟵ , x′) (B /ᴱ R ⟶ , y′))
-Univalentᴿ→/ᴱ⟵×/ᴱ⟶ (A , x) (B , y) {R = R} {G = G} (s , u) qer prop g =
+Univalentᴿ→/ᴱ⟵×/ᴱ⟶ (A , x) (B , y) {R} {G} (s , u) qer prop g =
   let (x′ , y′ , [ x∼x′ , y∼y′ , x′∼y′ ]) =
         Suitable→/ᴱ⟵×/ᴱ⟶ (A , x) (B , y) s qer prop g
   in
@@ -1104,13 +1104,13 @@ Univalentᴿ→/ᴱ⟵×/ᴱ⟶ (A , x) (B , y) {R = R} {G = G} (s , u) qer prop
   @0 (∀ x y → Is-proposition (R x y)) →
   @0 Is-equivalence-relation R →
   F A /ᴱ G R → F (A /ᴱ R)
-/ᴱ→/ᴱ {F = F} {R = R} G s acts prop equiv =
+/ᴱ→/ᴱ {F} {R} G s acts prop equiv =
   Q.rec λ where
     .Q.[]ʳ → map [_]
 
     .Q.is-setʳ → S.preserves-is-set Q./ᴱ-is-set
 
-    .Q.[]-respects-relationʳ {x = x} {y = y} GRxy →
+    .Q.[]-respects-relationʳ {x} {y} GRxy →
       let GRxx =         $⟨ GRxy ⟩
             G R x y      ↝⟨ (λ GRxy → S.transitive prop (flip prop) GRxy (S.symmetric prop GRxy)) ⟩
             G (R ⟵) x x  ↝⟨ subst (λ R → G R _ _) (⟵≡ prop equiv) ⟩□
@@ -1189,7 +1189,7 @@ record Positive
     (∀ x y → Is-proposition (R x y)) →
     Is-equivalence-relation R →
     ∀ x → G R x x
-  reflexive {R = R} prop equiv x = $⟨ reflexive-∥≡∥ᴱ ⟩
+  reflexive {R} prop equiv x =     $⟨ reflexive-∥≡∥ᴱ ⟩
     G (λ x y → ∥ x ≡ y ∥ᴱ) x x     ↝⟨ A.map-map
                                         (T.rec λ @0 where
                                            .T.truncation-is-propositionʳ →
@@ -1225,9 +1225,7 @@ Is-Const-equivalence (_ , x) (_ , y) _ = x ≡ y
 -- Const and Is-Const-equivalence are univalent.
 
 Const-univalent : Univalent (Const {a = a} B) Is-Const-equivalence
-Const-univalent {B = B}
-  .Univalent.univalent {A = _ , x} {B = _ , y} eq =
-
+Const-univalent {B} .Univalent.univalent {A = _ , x} {B = _ , y} eq =
   x ≡ y                                                      ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ subst-const _ ⟩□
   subst (Const B) (≃⇒≡ U.abstract-univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
 
@@ -1257,14 +1255,14 @@ Constᴿ-acts-on-functions = λ where
 -- Constᴿ is positive for sets.
 
 Constᴿ-positive : @0 Is-set B → Positive (Constᴿ {a = a} B)
-Constᴿ-positive {B = B} set = λ where
+Constᴿ-positive {B} set = λ where
   .Positive.suitable → Constᴿ-suitable set
 
   .Positive.acts-on-functions → Constᴿ-acts-on-functions
 
   .Positive.reflexive-∥≡∥ᴱ → refl _
 
-  .Positive.transitive-;ᴱ⁻¹ {R = R} {S = S} _ _ x z →
+  .Positive.transitive-;ᴱ⁻¹ {R} {S} _ _ x z →
     _≃_.is-equivalence
       ((Constᴿ B R ;ᴱ Constᴿ B S) x z  ↔⟨⟩
        ∥ (∃ λ y → x ≡ y × y ≡ z) ∥ᴱ    ↝⟨ Eq.⇔→≃ T.truncation-is-proposition set _
@@ -1272,7 +1270,7 @@ Constᴿ-positive {B = B} set = λ where
        x ≡ z                           ↔⟨⟩
        Constᴿ B (R ;ᴱ S) x z           □)
 
-  .Positive.commutes-with-/ᴱ {A = C} {R = R} prop equiv →
+  .Positive.commutes-with-/ᴱ {A = C} {R} prop equiv →
     _≃ᴱ_.is-equivalence $
     EEq.with-other-function
       (Const B C /ᴱ Constᴿ B R  ↔⟨⟩
@@ -1349,7 +1347,7 @@ Idᴿ-positive = λ where
 
   .Positive.reflexive-∥≡∥ᴱ → ∣ refl _ ∣
 
-  .Positive.transitive-;ᴱ⁻¹ {R = R} {S = S} R-prop S-prop x z →
+  .Positive.transitive-;ᴱ⁻¹ {R} {S} R-prop S-prop x z →
     _≃_.is-equivalence $
     Eq.with-other-function
       ((Idᴿ R ;ᴱ Idᴿ S) x z  ↔⟨⟩
@@ -1362,7 +1360,7 @@ Idᴿ-positive = λ where
          .T.∣∣ʳ _ →
            refl _)
 
-  .Positive.commutes-with-/ᴱ {A = A} {R = R} prop equiv →
+  .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
     _≃ᴱ_.is-equivalence $
     EEq.with-other-function
       (Id A /ᴱ Idᴿ R  ↔⟨⟩
@@ -1411,7 +1409,7 @@ Product-univalent :
   @0 Univalent G Is-G-eq →
   Univalent (Product F G) (Is-Product-equivalence Is-F-eq Is-G-eq)
 Product-univalent
-  {F = F} {G = G} {Is-F-eq = Is-F-eq} {Is-G-eq = Is-G-eq}
+  {F} {G} {Is-F-eq} {Is-G-eq}
   u-F u-G .Univalent.univalent {A = A , x₁ , x₂} {B = B , y₁ , y₂} eq =
 
   Is-F-eq (A , x₁) (B , y₁) eq × Is-G-eq (A , x₂) (B , y₂) eq         ↝⟨ u-F .Univalent.univalent eq
@@ -1436,7 +1434,7 @@ Productᴿ-suitable :
   Suitable S →
   Suitable T →
   Suitable (Productᴿ S T)
-Productᴿ-suitable {S = S} {T = T} s-S s-T = λ where
+Productᴿ-suitable {S} {T} s-S s-T = λ where
   .Suitable.preserves-is-set set →
     ×-closure 2
       (s-S .Suitable.preserves-is-set set)
@@ -1457,7 +1455,7 @@ Productᴿ-suitable {S = S} {T = T} s-S s-T = λ where
       (s-S .Suitable.transitive prop₁ prop₂)
       (s-T .Suitable.transitive prop₁ prop₂)
 
-  .Suitable.descent {x = x , y} {R = R} prop equiv (SRxx , Tryy) →       $⟨ [ SRxx ] , [ Tryy ] ⟩
+  .Suitable.descent {x = x , y} {R} prop equiv (SRxx , Tryy) →           $⟨ [ SRxx ] , [ Tryy ] ⟩
 
     Erased (S R x x) × Erased (T R y y)                                  ↝⟨ Σ-map (λ ([ SRxx ]) → s-S .Suitable.descent prop equiv SRxx)
                                                                                   (λ ([ TRyy ]) → s-T .Suitable.descent prop equiv TRyy) ⟩
@@ -1493,10 +1491,11 @@ Productᴿ-acts-on-functions :
   Acts-on-functions S →
   Acts-on-functions T →
   Acts-on-functions (Productᴿ S T)
-Productᴿ-acts-on-functions {S = S} {T = T} a-S a-T = λ where
+Productᴿ-acts-on-functions {S} {T} a-S a-T = λ where
   .Acts-on-functions.map f →
     Σ-map (a-S .Acts-on-functions.map f)
           (a-T .Acts-on-functions.map f)
+
   .Acts-on-functions.map-id →
     Σ-map (a-S .Acts-on-functions.map id)
           (a-T .Acts-on-functions.map id)  ≡⟨ cong₂ (λ f g → Σ-map f g)
@@ -1505,7 +1504,10 @@ Productᴿ-acts-on-functions {S = S} {T = T} a-S a-T = λ where
     Σ-map id id                            ≡⟨⟩
 
     id                                     ∎
-  .Acts-on-functions.map-map {f = f} {g = g} {x = x₁ , x₂} {y = y₁ , y₂} {R₁ = R₁} {R₂ = R₂} R₁→R₂ →
+
+  .Acts-on-functions.map-map
+    {f} {g} {x = x₁ , x₂} {y = y₁ , y₂} {R₁} {R₂} R₁→R₂ →
+
     S R₁ x₁ y₁ × T R₁ x₂ y₂                   ↝⟨ a-S .Acts-on-functions.map-map R₁→R₂
                                                    ×-cong
                                                  a-T .Acts-on-functions.map-map R₁→R₂ ⟩□
@@ -1522,7 +1524,7 @@ Productᴿ-positive :
   Positive S →
   Positive T →
   Positive (Productᴿ S T)
-Productᴿ-positive {F = F} {G = G} {S = S} {T = T} p-S p-T = λ where
+Productᴿ-positive {F} {G} {S} {T} p-S p-T = λ where
     .Positive.suitable → suitable
 
     .Positive.acts-on-functions → acts-on-functions
@@ -1553,7 +1555,7 @@ Productᴿ-positive {F = F} {G = G} {S = S} {T = T} p-S p-T = λ where
            .T.∣∣ʳ _ →
              refl _)
 
-    .Positive.commutes-with-/ᴱ {A = A} {R = R} prop equiv →
+    .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
       _≃ᴱ_.is-equivalence $
       EEq.with-other-function
         (Product F G A /ᴱ Productᴿ S T R  ↔⟨⟩
@@ -1640,8 +1642,7 @@ Maybe-univalent :
   @0 Univalent F Is-F-eq →
   Univalent (Maybe ∘ F) (Is-Maybe-equivalence Is-F-eq)
 Maybe-univalent
-  {F = F} {Is-F-eq = Is-F-eq} u-F .Univalent.univalent
-  {A = A , x} {B = B , y} =
+  {F} {Is-F-eq} u-F .Univalent.univalent {A = A , x} {B = B , y} =
   lemma x y
   where
   univ = U.abstract-univ
@@ -1686,7 +1687,7 @@ Maybeᴿ-suitable :
   {@0 G : Relation-transformer-for F} →
   Suitable G →
   Suitable (Maybeᴿ G)
-Maybeᴿ-suitable {G = G} s-G = λ where
+Maybeᴿ-suitable {G} s-G = λ where
     .Suitable.preserves-is-set set →
       Maybe-closure 0 (S.preserves-is-set set)
 
@@ -1711,12 +1712,12 @@ Maybeᴿ-suitable {G = G} s-G = λ where
     .Suitable.transitive {x = just _}  {y = just _}  {z = just _}  →
       S.transitive
 
-    .Suitable.descent {x = nothing} {R = R} prop equiv _ →
+    .Suitable.descent {x = nothing} {R} prop equiv _ →
         (nothing , [ _ ])
       , [ (λ @0 where
              (nothing , _) → refl _)
         ]
-    .Suitable.descent {x = just x} {R = R} prop equiv SRxx →
+    .Suitable.descent {x = just x} {R} prop equiv SRxx →
                                                                         $⟨ [ SRxx ] ⟩
       Erased (G R x x)                                                  ↝⟨ (λ ([ SRxx ]) → S.descent prop equiv SRxx) ⟩
       Contractibleᴱ (∃ λ y → Erased (G (Graph [_]) x y))                ↝⟨ ECP.Contractibleᴱ-cong _
@@ -1740,7 +1741,7 @@ Maybeᴿ-univalent :
   {@0 G : Relation-transformer-for F} →
   Univalentᴿ G →
   Univalentᴿ (Maybeᴿ G)
-Maybeᴿ-univalent {F = F} {G = G} (s-G , u-G) =
+Maybeᴿ-univalent {F} {G} (s-G , u-G) =
     Maybeᴿ-suitable s-G
   , (                                                              $⟨ Maybe-univalent u-G ⟩
      Univalent (Maybe ∘ F)
@@ -1767,7 +1768,7 @@ Maybeᴿ-acts-on-functions :
   {@0 G : Relation-transformer-for F} →
   Acts-on-functions G →
   Acts-on-functions (Maybeᴿ G)
-Maybeᴿ-acts-on-functions {G = G} a-G = λ where
+Maybeᴿ-acts-on-functions {G} a-G = λ where
     .Acts-on-functions.map f →
       Monad.map (A.map f)
     .Acts-on-functions.map-id →
@@ -1788,7 +1789,7 @@ Maybeᴿ-positive :
   {@0 G : Relation-transformer-for F} →
   Positive G →
   Positive (Maybeᴿ G)
-Maybeᴿ-positive {F = F} {G = G} p-G = λ where
+Maybeᴿ-positive {F} {G} p-G = λ where
     .Positive.suitable → suitable
 
     .Positive.acts-on-functions → acts-on-functions
@@ -1803,7 +1804,7 @@ Maybeᴿ-positive {F = F} {G = G} p-G = λ where
         _
         (lemma R₁-prop R₂-prop x z .proj₂)
 
-    .Positive.commutes-with-/ᴱ {A = A} {R = R} prop equiv →
+    .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
       _≃ᴱ_.is-equivalence $
       EEq.with-other-function
         (Maybe (F A) /ᴱ Maybeᴿ G R  ↔⟨ Q.Maybe/ᴱ ⟩
@@ -1831,7 +1832,7 @@ Maybeᴿ-positive {F = F} {G = G} p-G = λ where
       ∀ p →
       _≃_.to eq p ≡
       Suitable.transitive-;ᴱ suitable R₁-prop R₂-prop x z p
-  lemma {R₁ = R₁} {R₂ = R₂} R₁-prop R₂-prop = λ @0 where
+  lemma {R₁} {R₂} R₁-prop R₂-prop = λ @0 where
     nothing nothing →
         ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) nothing nothing  ↝⟨ Eq.⇔→≃
                                                             T.truncation-is-proposition
@@ -1930,7 +1931,7 @@ Function-Constᴿ≃Functionᴿ∘Constᴿ :
   (G : Relation-transformer-for F) →
   Function-Constᴿ A G R f g ≃
   (Functionᴿ ∘ Constᴿ) A G R f g
-Function-Constᴿ≃Functionᴿ∘Constᴿ {R = R} {f = f} {g = g} G =
+Function-Constᴿ≃Functionᴿ∘Constᴿ {R} {f} {g} G =
   (∀ x → G R (f x) (g x))              ↝⟨ (∀-cong ext λ _ → ∀-intro _ ext) ⟩
   (∀ x y → x ≡ y → G R (f x) (g y))    ↔⟨ inverse (∀-cong ext (λ _ → B.implicit-Π↔Π) F.∘ B.implicit-Π↔Π) ⟩□
   (∀ {x y} → x ≡ y → G R (f x) (g y))  □
@@ -1966,7 +1967,7 @@ Function-univalent :
   @0 Univalent G Is-G-eq →
   Univalent (Function F G) (Is-Function-equivalence Is-F-eq Is-G-eq)
 Function-univalent
-  {F = F} {G = G} {Is-F-eq = Is-F-eq} {Is-G-eq = Is-G-eq}
+  {F} {G} {Is-F-eq} {Is-G-eq}
   u-F u-G .Univalent.univalent
   {A = A , f} {B = B , g} eq =
 
@@ -2015,7 +2016,7 @@ Function-univalent′ :
   @0 Univalent G Is-G-eq →
   Univalent (Function F G) (Is-Function-equivalence′ F-cong Is-G-eq)
 Function-univalent′
-  {F = F} {G = G} {Is-G-eq = Is-G-eq}
+  {F} {G} {Is-G-eq}
   F-cong F-cong-id u-G .Univalent.univalent
   {A = A , f} {B = B , g} eq =
 
@@ -2061,7 +2062,7 @@ Functionᴿ-suitable :
   Positive S →
   Suitable T →
   Suitable (Functionᴿ S T)
-Functionᴿ-suitable {F = F} {G = G} {S = S} {T = T} p-S s-T = λ where
+Functionᴿ-suitable {F} {G} {S} {T} p-S s-T = λ where
     .Suitable.preserves-is-set set →
       Π-closure ext 2 λ _ →
       TS.preserves-is-set set
@@ -2072,9 +2073,7 @@ Functionᴿ-suitable {F = F} {G = G} {S = S} {T = T} p-S s-T = λ where
       Π-closure ext 1 λ _ →
       TS.preserves-is-proposition prop _ _
 
-    .Suitable.symmetric
-      {R = R} {x = f} {y = g} prop S→T {x = x} {y = y} →
-
+    .Suitable.symmetric {R} {x = f} {y = g} prop S→T {x} {y} →
       S (R ⁻¹) x y          ↝⟨ SS.symmetric (flip prop) ⟩
       S R y x               ↝⟨ S→T ⟩
       T R (f y) (g x)       ↝⟨ TS.symmetric prop ⟩□
@@ -2082,14 +2081,14 @@ Functionᴿ-suitable {F = F} {G = G} {S = S} {T = T} p-S s-T = λ where
 
     .Suitable.transitive
       {R = R₁} {S = R₂} {x = f} {y = g} {z = h}
-      R₁-prop R₂-prop S→T₁ S→T₂ {x = x} {y = y} →
+      R₁-prop R₂-prop S→T₁ S→T₂ {x} {y} →
 
       S (R₁ ;ᴱ R₂) x y            ↔⟨ inverse Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩
       (S R₁ ;ᴱ S R₂) x y          ↝⟨ T.∥∥ᴱ-map (Σ-map _ (Σ-map S→T₁ S→T₂)) ⟩
       (T R₁ ;ᴱ T R₂) (f x) (h y)  ↝⟨ TS.transitive-;ᴱ R₁-prop R₂-prop _ _ ⟩□
       T (R₁ ;ᴱ R₂) (f x) (h y)    □
 
-    .Suitable.descent {A = A} {x = f} {R = R} prop equiv S→T →
+    .Suitable.descent {A} {x = f} {R} prop equiv S→T →
       let
         d :
           (x : F A) →
@@ -2120,7 +2119,7 @@ Functionᴿ-suitable {F = F} {G = G} {S = S} {T = T} p-S s-T = λ where
 
           .Q.[]ʳ → g-[]
 
-          .Q.[]-respects-relationʳ {x = x} {y = y} SRxy →
+          .Q.[]-respects-relationʳ {x} {y} SRxy →
             g-[] x  ≡⟨ cong proj₁ $
                        d x .proj₂ .erased
                          (g-[] y , Er.map (_$ SRxy) S→T′) ⟩∎
@@ -2203,7 +2202,7 @@ Function-Constᴿ-suitable :
   @0 Is-set A →
   Suitable G →
   Suitable (Function-Constᴿ A G)
-Function-Constᴿ-suitable {F = F} {A = A} {G = G} set =
+Function-Constᴿ-suitable {F} {A} {G} set =
   Suitable G                         ↝⟨ Functionᴿ-suitable (Constᴿ-positive set) ⟩
   Suitable (Functionᴿ (Constᴿ A) G)  ↝⟨ Suitable-map (inverse $ Function-Constᴿ≃Functionᴿ∘Constᴿ G) ⟩□
   Suitable (Function-Constᴿ A G)     □
@@ -2265,7 +2264,7 @@ Erased-univalent :
   @0 Univalent F Is-F-eq →
   Univalent (λ A → Erased (F A)) (Is-Erased-equivalence Is-F-eq)
 Erased-univalent
-  {F = F} {Is-F-eq = Is-F-eq} u-F .Univalent.univalent
+  {F} {Is-F-eq} u-F .Univalent.univalent
   {A = A , [ x ]} {B = B , [ y ]} eq =
 
   Erased (Is-F-eq (A , x) (B , y) eq)                                ↝⟨ Erased-cong (u-F .Univalent.univalent eq) ⟩
@@ -2284,7 +2283,7 @@ Erasedᴿ-suitable :
   {@0 G : Relation-transformer-for F} →
   @0 Suitable G →
   Suitable (Erasedᴿ G)
-Erasedᴿ-suitable {G = G} s-G = λ where
+Erasedᴿ-suitable {G} s-G = λ where
   .Suitable.preserves-is-set set →
     H-level-Erased 2 (s-G .Suitable.preserves-is-set set)
 
@@ -2297,7 +2296,7 @@ Erasedᴿ-suitable {G = G} s-G = λ where
   .Suitable.transitive R-prop S-prop [ GRxy ] [ GSyz ] →
     [ s-G .Suitable.transitive R-prop S-prop GRxy GSyz ]
 
-  .Suitable.descent {x = [ x ]} {R = R} prop equiv [GRxx] →            $⟨ [ [GRxx] .erased ] ⟩
+  .Suitable.descent {x = [ x ]} {R} prop equiv [GRxx] →                $⟨ [ [GRxx] .erased ] ⟩
     Erased (G R x x)                                                   ↝⟨ Er.map (λ GRxx → s-G .Suitable.descent prop equiv GRxx) ⟩
     Erased (Contractibleᴱ (∃ λ y → Erased (G (Graph [_]) x y)))        ↝⟨ ECP.Erased-Contractibleᴱ↔Contractibleᴱ-Erased _ ⟩
     Contractibleᴱ (Erased (∃ λ y → Erased (G (Graph [_]) x y)))        ↝⟨ ECP.Contractibleᴱ-cong _ Erased-Σ↔Σ ⟩
@@ -2320,7 +2319,7 @@ Erasedᴿ-acts-on-functions :
   {@0 G : Relation-transformer-for F} →
   @0 Acts-on-functions G →
   Acts-on-functions (Erasedᴿ G)
-Erasedᴿ-acts-on-functions {G = G} a-G = λ where
+Erasedᴿ-acts-on-functions {G} a-G = λ where
   .Acts-on-functions.map f →
     Er.map (a-G .Acts-on-functions.map f)
   .Acts-on-functions.map-id →
@@ -2328,7 +2327,7 @@ Erasedᴿ-acts-on-functions {G = G} a-G = λ where
     Er.map id                               ≡⟨⟩
     id                                      ∎
   .Acts-on-functions.map-map
-    {f = f} {g = g} {x = [ x ]} {y = [ y ]} {R₁ = R₁} {R₂ = R₂} R₁→R₂ →
+    {f} {g} {x = [ x ]} {y = [ y ]} {R₁} {R₂} R₁→R₂ →
 
     Erased (G R₁ x y)                               ↝⟨ Er.map (a-G .Acts-on-functions.map-map R₁→R₂) ⟩□
 
@@ -2702,18 +2701,18 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
 
   count₁-++ :
     ∀ xs → count₁ z (xs L.++ ys) ≡ count₁ z xs + count₁ z ys
-  count₁-++                   []       = refl _
-  count₁-++ {z = z} {ys = ys} (x ∷ xs) =
+  count₁-++          []       = refl _
+  count₁-++ {z} {ys} (x ∷ xs) =
     count₁′ z x + (count₁ z (xs L.++ ys))      ≡⟨ cong (count₁′ z x +_) $ count₁-++ xs ⟩
     count₁′ z x + (count₁ z xs + count₁ z ys)  ≡⟨ Nat.+-assoc (count₁′ z x) ⟩∎
     (count₁′ z x + count₁ z xs) + count₁ z ys  ∎
 
   count₁-replicate :
     ∀ n → count₁ z (L.replicate n y) ≡ count₂′ z (n , y)
-  count₁-replicate {z = z} {y = y} zero with z ≟ y
+  count₁-replicate {z} {y} zero with z ≟ y
   … | yes _ = refl _
   … | no _  = refl _
-  count₁-replicate {z = z} {y = y} (suc n) =
+  count₁-replicate {z} {y} (suc n) =
     count₁′ z y + count₁ z (L.replicate n y)  ≡⟨ cong (count₁′ z y +_) $ count₁-replicate n ⟩
     count₁′ z y + count₂′ z (n , y)           ≡⟨ lemma ⟩∎
     count₂′ z (suc n , y)                     ∎
@@ -2727,7 +2726,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
 
   count₂-insert-≡ :
     z ≡ x → ∀ ys → count₂ z (insert m x ys) ≡ m + count₂ z ys
-  count₂-insert-≡ {z = z} {x = x} {m = m} z≡x = helper
+  count₂-insert-≡ {z} {x} {m} z≡x = helper
     where
     helper : ∀ ys → count₂ z (insert m x ys) ≡ m + count₂ z ys
     helper [] with z ≟ x
@@ -2752,7 +2751,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
 
   count₂-insert-≢ :
     z ≢ x → ∀ ys → count₂ z (insert m x ys) ≡ count₂ z ys
-  count₂-insert-≢ {z = z} {x = x} {m = m} z≢x = helper
+  count₂-insert-≢ {z} {x} {m} z≢x = helper
     where
     helper : ∀ ys → count₂ z (insert m x ys) ≡ count₂ z ys
     helper [] with z ≟ x
@@ -2773,7 +2772,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
 
   count₂-insert :
     ∀ ys → count₂ z (insert m x ys) ≡ count₂′ z (m , x) + count₂ z ys
-  count₂-insert {z = z} {m = m} {x = x} ys with z ≟ x
+  count₂-insert {z} {m} {x} ys with z ≟ x
   … | yes z≡x =
     count₂ z (insert m x ys)  ≡⟨ count₂-insert-≡ z≡x ys ⟩∎
     m + count₂ z ys           ∎
@@ -2783,9 +2782,9 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
 
   count₂-union :
     ∀ xs → count₂ z (union xs ys) ≡ count₂ z xs + count₂ z ys
-  count₂-union {z = z} {ys = ys} [] =
+  count₂-union {z} {ys} [] =
     count₂ z ys  ∎
-  count₂-union {z = z} {ys = ys} ((m , x) ∷ xs) =
+  count₂-union {z} {ys} ((m , x) ∷ xs) =
     count₂ z (insert m x (union xs ys))              ≡⟨ count₂-insert (union xs ys) ⟩
     count₂′ z (m , x) + count₂ z (union xs ys)       ≡⟨ cong (count₂′ z (m , x) +_) $ count₂-union xs ⟩
     count₂′ z (m , x) + (count₂ z xs + count₂ z ys)  ≡⟨ Nat.+-assoc (count₂′ z (m , x)) ⟩∎

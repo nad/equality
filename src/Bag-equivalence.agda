@@ -92,10 +92,10 @@ Any′-∷ = record
   }
 
 Any↔Any′ : Any P xs ↔ Any′ P xs
-Any↔Any′ {P = P} {xs = []} =
+Any↔Any′ {P} {xs = []} =
   ⊥          ↔⟨ inverse Any′-[] ⟩
   Any′ P []  □
-Any↔Any′ {P = P} {xs = x ∷ xs} =
+Any↔Any′ {P} {xs = x ∷ xs} =
   P x ⊎ Any P xs   ↔⟨ id ⊎-cong Any↔Any′ {P = P} ⟩
   P x ⊎ Any′ P xs  ↔⟨ inverse Any′-∷ ⟩
   Any′ P (x ∷ xs)  □
@@ -216,11 +216,11 @@ filter-cong-∈ p q (x ∷ xs) p≡q
 -- and nats-<.
 
 <-↔-∈-nats-< : m < n ↔ m ∈ nats-< n
-<-↔-∈-nats-< {m = m} {n = zero} =
+<-↔-∈-nats-< {m} {n = zero} =
   m < zero         ↝⟨ <zero↔ ⟩
   ⊥                ↔⟨⟩
   m ∈ nats-< zero  □
-<-↔-∈-nats-< {m = m} {n = suc n} =
+<-↔-∈-nats-< {m} {n = suc n} =
   m < suc n             ↔⟨⟩
   suc m ≤ suc n         ↝⟨ suc≤suc↔ ⟩
   m ≤ n                 ↝⟨ ≤↔<⊎≡ ⟩
@@ -278,7 +278,7 @@ record _≈-bag′_ {A : Type a} (xs ys : List A) : Type a where
 
 Any-cong : (∀ x → P x ↝[ k ] Q x) → xs ∼[ k ] ys →
            Any P xs ↝[ k ] Any Q ys
-Any-cong {P = P} {Q = Q} {xs = xs} {ys = ys} P↔Q xs≈ys =
+Any-cong {P} {Q} {xs} {ys} P↔Q xs≈ys =
   Any P xs                ↔⟨ Any-∈ P xs ⟩
   (∃ λ z → P z × z ∈ xs)  ↝⟨ ∃-cong (λ z → P↔Q z ×-cong xs≈ys z) ⟩
   (∃ λ z → Q z × z ∈ ys)  ↔⟨ inverse (Any-∈ Q ys) ⟩
@@ -286,22 +286,21 @@ Any-cong {P = P} {Q = Q} {xs = xs} {ys = ys} P↔Q xs≈ys =
 
 ++-cong : xs₁ ∼[ k ] ys₁ → xs₂ ∼[ k ] ys₂ →
           xs₁ ++ xs₂ ∼[ k ] ys₁ ++ ys₂
-++-cong {xs₁ = xs₁} {ys₁ = ys₁} {xs₂ = xs₂} {ys₂ = ys₂}
-        xs₁∼ys₁ xs₂∼ys₂ = λ z →
+++-cong {xs₁} {ys₁} {xs₂} {ys₂} xs₁∼ys₁ xs₂∼ys₂ = λ z →
   z ∈ xs₁ ++ xs₂     ↔⟨ Any-++ _ xs₁ xs₂ ⟩
   z ∈ xs₁ ⊎ z ∈ xs₂  ↝⟨ xs₁∼ys₁ z ⊎-cong xs₂∼ys₂ z ⟩
   z ∈ ys₁ ⊎ z ∈ ys₂  ↔⟨ inverse (Any-++ _ ys₁ ys₂) ⟩
   z ∈ ys₁ ++ ys₂     □
 
 map-cong : (f : A → B) → xs ∼[ k ] ys → map f xs ∼[ k ] map f ys
-map-cong {xs = xs} {ys = ys} f xs∼ys = λ z →
+map-cong {xs} {ys} f xs∼ys = λ z →
   z ∈ map f xs            ↔⟨ Any-map _ f xs ⟩
   Any (λ x → z ≡ f x) xs  ↝⟨ Any-cong (λ x → z ≡ f x □) xs∼ys ⟩
   Any (λ x → z ≡ f x) ys  ↔⟨ inverse (Any-map _ f ys) ⟩
   z ∈ map f ys            □
 
 concat-cong : xss ∼[ k ] yss → concat xss ∼[ k ] concat yss
-concat-cong {xss = xss} {yss = yss} xss∼yss = λ z →
+concat-cong {xss} {yss} xss∼yss = λ z →
   z ∈ concat xss           ↔⟨ Any-concat _ xss ⟩
   Any (λ zs → z ∈ zs) xss  ↝⟨ Any-cong (λ zs → z ∈ zs □) xss∼yss ⟩
   Any (λ zs → z ∈ zs) yss  ↔⟨ inverse (Any-concat _ yss) ⟩
@@ -310,7 +309,7 @@ concat-cong {xss = xss} {yss = yss} xss∼yss = λ z →
 >>=-cong : {A B : Type ℓ} {xs ys : List A} {f g : A → List B} →
            xs ∼[ k ] ys → (∀ x → f x ∼[ k ] g x) →
            (xs >>= f) ∼[ k ] (ys >>= g)
->>=-cong {xs = xs} {ys = ys} {f = f} {g = g} xs∼ys f∼g = λ z →
+>>=-cong {xs} {ys} {f} {g} xs∼ys f∼g = λ z →
   z ∈ xs >>= f            ↔⟨ Any->>= _ xs f ⟩
   Any (λ x → z ∈ f x) xs  ↝⟨ Any-cong (λ x → f∼g x z) xs∼ys ⟩
   Any (λ x → z ∈ g x) ys  ↔⟨ inverse (Any->>= _ ys g) ⟩
@@ -473,10 +472,10 @@ range-disjunction p q xs = λ z →
 -- index xs ⁻¹ z.
 
 ∈-index : (xs : List A) → z ∈ xs ↔ ∃ λ i → z ≡ index xs i
-∈-index {z = z} [] =
+∈-index {z} [] =
   ⊥                               ↔⟨ inverse $ ∃-Fin-zero _ ⟩
   (∃ λ (i : ⊥) → z ≡ index [] i)  □
-∈-index {z = z} (x ∷ xs) =
+∈-index {z} (x ∷ xs) =
   z ≡ x ⊎ z ∈ xs                    ↔⟨ id ⊎-cong ∈-index xs ⟩
   z ≡ x ⊎ (∃ λ i → z ≡ index xs i)  ↔⟨ inverse $ ∃-Fin-suc _ ⟩
   (∃ λ i → z ≡ index (x ∷ xs) i)    □
@@ -505,7 +504,7 @@ Fin-length xs =
 -- related lengths.
 
 Fin-length-cong : xs ≈-bag ys → Fin (length xs) ↔ Fin (length ys)
-Fin-length-cong {xs = xs} {ys = ys} xs≈ys =
+Fin-length-cong {xs} {ys} xs≈ys =
   Fin (length xs)   ↔⟨ inverse $ Fin-length xs ⟩
   ∃ (λ z → z ∈ xs)  ↔⟨ ∃-cong xs≈ys ⟩
   ∃ (λ z → z ∈ ys)  ↔⟨ Fin-length ys ⟩
@@ -525,7 +524,7 @@ abstract
   Fin-length-cong-relates :
     {xs ys : List A} (xs≈ys : xs ≈-bag ys) →
     xs And ys Are-related-by Fin-length-cong xs≈ys
-  Fin-length-cong-relates {xs = xs} {ys = ys} xs≈ys i =
+  Fin-length-cong-relates {xs} {ys} xs≈ys i =
     index xs i                                    ≡⟨ proj₂ $ _↔_.to (∈-index _) $ _≃_.to (xs≈ys _) (_↔_.from (∈-index _) (i , refl _)) ⟩
 
     index ys (proj₁ $ _↔_.to (∈-index _) $
@@ -552,7 +551,7 @@ abstract
   equality-lemma = flip-trans-isomorphism
 
   from : xs ≈-bag′ ys → xs ≈-bag ys
-  from {xs = xs} {ys = ys} xs≈ys z =
+  from {xs} {ys} xs≈ys z =
     z ∈ xs                    ↔⟨ ∈-index xs ⟩
     ∃ (λ i → z ≡ index xs i)  ↔⟨ Σ-cong (_≈-bag′_.equivalence xs≈ys)
                                         (λ i → equality-lemma $
@@ -567,7 +566,7 @@ abstract
 -- the (first) alternative definition of bag equivalence.
 
 ∷-left-cancellative′ : ∀ xs ys → x ∷ xs ≈-bag′ x ∷ ys → xs ≈-bag′ ys
-∷-left-cancellative′ {x = x} xs ys x∷xs≈x∷ys = record
+∷-left-cancellative′ {x} xs ys x∷xs≈x∷ys = record
   { equivalence =
       from-bijection $ Finite.cancel-suc $ from-equivalence $
       _≈-bag′_.equivalence x∷xs≈x∷ys
@@ -592,7 +591,7 @@ abstract
     {xs ys : List A} (xs≈ys : xs ≈-bag ys) (p : z ∈ xs) →
     index-of (_≃_.to (xs≈ys z) p) ≡
     _↔_.to (Fin-length-cong xs≈ys) (index-of p)
-  index-of-commutes {z = z} {xs = xs} {ys = ys} xs≈ys p =
+  index-of-commutes {z} {xs} {ys} xs≈ys p =
     index-of $ _≃_.to (xs≈ys z) p                                     ≡⟨⟩
 
     index-of $ proj₂ $ Σ-map P.id (λ {x} → _≃_.to (xs≈ys x)) (z , p)  ≡⟨ cong (index-of ∘ proj₂ ∘ Σ-map P.id (_≃_.to (xs≈ys _))) $ sym $
@@ -615,7 +614,7 @@ abstract
     (xs≈ys : xs ≈-bag ys) →
     index-of p ≡ index-of q →
     index-of (_≃_.to (xs≈ys z) p) ≡ index-of (_≃_.to (xs≈ys z) q)
-  index-equality-preserved {z = z} {p = p} {q = q} xs≈ys eq =
+  index-equality-preserved {z} {p} {q} xs≈ys eq =
     index-of (_≃_.to (xs≈ys z) p)                ≡⟨ index-of-commutes xs≈ys p ⟩
     _↔_.to (Fin-length-cong xs≈ys) (index-of p)  ≡⟨ cong (_↔_.to (Fin-length-cong xs≈ys)) eq ⟩
     _↔_.to (Fin-length-cong xs≈ys) (index-of q)  ≡⟨ sym $ index-of-commutes xs≈ys q ⟩∎
@@ -625,7 +624,7 @@ abstract
 -- equivalent.
 
 ∷-left-cancellative : x ∷ xs ≈-bag x ∷ ys → xs ≈-bag ys
-∷-left-cancellative {x = x} {xs = xs} {ys = ys} x∷xs≈x∷ys z =
+∷-left-cancellative {x} {xs} {ys} x∷xs≈x∷ys z =
   z ∈ xs  ↔⟨ ⊎-left-cancellative
                (from-equivalence $ x∷xs≈x∷ys z)
                (lemma x∷xs≈x∷ys)
@@ -641,7 +640,7 @@ abstract
     lemma :
       ∀ {xs ys} (inv : x ∷ xs ≈-bag x ∷ ys) →
       Well-behaved (_≃_.to (inv z))
-    lemma {xs = xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ =
+    lemma {xs} inv {b = z∈xs} {a = p} {a′ = q} hyp₁ hyp₂ =
       ⊎.inj₁≢inj₂ (
         fzero                                   ≡⟨⟩
         index-of {xs = x ∷ xs} (inj₁ p)         ≡⟨ cong index-of $ sym $ to-from hyp₂ ⟩
@@ -669,7 +668,7 @@ abstract
   ++-left-cancellative xs (∷-left-cancellative eq)
 
 ++-right-cancellative : xs ++ zs ≈-bag ys ++ zs → xs ≈-bag ys
-++-right-cancellative {xs = xs} {zs = zs} {ys = ys} eq =
+++-right-cancellative {xs} {zs} {ys} eq =
   ++-left-cancellative zs (λ z →
     z ∈ zs ++ xs  ↔⟨ ++-comm zs xs z ⟩
     z ∈ xs ++ zs  ↔⟨ eq z ⟩
@@ -692,10 +691,10 @@ delete {ys = y ∷ _}  (inj₂ p) = y ∷ delete p
 ∈≃≡⊎∈delete :
   {ys : List A} (p : y ∈ ys) →
   (x ∈ ys) ≃ (x ∈ y ∷ delete p)
-∈≃≡⊎∈delete {y = y} {x = x} {ys = z ∷ ys} (inj₁ y≡z) =
+∈≃≡⊎∈delete {y} {x} {ys = z ∷ ys} (inj₁ y≡z) =
   x ≡ z ⊎ x ∈ ys  ↝⟨ ≡⇒↝ _ (cong (_ ≡_) (sym y≡z)) ⊎-cong id ⟩□
   x ≡ y ⊎ x ∈ ys  □
-∈≃≡⊎∈delete {y = y} {x = x} {ys = z ∷ ys} (inj₂ p) =
+∈≃≡⊎∈delete {y} {x} {ys = z ∷ ys} (inj₂ p) =
   x ≡ z ⊎ x ∈ ys                  ↝⟨ id ⊎-cong ∈≃≡⊎∈delete p ⟩
   x ≡ z ⊎ (x ≡ y ⊎ x ∈ delete p)  ↔⟨ inverse ⊎-assoc F.∘ (⊎-comm ⊎-cong id) F.∘ ⊎-assoc ⟩□
   x ≡ y ⊎ (x ≡ z ⊎ x ∈ delete p)  □
@@ -705,7 +704,7 @@ delete {ys = y ∷ _}  (inj₂ p) = y ∷ delete p
 from-∈≃≡⊎∈delete-inj₁ :
   {xs : List A} (p : x ∈ xs) →
   _≃_.from (∈≃≡⊎∈delete p) (inj₁ (refl x)) ≡ p
-from-∈≃≡⊎∈delete-inj₁ {x = x} {xs = _ ∷ _} (inj₁ p) =
+from-∈≃≡⊎∈delete-inj₁ {x} {xs = _ ∷ _} (inj₁ p) =
   _≃_.from (∈≃≡⊎∈delete (inj₁ p)) (inj₁ (refl x))         ≡⟨⟩
   inj₁ (_≃_.from (≡⇒↝ _ (cong (_ ≡_) (sym p))) (refl x))  ≡⟨ cong inj₁ $
                                                              D.trans (sym $ subst-in-terms-of-inverse∘≡⇒↝ F.equivalence _ (_ ≡_) _) $
@@ -713,7 +712,7 @@ from-∈≃≡⊎∈delete-inj₁ {x = x} {xs = _ ∷ _} (inj₁ p) =
                                                              D.trans (trans-reflˡ _) $
                                                              sym-sym _ ⟩∎
   inj₁ p                                                  ∎
-from-∈≃≡⊎∈delete-inj₁ {x = x} {xs = _ ∷ _} (inj₂ p) =
+from-∈≃≡⊎∈delete-inj₁ {x} {xs = _ ∷ _} (inj₂ p) =
   _≃_.from (∈≃≡⊎∈delete (inj₂ p)) (inj₁ (refl x))  ≡⟨⟩
   inj₂ (_≃_.from (∈≃≡⊎∈delete p) (inj₁ (refl x)))  ≡⟨ cong inj₂ $ from-∈≃≡⊎∈delete-inj₁ p ⟩∎
   inj₂ p                                           ∎
@@ -768,7 +767,7 @@ data Insertion {A : Type a} : A → List A → List A → Type a where
 Insertion≃ :
   {xs ys : List A} →
   Insertion x xs ys ≃ ∃ λ (p : x ∈ ys) → xs ≡ delete p
-Insertion≃ {x = x} = Eq.↔→≃ to from to-from from-to
+Insertion≃ {x} = Eq.↔→≃ to from to-from from-to
   where
   to : Insertion x xs ys → ∃ λ (p : x ∈ ys) → xs ≡ delete p
   to {ys = []}    (here p) = ⊥-elim (List.[]≢∷ (sym p))
@@ -848,11 +847,11 @@ x ∷ xs ≈-bag‴ ys = ∃ λ (p : x ∈ ys) → xs ≈-bag‴ delete p
 -- The type ×s ≈-bag″ ys is equivalent to xs ≈-bag‴ ys.
 
 ≈″≃≈‴ : (xs ≈-bag″ ys) ≃ (xs ≈-bag‴ ys)
-≈″≃≈‴ {xs = xs} = Eq.↔→≃ to (from xs) (to-from xs) from-to
+≈″≃≈‴ {xs} = Eq.↔→≃ to (from xs) (to-from xs) from-to
   where
   to : ∀ {xs} → xs ≈-bag″ ys → xs ≈-bag‴ ys
-  to []                   = refl _
-  to (cons {xs = xs} p q) =
+  to []              = refl _
+  to (cons {xs} p q) =
     let x∈ , eq = _≃_.to Insertion≃ p in
     x∈ , subst (xs ≈-bag‴_) eq (to q)
 
@@ -906,7 +905,7 @@ x ∷ xs ≈-bag‴ ys = ∃ λ (p : x ∈ ys) → xs ≈-bag‴ delete p
   from-to [] =
     subst ([] ≈-bag″_) (refl _) []  ≡⟨ subst-refl _ _ ⟩∎
     []                              ∎
-  from-to (cons {xs = xs} p q) =
+  from-to (cons {xs} p q) =
     let x∈ , eq = _≃_.to Insertion≃ p in
 
     cons (_≃_.from Insertion≃ (x∈ , refl _))
@@ -939,7 +938,7 @@ index-of≡index-of→≡ :
   {zs : List A} (p : x ∈ zs) (q : y ∈ zs) →
   index-of p ≡ index-of q →
   x ≡ y
-index-of≡index-of→≡ {x = x} {y = y} {zs = z ∷ _} (inj₁ p) (inj₁ q) _ =
+index-of≡index-of→≡ {x} {y} {zs = z ∷ _} (inj₁ p) (inj₁ q) _ =
   x  ≡⟨ p ⟩
   z  ≡⟨ sym q ⟩∎
   y  ∎
@@ -955,10 +954,10 @@ index-of≡index-of→≡ {zs = _ ∷ _} (inj₂ p) (inj₁ q) r =
 index-of≡index-of→≡-refl :
   {zs : List A} (p : x ∈ zs) →
   index-of≡index-of→≡ p p (refl (index-of p)) ≡ refl x
-index-of≡index-of→≡-refl {x = x} {zs = z ∷ _} (inj₁ p) =
+index-of≡index-of→≡-refl {x} {zs = z ∷ _} (inj₁ p) =
   D.trans p (sym p)  ≡⟨ trans-symʳ _ ⟩∎
   refl x             ∎
-index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
+index-of≡index-of→≡-refl {x} {zs = _ ∷ _} (inj₂ p) =
   index-of≡index-of→≡ p p (⊎.cancel-inj₂ (refl (inj₂ (index-of p))))  ≡⟨ cong (index-of≡index-of→≡ p p) $ cong-refl _ ⟩
   index-of≡index-of→≡ p p (refl (index-of p))                         ≡⟨ index-of≡index-of→≡-refl p ⟩∎
   refl x                                                              ∎
@@ -969,7 +968,7 @@ index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
 ≈≃≈‴ :
   {A : Type a} (xs {ys} : List A) →
   xs ≈-bag ys ↝[ a ∣ a ] xs ≈-bag‴ ys
-≈≃≈‴ {a = a} [] {ys = ys} ext =
+≈≃≈‴ {a} [] {ys} ext =
   (∀ z → ⊥ ≃ (z ∈ ys))  ↝⟨ (∀-cong ext λ _ → ≃⊥≃¬ ext F.∘ ≃-comm ext) ⟩
   (∀ z → ¬ z ∈ ys)      ↝⟨ generalise-ext?
                              (record { to = to ys; from = from })
@@ -999,7 +998,7 @@ index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
        (lower-extensionality lzero _ ext))
       _ _
 
-≈≃≈‴ {a = a} (x ∷ xs) {ys = ys} ext =
+≈≃≈‴ {a} (x ∷ xs) {ys} ext =
   (∀ z → (z ∈ x ∷ xs) ≃ (z ∈ ys))                               ↝⟨ generalise-ext?
                                                                      (record { to = to; from = from })
                                                                      (λ ext → to-from ext , from-to ext)
@@ -1057,7 +1056,7 @@ index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
       ∀ q →
       Distinct fzero (index-of (_≃_.from (p z) q)) ≃
       Distinct (index-of (_≃_.to (p x) (inj₁ (refl x)))) (index-of q)
-    lemma {z = z} q =
+    lemma {z} q =
       _↠_.from
         (Eq.≃↠⇔
            (Finite.Distinct-propositional
@@ -1282,7 +1281,7 @@ index-of≡index-of→≡-refl {x = x} {zs = _ ∷ _} (inj₂ p) =
 ≈≃≈″ :
   {A : Type a} {xs ys : List A} →
   (xs ≈-bag ys) ↝[ a ∣ a ] (xs ≈-bag″ ys)
-≈≃≈″ {xs = xs} {ys = ys} ext =
+≈≃≈″ {xs} {ys} ext =
   xs ≈-bag ys   ↝⟨ ≈≃≈‴ xs ext ⟩
   xs ≈-bag‴ ys  ↔⟨ inverse ≈″≃≈‴ ⟩□
   xs ≈-bag″ ys  □
@@ -1308,14 +1307,14 @@ data _≈-bag⁗_ {A : Type a} : List A → List A → Type a where
 infixr 5 _∷-cong_
 
 _∷-cong_ : x ≡ y → xs ∼[ k ] ys → x ∷ xs ∼[ k ] y ∷ ys
-_∷-cong_ {x = x} {y = y} {xs = xs} {ys = ys} x≡y xs≈ys = λ z →
+_∷-cong_ {x} {y} {xs} {ys} x≡y xs≈ys = λ z →
   z ≡ x ⊎ z ∈ xs  ↝⟨ from-bijection (flip-trans-isomorphism x≡y) ⊎-cong xs≈ys z ⟩□
   z ≡ y ⊎ z ∈ ys  □
 
 -- We can swap the first two elements of a list.
 
 swap-first-two : x ∷ y ∷ xs ≈-bag y ∷ x ∷ xs
-swap-first-two {x = x} {y = y} {xs = xs} = λ z →
+swap-first-two {x} {y} {xs} = λ z →
    z ≡ x ⊎ z ≡ y  ⊎ z ∈ xs  ↔⟨ ⊎-assoc ⟩
   (z ≡ x ⊎ z ≡ y) ⊎ z ∈ xs  ↔⟨ ⊎-comm ⊎-cong id ⟩
   (z ≡ y ⊎ z ≡ x) ⊎ z ∈ xs  ↔⟨ inverse ⊎-assoc ⟩
@@ -1324,7 +1323,7 @@ swap-first-two {x = x} {y = y} {xs = xs} = λ z →
 -- The type ×s ≈-bag ys is logically equivalent to xs ≈-bag″ ys.
 
 ≈⇔≈⁗ : xs ≈-bag ys ⇔ xs ≈-bag⁗ ys
-≈⇔≈⁗ {xs = xs} {ys = ys} = record
+≈⇔≈⁗ {xs} {ys} = record
   { from = from
   ; to   =
       xs ≈-bag  ys  →⟨ ≈≃≈‴ _ _ ⟩
@@ -1369,7 +1368,7 @@ swap-first-two {x = x} {y = y} {xs = xs} = λ z →
 -- xs ≈-bag⁗ ys.
 
 ¬≈″↠≈⁗ : ¬ ({xs ys : List A} → xs ≈-bag″ ys ↠ xs ≈-bag⁗ ys)
-¬≈″↠≈⁗ {A = A} =
+¬≈″↠≈⁗ {A} =
   ({xs ys : List A} → xs ≈-bag″ ys ↠ xs ≈-bag⁗ ys)  →⟨ (λ hyp → hyp) ⟩
 
   ([] ≈-bag″ [] ↠ [] ≈-bag⁗ ([] ⦂ List A))          →⟨ (λ hyp → H-level.respects-surjection hyp 1 []≈″-propositional) ⟩

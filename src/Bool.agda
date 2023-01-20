@@ -68,19 +68,19 @@ not≡⇒≢ false false t≡f _   = Bool.true≢false t≡f
 ≢⇒not≡ false false f≢f = ⊥-elim (f≢f (refl _))
 
 not≡↔≡not : {b₁ b₂ : Bool} → not b₁ ≡ b₂ ↔ b₁ ≡ not b₂
-not≡↔≡not {(true)} {(true)} =
+not≡↔≡not {b₁ = true} {b₂ = true} =
   false ≡ true  ↝⟨ inverse $ Bijection.⊥↔uninhabited (Bool.true≢false ∘ sym) ⟩
   ⊥₀            ↝⟨ Bijection.⊥↔uninhabited Bool.true≢false ⟩□
   true ≡ false  □
-not≡↔≡not {(true)} {(false)} =
+not≡↔≡not {b₁ = true} {b₂ = false} =
   false ≡ false  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
   tt ≡ tt        ↝⟨ Bijection.≡↔inj₁≡inj₁ ⟩□
   true ≡ true    □
-not≡↔≡not {(false)} {(true)} =
+not≡↔≡not {b₁ = false} {b₂ = true} =
   true ≡ true    ↝⟨ inverse Bijection.≡↔inj₁≡inj₁ ⟩
   tt ≡ tt        ↝⟨ Bijection.≡↔inj₂≡inj₂ ⟩□
   false ≡ false  □
-not≡↔≡not {(false)} {(false)} =
+not≡↔≡not {b₁ = false} {b₂ = false} =
   true ≡ false  ↝⟨ inverse $ Bijection.⊥↔uninhabited Bool.true≢false ⟩
   ⊥₀            ↝⟨ Bijection.⊥↔uninhabited (Bool.true≢false ∘ sym) ⟩□
   false ≡ true  □
@@ -88,11 +88,12 @@ not≡↔≡not {(false)} {(false)} =
 -- Some lemmas related to T.
 
 T↔≡true : {b : Bool} → T b ↔ b ≡ true
-T↔≡true {(false)} =   $⟨ Bool.true≢false ⟩
+T↔≡true {b = false} =
+                    $⟨ Bool.true≢false ⟩
   true ≢ false      ↝⟨ (_∘ sym) ⟩
   false ≢ true      ↝⟨ Bijection.⊥↔uninhabited ⟩□
   ⊥ ↔ false ≡ true  □
-T↔≡true {(true)} =              $⟨ refl true ⟩
+T↔≡true {b = true} =          $⟨ refl true ⟩
   true ≡ true                 ↝⟨ propositional⇒inhabited⇒contractible Bool-set ⟩
   Contractible (true ≡ true)  ↝⟨ _⇔_.to contractible⇔↔⊤ ⟩
   true ≡ true ↔ ⊤             ↝⟨ inverse ⟩□
@@ -128,7 +129,7 @@ T-not↔¬T false ext =
   b ≡ false  □
 
 ¬T↔≡false : ∀ {b} → ¬ T b ↝[ lzero ∣ lzero ] b ≡ false
-¬T↔≡false {b = b} ext =
+¬T↔≡false {b} ext =
   ¬ T b      ↝⟨ inverse-ext? (T-not↔¬T b) ext ⟩
   T (not b)  ↔⟨ T-not↔≡false ⟩□
   b ≡ false  □

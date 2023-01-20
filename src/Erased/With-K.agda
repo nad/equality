@@ -191,7 +191,7 @@ private
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Function-extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ↔ ((@0 x : A) → P [ x ]-no-η)
-  Π-Erased-no-η↔Π0[] {P = P} ext = record
+  Π-Erased-no-η↔Π0[] {P} ext = record
     { surjection = record
       { logical-equivalence = record
         { to   = Π-Erased-no-η→Π0[]
@@ -215,7 +215,7 @@ private
     {@0 A : Type a} {@0 P : Erased-no-η A → Type p} →
     Function-extensionality′ (Erased-no-η A) P →
     ((x : Erased-no-η A) → P x) ≃ ((@0 x : A) → P [ x ]-no-η)
-  Π-Erased-no-η≃Π0[] {A = A} {P = P} ext = record
+  Π-Erased-no-η≃Π0[] {A} {P} ext = record
     { to             = λ f x → f [ x ]-no-η
     ; is-equivalence =
           Π0[]→Π-Erased-no-η _

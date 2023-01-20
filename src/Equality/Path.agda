@@ -69,7 +69,7 @@ open import Agda.Builtin.Cubical.Path public
 hfill :
   {φ : I} (u : I → Partial φ A) (u₀ : A [ φ ↦ u 0̲ ]) →
   outˢ u₀ ≡ hcomp u (outˢ u₀)
-hfill {φ = φ} u u₀ = λ i →
+hfill {φ} u u₀ = λ i →
   hcomp (λ j → λ { (φ = 1̲) → u (min i j) is-one
                  ; (i = 0̲) → outˢ u₀
                  })
@@ -112,7 +112,7 @@ transport-fill _ φ P u₀ i =
 -- Reflexivity.
 
 refl : {@0 A : Type a} {x : A} → x ≡ x
-refl {x = x} = λ _ → x
+refl {x} = λ _ → x
 
 -- A family of instantiations of Reflexive-relation.
 
@@ -134,7 +134,7 @@ hsym x≡y = λ i → x≡y (- i)
 -- Exercise 6.1).
 
 htransʳ : [ P ] x ≡ y → y ≡ z → [ P ] x ≡ z
-htransʳ {x = x} x≡y y≡z = λ i →
+htransʳ {x} x≡y y≡z = λ i →
   hcomp (λ { _ (i = 0̲) → x
            ; j (i = 1̲) → y≡z j
            })
@@ -144,7 +144,7 @@ htransˡ : x ≡ y → [ P ] y ≡ z → [ P ] x ≡ z
 htransˡ x≡y y≡z = hsym (htransʳ (hsym y≡z) (hsym x≡y))
 
 htransʳ-reflʳ : (x≡y : [ P ] x ≡ y) → htransʳ x≡y refl ≡ x≡y
-htransʳ-reflʳ {x = x} {y = y} x≡y = λ i j →
+htransʳ-reflʳ {x} {y} x≡y = λ i j →
   hfill (λ { _ (j = 0̲) → x
            ; _ (j = 1̲) → y
            })
@@ -160,7 +160,7 @@ htrans :
   [ (λ i → P (x≡y i)) ] p ≡ q →
   [ (λ i → P (y≡z i)) ] q ≡ r →
   [ (λ i → P (htransˡ x≡y y≡z i)) ] p ≡ r
-htrans {z = z} {x≡y = x≡y} {y≡z = y≡z} P {r = r} p≡q q≡r = λ i →
+htrans {z} {x≡y} {y≡z} P {r} p≡q q≡r = λ i →
   comp (λ j → P (eq j i))
        (λ { j (i = 0̲) → p≡q (- j)
           ; j (i = 1̲) → r
@@ -219,7 +219,7 @@ elim :
   (P : {x y : A} → x ≡ y → Type p) →
   (∀ x → P (refl {x = x})) →
   (x≡y : x ≡ y) → P x≡y
-elim {x = x} P p x≡y =
+elim {x} P p x≡y =
   transport (λ i → P (λ j → x≡y (min i j))) 0̲ (p x)
 
 -- Substitutivity.
@@ -248,7 +248,7 @@ cong f = hcong f
 dcong :
   (f : (x : A) → B x) (x≡y : x ≡ y) →
   subst B x≡y (f x) ≡ f y
-dcong {B = B} f x≡y = λ i →
+dcong {B} f x≡y = λ i →
   transport (λ j → B (x≡y (max i j))) i (f (x≡y i))
 
 -- Transporting along reflexivity amounts to doing nothing.
@@ -257,7 +257,7 @@ dcong {B = B} f x≡y = λ i →
 -- by Anders Mörtberg.
 
 transport-refl : ∀ i → transport (λ i → refl {x = A} i) i ≡ id
-transport-refl {A = A} i = λ j → transport (λ _ → A) (max i j)
+transport-refl {A} i = λ j → transport (λ _ → A) (max i j)
 
 -- A family of instantiations of Equivalence-relation⁺.
 --
@@ -407,7 +407,7 @@ module Derived-definitions-and-properties
   open Bijection equality-with-J
 
   ≡↔≡ : {A : Type a} {x y : A} → x E.≡ y ↔ x ≡ y
-  ≡↔≡ {a = a} = record
+  ≡↔≡ {a} = record
     { surjection = record
       { logical-equivalence = record
         { to   = EP.to-path {p = a}
@@ -553,7 +553,7 @@ transport-≡ :
   {p : x ≡ y} {q : u ≡ v} (r : x ≡ u) →
   transport (λ i → p i ≡ q i) 0̲ r ≡
   trans (sym p) (trans r q)
-transport-≡ {x = x} {p = p} {q = q} r = elim¹
+transport-≡ {x} {p} {q} r = elim¹
   (λ p → transport (λ i → p i ≡ q i) 0̲ r ≡
          trans (sym p) (trans r q))
   (transport (λ i → x ≡ q i) 0̲ r  ≡⟨⟩
@@ -571,7 +571,7 @@ transport-≡ {x = x} {p = p} {q = q} r = elim¹
 htrans-const :
   (x≡y : x ≡ y) (y≡z : y ≡ z) (p : u ≡ v) {q : v ≡ w} →
   htrans {x≡y = x≡y} {y≡z = y≡z} (const A) p q ≡ trans p q
-htrans-const {A = A} {w = w} _ _ p {q = q} =
+htrans-const {A} {w} _ _ p {q} =
   (λ i → comp (λ _ → A) (s i) (q i))                  ≡⟨⟩
 
   (λ i →
@@ -598,7 +598,7 @@ htrans-const {A = A} {w = w} _ _ p {q = q} =
 heterogeneous≡homogeneous :
   {P : I → Type p} {p : P 0̲} {q : P 1̲} →
   ([ P ] p ≡ q) ≡ (transport P 0̲ p ≡ q)
-heterogeneous≡homogeneous {P = P} {p = p} {q = q} = λ i →
+heterogeneous≡homogeneous {P} {p} {q} = λ i →
   [ (λ j → P (max i j)) ] transport (λ j → P (min i j)) (- i) p ≡ q
 
 -- A variant of the previous lemma.
@@ -619,7 +619,7 @@ dcong≡hcong :
   {B : A → Type b} {x≡y : x ≡ y} (f : (x : A) → B x) →
   dcong f x≡y ≡
   _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y)
-dcong≡hcong {B = B} {x≡y = x≡y} f = elim
+dcong≡hcong {B} {x≡y} f = elim
   (λ x≡y →
      dcong f x≡y ≡
      _↔_.to (heterogeneous↔homogeneous (λ i → B (x≡y i))) (hcong f x≡y))
@@ -653,7 +653,7 @@ from-heterogeneous↔homogeneous-const-refl :
   (B : A → Type b) {x : A} {y : B x} →
   _↔_.from (heterogeneous↔homogeneous λ _ → B x) refl ≡
   sym (subst-refl B y)
-from-heterogeneous↔homogeneous-const-refl B {x = x} {y = y} =
+from-heterogeneous↔homogeneous-const-refl B {x} {y} =
   transport (λ _ → y ≡ transport (λ _ → B x) 0̲ y) 0̲
     (transport
        (λ i → transport (λ _ → B x) i y ≡ transport (λ _ → B x) 0̲ y) 0̲
@@ -682,7 +682,7 @@ from-heterogeneous↔homogeneous-const-refl B {x = x} {y = y} =
   (p : proj₁ p₁ ≡ proj₁ p₂) →
   subst B p (proj₂ p₁) ≡ proj₂ p₂ →
   p₁ ≡ p₂
-Σ-≡,≡→≡′ {B = B} {p₁ = _ , y₁} {p₂ = _ , y₂} p q i =
+Σ-≡,≡→≡′ {B} {p₁ = _ , y₁} {p₂ = _ , y₂} p q i =
   p i , lemma i
   where
   lemma : [ (λ i → B (p i)) ] y₁ ≡ y₂
@@ -696,7 +696,7 @@ from-heterogeneous↔homogeneous-const-refl B {x = x} {y = y} =
   {p : proj₁ p₁ ≡ proj₁ p₂}
   {q : subst B p (proj₂ p₁) ≡ proj₂ p₂} →
   Σ-≡,≡→≡ {B = B} p q ≡ Σ-≡,≡→≡′ p q
-Σ-≡,≡→≡≡Σ-≡,≡→≡′ {B = B} {p₁ = p₁} {p₂ = p₂} {p = p} {q = q} =
+Σ-≡,≡→≡≡Σ-≡,≡→≡′ {B} {p₁} {p₂} {p} {q} =
   elim₁
     (λ p →
        ∀ {p₁₂} (q : subst B p p₁₂ ≡ proj₂ p₂) →
@@ -720,7 +720,7 @@ from-heterogeneous↔homogeneous-const-refl B {x = x} {y = y} =
 -- All instances of an interval-indexed family are equal.
 
 index-irrelevant : (P : I → Type p) → P i ≡ P j
-index-irrelevant {i = i} {j = j} P =
+index-irrelevant {i} {j} P =
   λ k → P (max (min i (- k)) (min j k))
 
 -- Positive h-levels of P i can be expressed in terms of the h-levels
@@ -729,7 +729,7 @@ index-irrelevant {i = i} {j = j} P =
 H-level-suc↔H-level[]≡ :
   {P : I → Type p} →
   H-level (suc n) (P i) ↔ (∀ x y → H-level n ([ P ] x ≡ y))
-H-level-suc↔H-level[]≡ {n = n} {i = i} {P = P} =
+H-level-suc↔H-level[]≡ {n} {i} {P} =
   H-level (suc n) (P i)                                            ↝⟨ H-level-cong ext _ (≡⇒≃ $ index-irrelevant P) ⟩
 
   H-level (suc n) (P 1̲)                                            ↝⟨ inverse $ ≡↔+ _ ext ⟩
@@ -753,7 +753,7 @@ private
 
   H-level-suc→H-level[]≡ :
     ∀ n → H-level (1 + n) (P 0̲) → H-level n ([ P ] x ≡ y)
-  H-level-suc→H-level[]≡ {P = P} {x = x} {y = y} n =
+  H-level-suc→H-level[]≡ {P} {x} {y} n =
     H-level (1 + n) (P 0̲)              ↔⟨ H-level-suc↔H-level[]≡ ⟩
     (∀ x y → H-level n ([ P ] x ≡ y))  ↝⟨ (λ f → f _ _) ⟩□
     H-level n ([ P ] x ≡ y)            □
@@ -763,7 +763,7 @@ private
 
 heterogeneous-irrelevance₀ :
   Is-proposition (P 0̲) → [ P ] x ≡ y
-heterogeneous-irrelevance₀ {P = P} {x = x} {y = y} =
+heterogeneous-irrelevance₀ {P} {x} {y} =
   Is-proposition (P 0̲)        ↝⟨ H-level-suc→H-level[]≡ _ ⟩
   Contractible ([ P ] x ≡ y)  ↝⟨ proj₁ ⟩□
   [ P ] x ≡ y                 □
@@ -777,7 +777,7 @@ heterogeneous-UIP₀₀ :
   {q : [ (λ j → P 1̲ j) ] x 1̲ ≡ y 1̲} →
   Is-set (P 0̲ 0̲) →
   [ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q
-heterogeneous-UIP₀₀ {P = P} {x = x} {y = y} {p = p} {q = q} =
+heterogeneous-UIP₀₀ {P} {x} {y} {p} {q} =
   Is-set (P 0̲ 0̲)                                                ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
   Is-proposition ([ (λ j → P 0̲ j) ] x 0̲ ≡ y 0̲)                  ↝⟨ H-level-suc→H-level[]≡ _ ⟩
   Contractible ([ (λ i → [ (λ j → P i j) ] x i ≡ y i) ] p ≡ q)  ↝⟨ proj₁ ⟩□
@@ -795,9 +795,7 @@ heterogeneous-UIP₃₀₀ :
   H-level 3 (P 0̲ 0̲ 0̲) →
   [ (λ i → [ (λ j → [ (λ k → P i j k) ] x i j ≡ y i j) ] p i ≡ q i) ]
     r ≡ s
-heterogeneous-UIP₃₀₀
-  {P = P} {x = x} {y = y} {p = p} {q = q} {r = r} {s = s} =
-
+heterogeneous-UIP₃₀₀ {P} {x} {y} {p} {q} {r} {s} =
   H-level 3 (P 0̲ 0̲ 0̲)                                                     ↝⟨ H-level-suc→H-level[]≡ 2 ⟩
 
   Is-set ([ (λ k → P 0̲ 0̲ k) ] x 0̲ 0̲ ≡ y 0̲ 0̲)                              ↝⟨ H-level-suc→H-level[]≡ 1 ⟩
@@ -824,7 +822,7 @@ heterogeneous-irrelevance :
   (∀ x → Is-proposition (P x)) →
   {x≡y : x ≡ y} {p₁ : P x} {p₂ : P y} →
   [ (λ i → P (x≡y i)) ] p₁ ≡ p₂
-heterogeneous-irrelevance {x = x} {P = P} P-prop {x≡y} {p₁} {p₂} =
+heterogeneous-irrelevance {x} {P} P-prop {x≡y} {p₁} {p₂} =
                                  $⟨ P-prop ⟩
   (∀ x → Is-proposition (P x))   ↝⟨ _$ _ ⟩
   Is-proposition (P x)           ↝⟨ heterogeneous-irrelevance₀ ⟩□
@@ -843,8 +841,7 @@ heterogeneous-UIP :
   (eq₄ : [ (λ j → P (eq₁ j)) ] p₁ ≡ p₂)
   (eq₅ : [ (λ j → P (eq₂ j)) ] p₁ ≡ p₂) →
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅
-heterogeneous-UIP {x = x} {P = P} P-set eq₃ {p₁} {p₂} eq₄ eq₅ =
-                                                         $⟨ P-set ⟩
+heterogeneous-UIP {x} {P} P-set eq₃ {p₁} {p₂} eq₄ eq₅ =  $⟨ P-set ⟩
   (∀ x → Is-set (P x))                                   ↝⟨ _$ _ ⟩
   Is-set (P x)                                           ↝⟨ heterogeneous-UIP₀₀ ⟩□
   [ (λ i → [ (λ j → P (eq₃ i j)) ] p₁ ≡ p₂) ] eq₄ ≡ eq₅  □
@@ -864,8 +861,7 @@ heterogeneous-UIP₃ :
   [ (λ i → [ (λ j → [ (λ k → P (eq₅ i j k)) ] p₁ ≡ p₂) ] eq₆ ≡ eq₇) ]
     eq₈ ≡ eq₉
 heterogeneous-UIP₃
-  {x = x} {P = P}
-  P-groupoid eq₅ {p₁ = p₁} {p₂ = p₂} {eq₆ = eq₆} {eq₇ = eq₇} eq₈ eq₉ =
+  {x} {P} P-groupoid eq₅ {p₁} {p₂} {eq₆} {eq₇} eq₈ eq₉ =
                                                                        $⟨ P-groupoid ⟩
   (∀ x → H-level 3 (P x))                                              ↝⟨ _$ _ ⟩
   H-level 3 (P x)                                                      ↝⟨ heterogeneous-UIP₃₀₀ ⟩□

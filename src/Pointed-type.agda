@@ -88,12 +88,12 @@ private
 -- _↝[ k ]ᴮ_ is reflexive.
 
 ↝ᴮ-refl : P ↝[ k ]ᴮ P
-↝ᴮ-refl {k = k} = F.id , cong (_$ _) (to-implication-id k)
+↝ᴮ-refl {k} = F.id , cong (_$ _) (to-implication-id k)
 
 -- _↝[ k ]ᴮ_ is transitive.
 
 ↝ᴮ-trans : P ↝[ k ]ᴮ Q → Q ↝[ k ]ᴮ R → P ↝[ k ]ᴮ R
-↝ᴮ-trans {P = _ , x} {k = k} {Q = _ , y} {R = _ , z}
+↝ᴮ-trans {P = _ , x} {k} {Q = _ , y} {R = _ , z}
   (A↝B , p) (B↝C , q) =
     B↝C F.∘ A↝B
   , (to-implication (B↝C F.∘ A↝B) x             ≡⟨ cong (_$ _) $ to-implication-∘ k ⟩
@@ -134,7 +134,7 @@ _ □ᴮ = ↝ᴮ-refl
 -- (Maybe A , nothing) to functions.
 
 Maybe→ᴮ↠→ : (Maybe A , nothing) →ᴮ (B , x) ↠ (A → B)
-Maybe→ᴮ↠→ {A = A} {B = B} {x = x} = record
+Maybe→ᴮ↠→ {A} {B} {x} = record
   { logical-equivalence = record
     { to   = (Maybe A , nothing) →ᴮ (B , x)  ↝⟨ proj₁ ⟩
              (Maybe A → B)                   ↝⟨ _∘ inj₂ ⟩□
@@ -150,7 +150,7 @@ Maybe→ᴮ↠→ {A = A} {B = B} {x = x} = record
 Maybe→ᴮ↔→ :
   ∀ {A : Type a} {B : Type b} {x} →
   (Maybe A , nothing) →ᴮ (B , x) ↝[ a ∣ b ] (A → B)
-Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
+Maybe→ᴮ↔→ {A} {B} {x} = generalise-ext?
   (_↠_.logical-equivalence Maybe→ᴮ↠→)
   (λ ext →
        refl
@@ -176,7 +176,7 @@ Maybe→ᴮ↔→ {A = A} {B} {x} = generalise-ext?
 Bool→ᴮ↔ :
   ∀ {A : Type a} {x} →
   (Bool , true) →ᴮ (A , x) ↝[ lzero ∣ a ] A
-Bool→ᴮ↔ {A = A} {x = x} ext =
+Bool→ᴮ↔ {A} {x} ext =
   (Bool , true) →ᴮ (A , x)  ↝⟨ Maybe→ᴮ↔→ ext ⟩
   (⊤ → A)                   ↔⟨ Π-left-identity ⟩□
   A                         □
@@ -203,9 +203,9 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 -- A rearrangement lemma for Ω and Ω[_].
 
 Ω∘Ω[]≡Ω[]∘Ω : ∀ n → Ω (Ω[ n ] P) ≡ Ω[ n ] (Ω P)
-Ω∘Ω[]≡Ω[]∘Ω {P = P} zero =
+Ω∘Ω[]≡Ω[]∘Ω {P} zero =
   Ω P  ∎
-Ω∘Ω[]≡Ω[]∘Ω {P = P} (suc n) =
+Ω∘Ω[]≡Ω[]∘Ω {P} (suc n) =
   Ω (Ω[ suc n ] P)  ≡⟨⟩
   Ω (Ω (Ω[ n ] P))  ≡⟨ cong Ω $ Ω∘Ω[]≡Ω[]∘Ω n ⟩
   Ω (Ω[ n ] (Ω P))  ≡⟨⟩
@@ -263,7 +263,7 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
   ∀ n →
   ≃ᴮ→→ᴮ (Ω[ n ]-cong-≃ᴮ P≃Q) ≡
   Ω[ n ]-cong-→ᴮ (≃ᴮ→→ᴮ P≃Q)
-≃ᴮ→→ᴮ-Ω[_]-cong-≃ᴮ {P≃Q = P≃Q} = λ where
+≃ᴮ→→ᴮ-Ω[_]-cong-≃ᴮ {P≃Q} = λ where
   zero    → refl _
   (suc n) →
     ≃ᴮ→→ᴮ (Ω-cong-≃ᴮ (Ω[ n ]-cong-≃ᴮ P≃Q))  ≡⟨⟩
@@ -274,7 +274,7 @@ Bool→ᴮ↔ {A = A} {x = x} ext =
 
 proj₁-Ω-cong-→ᴮ-↝ᴮ-refl :
   proj₁ (Ω-cong-→ᴮ ↝ᴮ-refl) p ≡ p
-proj₁-Ω-cong-→ᴮ-↝ᴮ-refl {p = p} =
+proj₁-Ω-cong-→ᴮ-↝ᴮ-refl {p} =
   ≡⇒→
     (cong₂ _≡_
        (cong (_$ _) (refl _))
@@ -302,7 +302,7 @@ proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl = proj₁-Ω-cong-→ᴮ-↝ᴮ-refl
   proj₁ (Ω-cong-→ᴮ P→Q) (trans p q) ≡
   trans (proj₁ (Ω-cong-→ᴮ P→Q) p)
         (proj₁ (Ω-cong-→ᴮ P→Q) q)
-Ω-cong-→ᴮ-trans {P→Q = to , to≡} {p = p} {q = q} =
+Ω-cong-→ᴮ-trans {P→Q = to , to≡} {p} {q} =
   ≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to (trans p q))            ≡⟨ cong (≡⇒→ (cong₂ _≡_ to≡ to≡)) $
                                                               cong-trans _ _ _ ⟩
   ≡⇒→ (cong₂ _≡_ to≡ to≡)
@@ -372,20 +372,20 @@ proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl = proj₁-Ω-cong-→ᴮ-↝ᴮ-refl
   H-level (1 + n) A
     ⇔
   ((x : A) → Contractible (proj₁ $ Ω[ n ] (A , x)))
-+⇔∀contractible-Ω[] {A = A} zero =
++⇔∀contractible-Ω[] {A} zero =
   Is-proposition A      ↝⟨ record { to   = propositional⇒inhabited⇒contractible
                                   ; from = [inhabited⇒contractible]⇒propositional
                                   } ⟩□
   (A → Contractible A)  □
 
-+⇔∀contractible-Ω[] {A = A} (suc zero) =
++⇔∀contractible-Ω[] {A} (suc zero) =
   Is-set A                            ↝⟨ 2+⇔∀1+≡ 0 ⟩
   ((x : A) → Is-proposition (x ≡ x))  ↝⟨ (∀-cong _ λ x → record { to   = flip propositional⇒inhabited⇒contractible (refl x)
                                                                 ; from = mono₁ 0
                                                                 }) ⟩□
   ((x : A) → Contractible (x ≡ x))    □
 
-+⇔∀contractible-Ω[] {A = A} (suc (suc n)) =
++⇔∀contractible-Ω[] {A} (suc (suc n)) =
   H-level (3 + n) A                                                  ↝⟨ 2+⇔∀1+≡ (1 + n) ⟩
 
   ((x : A) → H-level (2 + n) (x ≡ x))                                ↝⟨ (∀-cong _ λ _ → +⇔∀contractible-Ω[] (suc n)) ⟩
@@ -451,7 +451,7 @@ _×-cong-≃ᴮ_ : P₁ ≃ᴮ P₂ → Q₁ ≃ᴮ Q₂ → (P₁ × Q₁) ≃�
 -- Ω[ n ] commutes with _×_.
 
 Ω[_]-× : ∀ n → Ω[ n ] (P × Q) ≃ᴮ (Ω[ n ] P × Ω[ n ] Q)
-Ω[_]-× {P = P} {Q = Q} = λ where
+Ω[_]-× {P} {Q} = λ where
   zero    → P × Q  □ᴮ
   (suc n) →
     Ω (Ω[ n ] (P × Q))           ↝ᴮ⟨ Ω-cong-≃ᴮ Ω[ n ]-× ⟩
@@ -461,7 +461,7 @@ _×-cong-≃ᴮ_ : P₁ ≃ᴮ P₂ → Q₁ ≃ᴮ Q₂ → (P₁ × Q₁) ≃�
 -- A lemma relating Ω[ 1 ]-× and Ω-×.
 
 Ω[1]-× : _≃_.to (proj₁ Ω[ 1 ]-×) p ≡ _≃_.to (proj₁ Ω-×) p
-Ω[1]-× {p = p} =
+Ω[1]-× {p} =
   _≃_.to (proj₁ Ω[ 1 ]-×) p                                  ≡⟨⟩
   _≃_.to (proj₁ Ω-×) (_≃_.to (proj₁ (Ω-cong-≃ᴮ ↝ᴮ-refl)) p)  ≡⟨ cong (_≃_.to (proj₁ Ω-×)) proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl ⟩∎
   _≃_.to (proj₁ Ω-×) p                                       ∎
@@ -473,7 +473,7 @@ _×-cong-≃ᴮ_ : P₁ ≃ᴮ P₂ → Q₁ ≃ᴮ Q₂ → (P₁ × Q₁) ≃�
   Σ-zip trans trans
     (_≃_.to (proj₁ Ω-×) p)
     (_≃_.to (proj₁ Ω-×) q)
-Ω-×-trans {p = p} {q = q} =
+Ω-×-trans {p} {q} =
   _≃_.to (proj₁ Ω-×) (trans p q)         ≡⟨⟩
 
   ( cong proj₁ (trans p q)
@@ -497,7 +497,7 @@ _×-cong-≃ᴮ_ : P₁ ≃ᴮ P₂ → Q₁ ≃ᴮ Q₂ → (P₁ × Q₁) ≃�
   Σ-zip trans trans
     (_≃_.to (proj₁ Ω[ suc n ]-×) p)
     (_≃_.to (proj₁ Ω[ suc n ]-×) q)
-Ω[1+ n ]-×-trans {p = p} {q = q} =
+Ω[1+ n ]-×-trans {p} {q} =
   _≃_.to (proj₁ Ω-×)
     (_≃_.to (proj₁ (Ω-cong-≃ᴮ Ω[ n ]-×)) (trans p q))  ≡⟨ cong (_≃_.to (proj₁ Ω-×)) $ Ω-cong-≃ᴮ-trans Ω[ n ]-× ⟩
 

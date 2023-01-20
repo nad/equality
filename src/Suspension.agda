@@ -67,7 +67,7 @@ record Elimᴾ {A : Type a} (P : Susp A → Type p) : Type (a ⊔ p) where
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : Susp A) → P x
-elimᴾ {A = A} {P = P} e = helper
+elimᴾ {A} {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -88,7 +88,7 @@ record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
 open Recᴾ public
 
 recᴾ : Recᴾ A B → Susp A → B
-recᴾ {A = A} {B = B} r = elimᴾ eᴾ
+recᴾ {A} {B} r = elimᴾ eᴾ
   where
   module R = Recᴾ r
 
@@ -109,7 +109,7 @@ record Elim {A : Type a} (P : Susp A → Type p) : Type (a ⊔ p) where
 open Elim public
 
 elim : Elim P → (x : Susp A) → P x
-elim {P = P} e = elimᴾ eᴾ
+elim {P} e = elimᴾ eᴾ
   where
   module E = Elim e
 
@@ -135,7 +135,7 @@ record Rec (A : Type a) (B : Type b) : Type (a ⊔ b) where
 open Rec public
 
 rec : Rec A B → Susp A → B
-rec {A = A} {B = B} r = recᴾ rᴾ
+rec {A} {B} r = recᴾ rᴾ
   where
   module R = Rec r
 
@@ -153,7 +153,7 @@ rec-meridian = cong-≡↔≡ (refl _)
 
 universal-property :
   (Susp A → B) ↔ (∃ λ (n : B) → ∃ λ (s : B) → A → n ≡ s)
-universal-property {A = A} {B = B} = record
+universal-property {A} {B} = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f → f north , f south , cong f ∘ meridian
@@ -192,7 +192,7 @@ universal-property {A = A} {B = B} = record
 -- point) are isomorphic to based maps to loop spaces.
 
 Susp→ᴮ↔ : (Susp A , north) →ᴮ C ↔ (A , x) →ᴮ Ω C
-Susp→ᴮ↔ {A = A} {C = B , y} {x = x} =
+Susp→ᴮ↔ {A} {C = B , y} {x} =
   (Susp A , north) →ᴮ (B , y)                                            ↔⟨⟩
   (∃ λ (f : Susp A → B) → f north ≡ y)                                   ↝⟨ Σ-cong universal-property (λ _ → F.id) ⟩
   (∃ λ (f : ∃ λ n → ∃ λ s → A → n ≡ s) → proj₁ f ≡ y)                    ↝⟨ inverse Σ-assoc ⟩
@@ -238,9 +238,7 @@ private
     {x≡y : x ≡ y} {fgx≡x : f (g x) ≡ x} →
     subst (λ z → f (g z) ≡ z) x≡y fgx≡x ≡
     trans (sym (cong f (cong g x≡y))) (trans fgx≡x x≡y)
-  subst-in-terms-of-trans-and-cong′
-    {f = f} {g = g} {x≡y = x≡y} {fgx≡x = fgx≡x} =
-
+  subst-in-terms-of-trans-and-cong′ {f} {g} {x≡y} {fgx≡x} =
     subst (λ z → f (g z) ≡ z) x≡y fgx≡x                         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
     trans (sym (cong (f ∘ g) x≡y)) (trans fgx≡x (cong id x≡y))  ≡⟨ sym $ cong₂ (λ p q → trans (sym p) (trans fgx≡x q)) (cong-∘ _ _ _) (cong-id _) ⟩∎
     trans (sym (cong f (cong g x≡y))) (trans fgx≡x x≡y)         ∎
@@ -306,7 +304,7 @@ private abstract
   map∘map :
     (∀ x → f (g x) ≡ x) →
     ∀ x → map f (map g x) ≡ x
-  map∘map {f = f} {g = g} hyp = elim λ where
+  map∘map {f} {g} hyp = elim λ where
     .northʳ      → refl _
     .southʳ      → refl _
     .meridianʳ x →
@@ -374,7 +372,7 @@ private
 
 ¬-cong-↣ :
   ¬ (∀ {A : Type a} {B : Type b} → A ↣ B → Susp A ↣ Susp B)
-¬-cong-↣ {a = a} {b = b} =
+¬-cong-↣ {a} {b} =
   (∀ {A B} → A ↣ B → Susp A ↣ Susp B)  ↝⟨ (λ hyp → hyp) ⟩
   (⊥ ↣ ↑ _ ⊤ → Susp ⊥ ↣ Susp (↑ _ ⊤))  ↝⟨ _$ ⊥↣⊤ ⟩
   Susp ⊥ ↣ Susp (↑ _ ⊤)                ↝⟨ ¬Susp⊥↣Susp⊤ ⟩□

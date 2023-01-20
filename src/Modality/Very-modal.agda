@@ -69,7 +69,7 @@ abstract
 
   ◯-Π-Modal :
     {A : Type a} {P : A → Type a} → ◯ (∀ x → Modal (P x))
-  ◯-Π-Modal {A = A} {P = P} =
+  ◯-Π-Modal {A} {P} =
                                      $⟨ (λ {_} → very-modal) ⟩
     Very-modal M                     →⟨ (λ m → m , m) ⟩
     ◯ (Modal A) × ◯ (Modal (Σ A P))  →⟨ _≃_.from ◯× ⟩
@@ -92,7 +92,7 @@ abstract
 ◯Π◯≃◯Π-η :
   ◯Π◯≃◯Π _ (η f) ≡
   ◯-map (λ m x → Modal→Stable (m x) (f x)) ◯-Π-Modal
-◯Π◯≃◯Π-η {f = f} =
+◯Π◯≃◯Π-η {f} =
   ◯-elim
     {P = λ m →
            M.◯Π◯≃◯Π m _ (η f) ≡
@@ -110,7 +110,7 @@ abstract
 -- The modality satisfies a kind of choice principle.
 
 has-choice : Has-choice
-has-choice {A = A} {P = P} =
+has-choice {A} {P} =
   Π◯→◯Π , ◯Π→Π◯-Π◯→◯Π , (λ ext → equiv ext , refl _ , ◯Π→Π◯-Π◯→◯Π≡ ext)
   where
   Π◯→◯Π =
@@ -196,7 +196,7 @@ open Modality.Left-exact eq M left-exact-η-cong public
 -- Modal (Modal A) implies Modal A.
 
 Modal-Modal→Modal : Modal (Modal A) → Modal A
-Modal-Modal→Modal {A = A} =
+Modal-Modal→Modal {A} =
   Modal (Modal A)   →⟨ Modal→Stable ⟩
   Stable (Modal A)  →⟨ _$ very-modal ⟩□
   Modal A           □
@@ -207,7 +207,7 @@ Modal-Modal→Modal {A = A} =
 Modal-Modal≃Modal :
   Extensionality a a →
   Modal (Modal A) ≃ Modal A
-Modal-Modal≃Modal {A = A} ext = Eq.⇔→≃
+Modal-Modal≃Modal {A} ext = Eq.⇔→≃
   (Modal-propositional ext)
   (Modal-propositional ext)
   Modal-Modal→Modal
@@ -224,7 +224,7 @@ Modal-Modal≃Modal {A = A} ext = Eq.⇔→≃
 Modal≃Modal-Null :
   Extensionality a a →
   Modal A ↝[ lsuc a ∣ a ] Modal -Null A
-Modal≃Modal-Null {A = A} ext =
+Modal≃Modal-Null {A} ext =
   generalise-ext?-prop
     (record { to = to; from = from })
     (λ _ → Modal-propositional ext)
@@ -291,7 +291,7 @@ Modal≃Modal-Null {A = A} ext =
 -- extensionality).
 
 ◯-Modal≃⊤ : ◯ (Modal A) ↝[ a ∣ a ] ⊤
-◯-Modal≃⊤ {A = A} =
+◯-Modal≃⊤ {A} =
   generalise-ext?
     (record { from = λ _ → very-modal })
     (λ ext →
@@ -304,7 +304,7 @@ Modal≃Modal-Null {A = A} ext =
 -- extensionality).
 
 ◯≃◯-Modal-× : ◯ B ↝[ a ∣ a ] ◯ (Modal A × B)
-◯≃◯-Modal-× {B = B} {A = A} ext =
+◯≃◯-Modal-× {B} {A} ext =
   ◯ B                ↝⟨ inverse-ext? (drop-⊤-left-× ∘ const ∘ ◯-Modal≃⊤) ext ⟩
   ◯ (Modal A) × ◯ B  ↔⟨ inverse ◯× ⟩□
   ◯ (Modal A × B)    □
@@ -312,12 +312,12 @@ Modal≃Modal-Null {A = A} ext =
 -- Two "computation rules" for ◯≃◯-Modal-×.
 
 ◯≃◯-Modal-×-η : ◯≃◯-Modal-× {A = A} _ (η x) ≡ ◯-map (_, x) very-modal
-◯≃◯-Modal-×-η {x = x} =
+◯≃◯-Modal-×-η {x} =
   _≃_.from ◯× (very-modal , η x)  ≡⟨ ◯×⁻¹-ηʳ ⟩∎
   ◯-map (_, x) very-modal         ∎
 
 ◯≃◯-Modal-×⁻¹-η : _⇔_.from (◯≃◯-Modal-× _) (η (m , x)) ≡ η x
-◯≃◯-Modal-×⁻¹-η {m = m} {x = x} =
+◯≃◯-Modal-×⁻¹-η {m} {x} =
   _≃_.to ◯× (η (m , x)) .proj₂  ≡⟨ cong proj₂ ◯×-η ⟩∎
   η x                           ∎
 
@@ -326,7 +326,7 @@ Modal≃Modal-Null {A = A} ext =
 ◯≃◯Σ-Modal :
   (P : A → Type a) →
   ◯ (P x) ↝[ a ∣ a ] ◯ (∃ λ (m : Modal A) → P (◯-rec m id (η x)))
-◯≃◯Σ-Modal {A = A} {x = x} P ext =
+◯≃◯Σ-Modal {A} {x} P ext =
   ◯ (P x)                                       ↝⟨ ◯≃◯-Modal-× ext ⟩
   ◯ (Modal A × P x)                             ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩□
   ◯ (∃ λ (m : Modal A) → P (◯-rec m id (η x)))  □
@@ -335,7 +335,7 @@ Modal≃Modal-Null {A = A} ext =
 -- modality is very modal, instead of function extensionality.
 
 ◯Ση≃Σ◯◯ : ◯ (Σ A (P ∘ η)) ≃ Σ (◯ A) (◯ ∘ P)
-◯Ση≃Σ◯◯ {A = A} {P = P} = Eq.↔→≃
+◯Ση≃Σ◯◯ {A} {P} = Eq.↔→≃
   (M.◯Ση≃Σ◯◯ _)
   (Σ (◯ A) (◯ ∘ P)          →⟨ (λ (x , y) → ◯-map (x ,_) y) ⟩
    ◯ (Σ (◯ A) P)            →⟨ ◯≃◯-Modal-× _ ⟩
@@ -479,7 +479,7 @@ commutes-with-Σ = _≃_.is-equivalence ◯Ση≃Σ◯◯
 ◯Σ≃Σ◯◯ :
   {P : A → Type a} →
   ◯ (Σ A P) ↝[ a ∣ a ] Σ (◯ A) (λ x → ◯ (∃ λ m → P (◯-rec m id x)))
-◯Σ≃Σ◯◯ {A = A} {P = P} ext =
+◯Σ≃Σ◯◯ {A} {P} ext =
   ◯ (Σ A P)                                     ↝⟨ ◯≃◯-Modal-× ext ⟩
   ◯ (Modal A × Σ A P)                           ↔⟨ ◯-cong-↔ ∃-comm ⟩
   ◯ (Σ A (λ x → Modal A × P x))                 ↔⟨ ◯-cong-≃ $ (∃-cong λ _ → ∃-cong λ _ → ≡⇒↝ _ $ cong P $ sym ◯-rec-η) ⟩
@@ -498,7 +498,7 @@ commutes-with-Σ = _≃_.is-equivalence ◯Ση≃Σ◯◯
   Extensionality? k (a ⊔ d) (a ⊔ e) →
   (Modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
   ◯ A ↝[ k ] ◯ B
-◯-cong-↝-Modal→ {C = C} {A = A} {B = B} d e ext hyp =
+◯-cong-↝-Modal→ {C} {A} {B} d e ext hyp =
   generalise-ext?′
     (◯ A              ↝⟨ ◯≃◯-Modal-× _ ⟩
      ◯ (Modal C × A)  ↝⟨ ◯-cong-⇔ (∃-cong λ m → hyp m _) ⟩
@@ -525,7 +525,7 @@ Modal→↝→↝ :
   ◯ B ↝[ k ] B →
   (Modal C → A ↝[ a ⊔ d ∣ a ⊔ e ] B) →
   A ↝[ k ] B
-Modal→↝→↝ {A = A} {B = B} d e ext A↝◯A ◯B↝B A↝B =
+Modal→↝→↝ {A} {B} d e ext A↝◯A ◯B↝B A↝B =
   A    ↝⟨ A↝◯A ⟩
   ◯ A  ↝⟨ ◯-cong-↝-Modal→ d e ext A↝B ⟩
   ◯ B  ↝⟨ ◯B↝B ⟩□
@@ -539,7 +539,7 @@ Modal→↝→↝ {A = A} {B = B} d e ext A↝◯A ◯B↝B A↝B =
 -- See also []-cong.◯-Erased≃Erased-◯ below.
 
 ◯-Erased⇔Erased-◯ : ◯ (Erased A) ⇔ Erased (◯ A)
-◯-Erased⇔Erased-◯ {A = A} = record
+◯-Erased⇔Erased-◯ {A} = record
   { to   = λ x → ◯-Erased→Erased-◯ x
   ; from =
       Erased (◯ A)                →⟨ η ⟩

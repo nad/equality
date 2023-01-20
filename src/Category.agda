@@ -163,7 +163,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) whe
     -- equality.
 
     ≡≃≡¹ : ∀ {X Y} {f g : X ≅ Y} → (f ≡ g) ≃ (f ¹ ≡ g ¹)
-    ≡≃≡¹ {f = f} {g} =
+    ≡≃≡¹ {f} {g} =
       (f ≡ g)      ↔⟨ inverse $ ignore-propositional-component $ Is-isomorphism-propositional _ ⟩□
       (f ¹ ≡ g ¹)  □
 
@@ -589,7 +589,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
     (∃ λ (p : ∃ λ (a : A) → ∃ λ (b : B a) → ∃ λ (c : C a b) → D a b c) →
        E (proj₁ p) (proj₁ (proj₂ p)) (proj₁ (proj₂ (proj₂ p)))
          (proj₂ (proj₂ (proj₂ p))))
-  rearrange {A = A} {B} {C} {D} {E} =
+  rearrange {A} {B} {C} {D} {E} =
     (∃ λ (a : A) → ∃ λ (b : B a) → ∃ λ (c : C a b) → ∃ λ (d : D a b c) →
        E a b c d)                                                         ↝⟨ ∃-cong (λ _ → ∃-cong λ _ → Σ-assoc) ⟩
 
@@ -609,7 +609,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
     (λ X Y → H (≡⇒← eqO X) (≡⇒← eqO Y))
       ≡
     subst (λ Obj → Obj → Obj → Set _) eqO H
-  ≡⇒←-subst {C} {H = H} eqO =
+  ≡⇒←-subst {C} {H} eqO =
     elim¹ (λ eqO → (λ X Y → H (≡⇒← eqO X) (≡⇒← eqO Y)) ≡
                    subst (λ Obj → Obj → Obj → Set _) eqO H)
           ((λ X Y → H (≡⇒← (refl C) X) (≡⇒← (refl C) Y))  ≡⟨ cong (λ f X Y → H (f X) (f Y)) ≡⇒←-refl ⟩
@@ -668,7 +668,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
       {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
       {f : ⌞ F (≡⇒← (refl C) X) (≡⇒← (refl C) Y) ⌟} →
     _
-  expand-≡⇒←-subst {C} {X} {Y} {F} {eqH = eqH} {f} =
+  expand-≡⇒←-subst {C} {X} {Y} {F} {eqH} {f} =
     subst (λ H → ⌞ H X Y ⌟) eqH
       (subst (λ H → ⌞ H X Y ⌟) (≡⇒←-subst (refl C)) f)      ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eqH $ subst (λ H → ⌞ H X Y ⌟) eq f)
                                                                  ≡⇒←-subst-refl ⟩
@@ -698,7 +698,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
       {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
       {f : ⌞ G X Y ⌟} →
     _
-  expand-sym-≡⇒←-subst {C} {X} {Y} {F} {eqH = eqH} {f} =
+  expand-sym-≡⇒←-subst {C} {X} {Y} {F} {eqH} {f} =
      subst (λ H → ⌞ H X Y ⌟) (sym $ ≡⇒←-subst (refl C))
        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) (sym eq) $
                                                                                  subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)
@@ -750,7 +750,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
       {eqH : subst (λ Obj → Obj → Obj → Set ℓ₂) (refl C) F ≡ G}
       {P : (Obj : Type ℓ₁) (HOM : Obj → Obj → Set ℓ₂) → Type (ℓ₁ ⊔ ℓ₂)} →
     _
-  subst-Σ-≡,≡→≡ {C} {F} {eqH = eqH} {P} =
+  subst-Σ-≡,≡→≡ {C} {F} {eqH} {P} =
     subst (P C) eqH ∘
     subst (P C) (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) F)       ≡⟨ apply-ext (lower-extensionality lzero (lsuc ℓ₂) ext) (λ _ →
                                                                              subst-subst (P C) _ _ _) ⟩
@@ -834,7 +834,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
          (subst (λ H → ⌞ H Y Z ⌟) (sym F≡G) f)
          (subst (λ H → ⌞ H X Y ⌟) (sym F≡G) g)) ≡
     subst (Q C) F≡G (c _ _ _) f g
-  push-Q {C} {X} {Y} {Z} {c = c} {F≡G} {f} {g} =
+  push-Q {C} {X} {Y} {Z} {c} {F≡G} {f} {g} =
     subst (λ H → ⌞ H X Z ⌟) F≡G
       (c X Y Z (subst (λ H → ⌞ H Y Z ⌟) (sym F≡G) f)
                (subst (λ H → ⌞ H X Y ⌟) (sym F≡G) g))          ≡⟨ sym subst-→ ⟩
@@ -1264,7 +1264,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   ∀ {ℓ₁ ℓ₂} {C D : Category′ ℓ₁ ℓ₂} →
   Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
   C ≡ D ↔ proj₁ C ≡ proj₁ D
-≡↔precategory≡precategory′ {ℓ₂ = ℓ₂} ext =
+≡↔precategory≡precategory′ {ℓ₂} ext =
   inverse $
   ignore-propositional-component
     (implicit-Π-closure (lower-extensionality ℓ₂ lzero ext) 1 λ _ →
@@ -1278,7 +1278,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
   ∀ {ℓ₁ ℓ₂} {C D : Category ℓ₁ ℓ₂} →
   Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
   C ≡ D ↔ Category.precategory C ≡ Category.precategory D
-≡↔precategory≡precategory {C = C} {D = D} ext =
+≡↔precategory≡precategory {C} {D} ext =
   C ≡ D                          ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩
   C.category ≡ D.category        ↝⟨ ≡↔precategory≡precategory′ ext ⟩□
   C.precategory ≡ D.precategory  □
@@ -1319,7 +1319,7 @@ equality-characterisation-Category′ :
         f D.∙ g))
     ↔
   C ≡ D
-equality-characterisation-Category′ {ℓ₂ = ℓ₂} {C} {D} ext univ₁ univ₂ =
+equality-characterisation-Category′ {ℓ₂} {C} {D} ext univ₁ univ₂ =
   _                              ↝⟨ equality-characterisation-Precategory ext univ₁ univ₂ ⟩
   C.precategory ≡ D.precategory  ↝⟨ inverse $ ≡↔precategory≡precategory′ (lower-extensionality lzero (lsuc ℓ₂) ext) ⟩□
   C ≡ D                          □
@@ -1348,7 +1348,7 @@ equality-characterisation-Category :
         f D.∙ g))
     ↔
   C ≡ D
-equality-characterisation-Category {ℓ₂ = ℓ₂} {C} {D} ext univ₁ univ₂ =
+equality-characterisation-Category {ℓ₂} {C} {D} ext univ₁ univ₂ =
   _                              ↝⟨ equality-characterisation-Precategory ext univ₁ univ₂ ⟩
   C.precategory ≡ D.precategory  ↝⟨ inverse $ ≡↔precategory≡precategory (lower-extensionality lzero (lsuc ℓ₂) ext) ⟩□
   C ≡ D                          □
@@ -1521,7 +1521,7 @@ lift-category-Obj ℓ₁′ C .Category.category =
   ≡→≅-equivalence :
     {X Y : Precategory.Obj C′} →
     Is-equivalence (C′.≡→≅ {X = X} {Y = Y})
-  ≡→≅-equivalence {X = X} {Y = Y} =
+  ≡→≅-equivalence {X} {Y} =
     _≃_.is-equivalence $
     Eq.with-other-function
       (X ≡ Y                ↝⟨ inverse $ Eq.≃-≡ $ Eq.↔⇒≃ Bijection.↑↔ ⟩
@@ -1554,7 +1554,7 @@ lift-category-Hom ℓ₂′ C .Category.category =
   ≡→≅-equivalence :
     {X Y : Precategory.Obj C′} →
     Is-equivalence (C′.≡→≅ {X = X} {Y = Y})
-  ≡→≅-equivalence {X = X} {Y = Y} =
+  ≡→≅-equivalence {X} {Y} =
     _≃_.is-equivalence $
     Eq.with-other-function
       (X ≡ Y     ↝⟨ Eq.⟨ _ , C.≡→≅-equivalence ⟩ ⟩

@@ -207,7 +207,7 @@ _*_ on f = λ x y → f x * f y
 -- A term's type.
 
 Type-of : {A : Type a} → A → Type a
-Type-of {A = A} _ = A
+Type-of {A} _ = A
 
 -- Type signatures.
 
@@ -391,8 +391,8 @@ not (inj₂ x) = inj₁ x
 -- Quotient.equivalence-but-not-strong-equivalence.
 
 From-⊎ : {A B : Type ℓ} → A ⊎ B → Type ℓ
-From-⊎ {A = A} (inj₁ _) = A
-From-⊎ {B = B} (inj₂ _) = B
+From-⊎ {A} (inj₁ _) = A
+From-⊎ {B} (inj₂ _) = B
 
 from-⊎ : (x : A ⊎ B) → From-⊎ x
 from-⊎ (inj₁ x) = x

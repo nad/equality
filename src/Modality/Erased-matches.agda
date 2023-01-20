@@ -65,7 +65,7 @@ private
     (x : ◯ (W A (P ∘ η))) →
     @0 Acc _[ _<W_ ]◯_ x →
     W (◯ A) P
-  ◯Wη→W◯-Acc {P = P} ext w (A.acc a) =
+  ◯Wη→W◯-Acc {P} ext w (A.acc a) =
     sup x′ λ y → ◯Wη→W◯-Acc ext (f′ y) (a (f′ y) (f′<w y))
     where
     p′ = ◯Wη→Σ◯Π◯Wη {P = P} w
@@ -109,7 +109,7 @@ private
     (x : W A (P ∘ η))
     (@0 acc : Acc _[ _<W_ ]◯_ (η x)) →
     ◯Wη→W◯-Acc {P = P} ext (η x) acc ≡ W-map η id x
-  ◯Wη→W◯-Acc-η {A = A} {P = P} ext ext′ ax (sup x f) (A.acc acc) =
+  ◯Wη→W◯-Acc-η {A} {P} ext ext′ ax (sup x f) (A.acc acc) =
     cong (uncurry sup) $
     Σ-≡,≡→≡
       (cong proj₁ lemma)
@@ -170,7 +170,7 @@ private
   @0 Accessibility-modal-for (_<W_ {A = A} {P = P ∘ η}) →
   @0 Extensionality a a →
   ◯ (W A (P ∘ η)) → W (◯ A) P
-◯Wη→W◯ {A = A} {P = P} acc ext =
+◯Wη→W◯ {A} {P} acc ext =
   ◯ (W A (P ∘ η))                                      →⟨ ◯-map (λ x → x , A.Well-founded-W x) ⟩
   ◯ (∃ λ (x : W A (P ∘ η)) → Acc _<W_ x)               →⟨ ◯-map (Σ-map id (acc′ .proj₁)) ⟩
   ◯ (∃ λ (x : W A (P ∘ η)) → Acc _[ _<W_ ]◯_ (η x))    →⟨ ◯Ση≃Σ◯◯ _ ⟩
@@ -192,7 +192,7 @@ private
   Extensionality a a →
   []-cong-axiomatisation a →
   ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
-◯Wη→W◯-η {A = A} {P = P} {x = x} acc ext ext′ ax =
+◯Wη→W◯-η {A} {P} {x} acc ext ext′ ax =
   (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
     (◯Ση≃Σ◯◯ _
        (◯-map (Σ-map id (acc′ .proj₁))
@@ -220,7 +220,7 @@ Stable-W :
   @0 Extensionality a a →
   Modal A →
   Stable (W A P)
-Stable-W {A = A} {P = P} acc ext m =
+Stable-W {A} {P} acc ext m =
   ◯ (W A P)                         →⟨ ◯-map $ W-map id (subst P Modal→Stable-η) ⟩
   ◯ (W A (P ∘ Modal→Stable m ∘ η))  →⟨ ◯Wη→W◯ acc′ ext ⟩
   W (◯ A) (P ∘ Modal→Stable m)      →⟨ W-map (Modal→Stable m) id ⟩□

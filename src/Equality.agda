@@ -223,7 +223,7 @@ J₀⇒Equivalence-relation⁺ {ℓ} {reflexive = r} eq = record
   subst-refl P p = cong (_$ p) $ elim-refl (λ {u} _ → P u → _) _
 
   sym : x ≡ y → y ≡ x
-  sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+  sym {x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
   abstract
 
@@ -231,7 +231,7 @@ J₀⇒Equivalence-relation⁺ {ℓ} {reflexive = r} eq = record
     sym-refl = cong (_$ _) $ subst-refl (λ z → _ ≡ z → z ≡ _) _
 
   trans : x ≡ y → y ≡ z → x ≡ z
-  trans {x = x} = flip (subst (x ≡_))
+  trans {x} = flip (subst (x ≡_))
 
   abstract
 
@@ -277,7 +277,7 @@ J₀⇒J {reflexive = r} eq {a} {p = b} = record
 
   dcong : (f : (x : A) → P x) (x≡y : x ≡ y) →
           subst P x≡y (f x) ≡ f y
-  dcong {A = A} {P = P} f x≡y = elim
+  dcong {A} {P} f x≡y = elim
     (λ {x y} (x≡y : x ≡ y) → (f : (x : A) → P x) →
        subst P x≡y (f x) ≡ f y)
     (λ _ _ → subst-refl _ _)
@@ -288,7 +288,7 @@ J₀⇒J {reflexive = r} eq {a} {p = b} = record
 
     dcong-refl : (f : (x : A) → P x) →
                  dcong f (refl x) ≡ subst-refl _ _
-    dcong-refl {P = P} f =
+    dcong-refl {P} f =
       cong (_$ f) $ elim-refl (λ _ → (_ : ∀ x → P x) → _) _
 
 -- Some derived properties.
@@ -385,27 +385,27 @@ module Equality-with-substitutivity-and-contractibility′
     -- Congruence.
 
     cong : (f : A → B) → x ≡ y → f x ≡ f y
-    cong {x = x} f x≡y =
+    cong {x} f x≡y =
       subst (λ y → x ≡ y → f x ≡ f y) x≡y (λ _ → refl (f x)) x≡y
 
   -- Symmetry.
 
   sym : x ≡ y → y ≡ x
-  sym {x = x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
+  sym {x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
   abstract
 
     -- "Evaluation rule" for sym.
 
     sym-refl : sym (refl x) ≡ refl x
-    sym-refl {x = x} =
+    sym-refl {x} =
       cong (λ f → f (refl x)) $
         subst-refl (λ z → x ≡ z → z ≡ x) _
 
   -- Transitivity.
 
   trans : x ≡ y → y ≡ z → x ≡ z
-  trans {x = x} = flip (subst (_≡_ x))
+  trans {x} = flip (subst (_≡_ x))
 
   abstract
 
@@ -421,7 +421,7 @@ module Equality-with-substitutivity-and-contractibility′
     elim : (P : {x y : A} → x ≡ y → Type p) →
            (∀ x → P (refl x)) →
            (x≡y : x ≡ y) → P x≡y
-    elim {x = x} {y = y} P p x≡y =
+    elim {x} {y} P p x≡y =
       let lemma = proj₂ (singleton-contractible y) in
       subst (P ∘ proj₂)
             (trans (sym (lemma (y , refl y))) (lemma (x , x≡y)))
@@ -440,7 +440,7 @@ module Equality-with-substitutivity-and-contractibility′
     elim-refl : (P : {x y : A} → x ≡ y → Type p)
                 (p : ∀ x → P (refl x)) →
                 elim P p (refl x) ≡ p x
-    elim-refl {x = x} _ _ =
+    elim-refl {x} _ _ =
       let lemma = proj₂ (singleton-contractible x) (x , refl x) in
       trans (cong (λ q → subst _ q _) (trans-sym lemma))
             (subst-refl _ _)
@@ -536,7 +536,7 @@ module Derived-definitions-and-properties
   elim₁ : (P : ∀ {x} → x ≡ y → Type p) →
           P (refl y) →
           (x≡y : x ≡ y) → P x≡y
-  elim₁ {y = y} {x = x} P p x≡y =
+  elim₁ {y} {x} P p x≡y =
     subst (P ∘ proj₂)
           (proj₂ (singleton-contractible y) (x , x≡y))
           p
@@ -547,7 +547,7 @@ module Derived-definitions-and-properties
 
     elim₁-refl : (P : ∀ {x} → x ≡ y → Type p) (p : P (refl y)) →
                  elim₁ P p (refl y) ≡ p
-    elim₁-refl {y = y} P p =
+    elim₁-refl {y} P p =
       subst (P ∘ proj₂)
             (proj₂ (singleton-contractible y) (y , refl y))
             p                                                ≡⟨ cong (λ q → subst (P ∘ proj₂) q _) (singleton-contractible-refl _) ⟩
@@ -585,7 +585,7 @@ module Derived-definitions-and-properties
   elim¹ : (P : ∀ {y} → x ≡ y → Type p) →
           P (refl x) →
           (x≡y : x ≡ y) → P x≡y
-  elim¹ {x = x} {y = y} P p x≡y =
+  elim¹ {x} {y} P p x≡y =
     subst (P ∘ proj₂)
           (proj₂ (other-singleton-contractible x) (y , x≡y))
           p
@@ -596,7 +596,7 @@ module Derived-definitions-and-properties
 
     elim¹-refl : (P : ∀ {y} → x ≡ y → Type p) (p : P (refl x)) →
                  elim¹ P p (refl x) ≡ p
-    elim¹-refl {x = x} P p =
+    elim¹-refl {x} P p =
       subst (P ∘ proj₂)
             (proj₂ (other-singleton-contractible x) (x , refl x)) p    ≡⟨ cong (λ q → subst (P ∘ proj₂) q _)
                                                                                (other-singleton-contractible-refl _) ⟩
@@ -610,7 +610,7 @@ module Derived-definitions-and-properties
       (cong′ : {x y : A} (f : A → B) → x ≡ y → f x ≡ f y) →
       ({x : A} (f : A → B) → cong′ f (refl x) ≡ refl (f x)) →
       cong′ f x≡y ≡ cong f x≡y
-    monomorphic-cong-canonical {f = f} cong′ cong′-refl = elim
+    monomorphic-cong-canonical {f} cong′ cong′-refl = elim
       (λ x≡y → cong′ f x≡y ≡ cong f x≡y)
       (λ x →
          cong′ f (refl x)  ≡⟨ cong′-refl _ ⟩
@@ -636,7 +636,7 @@ module Derived-definitions-and-properties
   dcong′ :
     (f : (x : A) → x ≡ y → P x) (x≡y : x ≡ y) →
     subst P x≡y (f x x≡y) ≡ f y (refl y)
-  dcong′ {y = y} {P = P} f x≡y = elim₁
+  dcong′ {y} {P} f x≡y = elim₁
     (λ {x} (x≡y : x ≡ y) →
        (f : ∀ x → x ≡ y → P x) →
        subst P x≡y (f x x≡y) ≡ f y (refl y))
@@ -651,13 +651,13 @@ module Derived-definitions-and-properties
     dcong′-refl :
       (f : (x : A) → x ≡ y → P x) →
       dcong′ f (refl y) ≡ subst-refl _ _
-    dcong′-refl {y = y} {P = P} f =
+    dcong′-refl {y} {P} f =
       cong (_$ f) $ elim₁-refl (λ _ → (f : ∀ x → x ≡ y → P x) → _) _
 
   -- Binary congruence.
 
   cong₂ : (f : A → B → C) → x ≡ y → u ≡ v → f x u ≡ f y v
-  cong₂ {x = x} {y = y} {u = u} {v = v} f x≡y u≡v =
+  cong₂ {x} {y} {u} {v} f x≡y u≡v =
     f x u  ≡⟨ cong (flip f u) x≡y ⟩
     f y u  ≡⟨ cong (f y)      u≡v ⟩∎
     f y v  ∎
@@ -668,7 +668,7 @@ module Derived-definitions-and-properties
 
     cong₂-refl : (f : A → B → C) →
                  cong₂ f (refl x) (refl y) ≡ refl (f x y)
-    cong₂-refl {x = x} {y = y} f =
+    cong₂-refl {x} {y} f =
       trans (cong (flip f y) (refl x)) (cong (f x) (refl y))  ≡⟨ cong₂ trans (cong-refl _) (cong-refl _) ⟩
       trans (refl (f x y)) (refl (f x y))                     ≡⟨ trans-refl-refl ⟩∎
       refl (f x y)                                            ∎
@@ -753,7 +753,7 @@ module Derived-definitions-and-properties
                           cong id (refl x)  ∎)
 
     cong-const : (x≡y : x ≡ y) → cong (const z) x≡y ≡ refl z
-    cong-const {z = z} =
+    cong-const {z} =
       elim (λ u≡v → cong (const z) u≡v ≡ refl z)
            (λ x → cong (const z) (refl x)  ≡⟨ cong-refl _ ⟩∎
                   refl z                   ∎)
@@ -769,7 +769,7 @@ module Derived-definitions-and-properties
     cong-uncurry-cong₂-, :
       {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong (uncurry f) (cong₂ _,_ x≡y u≡v) ≡ cong₂ f x≡y u≡v
-    cong-uncurry-cong₂-, {y = y} {u = u} {f = f} {x≡y = x≡y} {u≡v} =
+    cong-uncurry-cong₂-, {y} {u} {f} {x≡y} {u≡v} =
       cong (uncurry f)
            (trans (cong (flip _,_ u) x≡y) (cong (_,_ y) u≡v))  ≡⟨ cong-trans _ _ _ ⟩
 
@@ -781,7 +781,7 @@ module Derived-definitions-and-properties
     cong-proj₁-cong₂-, :
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₁ (cong₂ _,_ x≡y u≡v) ≡ x≡y
-    cong-proj₁-cong₂-, {y = y} x≡y u≡v =
+    cong-proj₁-cong₂-, {y} x≡y u≡v =
       cong proj₁ (cong₂ _,_ x≡y u≡v)            ≡⟨ cong-uncurry-cong₂-, ⟩
       cong₂ const x≡y u≡v                       ≡⟨⟩
       trans (cong id x≡y) (cong (const y) u≡v)  ≡⟨ cong₂ trans (sym $ cong-id _) (cong-const _) ⟩
@@ -791,7 +791,7 @@ module Derived-definitions-and-properties
     cong-proj₂-cong₂-, :
       (x≡y : x ≡ y) (u≡v : u ≡ v) →
       cong proj₂ (cong₂ _,_ x≡y u≡v) ≡ u≡v
-    cong-proj₂-cong₂-, {u = u} x≡y u≡v =
+    cong-proj₂-cong₂-, {u} x≡y u≡v =
       cong proj₂ (cong₂ _,_ x≡y u≡v)            ≡⟨ cong-uncurry-cong₂-, ⟩
       cong₂ (const id) x≡y u≡v                  ≡⟨⟩
       trans (cong (const u) x≡y) (cong id u≡v)  ≡⟨ cong₂ trans (cong-const _) (sym $ cong-id _) ⟩
@@ -801,14 +801,14 @@ module Derived-definitions-and-properties
     cong₂-reflˡ : {u≡v : u ≡ v}
                   (f : A → B → C) →
                   cong₂ f (refl x) u≡v ≡ cong (f x) u≡v
-    cong₂-reflˡ {u = u} {x = x} {u≡v = u≡v} f =
+    cong₂-reflˡ {u} {x} {u≡v} f =
       trans (cong (flip f u) (refl x)) (cong (f x) u≡v)  ≡⟨ cong₂ trans (cong-refl _) (refl _) ⟩
       trans (refl (f x u)) (cong (f x) u≡v)              ≡⟨ trans-reflˡ _ ⟩∎
       cong (f x) u≡v                                     ∎
 
     cong₂-reflʳ : (f : A → B → C) {x≡y : x ≡ y} →
                   cong₂ f x≡y (refl u) ≡ cong (flip f u) x≡y
-    cong₂-reflʳ {y = y} {u = u} f {x≡y} =
+    cong₂-reflʳ {y} {u} f {x≡y} =
       trans (cong (flip f u) x≡y) (cong (f y) (refl u))  ≡⟨ cong (trans _) (cong-refl _) ⟩
       trans (cong (flip f u) x≡y) (refl (f y u))         ≡⟨ trans-reflʳ _ ⟩∎
       cong (flip f u) x≡y                                ∎
@@ -824,7 +824,7 @@ module Derived-definitions-and-properties
 
     cong₂-sym :
       cong₂ f (sym x≡y) (sym u≡v) ≡ sym (cong₂ f x≡y u≡v)
-    cong₂-sym {f = f} {x≡y = x≡y} {u≡v = u≡v} = elim¹
+    cong₂-sym {f} {x≡y} {u≡v} = elim¹
       (λ u≡v → cong₂ f (sym x≡y) (sym u≡v) ≡ sym (cong₂ f x≡y u≡v))
       (cong₂ f (sym x≡y) (sym (refl _))  ≡⟨ cong (cong₂ _ _) sym-refl ⟩
        cong₂ f (sym x≡y) (refl _)        ≡⟨ cong₂-reflʳ _ ⟩
@@ -837,8 +837,7 @@ module Derived-definitions-and-properties
       {f : A → B → C} →
       cong₂ f (trans x≡y y≡z) (trans u≡v v≡w) ≡
       trans (cong₂ f x≡y u≡v) (cong₂ f y≡z v≡w)
-    cong₂-trans
-      {x≡y = x≡y} {y≡z = y≡z} {u≡v = u≡v} {v≡w = v≡w} {f = f} =
+    cong₂-trans {x≡y} {y≡z} {u≡v} {v≡w} {f} =
       elim₁
         (λ x≡y →
            cong₂ f (trans x≡y y≡z) (trans u≡v v≡w) ≡
@@ -858,14 +857,14 @@ module Derived-definitions-and-properties
     cong₂-∘ˡ :
       {f : B → C → D} {g : A → B} {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong₂ (f ∘ g) x≡y u≡v ≡ cong₂ f (cong g x≡y) u≡v
-    cong₂-∘ˡ {y = y} {u = u} {f = f} {g = g} {x≡y = x≡y} {u≡v} =
+    cong₂-∘ˡ {y} {u} {f} {g} {x≡y} {u≡v} =
       trans (cong (flip (f ∘ g) u) x≡y) (cong (f (g y)) u≡v)     ≡⟨ cong (flip trans _) $ sym $ cong-∘ _ _ _ ⟩∎
       trans (cong (flip f u) (cong g x≡y)) (cong (f (g y)) u≡v)  ∎
 
     cong₂-∘ʳ :
       {x≡y : x ≡ y} {u≡v : u ≡ v} →
       cong₂ (λ x → f x ∘ g) x≡y u≡v ≡ cong₂ f x≡y (cong g u≡v)
-    cong₂-∘ʳ {y = y} {u = u} {f = f} {g = g} {x≡y = x≡y} {u≡v} =
+    cong₂-∘ʳ {y} {u} {f} {g} {x≡y} {u≡v} =
       trans (cong (flip f (g u)) x≡y) (cong (f y ∘ g) u≡v)       ≡⟨ cong (trans _) $ sym $ cong-∘ _ _ _ ⟩∎
       trans (cong (flip f (g u)) x≡y) (cong (f y) (cong g u≡v))  ∎
 
@@ -894,7 +893,7 @@ module Derived-definitions-and-properties
     cong-≡id-≡-≡id :
       (f≡id : ∀ x → f x ≡ x) →
       cong f (f≡id x) ≡ f≡id (f x)
-    cong-≡id-≡-≡id {f = f} {x = x} f≡id =
+    cong-≡id-≡-≡id {f} {x} f≡id =
       cong f (f≡id x)                                             ≡⟨ elim¹
                                                                        (λ {y} (p : f x ≡ y) →
                                                                           cong f p ≡ trans (f≡id (f x)) (trans p (sym (f≡id y)))) (
@@ -912,7 +911,7 @@ module Derived-definitions-and-properties
       (f : ∀ {x y} {x≡y : x ≡ y} → P x≡y → Q x≡y)
       (r : ∀ x → P (refl x)) {x≡y : x ≡ y} →
       f (elim P r x≡y) ≡ elim Q (f ∘ r) x≡y
-    elim-∘ {x = x} P Q f r {x≡y} = elim¹
+    elim-∘ {x} P Q f r {x≡y} = elim¹
       (λ x≡y → f (elim P r x≡y) ≡
                elim Q (f ∘ r) x≡y)
       (f (elim P r (refl x))    ≡⟨ cong f $ elim-refl _ _ ⟩
@@ -925,7 +924,7 @@ module Derived-definitions-and-properties
       (r : ∀ x → P x x) {x≡y : x ≡ y} →
       elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
       elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) x≡y
-    elim-cong {x = x} P f r {x≡y} = elim¹
+    elim-cong {x} P f r {x≡y} = elim¹
       (λ x≡y → elim (λ {x y} _ → P x y) r (cong f x≡y) ≡
                elim (λ {x y} _ → P (f x) (f y)) (r ∘ f) x≡y)
       (elim (λ {x y} _ → P x y) r (cong f (refl x))       ≡⟨ cong (elim (λ {x y} _ → P x y) _) $ cong-refl _ ⟩
@@ -936,7 +935,7 @@ module Derived-definitions-and-properties
 
   subst-const : ∀ (x₁≡x₂ : x₁ ≡ x₂) {b} →
                 subst (const B) x₁≡x₂ b ≡ b
-  subst-const {B = B} x₁≡x₂ {b} =
+  subst-const {B} x₁≡x₂ {b} =
     elim¹ (λ x₁≡x₂ → subst (const B) x₁≡x₂ b ≡ b)
           (subst-refl _ _)
           x₁≡x₂
@@ -959,7 +958,7 @@ module Derived-definitions-and-properties
     trans-subst :
       {x≡y : x ≡ y} {y≡z : y ≡ z} →
       trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y
-    trans-subst {z = z} = elim
+    trans-subst {z} = elim
       (λ {x y} x≡y → (y≡z : y ≡ z) → trans x≡y y≡z ≡ subst (x ≡_) y≡z x≡y)
       (λ y → elim
          (λ {y} y≡z → trans (refl y) y≡z ≡ subst (y ≡_) y≡z (refl y))
@@ -973,7 +972,7 @@ module Derived-definitions-and-properties
     subst-trans :
       (x≡y : x ≡ y) {y≡z : y ≡ z} →
       subst (_≡ z) (sym x≡y) y≡z ≡ trans x≡y y≡z
-    subst-trans {y = y} {z} x≡y {y≡z} =
+    subst-trans {y} {z} x≡y {y≡z} =
       elim₁ (λ x≡y → subst (λ x → x ≡ z) (sym x≡y) y≡z ≡
                      trans x≡y y≡z)
             (subst (λ x → x ≡ z) (sym (refl y)) y≡z  ≡⟨ cong (λ eq → subst (λ x → x ≡ z) eq _) sym-refl ⟩
@@ -985,7 +984,7 @@ module Derived-definitions-and-properties
     subst-trans-sym :
       {y≡x : y ≡ x} {y≡z : y ≡ z} →
       subst (_≡ z) y≡x y≡z ≡ trans (sym y≡x) y≡z
-    subst-trans-sym {z = z} {y≡x = y≡x} {y≡z = y≡z} =
+    subst-trans-sym {z} {y≡x} {y≡z} =
       subst (_≡ z) y≡x y≡z              ≡⟨ cong (flip (subst (_≡ z)) _) $ sym $ sym-sym _ ⟩
       subst (_≡ z) (sym (sym y≡x)) y≡z  ≡⟨ subst-trans _ ⟩∎
       trans (sym y≡x) y≡z               ∎
@@ -994,7 +993,7 @@ module Derived-definitions-and-properties
 
     subst-elim :
       subst P x≡y p ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y p
-    subst-elim {P = P} = elim
+    subst-elim {P} = elim
       (λ x≡y → ∀ p →
          subst P x≡y p ≡ elim (λ {u v} _ → P u → P v) (λ _ → id) x≡y p)
       (λ x p →
@@ -1016,7 +1015,7 @@ module Derived-definitions-and-properties
 
     subst-↑ : (P : A → Type p) {p : ↑ ℓ (P x)} →
               subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p))
-    subst-↑ {ℓ = ℓ} P {p} = elim¹
+    subst-↑ {ℓ} P {p} = elim¹
       (λ x≡y → subst (↑ ℓ ∘ P) x≡y p ≡ lift (subst P x≡y (lower p)))
       (subst (↑ ℓ ∘ P) (refl _) p         ≡⟨ subst-refl _ _ ⟩
        p                                  ≡⟨ cong lift $ sym $ subst-refl _ _ ⟩∎
@@ -1053,7 +1052,7 @@ module Derived-definitions-and-properties
       ∀ (P : A → Type p) {p} →
       subst-subst P (refl x) (refl x) p ≡
       cong₂ (flip (subst P)) (subst-refl _ _) (sym trans-refl-refl)
-    subst-subst-refl-refl {x = x} P {p} =
+    subst-subst-refl-refl {x} P {p} =
       subst-subst P (refl x) (refl x) p                              ≡⟨ subst-subst-reflˡ _ ⟩
 
       cong₂ (flip (subst P)) (subst-refl _ _)
@@ -1078,7 +1077,7 @@ module Derived-definitions-and-properties
     subst-sym-subst :
       (P : A → Type p) {x≡y : x ≡ y} {p : P x} →
       subst P (sym x≡y) (subst P x≡y p) ≡ p
-    subst-sym-subst P {x≡y = x≡y} {p = p} =
+    subst-sym-subst P {x≡y} {p} =
       elim¹
         (λ x≡y → ∀ p → subst P (sym x≡y) (subst P x≡y p) ≡ p)
         (λ p →
@@ -1096,7 +1095,7 @@ module Derived-definitions-and-properties
       trans (subst-refl _ _)
         (trans (cong (flip (subst P) _) sym-refl)
            (subst-refl _ _))
-    subst-subst-sym-refl P {p = p} =
+    subst-subst-sym-refl P {p} =
       cong (_$ _) $
       elim¹-refl
         (λ x≡y → ∀ p → subst P x≡y (subst P (sym x≡y) p) ≡ p)
@@ -1104,7 +1103,7 @@ module Derived-definitions-and-properties
 
     subst-sym-subst-refl :
       (P : A → Type p) {p : P x} →
-      subst-sym-subst P {x≡y = refl x} {p = p} ≡
+      subst-sym-subst P {x≡y = refl x} {p} ≡
       trans (cong (flip (subst P) _) sym-refl)
          (trans (subst-refl _ _) (subst-refl _ _))
     subst-sym-subst-refl P =
@@ -1151,7 +1150,7 @@ module Derived-definitions-and-properties
     subst-refl-subst-const :
       trans (sym $ subst-refl (λ _ → B) b) (subst-const (refl x)) ≡
       refl b
-    subst-refl-subst-const {b = b} {x = x} =
+    subst-refl-subst-const {b} {x} =
       trans (sym $ subst-refl _ _)
             (elim¹ (λ eq → subst (λ _ → _) eq b ≡ b)
                    (subst-refl _ _)
@@ -1187,7 +1186,7 @@ module Derived-definitions-and-properties
       {x≡y : x ≡ y} {fx≡fy : f x ≡ f y} →
       dcong f x≡y ≡ trans (subst-const _) fx≡fy →
       cong f x≡y ≡ fx≡fy
-    dcong≡→cong≡ {f = f} {x≡y = x≡y} {fx≡fy} hyp =
+    dcong≡→cong≡ {f} {x≡y} {fx≡fy} hyp =
       cong f x≡y                                                        ≡⟨ sym $ trans-sym-[trans] _ _ ⟩
       trans (sym $ subst-const _) (trans (subst-const _) $ cong f x≡y)  ≡⟨ cong (trans (sym $ subst-const _)) $ sym $
                                                                            dcong-subst-const-cong _ _ ⟩
@@ -1200,7 +1199,7 @@ module Derived-definitions-and-properties
     dsym :
       {x≡y : x ≡ y} {P : A → Type p} {p : P x} {q : P y} →
       subst P x≡y p ≡ q → subst P (sym x≡y) q ≡ p
-    dsym {x≡y = x≡y} {P = P} p≡q = elim
+    dsym {x≡y} {P} p≡q = elim
       (λ {x y} x≡y →
          ∀ {p : P x} {q : P y} →
          subst P x≡y p ≡ q →
@@ -1220,7 +1219,7 @@ module Derived-definitions-and-properties
       {P : A → Type p} {p : P x} →
       dsym (subst-refl P p) ≡
       trans (cong (flip (subst P) _) sym-refl) (subst-refl _ _)
-    dsym-subst-refl {P = P} =
+    dsym-subst-refl {P} =
       dsym (subst-refl _ _)                                      ≡⟨ cong (λ f → f (subst-refl _ _)) $
                                                                     elim-refl
                                                                       (λ {x y} x≡y →
@@ -1245,7 +1244,7 @@ module Derived-definitions-and-properties
       subst P x≡y p ≡ q →
       subst P y≡z q ≡ r →
       subst P (trans x≡y y≡z) p ≡ r
-    dtrans {x≡y = x≡y} {y≡z = y≡z} P {p = p} {q = q} {r = r} p≡q q≡r =
+    dtrans {x≡y} {y≡z} P {p} {q} {r} p≡q q≡r =
       subst P (trans x≡y y≡z) p    ≡⟨ sym $ subst-subst _ _ _ _ ⟩
       subst P y≡z (subst P x≡y p)  ≡⟨ cong (subst P y≡z) p≡q ⟩
       subst P y≡z q                ≡⟨ q≡r ⟩∎
@@ -1259,7 +1258,7 @@ module Derived-definitions-and-properties
       {p≡r : subst P y≡z (subst P x≡y p) ≡ r} →
       dtrans P (refl _) p≡r ≡
       trans (sym $ subst-subst _ _ _ _) p≡r
-    dtrans-reflˡ {y≡z = y≡z} {P = P} {p≡r = p≡r} =
+    dtrans-reflˡ {y≡z} {P} {p≡r} =
       trans (sym $ subst-subst _ _ _ _)
         (trans (cong (subst P y≡z) (refl _)) p≡r)             ≡⟨ cong (trans (sym $ subst-subst _ _ _ _) ∘ flip trans _) $ cong-refl _ ⟩
 
@@ -1273,7 +1272,7 @@ module Derived-definitions-and-properties
       {p≡q : subst P x≡y p ≡ q} →
       dtrans P p≡q (refl (subst P y≡z q)) ≡
       trans (sym $ subst-subst _ _ _ _) (cong (subst P y≡z) p≡q)
-    dtrans-reflʳ {x≡y = x≡y} {y≡z = y≡z} {P = P} {p≡q = p≡q} =
+    dtrans-reflʳ {x≡y} {y≡z} {P} {p≡q} =
       trans (sym $ subst-subst _ _ _ _)
         (trans (cong (subst P y≡z) p≡q) (refl _))                 ≡⟨ cong (trans _) $ trans-reflʳ _ ⟩∎
 
@@ -1284,7 +1283,7 @@ module Derived-definitions-and-properties
       {p≡q : subst P x≡y p ≡ q} →
       dtrans P (subst-refl _ _) p≡q ≡
       trans (cong (flip (subst P) _) (trans-reflˡ _)) p≡q
-    dtrans-subst-reflˡ {x≡y = x≡y} {P = P} {p≡q = p≡q} =
+    dtrans-subst-reflˡ {x≡y} {P} {p≡q} =
       trans (sym $ subst-subst _ _ _ _)
         (trans (cong (subst P x≡y) (subst-refl _ _)) p≡q)              ≡⟨ cong (λ eq → trans (sym eq)
                                                                                          (trans (cong (subst P x≡y) (subst-refl _ _)) _)) $
@@ -1313,7 +1312,7 @@ module Derived-definitions-and-properties
       {p≡q : subst P x≡y p ≡ q} →
       dtrans P p≡q (subst-refl _ _) ≡
       trans (cong (flip (subst P) _) (trans-reflʳ _)) p≡q
-    dtrans-subst-reflʳ {x≡y = x≡y} {P = P} {p = p} {p≡q = p≡q} = elim¹
+    dtrans-subst-reflʳ {x≡y} {P} {p} {p≡q} = elim¹
       (λ x≡y → ∀ {q} (p≡q : subst P x≡y p ≡ q) →
                dtrans P p≡q (subst-refl _ _) ≡
                trans (cong (flip (subst P) _) (trans-reflʳ _)) p≡q)
@@ -1410,7 +1409,7 @@ module Derived-definitions-and-properties
     dcong-trans :
       {f : (x : A) → P x} {x≡y : x ≡ y} {y≡z : y ≡ z} →
       dcong f (trans x≡y y≡z) ≡ dtrans P (dcong f x≡y) (dcong f y≡z)
-    dcong-trans {P = P} {f = f} {x≡y = x≡y} {y≡z = y≡z} = elim₁
+    dcong-trans {P} {f} {x≡y} {y≡z} = elim₁
       (λ x≡y → dcong f (trans x≡y y≡z) ≡ dtrans P (dcong f x≡y) (dcong f y≡z))
       (dcong f (trans (refl _) y≡z)                                   ≡⟨ elim₁ (λ {p} eq → dcong f p ≡
                                                                                            trans (cong (flip (subst P) _) eq) (dcong f y≡z)) (
@@ -1430,7 +1429,7 @@ module Derived-definitions-and-properties
             (p : proj₁ p₁ ≡ proj₁ p₂) →
             subst B p (proj₂ p₁) ≡ proj₂ p₂ →
             p₁ ≡ p₂
-  Σ-≡,≡→≡ {B = B} p q = elim
+  Σ-≡,≡→≡ {B} p q = elim
     (λ {x₁ y₁} (p : x₁ ≡ y₁) → ∀ {x₂ y₂} →
        subst B p x₂ ≡ y₂ → (x₁ , x₂) ≡ (y₁ , y₂))
     (λ z₁ {x₂} {y₂} x₂≡y₂ → cong (_,_ z₁) (
@@ -1446,7 +1445,7 @@ module Derived-definitions-and-properties
             p₁ ≡ p₂ →
             ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
               subst B p (proj₂ p₁) ≡ proj₂ p₂
-  Σ-≡,≡←≡ {A = A} {B = B} = elim
+  Σ-≡,≡←≡ {A} {B} = elim
     (λ {p₁ p₂ : Σ A B} _ →
        ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) → subst B p (proj₂ p₁) ≡ proj₂ p₂)
     (λ p → refl _ , subst-refl _ _)
@@ -1460,7 +1459,7 @@ module Derived-definitions-and-properties
       (y₁≡y₂ : subst B (refl x) y₁ ≡ y₂) →
       Σ-≡,≡→≡ (refl x) y₁≡y₂ ≡
       cong (x ,_) (trans (sym $ subst-refl _ _) y₁≡y₂)
-    Σ-≡,≡→≡-reflˡ {B = B} y₁≡y₂ =
+    Σ-≡,≡→≡-reflˡ {B} y₁≡y₂ =
       cong (λ f → f y₁≡y₂) $
         elim-refl (λ {x₁ y₁} (p : x₁ ≡ y₁) → ∀ {x₂ y₂} →
                      subst B p x₂ ≡ y₂ → (x₁ , x₂) ≡ (y₁ , y₂))
@@ -1470,7 +1469,7 @@ module Derived-definitions-and-properties
       ∀ {B : A → Type b} {y} →
       Σ-≡,≡→≡ (refl x) (refl (subst B (refl x) y)) ≡
       cong (x ,_) (sym (subst-refl _ _))
-    Σ-≡,≡→≡-refl-refl {x = x} =
+    Σ-≡,≡→≡-refl-refl {x} =
       Σ-≡,≡→≡ (refl x) (refl _)                            ≡⟨ Σ-≡,≡→≡-reflˡ (refl _) ⟩
       cong (x ,_) (trans (sym $ subst-refl _ _) (refl _))  ≡⟨ cong (cong (x ,_)) (trans-reflʳ _) ⟩∎
       cong (x ,_) (sym (subst-refl _ _))                   ∎
@@ -1478,7 +1477,7 @@ module Derived-definitions-and-properties
     Σ-≡,≡→≡-refl-subst-refl :
       {B : A → Type b} {p : Σ A B} →
       Σ-≡,≡→≡ (refl _) (subst-refl _ _) ≡ refl p
-    Σ-≡,≡→≡-refl-subst-refl {B = B} =
+    Σ-≡,≡→≡-refl-subst-refl {B} =
       Σ-≡,≡→≡ (refl _) (subst-refl B _)                            ≡⟨ Σ-≡,≡→≡-reflˡ _ ⟩
       cong (_ ,_) (trans (sym $ subst-refl _ _) (subst-refl _ _))  ≡⟨ cong (cong _) (trans-symˡ _) ⟩
       cong (_ ,_) (refl _)                                         ≡⟨ cong-refl _ ⟩∎
@@ -1506,7 +1505,7 @@ module Derived-definitions-and-properties
       ∀ {B : A → Type b} {y₁ y₂}
       (x₁≡x₂ : x₁ ≡ x₂) (y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
       cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂) ≡ x₁≡x₂
-    proj₁-Σ-≡,≡→≡ {B = B} {y₁ = y₁} x₁≡x₂ y₁≡y₂ = elim¹
+    proj₁-Σ-≡,≡→≡ {B} {y₁} x₁≡x₂ y₁≡y₂ = elim¹
       (λ x₁≡x₂ → ∀ {y₂} (y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂) →
          cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂) ≡ x₁≡x₂)
       (λ y₁≡y₂ →
@@ -1528,7 +1527,7 @@ module Derived-definitions-and-properties
                  ≡
                r₂) →
       Σ-≡,≡→≡ q₁ r₁ ≡ Σ-≡,≡→≡ q₂ r₂
-    Σ-≡,≡→≡-cong {B = B} = elim
+    Σ-≡,≡→≡-cong {B} = elim
       (λ {q₁ q₂} q₁≡q₂ →
          ∀ {r₁ r₂}
          (r₁≡r₂ : trans (cong (flip (subst B) _) (sym q₁≡q₂)) r₁ ≡ r₂) →
@@ -1551,7 +1550,7 @@ module Derived-definitions-and-properties
                subst B q₂₃ (subst B q₁₂ (proj₂ p₁))  ≡⟨ cong (subst _ _) r₁₂ ⟩
                subst B q₂₃ (proj₂ p₂)                ≡⟨ r₂₃ ⟩∎
                proj₂ p₃                              ∎)
-    trans-Σ-≡,≡→≡ {B = B} q₁₂ q₂₃ r₁₂ r₂₃ = elim
+    trans-Σ-≡,≡→≡ {B} q₁₂ q₂₃ r₁₂ r₂₃ = elim
       (λ {p₂₁ p₃₁} q₂₃ → ∀ {p₁₁} (q₁₂ : p₁₁ ≡ p₂₁)
          {p₁₂ p₂₂} (r₁₂ : subst B q₁₂ p₁₂ ≡ p₂₂)
          {p₃₂} (r₂₃ : subst B q₂₃ p₂₂ ≡ p₃₂) →
@@ -1683,7 +1682,7 @@ module Derived-definitions-and-properties
 
     Σ-≡,≡→≡-subst-const-refl :
       Σ-≡,≡→≡ x₁≡x₂ (subst-const _) ≡ cong₂ _,_ x₁≡x₂ (refl y)
-    Σ-≡,≡→≡-subst-const-refl {x₁≡x₂ = x₁≡x₂} {y = y} =
+    Σ-≡,≡→≡-subst-const-refl {x₁≡x₂} {y} =
       Σ-≡,≡→≡ x₁≡x₂ (subst-const _)                   ≡⟨ cong (Σ-≡,≡→≡ x₁≡x₂) $ sym $ trans-reflʳ _ ⟩
       Σ-≡,≡→≡ x₁≡x₂ (trans (subst-const _) (refl _))  ≡⟨ Σ-≡,≡→≡-subst-const _ _ ⟩∎
       cong₂ _,_ x₁≡x₂ (refl y)                        ∎
@@ -1716,7 +1715,7 @@ module Derived-definitions-and-properties
       ∀ {B : A → Type b} (P : Σ A B → Type p) {y p} →
       subst₂ P (refl _) (refl _) p ≡
       subst (curry P x) (sym $ subst-refl B y) p
-    subst₂-refl-refl {x = x} P {p = p} =
+    subst₂-refl-refl {x} P {p} =
       subst P (Σ-≡,≡→≡ (refl _) (refl _)) p           ≡⟨ cong (λ eq₁ → subst P eq₁ _) Σ-≡,≡→≡-refl-refl ⟩
       subst P (cong (x ,_) (sym (subst-refl _ _))) p  ≡⟨ sym $ subst-∘ _ _ _ ⟩∎
       subst (curry P x) (sym $ subst-refl _ _) p      ∎
@@ -1727,7 +1726,7 @@ module Derived-definitions-and-properties
       ∀ (B : A → Type b) (C : Σ A B → Type c) {p} →
       subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
       (subst B y≡z (proj₁ p) , subst₂ C y≡z (refl _) (proj₂ p))
-    push-subst-pair {y≡z = y≡z} B C {p} = elim¹
+    push-subst-pair {y≡z} B C {p} = elim¹
       (λ y≡z →
          subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
          (subst B y≡z (proj₁ p) , subst₂ C y≡z (refl _) (proj₂ p)))
@@ -1741,7 +1740,7 @@ module Derived-definitions-and-properties
 
     proj₁-push-subst-pair-refl :
       ∀ {A : Type a} {y : A} (B : A → Type b) (C : Σ A B → Type c) {p} →
-      cong proj₁ (push-subst-pair {y≡z = refl y} B C {p = p}) ≡
+      cong proj₁ (push-subst-pair {y≡z = refl y} B C {p}) ≡
       trans (cong proj₁ (subst-refl (λ _ → Σ _ _) _))
         (sym $ subst-refl _ _)
     proj₁-push-subst-pair-refl B C =
@@ -1768,7 +1767,7 @@ module Derived-definitions-and-properties
       (p₁≡p₁ : subst B y≡z (proj₁ p) ≡ p₁) →
       subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
       (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p))
-    push-subst-pair′ {y≡z = y≡z} B C {p} =
+    push-subst-pair′ {y≡z} B C {p} =
       elim¹ (λ {p₁} p₁≡p₁ →
                subst (λ x → Σ (B x) (curry C x)) y≡z p ≡
                (p₁ , subst₂ C y≡z p₁≡p₁ (proj₂ p)))
@@ -1778,7 +1777,7 @@ module Derived-definitions-and-properties
       ∀ {y≡z : y ≡ z} (B : Type b) (C : A × B → Type c) {p} →
       subst (λ x → Σ B (curry C x)) y≡z p ≡
       (proj₁ p , subst (λ x → C (x , proj₁ p)) y≡z (proj₂ p))
-    push-subst-pair-× {y≡z = y≡z} B C {p} =
+    push-subst-pair-× {y≡z} B C {p} =
       subst (λ x → Σ B (curry C x)) y≡z p                       ≡⟨ push-subst-pair′ _ C (subst-const _) ⟩
       (proj₁ p , subst₂ C y≡z (subst-const _) (proj₂ p))        ≡⟨ cong (_ ,_) $
                                                                    elim¹
@@ -1800,7 +1799,7 @@ module Derived-definitions-and-properties
         {x₁≡x₂ : x₁ ≡ x₂} {y₁≡y₂ : subst B x₁≡x₂ y₁ ≡ y₂}
       (P : A → Type p) {p} →
       subst₂ {B = B} (P ∘ proj₁) x₁≡x₂ y₁≡y₂ p ≡ subst P x₁≡x₂ p
-    subst₂-proj₁ {x₁≡x₂ = x₁≡x₂} {y₁≡y₂} P {p} =
+    subst₂-proj₁ {x₁≡x₂} {y₁≡y₂} P {p} =
       subst₂ (P ∘ proj₁) x₁≡x₂ y₁≡y₂ p              ≡⟨ subst-∘ _ _ _ ⟩
       subst P (cong proj₁ (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)) p  ≡⟨ cong (λ eq → subst P eq _) (proj₁-Σ-≡,≡→≡ _ _) ⟩∎
       subst P x₁≡x₂ p                               ∎
@@ -1811,7 +1810,7 @@ module Derived-definitions-and-properties
       ∀ (B : A → Type b) (C : A → Type c) {p} →
       subst (λ x → B x × C x) y≡z p ≡
       (subst B y≡z (proj₁ p) , subst C y≡z (proj₂ p))
-    push-subst-, {y≡z = y≡z} B C {x , y} =
+    push-subst-, {y≡z} B C {x , y} =
       subst (λ x → B x × C x) y≡z (x , y)                           ≡⟨ push-subst-pair _ _ ⟩
       (subst B y≡z x , subst (C ∘ proj₁) (Σ-≡,≡→≡ y≡z (refl _)) y)  ≡⟨ cong (_,_ _) $ subst₂-proj₁ _ ⟩∎
       (subst B y≡z x , subst C y≡z y)                               ∎
@@ -1820,7 +1819,7 @@ module Derived-definitions-and-properties
 
     proj₁-push-subst-,-refl :
       ∀ {A : Type a} {y : A} (B : A → Type b) (C : A → Type c) {p} →
-      cong proj₁ (push-subst-, {y≡z = refl y} B C {p = p}) ≡
+      cong proj₁ (push-subst-, {y≡z = refl y} B C {p}) ≡
       trans (cong proj₁ (subst-refl (λ _ → _ × _) _))
         (sym $ subst-refl _ _)
     proj₁-push-subst-,-refl _ _ =
@@ -1843,7 +1842,7 @@ module Derived-definitions-and-properties
     push-subst-inj₁ :
       ∀ (B : A → Type b) (C : A → Type c) {x} →
       subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡ inj₁ (subst B y≡z x)
-    push-subst-inj₁ {y≡z = y≡z} B C {x} = elim¹
+    push-subst-inj₁ {y≡z} B C {x} = elim¹
       (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₁ x) ≡
                inj₁ (subst B y≡z x))
       (subst (λ x → B x ⊎ C x) (refl _) (inj₁ x)  ≡⟨ subst-refl _ _ ⟩
@@ -1854,7 +1853,7 @@ module Derived-definitions-and-properties
     push-subst-inj₂ :
       ∀ (B : A → Type b) (C : A → Type c) {x} →
       subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡ inj₂ (subst C y≡z x)
-    push-subst-inj₂ {y≡z = y≡z} B C {x} = elim¹
+    push-subst-inj₂ {y≡z} B C {x} = elim¹
       (λ y≡z → subst (λ x → B x ⊎ C x) y≡z (inj₂ x) ≡
                inj₂ (subst C y≡z x))
       (subst (λ x → B x ⊎ C x) (refl _) (inj₂ x)  ≡⟨ subst-refl _ _ ⟩
@@ -1870,7 +1869,7 @@ module Derived-definitions-and-properties
       {f : (x : A) → B x} {g : (y : B x₁) → C x₁ y} →
       subst (λ x → C x (f x)) x₁≡x₂ (g (f x₁)) ≡
       subst (λ x → (y : B x) → C x y) x₁≡x₂ g (f x₂)
-    push-subst-application {x₁ = x₁} x₁≡x₂ C {f} {g} = elim¹
+    push-subst-application {x₁} x₁≡x₂ C {f} {g} = elim¹
       (λ {x₂} x₁≡x₂ →
          subst (λ x → C x (f x)) x₁≡x₂ (g (f x₁)) ≡
          subst (λ x → ∀ y → C x y) x₁≡x₂ g (f x₂))
@@ -1885,7 +1884,7 @@ module Derived-definitions-and-properties
       {f : (x : A) → B x} {g : {y : B x₁} → C x₁ y} →
       subst (λ x → C x (f x)) x₁≡x₂ (g {y = f x₁}) ≡
       subst (λ x → {y : B x} → C x y) x₁≡x₂ g {y = f x₂}
-    push-subst-implicit-application {x₁ = x₁} x₁≡x₂ C {f} {g} = elim¹
+    push-subst-implicit-application {x₁} x₁≡x₂ C {f} {g} = elim¹
       (λ {x₂} x₁≡x₂ →
          subst (λ x → C x (f x)) x₁≡x₂ (g {y = f x₁}) ≡
          subst (λ x → ∀ {y} → C x y) x₁≡x₂ g {y = f x₂})
@@ -1901,7 +1900,7 @@ module Derived-definitions-and-properties
       subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
       subst (uncurry C) (sym $ Σ-≡,≡→≡ x₁≡x₂ (refl _))
         (f (subst B x₁≡x₂ y))
-    subst-∀-sym {B = B} {C = C} {x₁≡x₂ = x₁≡x₂} = elim
+    subst-∀-sym {B} {C} {x₁≡x₂} = elim
       (λ {x₁ x₂} x₁≡x₂ →
          {y : B x₁} (f : (y : B x₂) → C x₂ y) →
          subst (λ x → (y : B x) → C x y) (sym x₁≡x₂) f y ≡
@@ -1936,7 +1935,7 @@ module Derived-definitions-and-properties
       subst (λ x → (y : B x) → C x y) x₁≡x₂ f y ≡
       subst (uncurry C) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
         (f (subst B (sym x₁≡x₂) y))
-    subst-∀ {B = B} {y = y} {C = C} {f = f} {x₁≡x₂ = x₁≡x₂} =
+    subst-∀ {B} {y} {C} {f} {x₁≡x₂} =
       subst (λ x → (y : B x) → C x y) x₁≡x₂ f y               ≡⟨ cong (λ eq → subst (λ x → (y : B x) → C x y) eq _ _) $ sym $ sym-sym _ ⟩
       subst (λ x → (y : B x) → C x y) (sym (sym x₁≡x₂)) f y   ≡⟨ subst-∀-sym ⟩∎
       subst (uncurry C) (sym $ Σ-≡,≡→≡ (sym x₁≡x₂) (refl _))
@@ -1946,7 +1945,7 @@ module Derived-definitions-and-properties
       {B : A → Type b} {y : B x₂} {C : A → Type c} {f : B x₁ → C x₁} →
       subst (λ x → B x → C x) x₁≡x₂ f y ≡
       subst C x₁≡x₂ (f (subst B (sym x₁≡x₂) y))
-    subst-→ {x₁≡x₂ = x₁≡x₂} {B = B} {y = y} {C} {f} =
+    subst-→ {x₁≡x₂} {B} {y} {C} {f} =
       subst (λ x → B x → C x) x₁≡x₂ f y                          ≡⟨ cong (λ eq → subst (λ x → B x → C x) eq f y) $ sym $
                                                                       sym-sym _ ⟩
       subst (λ x → B x → C x) (sym $ sym x₁≡x₂) f y              ≡⟨ subst-∀-sym ⟩
@@ -1967,7 +1966,7 @@ module Derived-definitions-and-properties
     subst-→-domain :
       (B : A → Type b) {f : B x → C} (x≡y : x ≡ y) {u : B y} →
       subst (λ x → B x → C) x≡y f u ≡ f (subst B (sym x≡y) u)
-    subst-→-domain {C = C} B x≡y {u = u} = elim₁
+    subst-→-domain {C} B x≡y {u} = elim₁
       (λ {x} x≡y → (f : B x → C) →
                    subst (λ x → B x → C) x≡y f u ≡
                    f (subst B (sym x≡y) u))
@@ -1982,11 +1981,11 @@ module Derived-definitions-and-properties
 
     subst-→-domain-refl :
       {B : A → Type b} {f : B x → C} {u : B x} →
-      subst-→-domain B {f = f} (refl x) {u = u} ≡
+      subst-→-domain B {f} (refl x) {u} ≡
       trans (cong (_$ u) (subst-refl (λ x → B x → _) _))
         (trans (cong f (sym (subst-refl _ _)))
            (cong (f ∘ flip (subst B) u) (sym sym-refl)))
-    subst-→-domain-refl {C = C} {B = B} {u = u} =
+    subst-→-domain-refl {C} {B} {u} =
       cong (_$ _) $
       elim₁-refl
         (λ {x} x≡y → (f : B x → C) →
@@ -2001,7 +2000,7 @@ module Derived-definitions-and-properties
       {x≡y : x ≡ y} {fx≡gx : f x ≡ g x} →
       subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
       trans (sym (cong f x≡y)) (trans fx≡gx (cong g x≡y))
-    subst-in-terms-of-trans-and-cong {f = f} {g = g} = elim
+    subst-in-terms-of-trans-and-cong {f} {g} = elim
       (λ {x y} x≡y →
            (fx≡gx : f x ≡ g x) →
            subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
@@ -2024,7 +2023,7 @@ module Derived-definitions-and-properties
       subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
       trans (sym (dcong f x≡y))
         (trans (cong (subst P x≡y) fx≡gx) (dcong g x≡y))
-    subst-in-terms-of-trans-and-dcong {P = P} {f = f} {g = g} = elim
+    subst-in-terms-of-trans-and-dcong {P} {f} {g} = elim
       (λ {x y} x≡y →
            (fx≡gx : f x ≡ g x) →
            subst (λ z → f z ≡ g z) x≡y fx≡gx ≡
@@ -2072,7 +2071,7 @@ module Derived-definitions-and-properties
       (eq₁ : x ≡ y) (eq₂ : g x ≡ h x) →
       cong f (subst (λ x → g x ≡ h x) eq₁ eq₂) ≡
       subst (λ x → f (g x) ≡ f (h x)) eq₁ (cong f eq₂)
-    cong-subst {f = f} {g} {h} = elim₁
+    cong-subst {f} {g} {h} = elim₁
       (λ eq₁ → ∀ eq₂ →
          cong f (subst (λ x → g x ≡ h x) eq₁ eq₂) ≡
          subst (λ x → f (g x) ≡ f (h x)) eq₁ (cong f eq₂))
@@ -2126,7 +2125,7 @@ module Derived-definitions-and-properties
       (subst (λ z → z ≡ z) p q ≡ r)
         ≡
       (trans q p ≡ trans p r)
-    [subst≡]≡[trans≡trans] {p = p} {q} {r} = elim
+    [subst≡]≡[trans≡trans] {p} {q} {r} = elim
       (λ {x y} p → {q : x ≡ x} {r : y ≡ y} →
                    (subst (λ z → z ≡ z) p q ≡ r)
                      ≡
@@ -2144,7 +2143,7 @@ module Derived-definitions-and-properties
       [subst≡]≡[trans≡trans] {p = refl x} ≡
       trans (cong (_≡ r) (subst-refl (λ z → z ≡ z) q))
             (sym $ cong₂ _≡_ (trans-reflʳ q) (trans-reflˡ r))
-    [subst≡]≡[trans≡trans]-refl {q = q} {r = r} =
+    [subst≡]≡[trans≡trans]-refl {q} {r} =
       cong (λ f → f {q = q} {r = r}) $
         elim-refl
           (λ {x y} p → {q : x ≡ x} {r : y ≡ y} → _ ≡ (trans _ p ≡ _))
@@ -2156,7 +2155,7 @@ module Derived-definitions-and-properties
     trans-sometimes-commutative :
       {p : x ≡ x} (f : (x : A) → x ≡ x) →
       trans (f x) p ≡ trans p (f x)
-    trans-sometimes-commutative {x = x} {p = p} f =
+    trans-sometimes-commutative {x} {p} f =
       let lemma =
             subst (λ z → z ≡ z) p (f x)  ≡⟨ dcong f p ⟩∎
             f x                          ∎
@@ -2194,7 +2193,7 @@ module Derived-definitions-and-properties
       (p : A → Bool) (f≡g : ∀ x → T (p x) → f x ≡ g x)
       {px : T (p x)} {py : T (p y)} →
       trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y)
-    cong-respects-relevant-equality {f = f} {g} p f≡g = elim
+    cong-respects-relevant-equality {f} {g} p f≡g = elim
       (λ {x y} x≡y →
          {px : T (p x)} {py : T (p y)} →
          trans (cong f x≡y) (f≡g y py) ≡ trans (f≡g x px) (cong g x≡y))
@@ -2237,7 +2236,7 @@ module Derived-definitions-and-properties
       (f≡id : ∀ z → T (p z) → f z ≡ z) →
       cong f x≡y ≡
       trans (f≡id x px) (trans x≡y $ sym (f≡id y py))
-    cong-roughly-id {x = x} {y = y} f p x≡y px py f≡id =
+    cong-roughly-id {x} {y} f p x≡y px py f≡id =
       let lemma =
             trans (cong id x≡y) (sym (f≡id y py))  ≡⟨ cong-respects-relevant-equality p (λ x → sym ∘ f≡id x) ⟩∎
             trans (sym (f≡id x px)) (cong f x≡y)   ∎

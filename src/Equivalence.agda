@@ -188,7 +188,7 @@ _ = refl _
 subst-as-equivalence :
   ∀ {a p} {A : Type a} (P : A → Type p) {x y : A} (x≡y : x ≡ y) →
   P x ≃ P y
-subst-as-equivalence P {y = y} x≡y = ↔⇒≃ (record
+subst-as-equivalence P {y} x≡y = ↔⇒≃ (record
   { surjection = record
     { logical-equivalence = record
       { to   = subst P x≡y
@@ -259,12 +259,12 @@ syntax finally-≃ A B A≃B = A ≃⟨ A≃B ⟩□ B □
 right-inverse-of-id :
   ∀ {a} {A : Type a} {x : A} →
   _≃_.right-inverse-of id x ≡ refl x
-right-inverse-of-id {x = x} = refl (refl x)
+right-inverse-of-id {x} = refl (refl x)
 
 left-inverse-of-id :
   ∀ {a} {A : Type a} {x : A} →
   _≃_.left-inverse-of id x ≡ refl x
-left-inverse-of-id {x = x} = refl (refl x)
+left-inverse-of-id {x} = refl (refl x)
 
 right-inverse-of∘inverse :
   ∀ {a b} {A : Type a} {B : Type b} →
@@ -425,7 +425,7 @@ abstract
     ∀ {a b} → Extensionality (a ⊔ b) (a ⊔ b) →
     {A : Type a} {B : Type b} {p q : A ≃ B} →
     _≃_.from p ≡ _≃_.from q → p ≡ q
-  lift-equality-inverse ext {p = p} {q = q} f≡g =
+  lift-equality-inverse ext {p} {q} f≡g =
     p                    ≡⟨ lift-equality ext (refl _) ⟩
     inverse (inverse p)  ≡⟨ cong inverse $
                             lift-equality ext {p = inverse p} {q = inverse q} f≡g ⟩
@@ -450,7 +450,7 @@ abstract
        _≃_.from eq₁ (_≃_.to eq₂ (_≃_.from eq₂ b))  ≡⟨ cong (_≃_.from eq₁) $ cong (_$ _≃_.from eq₂ b) $ sym eq ⟩
        _≃_.from eq₁ (_≃_.to eq₁ (_≃_.from eq₂ b))  ≡⟨ _≃_.left-inverse-of eq₁ (_≃_.from eq₂ b) ⟩∎
        _≃_.from eq₂ b                              ∎)
-  cong-to-from-lift-equality {eq₂ = eq₂} {f = f} {eq = eq} ext₁ ext₂ =
+  cong-to-from-lift-equality {eq₂} {f} {eq} ext₁ ext₂ =
     elim₁
       (λ {g} eq →
          (is-eq : Is-equivalence g) →
@@ -639,7 +639,7 @@ private
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → (A↔B : A ↔ B) →
     _≃_.bijection (↔⇒≃ A↔B) ≡ A↔B
-  ↔⇒≃-right-inverse {a} {b} {B = B} ext A-set A↔B =
+  ↔⇒≃-right-inverse {a} {b} {B} ext A-set A↔B =
     cong₂ (λ l r → record
              { surjection = record
                { logical-equivalence = _↔_.logical-equivalence A↔B
@@ -699,7 +699,7 @@ private
 
 ≃↠⇔ : ∀ {a b} {A : Type a} {B : Type b} →
       Is-proposition A → Is-proposition B → (A ≃ B) ↠ (A ⇔ B)
-≃↠⇔ {A = A} {B} A-prop B-prop = record
+≃↠⇔ {A} {B} A-prop B-prop = record
   { logical-equivalence = record
     { to   = _≃_.logical-equivalence
     ; from = ⇔→≃
@@ -791,7 +791,7 @@ abstract
     Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Type a} {B : Type b} n →
     H-level n A → H-level n B → H-level n (A ≃ B)
-  h-level-closure {a} {b} ext {A = A} {B} n hA hB =
+  h-level-closure {a} {b} ext {A} {B} n hA hB =
     H-level.respects-surjection
       (_↔_.surjection $ Bijection.inverse ≃-as-Σ) n lemma₂
     where
@@ -816,7 +816,7 @@ abstract
     Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Type a} {B : Type b} n →
     H-level (1 + n) A → H-level (1 + n) (A ≃ B)
-  left-closure ext {A = A} {B} n hA =
+  left-closure ext {A} {B} n hA =
     H-level.[inhabited⇒+]⇒+ n λ (A≃B : A ≃ B) →
       h-level-closure ext (1 + n) hA $
         H-level.respects-surjection (_≃_.surjection A≃B) (1 + n) hA
@@ -826,7 +826,7 @@ abstract
     Extensionality (a ⊔ b) (a ⊔ b) →
     ∀ {A : Type a} {B : Type b} n →
     H-level (1 + n) B → H-level (1 + n) (A ≃ B)
-  right-closure ext {A = A} {B} n hB =
+  right-closure ext {A} {B} n hB =
     H-level.[inhabited⇒+]⇒+ n λ (A≃B : A ≃ B) →
       left-closure ext n $
         H-level.respects-surjection
@@ -1025,7 +1025,7 @@ abstract
     {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↣ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↣ Σ A₂ B₂
-∃-preserves-injections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↣B₂ = record
+∃-preserves-injections {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↣B₂ = record
   { to        = to′
   ; injective = injective′
   }
@@ -1083,7 +1083,7 @@ abstract
     {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁≃A₂ : A₁ ≃ A₂) → (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
   Σ A₁ B₁ ↔ Σ A₂ B₂
-∃-preserves-bijections {A₁ = A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↔B₂ = record
+∃-preserves-bijections {A₁} {A₂} {B₁} {B₂} A₁≃A₂ B₁↔B₂ = record
   { surjection      = surjection′
   ; left-inverse-of = left-inverse-of′
   }
@@ -1210,7 +1210,7 @@ abstract
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ≃
             (sup x f ≡ sup y g)
-  W-≡,≡≃≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
+  W-≡,≡≃≡ {a} {A} {B} ext {x} {y} {f} {g} =
     (∃ λ p → ∀ i → f i ≡ g (subst B p i))        ≃⟨ Σ-preserves id lemma ⟩
     (∃ λ p → subst (λ x → B x → W A B) p f ≡ g)  ≃⟨ ↔⇒≃ Bijection.Σ-≡,≡↔≡ ⟩
     ((x , f) ≡ (y , g))                          ≃⟨ ≃-≡ (↔⇒≃ W-unfolding) ⟩□
@@ -1241,7 +1241,7 @@ abstract
       {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
     _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
     subst (λ x → P x → Q x) eq (_≃_.to f)
-  to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  to-subst {P} {Q} {eq} {f} = elim¹
     (λ eq →
        _≃_.to (subst (λ x → P x ≃ Q x) eq f) ≡
        subst (λ x → P x → Q x) eq (_≃_.to f))
@@ -1255,7 +1255,7 @@ abstract
       {x y : A} {eq : x ≡ y} {f : P x ≃ Q x} →
     _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
     subst (λ x → Q x → P x) eq (_≃_.from f)
-  from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+  from-subst {P} {Q} {eq} {f} = elim¹
     (λ eq →
        _≃_.from (subst (λ x → P x ≃ Q x) eq f) ≡
        subst (λ x → Q x → P x) eq (_≃_.from f))
@@ -1276,7 +1276,7 @@ abstract
   ({y : A} → (x ≡ y) ≃ P y) →
   (f : {y : A} → x ≡ y → P y) →
   {y : A} → Is-equivalence (f {y = y})
-≡≃→≡→→Is-equivalence {x = x} P ≡≃P f {y = y} =
+≡≃→≡→→Is-equivalence {x} P ≡≃P f {y} =
   drop-Σ-map-id f equiv₂ y
   where
   equiv₁ : (∃ λ y → x ≡ y) ≃ ∃ P

@@ -48,7 +48,7 @@ Is-embeddingᴱ f = ∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f)
   {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Is-embeddingᴱ f)
-Is-embeddingᴱ-propositional {b = b} ext =
+Is-embeddingᴱ-propositional {b} ext =
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
   EEq.Is-equivalenceᴱ-propositional ext _
@@ -83,14 +83,14 @@ Embeddingᴱ-as-Σ = record
 -- Conversions between Is-embedding and Is-embeddingᴱ.
 
 Is-embedding→Is-embeddingᴱ : Is-embedding f → Is-embeddingᴱ f
-Is-embedding→Is-embeddingᴱ {f = f} =
+Is-embedding→Is-embeddingᴱ {f} =
   (∀ x y → Eq.Is-equivalence (cong {x = x} {y = y} f))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → EEq.Is-equivalence→Is-equivalenceᴱ) ⟩□
   (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f))    □
 
 @0 Is-embedding≃Is-embeddingᴱ :
   {A : Type a} {B : Type b} {f : A → B} →
   Is-embedding f ↝[ a ∣ a ⊔ b ] Is-embeddingᴱ f
-Is-embedding≃Is-embeddingᴱ {f = f} {k = k} ext =
+Is-embedding≃Is-embeddingᴱ {f} {k} ext =
   (∀ x y → Eq.Is-equivalence (cong {x = x} {y = y} f))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → from-equivalence
                                                             EEq.Is-equivalence≃Is-equivalenceᴱ) ⟩□
   (∀ x y → Is-equivalenceᴱ (cong {x = x} {y = y} f))    □
@@ -101,7 +101,7 @@ Is-embeddingᴱ→Is-embedding = inverse-ext? Is-embedding≃Is-embeddingᴱ _
 -- Conversions between Embedding and Embeddingᴱ.
 
 Embedding→Embeddingᴱ : Embedding A B → Embeddingᴱ A B
-Embedding→Embeddingᴱ {A = A} {B = B} =
+Embedding→Embeddingᴱ {A} {B} =
   Embedding A B                        ↔⟨ Emb.Embedding-as-Σ ⟩
   (∃ λ (f : A → B) → Is-embedding f)   ↝⟨ (∃-cong λ _ → Is-embedding→Is-embeddingᴱ) ⟩
   (∃ λ (f : A → B) → Is-embeddingᴱ f)  ↔⟨ inverse Embeddingᴱ-as-Σ ⟩□
@@ -110,7 +110,7 @@ Embedding→Embeddingᴱ {A = A} {B = B} =
 @0 Embedding≃Embeddingᴱ :
   {A : Type a} {B : Type b} →
   Embedding A B ↝[ a ∣ a ⊔ b ] Embeddingᴱ A B
-Embedding≃Embeddingᴱ {A = A} {B = B} ext =
+Embedding≃Embeddingᴱ {A} {B} ext =
   Embedding A B                        ↔⟨ Emb.Embedding-as-Σ ⟩
   (∃ λ (f : A → B) → Is-embedding f)   ↝⟨ (∃-cong λ _ → Is-embedding≃Is-embeddingᴱ ext) ⟩
   (∃ λ (f : A → B) → Is-embeddingᴱ f)  ↔⟨ inverse Embeddingᴱ-as-Σ ⟩□
@@ -149,7 +149,7 @@ Erased-proofs to from =
   {to : A → B} {from : ∀ {x y} → to x ≡ to y → x ≡ y} →
   @0 Erased-proofs to from →
   Embeddingᴱ A B
-[Embedding]→Embeddingᴱ {to = to} {from = from} ep = record
+[Embedding]→Embeddingᴱ {to} {from} ep = record
   { to           = to
   ; is-embedding = λ _ _ → _≃ᴱ_.is-equivalence (EEq.[≃]→≃ᴱ ep)
   }
@@ -181,7 +181,7 @@ f ∘ g =
 @0 embedding→⁻¹ᴱ-propositional :
   Is-embeddingᴱ f →
   ∀ y → Is-proposition (f ⁻¹ᴱ y)
-embedding→⁻¹ᴱ-propositional {f = f} =
+embedding→⁻¹ᴱ-propositional {f} =
   Is-embeddingᴱ f                   ↝⟨ Is-embeddingᴱ→Is-embedding ⟩
   Is-embedding f                    ↝⟨ Emb.embedding→⁻¹-propositional ⟩
   (∀ y → Is-proposition (f ⁻¹ y))   ↝⟨ (∀-cong _ λ _ → H-level-cong _ 1 ECP.⁻¹≃⁻¹ᴱ) ⟩□

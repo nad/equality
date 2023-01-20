@@ -52,7 +52,7 @@ private
 Nullification-modality :
   {A : Type a} (P : A → Type a) →
   Modality a
-Nullification-modality {a = a} P =
+Nullification-modality {a} P =
   Σ-closed-reflective-subuniverse.modality λ where
     .Σ-closed-reflective-subuniverse.◯ → Nullification P
 
@@ -64,19 +64,17 @@ Nullification-modality {a = a} P =
       Π-closure ext 1 λ _ →
       Is-equivalence-propositional ext
 
-    .Σ-closed-reflective-subuniverse.Modal-◯ {A = A} →
+    .Σ-closed-reflective-subuniverse.Modal-◯ {A} →
                                                                           $⟨ Local-Localisation ⟩
       (λ x (_ : P x) → tt) -Local Localisation {P = P} {Q = λ _ → ⊤} _ A  ↝⟨ inverse Null≃Local ⟩
       P -Null Localisation {P = P} {Q = λ _ → ⊤} _ A                      ↝⟨ PS.Null-cong ext (λ _ → F.id) (inverse Nullification≃Localisation) ⟩□
       P -Null Nullification P A                                           □
 
-    .Σ-closed-reflective-subuniverse.Modal-respects-≃
-      {A = A} {B = B} A≃B →
+    .Σ-closed-reflective-subuniverse.Modal-respects-≃ {A} {B} A≃B →
       P -Null A  ↔⟨ PS.Null-cong ext (λ _ → F.id) A≃B ⟩□
       P -Null B  □
 
-    .Σ-closed-reflective-subuniverse.extendable-along-η
-      {B = B} {A = A} →
+    .Σ-closed-reflective-subuniverse.extendable-along-η {B} {A} →
       P -Null B                                                         ↔⟨ Null≃Local ⟩
 
       (λ x (_ : P x) → tt) -Local B                                     →⟨ Local→Is-equivalence-[] ⟩
@@ -106,7 +104,7 @@ Nullification-modality {a = a} P =
 Nullification-accessible :
   {P : A → Type a} →
   Accessible (Nullification-modality P)
-Nullification-accessible {a = a} {P = P} =
+Nullification-accessible {a} {P} =
     _
   , P
   , (λ A →
@@ -135,7 +133,7 @@ Accessible≃≃ :
   ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
   ∃ λ (eq : ∀ B → Modality.◯ M B ≃ Nullification P B) →
     ∀ B → _≃_.to (eq B) ∘ Modality.η M ≡ [_]
-Accessible≃≃ {a = a} M =
+Accessible≃≃ {a} M =
   (∃ λ (A : Type a) →
    ∃ λ (P : A → Type a) →
      (B : Type a) →
@@ -174,7 +172,7 @@ Accessible≃≡ :
   Accessible M ≃
   ∃ λ (A : Type a) → ∃ λ (P : A → Type a) →
     M ≡ Nullification-modality P
-Accessible≃≡ {a = a} univ M =
+Accessible≃≡ {a} univ M =
   (∃ λ (A : Type a) →
    ∃ λ (P : A → Type a) →
      (B : Type a) →
@@ -247,7 +245,7 @@ module Canonical-accessible-extension
   Modal≃Null :
     {A : Type (a ⊔ ℓ)} →
     Modal A ≃ P -Null A
-  Modal≃Null {A = A} =
+  Modal≃Null {A} =
     (↑ ℓ ∘ P ∘ lower) -Null A                                            ↔⟨⟩
     (((lift i) : ↑ ℓ I) → Is-equivalence (const ⦂ (A → ↑ ℓ (P i) → A)))  ↝⟨ (Π-cong ext B.↑↔ λ _ → F.id) ⟩
     (∀ i → Is-equivalence (const ⦂ (A → ↑ ℓ (P i) → A)))                 ↔⟨⟩
@@ -263,7 +261,7 @@ module Canonical-accessible-extension
   Modal≃Modal-↑ :
     {A : Type a} →
     M.Modal A ≃ Modal (↑ ℓ A)
-  Modal≃Modal-↑ {A = A} =
+  Modal≃Modal-↑ {A} =
     M.Modal A                                               ↝⟨ M.Accessible→Modal≃Null ext acc ⟩
 
     P -Null A                                               ↔⟨⟩
@@ -289,7 +287,7 @@ module Canonical-accessible-extension
   -- There is an equivalence between ◯ (↑ ℓ A) and M.◯ A.
 
   ◯↑≃◯ : ◯ (↑ ℓ A) ≃ M.◯ A
-  ◯↑≃◯ {A = A} =
+  ◯↑≃◯ {A} =
     Nullification (↑ ℓ ∘ P ∘ lower) (↑ ℓ A)  ↝⟨ Nullification-↑-↑-≃ ⟩
     Nullification P A                        ↝⟨ inverse $ Accessible→≃Nullification M acc .proj₁ _ ⟩□
     M.◯ A                                    □
@@ -319,7 +317,7 @@ module Canonical-accessible-extension
     ({B C : Type a} {f : B → C} →
      Is-equivalence (M.◯-map f) →
      Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A))))
-  Modal≃ {A = A} =
+  Modal≃ {A} =
     Modal A                                          ↝⟨ Modal≃Null ⟩
 
     P -Null A                                        ↝⟨ Eq.⇔→≃
@@ -356,7 +354,7 @@ module Canonical-accessible-extension
       P -Null A                                                          □
       where
       equiv : {f : P i → ↑ a ⊤} → Is-equivalence (M.◯-map f)
-      equiv {f = f} =                 $⟨ (λ {_} → M.Accessible→Connected ext acc) ⟩
+      equiv {f} =                     $⟨ (λ {_} → M.Accessible→Connected ext acc) ⟩
         (∀ {i} → M.◯ -Connected P i)  →⟨ (λ hyp _ →
                                             M.Connected-Σ
                                               hyp
@@ -370,7 +368,7 @@ module Canonical-accessible-extension
       P -Null A →
       Is-equivalence (M.◯-map f) →
       Is-equivalence ((_∘ f) ⦂ ((C → A) → (B → A)))
-    to {B = B} {C = C} {f = f} null =
+    to {B} {C} {f} null =
       Is-equivalence (M.◯-map f)                                →⟨ Is-equivalence≃Is-equivalence-∘ˡ
                                                                      (_≃_.is-equivalence $ inverse ◯↑≃◯)
                                                                      _ ∘
@@ -424,7 +422,7 @@ module Canonical-accessible-extension
       f′ = lift ∘ f ∘ lower
 
       ◯→A≃→A : (◯ (↑ ℓ D) → A) ≃ (↑ ℓ D → A)
-      ◯→A≃→A {D = D} =                 $⟨ null ⟩
+      ◯→A≃→A {D} =                     $⟨ null ⟩
         P -Null A                      ↔⟨ inverse Modal≃Null ⟩
         (↑ ℓ ∘ P ∘ lower) -Null A      →⟨ Null→Is-equivalence-∘[] ⟩
         Is-equivalence (_∘ η)          →⟨ Eq.⟨ _ ,_⟩ ⟩□
@@ -439,7 +437,7 @@ modal-types-do-not-depend-on-accessibility-proof :
   Modality.Modal (Canonical-accessible-extension M acc₁ ℓ) A ≃
   Modality.Modal (Canonical-accessible-extension M acc₂ ℓ) A
 modal-types-do-not-depend-on-accessibility-proof
-  {a = a} {ℓ = ℓ} {A = A} M acc₁ acc₂ =
+  {a} {ℓ} {A} M acc₁ acc₂ =
   Modality.Modal (Canonical-accessible-extension M acc₁ ℓ) A  ↝⟨ Canonical-accessible-extension.Modal≃ _ acc₁ _ ⟩
 
   ({B C : Type a} {f : B → C} →
@@ -469,8 +467,8 @@ Accessible→Modal-∃-Modal→Left-exact :
   {A : Type a} {P : A → Type a} →
   ◯ -Connected A → (∀ x → Modal (P x)) →
   ∃ λ (B : Type a) → Modal B × ∀ x → P x ≃ B
-Accessible→Modal-∃-Modal→Left-exact
-  {a = a} M acc modal {A = A} {P = P} =                  $⟨ modal ⟩
+Accessible→Modal-∃-Modal→Left-exact {a} M acc modal {A} {P} =
+                                                         $⟨ modal ⟩
 
   CAE.Modal (∃ Modal)                                    →⟨ (λ hyp c →
                                                                _≃_.is-equivalence $
@@ -543,9 +541,7 @@ private
       {Bm@(B , _) Cm@(C , _) : ∃ Modal} →
       Is-equivalence (const ⦂ (B ≃ C → A → B ≃ C)) ≃
       Is-equivalence (cong const ⦂ (Bm ≡ Cm → const Bm ≡ const Cm))
-    Is-equivalence-const≃
-      {A = A} {Bm = Bm@(B , m-B)} {Cm = Cm@(C , m-C)} =
-
+    Is-equivalence-const≃ {A} {Bm = Bm@(B , m-B)} {Cm = Cm@(C , m-C)} =
       Is-equivalence (const ⦂ (B ≃ C → A → B ≃ C))           ↝⟨ Is-equivalence-cong ext lemma₃ ⟩
 
       Is-equivalence
@@ -620,8 +616,7 @@ Accessible→Logically-equivalent-Left-exact :
       ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) ,
 
      CAE.Modal (∃ λ (A : Type a) → Modal A))
-Accessible→Logically-equivalent-Left-exact
-  {a = a} univ M acc@(_ , P , _) =
+Accessible→Logically-equivalent-Left-exact {a} univ M acc@(_ , P , _) =
     (Left-exact ◯                                       →⟨ (λ lex →
                                                               Lex.Accessible→ M
                                                                 (_⇔_.to (Left-exact≃Left-exact-η-cong _) lex) ext acc) ⟩⇔
@@ -666,7 +661,7 @@ Accessible→Logically-equivalent-Left-exact
       (∀ i → (Q : P i → Type a) → (∀ y → Modal (Q y)) →
        ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) →
       Split-surjective (const ⦂ (∃ Modal → P i → ∃ Modal))
-    surj {i = i} hyp Q =                           $⟨ hyp i (proj₁ ∘ Q) (proj₂ ∘ Q) ⟩
+    surj {i} hyp Q =                               $⟨ hyp i (proj₁ ∘ Q) (proj₂ ∘ Q) ⟩
       (∃ λ B → Modal B × (∀ y → proj₁ (Q y) ≃ B))  ↝⟨ inverse $ const⁻¹≃ ext univ ⟩□
       const ⁻¹ Q                                   □
 
@@ -687,8 +682,7 @@ Accessible→Equivalent-Left-exact :
       ∃ λ (B : Type a) → Modal B × (∀ y → Q y ≃ B)) ,
 
      CAE.Modal (∃ λ (A : Type a) → Modal A))
-Accessible→Equivalent-Left-exact
-  {a = a} univ M acc@(_ , P , _) =
+Accessible→Equivalent-Left-exact {a} univ M acc@(_ , P , _) =
     Logically-equivalent-Delete
       (inj₂ (inj₂ (inj₁ F.id)))
       (Accessible→Logically-equivalent-Left-exact
@@ -724,8 +718,7 @@ Is-proposition→Left-exact-Nullification-modality :
   Univalence a →
   (∀ x → Is-proposition (P x)) →
   Left-exact (Nullification P)
-Is-proposition→Left-exact-Nullification-modality
-  {a = a} {P = P} univ prop =
+Is-proposition→Left-exact-Nullification-modality {a} {P} univ prop =
   _⇔_.to
     (logically-equivalent
        (Accessible→Logically-equivalent-Left-exact
@@ -758,7 +751,7 @@ Topological→Left-exact :
   (M : Modality a) →
   let open Modality M in
   Topological M → Left-exact ◯
-Topological→Left-exact {a = a} univ M =
+Topological→Left-exact {a} univ M =
   Topological M                                    ↔⟨ Topological≃≡ univ M ⟩
 
   (∃ λ ((_ , P , _) :

@@ -265,7 +265,7 @@ instance
   -- The building blocks can be proved.
 
   instance-of-Σ-cong-id-proofs : Σ-cong-id-proofs k A B P
-  instance-of-Σ-cong-id-proofs {P = P} = λ where
+  instance-of-Σ-cong-id-proofs {P} = λ where
       .refl₁           → refl
       .subst-refl₂ _ _ → subst-refl _ _
       .→↝ A≃B g p q    →
@@ -396,7 +396,7 @@ instance
   -- The building blocks can be proved.
 
   instance-of-Σ-cong-id-↠-proofs : Σ-cong-id-↠-proofs A B P
-  instance-of-Σ-cong-id-↠-proofs {P = P} = λ where
+  instance-of-Σ-cong-id-↠-proofs {P} = λ where
       .refl₁      → refl
       .→↠ A↠B g p → record
         { logical-equivalence = record

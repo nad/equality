@@ -64,48 +64,48 @@ A ↝[ equivalenceᴱ        ] B = A ≃ᴱ B
 
 from-equivalence : ∀ {k a b} {A : Type a} {B : Type b} →
                    A ≃ B → A ↝[ k ] B
-from-equivalence {(implication)}         = _≃_.to
-from-equivalence {(logical-equivalence)} = _≃_.logical-equivalence
-from-equivalence {(injection)}           = _≃_.injection
-from-equivalence {(embedding)}           = Emb.≃→Embedding
-from-equivalence {(surjection)}          = _≃_.surjection
-from-equivalence {(bijection)}           = _≃_.bijection
-from-equivalence {(equivalence)}         = P.id
-from-equivalence {(equivalenceᴱ)}        = EEq.≃→≃ᴱ
+from-equivalence {k = implication}         = _≃_.to
+from-equivalence {k = logical-equivalence} = _≃_.logical-equivalence
+from-equivalence {k = injection}           = _≃_.injection
+from-equivalence {k = embedding}           = Emb.≃→Embedding
+from-equivalence {k = surjection}          = _≃_.surjection
+from-equivalence {k = bijection}           = _≃_.bijection
+from-equivalence {k = equivalence}         = P.id
+from-equivalence {k = equivalenceᴱ}        = EEq.≃→≃ᴱ
 
 -- Bijections can be converted to all kinds of functions.
 
 from-bijection : ∀ {k a b} {A : Type a} {B : Type b} →
                  A ↔ B → A ↝[ k ] B
-from-bijection {(implication)}         = _↔_.to
-from-bijection {(logical-equivalence)} = _↔_.logical-equivalence
-from-bijection {(injection)}           = _↔_.injection
-from-bijection {(embedding)}           = from-equivalence ⊚ Eq.↔⇒≃
-from-bijection {(surjection)}          = _↔_.surjection
-from-bijection {(bijection)}           = P.id
-from-bijection {(equivalence)}         = Eq.↔⇒≃
-from-bijection {(equivalenceᴱ)}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
+from-bijection {k = implication}         = _↔_.to
+from-bijection {k = logical-equivalence} = _↔_.logical-equivalence
+from-bijection {k = injection}           = _↔_.injection
+from-bijection {k = embedding}           = from-equivalence ⊚ Eq.↔⇒≃
+from-bijection {k = surjection}          = _↔_.surjection
+from-bijection {k = bijection}           = P.id
+from-bijection {k = equivalence}         = Eq.↔⇒≃
+from-bijection {k = equivalenceᴱ}        = EEq.≃→≃ᴱ ⊚ Eq.↔⇒≃
 
 -- All kinds of functions can be converted to implications.
 
 to-implication : ∀ {k a b} {@0 A : Type a} {@0 B : Type b} →
                  A ↝[ k ] B → A → B
-to-implication {(implication)} f =
+to-implication {k = implication} f =
   f
-to-implication {(logical-equivalence)} f =
+to-implication {k = logical-equivalence} f =
   let record { to = to } = f in to
-to-implication {(injection)} f =
+to-implication {k = injection} f =
   let record { to = to } = f in to
-to-implication {(embedding)} f =
+to-implication {k = embedding} f =
   let record { to = to } = f in to
-to-implication {(surjection)} f =
+to-implication {k = surjection} f =
   let record
         { logical-equivalence = record
           { to = to
           }
         } = f
   in to
-to-implication {(bijection)} f =
+to-implication {k = bijection} f =
   let record
         { surjection = record
           { logical-equivalence = record
@@ -114,9 +114,9 @@ to-implication {(bijection)} f =
           }
         } = f
   in to
-to-implication {(equivalence)} f =
+to-implication {k = equivalence} f =
   let record { to = to } = f in to
-to-implication {(equivalenceᴱ)} f =
+to-implication {k = equivalenceᴱ} f =
   _≃ᴱ_.to f
 
 ------------------------------------------------------------------------
@@ -134,10 +134,10 @@ data Symmetric-kind : Type where
 
 inverse : ∀ {k a b} {A : Type a} {B : Type b} →
           A ↝[ ⌊ k ⌋-sym ] B → B ↝[ ⌊ k ⌋-sym ] A
-inverse {(logical-equivalence)} = L.inverse
-inverse {(bijection)}           = Bijection.inverse
-inverse {(equivalence)}         = Eq.inverse
-inverse {(equivalenceᴱ)}        = EEq.inverse
+inverse {k = logical-equivalence} = L.inverse
+inverse {k = bijection}           = Bijection.inverse
+inverse {k = equivalence}         = Eq.inverse
+inverse {k = equivalenceᴱ}        = EEq.inverse
 
 -- If there is a symmetric kind of function from A to B, then A and B
 -- are logically equivalent.
@@ -167,8 +167,8 @@ A ↔[ k ] B = A ↝[ ⌊ k ⌋-iso ] B
 
 from-isomorphism : ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
                    A ↔[ k₁ ] B → A ↝[ k₂ ] B
-from-isomorphism {(bijection)}   = from-bijection
-from-isomorphism {(equivalence)} = from-equivalence
+from-isomorphism {k₁ = bijection}   = from-bijection
+from-isomorphism {k₁ = equivalence} = from-equivalence
 
 -- Lemma: to-implication after from-isomorphism is the same as
 -- to-implication.
@@ -177,7 +177,7 @@ to-implication∘from-isomorphism :
   ∀ {a b} {A : Type a} {B : Type b} k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
   to-implication A↔B ≡
   to-implication (from-isomorphism {k₂ = k₂} A↔B)
-to-implication∘from-isomorphism {A = A} {B} = t∘f
+to-implication∘from-isomorphism {A} {B} = t∘f
   where
   t∘f : ∀ k₁ k₂ {A↔B : A ↔[ k₁ ] B} →
         to-implication A↔B ≡
@@ -210,26 +210,26 @@ infixr 9 _∘_
 
 _∘_ : ∀ {k a b c} {A : Type a} {B : Type b} {C : Type c} →
       B ↝[ k ] C → A ↝[ k ] B → A ↝[ k ] C
-_∘_ {(implication)}         = λ f g → f ⊚ g
-_∘_ {(logical-equivalence)} = L._∘_
-_∘_ {(injection)}           = Injection._∘_
-_∘_ {(embedding)}           = Emb._∘_
-_∘_ {(surjection)}          = Surjection._∘_
-_∘_ {(bijection)}           = Bijection._∘_
-_∘_ {(equivalence)}         = Eq._∘_
-_∘_ {(equivalenceᴱ)}        = EEq._∘_
+_∘_ {k = implication}         = λ f g → f ⊚ g
+_∘_ {k = logical-equivalence} = L._∘_
+_∘_ {k = injection}           = Injection._∘_
+_∘_ {k = embedding}           = Emb._∘_
+_∘_ {k = surjection}          = Surjection._∘_
+_∘_ {k = bijection}           = Bijection._∘_
+_∘_ {k = equivalence}         = Eq._∘_
+_∘_ {k = equivalenceᴱ}        = EEq._∘_
 
 -- Identity.
 
 id : ∀ {k a} {A : Type a} → A ↝[ k ] A
-id {(implication)}         = P.id
-id {(logical-equivalence)} = L.id
-id {(injection)}           = Injection.id
-id {(embedding)}           = Emb.id
-id {(surjection)}          = Surjection.id
-id {(bijection)}           = Bijection.id
-id {(equivalence)}         = Eq.id
-id {(equivalenceᴱ)}        = EEq.id
+id {k = implication}         = P.id
+id {k = logical-equivalence} = L.id
+id {k = injection}           = Injection.id
+id {k = embedding}           = Emb.id
+id {k = surjection}          = Surjection.id
+id {k = bijection}           = Bijection.id
+id {k = equivalence}         = Eq.id
+id {k = equivalenceᴱ}        = EEq.id
 
 -- "Equational" reasoning combinators.
 
@@ -435,7 +435,7 @@ generalise-ext? :
    (∀ x → to (from x) ≡ x) ×
    (∀ x → from (to x) ≡ x)) →
   A ↝[ c ∣ d ] B
-generalise-ext? A⇔B hyp {k = k} with extensionality? k
+generalise-ext? A⇔B hyp {k} with extensionality? k
 ... | without-extensionality implication =
   λ _ → _⇔_.to A⇔B
 ... | without-extensionality logical-equivalence =
@@ -457,7 +457,7 @@ generalise-ext?′ :
   (Extensionality c d → A ↔ B) →
   (@0 Extensionality c d → A ≃ᴱ B) →
   A ↝[ c ∣ d ] B
-generalise-ext?′ f⇔ f↔ f≃ᴱ {k = k} with extensionality? k
+generalise-ext?′ f⇔ f↔ f≃ᴱ {k} with extensionality? k
 ... | without-extensionality implication =
   λ _ → _⇔_.to f⇔
 ... | without-extensionality logical-equivalence =
@@ -472,7 +472,7 @@ generalise-erased-ext? :
   A ⇔ B →
   (@0 Extensionality c d → A ↔ B) →
   A ↝[ c ∣ d ]ᴱ B
-generalise-erased-ext? f⇔ f↔ {k = k} with extensionality? k
+generalise-erased-ext? f⇔ f↔ {k} with extensionality? k
 ... | without-extensionality implication =
   λ _ → _⇔_.to f⇔
 ... | without-extensionality logical-equivalence =
@@ -511,7 +511,7 @@ generalise-ext?-sym :
   ∀ {a b c d} {A : Type a} {B : Type b} →
   (∀ {k} → Extensionality? ⌊ k ⌋-sym c d → A ↝[ ⌊ k ⌋-sym ] B) →
   A ↝[ c ∣ d ] B
-generalise-ext?-sym hyp {k = k} ext with extensionality? k
+generalise-ext?-sym hyp {k} ext with extensionality? k
 ... | without-extensionality implication =
   _⇔_.to $ hyp {k = logical-equivalence} ext
 ... | without-extensionality logical-equivalence =
@@ -567,7 +567,7 @@ abstract
   ≡⇒↝-sym : ∀ k {ℓ} {A B : Type ℓ} {eq : A ≡ B} →
             to-implication (≡⇒↝ ⌊ k ⌋-sym (sym eq)) ≡
             to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq))
-  ≡⇒↝-sym k {A = A} {eq = eq} = elim¹
+  ≡⇒↝-sym k {A} {eq} = elim¹
     (λ eq → to-implication (≡⇒↝ ⌊ k ⌋-sym (sym eq)) ≡
             to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq)))
     (to-implication (≡⇒↝ ⌊ k ⌋-sym (sym (refl A)))      ≡⟨ cong (to-implication ∘ ≡⇒↝ ⌊ k ⌋-sym) sym-refl ⟩
@@ -581,7 +581,7 @@ abstract
   ≡⇒↝-trans : ∀ k {ℓ} {A B C : Type ℓ} {A≡B : A ≡ B} {B≡C : B ≡ C} →
               to-implication (≡⇒↝ k (trans A≡B B≡C)) ≡
               to-implication (≡⇒↝ k B≡C ∘ ≡⇒↝ k A≡B)
-  ≡⇒↝-trans k {B = B} {A≡B = A≡B} = elim¹
+  ≡⇒↝-trans k {B} {A≡B} = elim¹
     (λ B≡C → to-implication (≡⇒↝ k (trans A≡B B≡C)) ≡
              to-implication (≡⇒↝ k B≡C ∘ ≡⇒↝ k A≡B))
     (to-implication (≡⇒↝ k (trans A≡B (refl B)))             ≡⟨ cong (to-implication ∘ ≡⇒↝ k) $ trans-reflʳ _ ⟩
@@ -600,7 +600,7 @@ abstract
              (P-cong : ∀ {A B} → A ↝[ k ] B → P A ↝[ k ] P B) →
              P-cong (id {A = A}) ≡ id →
              ≡⇒↝ _ (cong P eq) ≡ P-cong (≡⇒↝ _ eq)
-  ≡⇒↝-cong {eq = eq} P P-cong P-cong-id = elim¹
+  ≡⇒↝-cong {eq} P P-cong P-cong-id = elim¹
     (λ eq → ≡⇒↝ _ (cong P eq) ≡ P-cong (≡⇒↝ _ eq))
     (≡⇒↝ _ (cong P (refl _))  ≡⟨ cong (≡⇒↝ _) $ cong-refl P ⟩
      ≡⇒↝ _ (refl _)           ≡⟨ elim-refl (λ {A B} _ → A ↝[ _ ] B) _ ⟩
@@ -615,7 +615,7 @@ abstract
   ≡⇒↝-in-terms-of-subst :
     ∀ k {ℓ} {A B : Type ℓ} (A≡B : A ≡ B) →
     ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id
-  ≡⇒↝-in-terms-of-subst k {B = B} = elim₁
+  ≡⇒↝-in-terms-of-subst k {B} = elim₁
     (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (A ↝[ k ]_) A≡B id)
     (≡⇒↝ k (refl B)                 ≡⟨ ≡⇒↝-refl ⟩
      id                             ≡⟨ sym $ subst-refl _ _ ⟩∎
@@ -624,7 +624,7 @@ abstract
   ≡⇒↝-in-terms-of-subst-sym :
     ∀ k {ℓ} {A B : Type ℓ} (A≡B : A ≡ B) →
     ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id
-  ≡⇒↝-in-terms-of-subst-sym k {B = B} = elim₁
+  ≡⇒↝-in-terms-of-subst-sym k {B} = elim₁
     (λ {A} A≡B → ≡⇒↝ k A≡B ≡ subst (_↝[ k ] B) (sym A≡B) id)
     (≡⇒↝ k (refl B)                       ≡⟨ ≡⇒↝-refl ⟩
      id                                   ≡⟨ sym $ subst-refl _ _ ⟩
@@ -665,7 +665,7 @@ abstract
       {x≡y : x ≡ y} {u≡v : u ≡ v} {P : A → B → Type p} {p} →
     to-implication (≡⇒↝ k (cong₂ P x≡y u≡v)) p ≡
     subst (P _) u≡v (subst (flip P _) x≡y p)
-  ≡⇒↝-cong₂≡subst-subst k {x≡y = x≡y} {u≡v = u≡v} {P = P} {p = p} =
+  ≡⇒↝-cong₂≡subst-subst k {x≡y} {u≡v} {P} {p} =
     to-implication (≡⇒↝ k (cong₂ P x≡y u≡v)) p                        ≡⟨⟩
 
     to-implication
@@ -686,7 +686,7 @@ abstract
   subst-id-in-terms-of-≡⇒↝ :
     ∀ k {a} {A B : Type a} {A≡B : A ≡ B} {x} →
     subst id A≡B x ≡ to-implication (≡⇒↝ k A≡B) x
-  subst-id-in-terms-of-≡⇒↝ k {A≡B = A≡B} {x = x} =
+  subst-id-in-terms-of-≡⇒↝ k {A≡B} {x} =
     subst id A≡B x                          ≡⟨ subst-in-terms-of-≡⇒↝ k _ _ _ ⟩
     to-implication (≡⇒↝ k (cong id A≡B)) x  ≡⟨ cong (λ eq → to-implication (≡⇒↝ k eq) x) $ sym $ cong-id _ ⟩∎
     to-implication (≡⇒↝ k A≡B) x            ∎
@@ -695,7 +695,7 @@ abstract
     ∀ k {a} {A B : Type a} {A≡B : A ≡ B} {y} →
     subst id (sym A≡B) y ≡
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y
-  subst-id-in-terms-of-inverse∘≡⇒↝ k {A≡B = A≡B} {y = y} =
+  subst-id-in-terms-of-inverse∘≡⇒↝ k {A≡B} {y} =
     subst id (sym A≡B) y                                      ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ k _ _ _ ⟩
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong id A≡B))) y  ≡⟨ cong (λ eq → to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym eq)) y) $ sym $ cong-id _ ⟩∎
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym A≡B)) y            ∎
@@ -1121,14 +1121,14 @@ infixr 1 _⊎-cong_
 _⊎-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ ⊎ B₁ ↝[ k ] A₂ ⊎ B₂
-_⊎-cong_ {(implication)}         = ⊎-map
-_⊎-cong_ {(logical-equivalence)} = L._⊎-cong_
-_⊎-cong_ {(injection)}           = ⊎-cong-inj
-_⊎-cong_ {(embedding)}           = ⊎-cong-emb
-_⊎-cong_ {(surjection)}          = ⊎-cong-surj
-_⊎-cong_ {(bijection)}           = ⊎-cong-bij
-_⊎-cong_ {(equivalence)}         = ⊎-cong-≃
-_⊎-cong_ {(equivalenceᴱ)}        = ⊎-cong-≃ᴱ
+_⊎-cong_ {k = implication}         = ⊎-map
+_⊎-cong_ {k = logical-equivalence} = L._⊎-cong_
+_⊎-cong_ {k = injection}           = ⊎-cong-inj
+_⊎-cong_ {k = embedding}           = ⊎-cong-emb
+_⊎-cong_ {k = surjection}          = ⊎-cong-surj
+_⊎-cong_ {k = bijection}           = ⊎-cong-bij
+_⊎-cong_ {k = equivalence}         = ⊎-cong-≃
+_⊎-cong_ {k = equivalenceᴱ}        = ⊎-cong-≃ᴱ
 
 -- _⊎_ is commutative.
 
@@ -1176,7 +1176,7 @@ _⊎-cong_ {(equivalenceᴱ)}        = ⊎-cong-≃ᴱ
   }
 
 ⊎-right-identity : ∀ {a ℓ} {A : Type a} → A ⊎ ⊥ {ℓ = ℓ} ↔ A
-⊎-right-identity {A = A} =
+⊎-right-identity {A} =
   A ⊎ ⊥  ↔⟨ ⊎-comm ⟩
   ⊥ ⊎ A  ↔⟨ ⊎-left-identity ⟩□
   A      □
@@ -1196,7 +1196,7 @@ _⊎-cong_ {(equivalenceᴱ)}        = ⊎-cong-≃ᴱ
 drop-⊥-right :
   ∀ {k a b} {A : Type a} {B : Type b} →
   B ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] A
-drop-⊥-right {A = A} {B} B↔⊥ =
+drop-⊥-right {A} {B} B↔⊥ =
   A ⊎ B  ↝⟨ id ⊎-cong B↔⊥ ⟩
   A ⊎ ⊥  ↔⟨ ⊎-right-identity ⟩□
   A      □
@@ -1204,7 +1204,7 @@ drop-⊥-right {A = A} {B} B↔⊥ =
 drop-⊥-left :
   ∀ {k a b} {A : Type a} {B : Type b} →
   A ↝[ k ] ⊥₀ → A ⊎ B ↝[ k ] B
-drop-⊥-left {A = A} {B} A↔⊥ =
+drop-⊥-left {A} {B} A↔⊥ =
   A ⊎ B  ↔⟨ ⊎-comm ⟩
   B ⊎ A  ↝⟨ drop-⊥-right A↔⊥ ⟩□
   B      □
@@ -1221,7 +1221,7 @@ drop-⊥-left {A = A} {B} A↔⊥ =
   (A₁↣A₂ : Embedding A₁ A₂) →
   (∀ x → Embedding (B₁ x) (B₂ (Embedding.to A₁↣A₂ x))) →
   Embedding (Σ A₁ B₁) (Σ A₂ B₂)
-Σ-preserves-embeddings {B₁ = B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
+Σ-preserves-embeddings {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
   { to           = Σ-map (to A₁↣A₂) (to (B₁↣B₂ _))
   ; is-embedding = λ { (x₁ , x₂) (y₁ , y₂) →
       _≃_.is-equivalence $
@@ -1332,7 +1332,7 @@ private
   ×-cong-inj : ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
                  {B₁ : Type b₁} {B₂ : Type b₂} →
                A₁ ↣ A₂ → B₁ ↣ B₂ → A₁ × B₁ ↣ A₂ × B₂
-  ×-cong-inj {A₁ = A₁} {A₂} {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
+  ×-cong-inj {A₁} {A₂} {B₁} {B₂} A₁↣A₂ B₁↣B₂ = record
     { to        = to′
     ; injective = injective′
     }
@@ -1392,16 +1392,16 @@ infixr 2 _×-cong_
 _×-cong_ : ∀ {k a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
              {B₁ : Type b₁} {B₂ : Type b₂} →
            A₁ ↝[ k ] A₂ → B₁ ↝[ k ] B₂ → A₁ × B₁ ↝[ k ] A₂ × B₂
-_×-cong_ {(implication)}         = λ f g → Σ-map f g
-_×-cong_ {(logical-equivalence)} = L._×-cong_
-_×-cong_ {(injection)}           = ×-cong-inj
-_×-cong_ {(embedding)}           = λ A₁↣A₂ B₁↣B₂ →
-                                     Σ-preserves-embeddings
-                                       A₁↣A₂ (λ _ → B₁↣B₂)
-_×-cong_ {(surjection)}          = ×-cong-surj
-_×-cong_ {(bijection)}           = ×-cong-bij
-_×-cong_ {(equivalence)}         = ×-cong-≃
-_×-cong_ {(equivalenceᴱ)}        = ×-cong-≃ᴱ
+_×-cong_ {k = implication}         = λ f g → Σ-map f g
+_×-cong_ {k = logical-equivalence} = L._×-cong_
+_×-cong_ {k = injection}           = ×-cong-inj
+_×-cong_ {k = embedding}           = λ A₁↣A₂ B₁↣B₂ →
+                                       Σ-preserves-embeddings
+                                         A₁↣A₂ (λ _ → B₁↣B₂)
+_×-cong_ {k = surjection}          = ×-cong-surj
+_×-cong_ {k = bijection}           = ×-cong-bij
+_×-cong_ {k = equivalence}         = ×-cong-≃
+_×-cong_ {k = equivalenceᴱ}        = ×-cong-≃ᴱ
 
 -- The function to-implication is homomorphic with respect to
 -- _×-cong_/Σ-map.
@@ -1462,7 +1462,7 @@ open Bijection public using (Σ-assoc)
 ×-left-identity = Σ-left-identity
 
 ×-right-identity : ∀ {a} {A : Type a} → A × ⊤ ↔ A
-×-right-identity {A = A} =
+×-right-identity {A} =
   A × ⊤  ↔⟨ ×-comm ⟩
   ⊤ × A  ↔⟨ ×-left-identity ⟩□
   A      □
@@ -1486,7 +1486,7 @@ open Bijection public using (Σ-assoc)
 ×-left-zero = Σ-left-zero
 
 ×-right-zero : ∀ {a ℓ₁ ℓ₂} {A : Type a} → A × ⊥ {ℓ = ℓ₁} ↔ ⊥ {ℓ = ℓ₂}
-×-right-zero {A = A} =
+×-right-zero {A} =
   A × ⊥  ↔⟨ ×-comm ⟩
   ⊥ × A  ↔⟨ ×-left-zero ⟩□
   ⊥      □
@@ -1504,24 +1504,35 @@ open Bijection public using (Σ-assoc)
          (A₁↔A₂ : A₁ ↔[ k₁ ] A₂) →
          (∀ x → B₁ x ↝[ k₂ ] B₂ (to-implication A₁↔A₂ x)) →
          Σ A₁ B₁ ↝[ k₂ ] Σ A₂ B₂
-Σ-cong {(equivalence)} {(implication)}         = λ A₁≃A₂ B₁→B₂ →
-                                                   Σ-map (from-isomorphism A₁≃A₂) (B₁→B₂ _)
-Σ-cong {(bijection)}   {(implication)}         = λ A₁↔A₂ B₁→B₂ →
-                                                   Σ-map (from-isomorphism A₁↔A₂) (B₁→B₂ _)
-Σ-cong {(equivalence)} {(logical-equivalence)} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
-Σ-cong {(bijection)}   {(logical-equivalence)} = Surjection.Σ-cong-⇔       ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(injection)}           = Eq.∃-preserves-injections
-Σ-cong {(bijection)}   {(injection)}           = Eq.∃-preserves-injections ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(embedding)}           = Σ-preserves-embeddings    ⊚ from-isomorphism
-Σ-cong {(bijection)}   {(embedding)}           = Σ-preserves-embeddings    ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(surjection)}          = Surjection.Σ-cong         ⊚ from-isomorphism
-Σ-cong {(bijection)}   {(surjection)}          = Surjection.Σ-cong         ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(bijection)}           = Eq.∃-preserves-bijections
-Σ-cong {(bijection)}   {(bijection)}           = Eq.∃-preserves-bijections ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(equivalence)}         = Eq.Σ-preserves
-Σ-cong {(bijection)}   {(equivalence)}         = Eq.Σ-preserves            ⊚ from-isomorphism
-Σ-cong {(equivalence)} {(equivalenceᴱ)}
-       {B₂ = B₂}                               = λ f g →
+Σ-cong {k₁ = equivalence} {k₂ = implication} = λ A₁≃A₂ B₁→B₂ →
+  Σ-map (from-isomorphism A₁≃A₂) (B₁→B₂ _)
+Σ-cong {k₁ = bijection} {k₂ = implication} = λ A₁↔A₂ B₁→B₂ →
+  Σ-map (from-isomorphism A₁↔A₂) (B₁→B₂ _)
+Σ-cong {k₁ = equivalence} {k₂ = logical-equivalence} =
+  Surjection.Σ-cong-⇔ ⊚ from-isomorphism
+Σ-cong {k₁ = bijection} {k₂ = logical-equivalence} =
+  Surjection.Σ-cong-⇔ ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = injection} =
+  Eq.∃-preserves-injections
+Σ-cong {k₁ = bijection} {k₂ = injection} =
+  Eq.∃-preserves-injections ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = embedding} =
+  Σ-preserves-embeddings ⊚ from-isomorphism
+Σ-cong {k₁ = bijection} {k₂ = embedding} =
+  Σ-preserves-embeddings ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = surjection} =
+  Surjection.Σ-cong ⊚ from-isomorphism
+Σ-cong {k₁ = bijection} {k₂ = surjection} =
+  Surjection.Σ-cong ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = bijection} =
+  Eq.∃-preserves-bijections
+Σ-cong {k₁ = bijection} {k₂ = bijection} =
+  Eq.∃-preserves-bijections ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = equivalence} =
+  Eq.Σ-preserves
+Σ-cong {k₁ = bijection} {k₂ = equivalence} =
+  Eq.Σ-preserves ⊚ from-isomorphism
+Σ-cong {k₁ = equivalence} {k₂ = equivalenceᴱ} {B₂} = λ f g →
   EEq.[≃]→≃ᴱ
     {to   = λ (x , y) → _≃_.to f x , _≃ᴱ_.to (g x) y}
     {from = λ (x , y) →
@@ -1530,8 +1541,7 @@ open Bijection public using (Σ-assoc)
                    (subst B₂ (sym (_≃_.right-inverse-of f x)) y)}
     (EEq.[proofs]
        (Eq.Σ-preserves f (EEq.≃ᴱ→≃ ⊚ g)))
-Σ-cong {(bijection)}   {(equivalenceᴱ)}
-       {B₂ = B₂}                               = λ f g →
+Σ-cong {k₁ = bijection} {k₂ = equivalenceᴱ} {B₂} = λ f g →
   EEq.[≃]→≃ᴱ
     {to   = λ (x , y) → _↔_.to f x , _≃ᴱ_.to (g x) y}
     {from = λ (x , y) →
@@ -1560,7 +1570,7 @@ open Bijection public using (Σ-assoc)
   inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁≃B₂)
 Σ-cong-contra {k₂ = equivalenceᴱ} A₂↔A₁ B₁≃ᴱB₂ =
   inverse $ Σ-cong A₂↔A₁ (inverse ⊚ B₁≃ᴱB₂)
-Σ-cong-contra {k₁} {k₂} {A₁ = A₁} {A₂} {B₁} {B₂} A₂↔A₁ B₁↝B₂ =
+Σ-cong-contra {k₁} {k₂} {A₁} {A₂} {B₁} {B₂} A₂↔A₁ B₁↝B₂ =
   Σ-cong A₁↔A₂ B₁↝B₂′
   where
   A₁↔A₂ : A₁ ↔ A₂
@@ -1582,7 +1592,7 @@ open Bijection public using (Σ-assoc)
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) → B₂ x) →
   Σ A₁ B₁ → Σ A₂ B₂
-Σ-cong-contra-→ {B₁ = B₁} A₂↠A₁ B₁→B₂ =
+Σ-cong-contra-→ {B₁} A₂↠A₁ B₁→B₂ =
   Σ-map (_↠_.from A₂↠A₁)
         (B₁→B₂ _ ∘ subst B₁ (sym $ _↠_.right-inverse-of A₂↠A₁ _))
 
@@ -1635,14 +1645,14 @@ private
 ∃-cong : ∀ {k a b₁ b₂}
            {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
          (∀ x → B₁ x ↝[ k ] B₂ x) → ∃ B₁ ↝[ k ] ∃ B₂
-∃-cong {(implication)}         = ∃-cong-impl
-∃-cong {(logical-equivalence)} = L.∃-cong
-∃-cong {(injection)}           = Σ-cong Bijection.id
-∃-cong {(embedding)}           = Σ-preserves-embeddings Emb.id
-∃-cong {(surjection)}          = ∃-cong-surj
-∃-cong {(bijection)}           = ∃-cong-bij
-∃-cong {(equivalence)}         = Eq.∃-cong
-∃-cong {(equivalenceᴱ)}        = ∃-cong-≃ᴱ
+∃-cong {k = implication}         = ∃-cong-impl
+∃-cong {k = logical-equivalence} = L.∃-cong
+∃-cong {k = injection}           = Σ-cong Bijection.id
+∃-cong {k = embedding}           = Σ-preserves-embeddings Emb.id
+∃-cong {k = surjection}          = ∃-cong-surj
+∃-cong {k = bijection}           = ∃-cong-bij
+∃-cong {k = equivalence}         = Eq.∃-cong
+∃-cong {k = equivalenceᴱ}        = ∃-cong-≃ᴱ
 
 private
 
@@ -1659,7 +1669,7 @@ private
 ×-cong₁ : ∀ {k a₁ a₂ b}
             {A₁ : Type a₁} {A₂ : Type a₂} {B : Type b} →
           (B → A₁ ↝[ k ] A₂) → A₁ × B ↝[ k ] A₂ × B
-×-cong₁ {A₁ = A₁} {A₂} {B} A₁↔A₂ =
+×-cong₁ {A₁} {A₂} {B} A₁↔A₂ =
   A₁ × B  ↔⟨ ×-comm ⟩
   B × A₁  ↝⟨ ∃-cong A₁↔A₂ ⟩
   B × A₂  ↔⟨ ×-comm ⟩□
@@ -1670,14 +1680,14 @@ private
 
 drop-⊤-right : ∀ {k a b} {A : Type a} {B : A → Type b} →
                ((x : A) → B x ↝[ k ] ⊤) → Σ A B ↝[ k ] A
-drop-⊤-right {A = A} {B} B↝⊤ =
+drop-⊤-right {A} {B} B↝⊤ =
   Σ A B  ↝⟨ ∃-cong B↝⊤ ⟩
   A × ⊤  ↔⟨ ×-right-identity ⟩□
   A      □
 
 drop-⊤-left-× : ∀ {k a b} {A : Type a} {B : Type b} →
                 (B → A ↝[ k ] ⊤) → A × B ↝[ k ] B
-drop-⊤-left-× {A = A} {B} A↝⊤ =
+drop-⊤-left-× {A} {B} A↝⊤ =
   A × B  ↔⟨ ×-comm ⟩
   B × A  ↝⟨ drop-⊤-right A↝⊤ ⟩□
   B      □
@@ -1685,7 +1695,7 @@ drop-⊤-left-× {A = A} {B} A↝⊤ =
 drop-⊤-left-Σ : ∀ {a b} {A : Type a} {B : A → Type b} →
                 (A↔⊤ : A ↔ ⊤) →
                 Σ A B ↔ B (_↔_.from A↔⊤ tt)
-drop-⊤-left-Σ {A = A} {B} A↔⊤ =
+drop-⊤-left-Σ {A} {B} A↔⊤ =
   Σ A B                   ↝⟨ inverse $ Σ-cong (inverse A↔⊤) (λ _ → id) ⟩
   Σ ⊤ (B ∘ _↔_.from A↔⊤)  ↝⟨ Σ-left-identity ⟩□
   B (_↔_.from A↔⊤ tt)     □
@@ -1753,7 +1763,7 @@ currying = record
 ∃-⊎-distrib-right :
   ∀ {a b c} {A : Type a} {B : Type b} {C : A ⊎ B → Type c} →
   Σ (A ⊎ B) C ↔ Σ A (C ⊚ inj₁) ⊎ Σ B (C ⊚ inj₂)
-∃-⊎-distrib-right {A = A} {B} {C} = record
+∃-⊎-distrib-right {A} {B} {C} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -1833,7 +1843,7 @@ other-∃-intro B x = Eq.↔→≃
 ∃-introduction :
   ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
   B x (refl x) ↔ ∃ λ y → ∃ λ (x≡y : x ≡ y) → B y x≡y
-∃-introduction {x = x} B =
+∃-introduction {x} B =
   B x (refl x)                                              ↝⟨ ∃-intro (uncurry B) _ ⟩
   (∃ λ { (y , x≡y) → B y x≡y × (y , x≡y) ≡ (x , refl x) })  ↝⟨ (∃-cong λ _ → ∃-cong λ _ →
                                                                   _⇔_.to contractible⇔↔⊤ $
@@ -1849,7 +1859,7 @@ other-∃-intro B x = Eq.↔→≃
 
 ≡×≡↔≡ : ∀ {a b} {A : Type a} {B : Type b} {p₁ p₂ : A × B} →
         (proj₁ p₁ ≡ proj₁ p₂ × proj₂ p₁ ≡ proj₂ p₂) ↔ (p₁ ≡ p₂)
-≡×≡↔≡ {B = B} {p₁} {p₂} = record
+≡×≡↔≡ {B} {p₁} {p₂} = record
   { surjection = record
     { logical-equivalence = record
       { to   = uncurry (cong₂ _,_)
@@ -1875,7 +1885,8 @@ ignore-propositional-component :
   ∀ {a b} {A : Type a} {B : A → Type b} {p q : Σ A B} →
   Is-proposition (B (proj₁ q)) →
   (proj₁ p ≡ proj₁ q) ↔ (p ≡ q)
-ignore-propositional-component {B = B} {p₁ , p₂} {q₁ , q₂} Bq₁-prop =
+ignore-propositional-component {B} {p = p₁ , p₂} {q = q₁ , q₂}
+                               Bq₁-prop =
   (p₁ ≡ q₁)                                  ↝⟨ inverse ×-right-identity ⟩
   (p₁ ≡ q₁ × ⊤)                              ↝⟨ ∃-cong (λ _ → inverse $ _⇔_.to contractible⇔↔⊤ (+⇒≡ Bq₁-prop)) ⟩
   (∃ λ (eq : p₁ ≡ q₁) → subst B eq p₂ ≡ q₂)  ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩□
@@ -1887,7 +1898,7 @@ Contractible-commutes-with-× :
   ∀ {x y} {X : Type x} {Y : Type y} →
   Contractible (X × Y) ↝[ x ⊔ y ∣ x ⊔ y ]
   (Contractible X × Contractible Y)
-Contractible-commutes-with-× {x = x} {y} =
+Contractible-commutes-with-× {x} {y} =
   generalise-ext?-prop
     (record
        { to = λ cX×Y →
@@ -1925,7 +1936,7 @@ Contractible-commutes-with-× {x = x} {y} =
   Extensionality (a ⊔ b) (a ⊔ b) →
   {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ↔ p ≡ q
-≃-to-≡↔≡ {a} {b} ext {p = p} {q} =
+≃-to-≡↔≡ {a} {b} ext {p} {q} =
   (∀ x → _≃_.to p x ≡ _≃_.to q x)                                        ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
   _≃_.to p ≡ _≃_.to q                                                    ↝⟨ ignore-propositional-component (Is-equivalence-propositional ext) ⟩
   (_≃_.to p , _≃_.is-equivalence p) ≡ (_≃_.to q , _≃_.is-equivalence q)  ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Eq.≃-as-Σ) ⟩□
@@ -1940,7 +1951,7 @@ Contractible-commutes-with-× {x = x} {y} =
   Extensionality a b →
   {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.to p x ≡ _≃_.to q x) ≃ (p ≡ q)
-≃-to-≡≃≡ ext₁ ext₂ {p = p} {q = q} =
+≃-to-≡≃≡ ext₁ ext₂ {p} {q} =
   Eq.↔→≃
     (Eq.lift-equality ext₁ ⊚ apply-ext ext₂)
     (flip $ cong ⊚ flip _≃_.to)
@@ -2004,7 +2015,7 @@ Contractible-commutes-with-× {x = x} {y} =
   Extensionality (a ⊔ b) (a ⊔ b) →
   {A : Type a} {B : Type b} {p q : A ≃ B} →
   (∀ x → _≃_.from p x ≡ _≃_.from q x) ↔ p ≡ q
-≃-from-≡↔≡ ext {p = p} {q} =
+≃-from-≡↔≡ ext {p} {q} =
   (∀ x → _≃_.from p x ≡ _≃_.from q x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
   inverse p ≡ inverse q                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.inverse-isomorphism ext)) ⟩□
   p ≡ q                                □
@@ -2019,7 +2030,7 @@ Contractible-commutes-with-× {x = x} {y} =
   {A : Type a} {B : Type b} {p q : A ↔ B} →
   Is-set A →
   (∀ x → _↔_.to p x ≡ _↔_.to q x) ↔ p ≡ q
-↔-to-≡↔≡ ext {p = p} {q} A-set =
+↔-to-≡↔≡ ext {p} {q} A-set =
   (∀ x → _↔_.to p x ≡ _↔_.to q x)                    ↝⟨ id ⟩
   (∀ x → _≃_.to (Eq.↔⇒≃ p) x ≡ _≃_.to (Eq.↔⇒≃ q) x)  ↝⟨ ≃-to-≡↔≡ ext ⟩
   Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
@@ -2035,7 +2046,7 @@ Contractible-commutes-with-× {x = x} {y} =
   {A : Type a} {B : Type b} {p q : A ↔ B} →
   Is-set A →
   (∀ x → _↔_.from p x ≡ _↔_.from q x) ↔ p ≡ q
-↔-from-≡↔≡ ext {p = p} {q} A-set =
+↔-from-≡↔≡ ext {p} {q} A-set =
   (∀ x → _↔_.from p x ≡ _↔_.from q x)                    ↝⟨ id ⟩
   (∀ x → _≃_.from (Eq.↔⇒≃ p) x ≡ _≃_.from (Eq.↔⇒≃ q) x)  ↝⟨ ≃-from-≡↔≡ ext ⟩
   Eq.↔⇒≃ p ≡ Eq.↔⇒≃ q                                    ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ (Eq.↔↔≃ ext A-set)) ⟩□
@@ -2049,7 +2060,7 @@ Embedding-to-≡↔≡ :
   Extensionality (a ⊔ b) (a ⊔ b) →
   {A : Type a} {B : Type b} {p q : Embedding A B} →
   (∀ x → Embedding.to p x ≡ Embedding.to q x) ↔ p ≡ q
-Embedding-to-≡↔≡ {a} {b} ext {p = p} {q} =
+Embedding-to-≡↔≡ {a} {b} ext {p} {q} =
   (∀ x → Embedding.to p x ≡ Embedding.to q x)    ↔⟨ Eq.extensionality-isomorphism (lower-extensionality b a ext) ⟩
 
   Embedding.to p ≡ Embedding.to q                ↝⟨ ignore-propositional-component (Emb.Is-embedding-propositional ext) ⟩
@@ -2173,10 +2184,10 @@ private
          {A : Type a} {B : Type b} {C : Type c} {D : Type d} →
          A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
          (A → C) ↝[ ⌊ k ⌋-sym ] (B → D)
-→-cong {(logical-equivalence)} _   = L.→-cong
-→-cong {(bijection)}           ext = →-cong-↔  ext
-→-cong {(equivalence)}         ext = →-cong-≃  ext
-→-cong {(equivalenceᴱ)}        ext = →-cong-≃ᴱ ext
+→-cong {k = logical-equivalence} _   = L.→-cong
+→-cong {k = bijection}           ext = →-cong-↔  ext
+→-cong {k = equivalence}         ext = →-cong-≃  ext
+→-cong {k = equivalenceᴱ}        ext = →-cong-≃ᴱ ext
 
 -- A variant of →-cong.
 
@@ -2205,7 +2216,7 @@ private
     {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ↔ B₂ x) →
     ((x : A) → B₁ x) ↔ ((x : A) → B₂ x)
-  ∀-cong-bij {b₂ = b₂} ext B₁↔B₂ = record
+  ∀-cong-bij {b₂} ext B₁↔B₂ = record
     { surjection      = surj
     ; left-inverse-of = left-inverse-of
     }
@@ -2242,7 +2253,7 @@ private
     {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → B₁ x ↣ B₂ x) →
     ((x : A) → B₁ x) ↣ ((x : A) → B₂ x)
-  ∀-cong-inj {b₁ = b₁} {b₂} ext B₁↣B₂ = record
+  ∀-cong-inj {b₁} {b₂} ext B₁↣B₂ = record
     { to        = to
     ; injective = injective
     }
@@ -2265,7 +2276,7 @@ private
     {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
     (∀ x → Embedding (B₁ x) (B₂ x)) →
     Embedding ((x : A) → B₁ x) ((x : A) → B₂ x)
-  ∀-cong-emb {b₁ = b₁} {b₂} ext B₁↣B₂ = record
+  ∀-cong-emb {b₁} {b₂} ext B₁↣B₂ = record
     { to           = to
     ; is-embedding = is-embedding
     }
@@ -2317,14 +2328,14 @@ private
   {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
   (∀ x → B₁ x ↝[ k ] B₂ x) →
   ((x : A) → B₁ x) ↝[ k ] ((x : A) → B₂ x)
-∀-cong {(implication)}         = λ _ → ∀-cong-→
-∀-cong {(logical-equivalence)} = λ _ → L.∀-cong
-∀-cong {(injection)}           = ∀-cong-inj
-∀-cong {(embedding)}           = ∀-cong-emb
-∀-cong {(surjection)}          = λ ext → ∀-cong-↠ ext
-∀-cong {(bijection)}           = ∀-cong-bij
-∀-cong {(equivalence)}         = ∀-cong-eq
-∀-cong {(equivalenceᴱ)}        = ∀-cong-eqᴱ
+∀-cong {k = implication}         = λ _ → ∀-cong-→
+∀-cong {k = logical-equivalence} = λ _ → L.∀-cong
+∀-cong {k = injection}           = ∀-cong-inj
+∀-cong {k = embedding}           = ∀-cong-emb
+∀-cong {k = surjection}          = λ ext → ∀-cong-↠ ext
+∀-cong {k = bijection}           = ∀-cong-bij
+∀-cong {k = equivalence}         = ∀-cong-eq
+∀-cong {k = equivalenceᴱ}        = ∀-cong-eqᴱ
 
 -- The implicit variant of Π preserves all kinds of functions in its
 -- second argument (in some cases assuming extensionality).
@@ -2350,7 +2361,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   (A₂→A₁ : A₂ → A₁) →
   (∀ x → B₁ (A₂→A₁ x) → B₂ x) →
   ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
-Π-cong-contra-→ {B₁ = B₁} {B₂} A₂→A₁ B₁→B₂ f x =
+Π-cong-contra-→ {B₁} {B₂} A₂→A₁ B₁→B₂ f x =
                 $⟨ f (A₂→A₁ x) ⟩
   B₁ (A₂→A₁ x)  ↝⟨ B₁→B₂ x ⟩
   B₂ x          □
@@ -2362,8 +2373,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x → B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) → ((x : A₂) → B₂ x)
-Π-cong-→ {B₁ = B₁} {B₂} A₁↠A₂ B₁→B₂ f x =
-                                        $⟨ f (_↠_.from A₁↠A₂ x) ⟩
+Π-cong-→ {B₁} {B₂} A₁↠A₂ B₁→B₂ f x =    $⟨ f (_↠_.from A₁↠A₂ x) ⟩
   B₁ (_↠_.from A₁↠A₂ x)                 ↝⟨ B₁→B₂ (_↠_.from A₁↠A₂ x) ⟩
   B₂ (_↠_.to A₁↠A₂ (_↠_.from A₁↠A₂ x))  ↝⟨ subst B₂ (_↠_.right-inverse-of A₁↠A₂ x) ⟩□
   B₂ x                                  □
@@ -2377,7 +2387,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) ⇔ ((x : A₂) → B₂ x)
-Π-cong-⇔ {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁⇔B₂ = record
+Π-cong-⇔ {A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁⇔B₂ = record
   { to   = Π-cong-→                A₁↠A₂  (_⇔_.to   ⊚ B₁⇔B₂)
   ; from = Π-cong-contra-→ (_↠_.to A₁↠A₂) (_⇔_.from ⊚ B₁⇔B₂)
   }
@@ -2389,7 +2399,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   (A₂↠A₁ : A₂ ↠ A₁) →
   (∀ x → B₁ (_↠_.to A₂↠A₁ x) ⇔ B₂ x) →
   ((x : A₁) → B₁ x) ⇔ ((x : A₂) → B₂ x)
-Π-cong-contra-⇔ {A₁ = A₁} {A₂} {B₁} {B₂} A₂↠A₁ B₁⇔B₂ = record
+Π-cong-contra-⇔ {A₁} {A₂} {B₁} {B₂} A₂↠A₁ B₁⇔B₂ = record
   { to   = Π-cong-contra-→ (_↠_.to A₂↠A₁) (_⇔_.to   ⊚ B₁⇔B₂)
   ; from = Π-cong-→                A₂↠A₁  (_⇔_.from ⊚ B₁⇔B₂)
   }
@@ -2404,7 +2414,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
   ((x : A₁) → B₁ x) ↠ ((x : A₂) → B₂ x)
-Π-cong-↠ ext {B₂ = B₂} A₁↠A₂ B₁↠B₂ = record
+Π-cong-↠ ext {B₂} A₁↠A₂ B₁↠B₂ = record
   { logical-equivalence = equiv
   ; right-inverse-of    = to∘from
   }
@@ -2471,7 +2481,7 @@ private
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ↠ B₂ x) →
     ((x : A₁) → B₁ x) ↠ ((x : A₂) → B₂ x)
-  Π-cong-contra-↠ ext {B₁ = B₁} A₂≃A₁ B₁↠B₂ = record
+  Π-cong-contra-↠ ext {B₁} A₂≃A₁ B₁↠B₂ = record
     { logical-equivalence = equiv
     ; right-inverse-of    = to∘from
     }
@@ -2512,7 +2522,7 @@ private
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ↔ ((x : A₂) → B₂ x)
-  Π-cong-↔ {a₁} {a₂} {b₁} {b₂} ext {B₂ = B₂} A₁≃A₂ B₁↔B₂ = record
+  Π-cong-↔ {a₁} {a₂} {b₁} {b₂} ext {B₂} A₁≃A₂ B₁↔B₂ = record
     { surjection      = surj
     ; left-inverse-of = from∘to
     }
@@ -2538,7 +2548,7 @@ private
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ↔ B₂ x) →
     ((x : A₁) → B₁ x) ↔ ((x : A₂) → B₂ x)
-  Π-cong-contra-↔ {a₁} {a₂} {b₁} {b₂} ext {B₂ = B₂} A₂≃A₁ B₁↔B₂ = record
+  Π-cong-contra-↔ {a₁} {a₂} {b₁} {b₂} ext {B₂} A₂≃A₁ B₁↔B₂ = record
     { surjection      = surj
     ; left-inverse-of = from∘to
     }
@@ -2574,7 +2584,7 @@ private
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ≃ᴱ B₂ (_≃_.to A₁≃A₂ x)) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-≃ᴱ E.[ ext ] {B₂ = B₂} f g =
+  Π-cong-≃ᴱ E.[ ext ] {B₂} f g =
     EEq.[≃]→≃ᴱ
       {to   = λ h x → subst B₂ (_≃_.right-inverse-of f x)
                         (_≃ᴱ_.to (g (_≃_.from f x)) (h (_≃_.from f x)))}
@@ -2600,7 +2610,7 @@ private
     (A₂≃A₁ : A₂ ≃ A₁) →
     (∀ x → B₁ (_≃_.to A₂≃A₁ x) ≃ᴱ B₂ x) →
     ((x : A₁) → B₁ x) ≃ᴱ ((x : A₂) → B₂ x)
-  Π-cong-contra-≃ᴱ E.[ ext ] {B₁ = B₁} f g =
+  Π-cong-contra-≃ᴱ E.[ ext ] {B₁} f g =
     EEq.[≃]→≃ᴱ
       {to   = λ h x → _≃ᴱ_.to (g x) (h (_≃_.to f x))}
       {from = λ h x → subst B₁ (_≃_.right-inverse-of f x)
@@ -2880,7 +2890,7 @@ drop-⊤-left-Π :
   Extensionality? k a b →
   (A↔⊤ : A ↔ ⊤) →
   ((x : A) → B x) ↝[ k ] B (_↔_.from A↔⊤ tt)
-drop-⊤-left-Π {A = A} {B} ext A↔⊤ =
+drop-⊤-left-Π {A} {B} ext A↔⊤ =
   ((x : A) → B x)                 ↝⟨ Π-cong-contra ext (inverse A↔⊤) (λ _ → id) ⟩
   ((x : ⊤) → B (_↔_.from A↔⊤ x))  ↔⟨ Π-left-identity ⟩□
   B (_↔_.from A↔⊤ tt)             □
@@ -2995,7 +3005,7 @@ implicit-ΠΣ-comm :
   (∀ {x} → ∃ λ (y : B x) → C x y)
     ↔
   (∃ λ (f : ∀ {x} → B x) → ∀ {x} → C x f)
-implicit-ΠΣ-comm {A = A} {B} {C} =
+implicit-ΠΣ-comm {A} {B} {C} =
   (∀ {x} → ∃ λ (y : B x) → C x y)          ↝⟨ Bijection.implicit-Π↔Π ⟩
   (∀ x → ∃ λ (y : B x) → C x y)            ↝⟨ ΠΣ-comm ⟩
   (∃ λ (f : ∀ x → B x) → ∀ x → C x (f x))  ↝⟨ inverse $ Σ-cong Bijection.implicit-Π↔Π (λ _ → Bijection.implicit-Π↔Π) ⟩□
@@ -3067,7 +3077,7 @@ implicit-extensionality-isomorphism :
   Extensionality a b →
   {A : Type a} {B : A → Type b} {f g : {x : A} → B x} →
   (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {x} → f {x}) ≡ g)
-implicit-extensionality-isomorphism ext {f = f} {g} =
+implicit-extensionality-isomorphism ext {f} {g} =
   (∀ x → f {x} ≡ g {x})            ↔⟨ Eq.extensionality-isomorphism ext ⟩
   ((λ x → f {x}) ≡ (λ x → g {x}))  ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ (inverse Bijection.implicit-Π↔Π)) ⟩□
   ((λ {x} → f {x}) ≡ g)            □
@@ -3108,7 +3118,7 @@ yoneda :
   ∃ λ (γ : ∀ Y → (⌞ X ⌟ → ⌞ Y ⌟) → ⌞ F Y ⌟) →
     ∀ Y₁ Y₂ f g → map f (γ Y₁ g) ≡ γ Y₂ (f ∘ g)
 
-yoneda {a} {X = X} ext F map map-id map-∘ = record
+yoneda {a} {X} ext F map map-id map-∘ = record
   { surjection = record
     { logical-equivalence = record
       { to = λ x → (λ _ f → map f x) , λ _ _ f g →
@@ -3175,7 +3185,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 Π≡≃≡-↔-≡ :
   ∀ {a} {A : Type a} (x y : A) →
   (∀ z → (z ≡ x) ≃ (z ≡ y)) ↝[ a ∣ a ] (x ≡ y)
-Π≡≃≡-↔-≡ {a = a} x y =
+Π≡≃≡-↔-≡ {a} x y =
   generalise-ext?
     (_↠_.logical-equivalence surj)
     (λ ext →
@@ -3206,7 +3216,7 @@ yoneda {a} {X = X} ext F map map-id map-∘ = record
 ∀-intro :
   ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
   B x (refl x) ↝[ a ∣ a ⊔ b ] (∀ y (x≡y : x ≡ y) → B y x≡y)
-∀-intro {a = a} {b = b} {A = A} {x = x} B =
+∀-intro {a} {b} {A} {x} B =
   generalise-ext? ∀-intro-⇔ (λ ext → to∘from ext , from∘to ext)
   where
   ∀-intro-⇔ : B x (refl x) ⇔ (∀ y (x≡y : x ≡ y) → B y x≡y)
@@ -3264,7 +3274,7 @@ private
   ∀-intro′ :
     ∀ {a b} {A : Type a} {x : A} (B : (y : A) → x ≡ y → Type b) →
     B x (refl x) ↝[ a ∣ a ⊔ b ] (∀ y (x≡y : x ≡ y) → B y x≡y)
-  ∀-intro′ {a = a} {x = x} B {k = k} ext =
+  ∀-intro′ {a} {x} B {k} ext =
     B x (refl x)                        ↔⟨ inverse Π-left-identity ⟩
     (⊤ → B x (refl x))                  ↝⟨ Π-cong-contra (lower-extensionality? k lzero a ext)
                                                          (_⇔_.to contractible⇔↔⊤ c) (λ _ → id) ⟩
@@ -3286,7 +3296,7 @@ private
   Extensionality a (a ⊔ p) →
   (∀ x → Is-proposition (P x)) →
   (∀ x → P x) ↔ (A → ∀ x → P x)
-→-intro {a = a} ext P-prop = record
+→-intro {a} ext P-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f _ x → f x
@@ -3326,8 +3336,7 @@ private
   Extensionality? ⌊ k ⌋-sym (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
   A ↝[ ⌊ k ⌋-sym ] B → C ↝[ ⌊ k ⌋-sym ] D →
   (A ⇔ C) ↝[ ⌊ k ⌋-sym ] (B ⇔ D)
-⇔-cong {k = k} {a = a} {b = b} {c = c} {d = d}
-       {A = A} {B = B} {C = C} {D = D} ext A↝B C↝D =
+⇔-cong {k} {a} {b} {c} {d} {A} {B} {C} {D} ext A↝B C↝D =
   A ⇔ C              ↔⟨ ⇔↔→×→ ⟩
   (A → C) × (C → A)  ↝⟨ →-cong (lower-extensionality? ⌊ k ⌋-sym (c ⊔ d) (a ⊔ b) ext) A↝B C↝D
                           ×-cong
@@ -3363,7 +3372,7 @@ contractible↔≃⊤ ext = record
 ≃⊥≃¬ :
   ∀ {a ℓ} {A : Type a} →
   (A ≃ ⊥ {ℓ = ℓ}) ↝[ a ⊔ ℓ ∣ a ⊔ ℓ ] (¬ A)
-≃⊥≃¬ {ℓ = ℓ} {A} =
+≃⊥≃¬ {ℓ} {A} =
   generalise-ext?-prop
     (record
        { to   = λ eq a → ⊥-elim (_≃_.to eq a)
@@ -3381,9 +3390,7 @@ Proofs-cong :
   Extensionality (a ⊔ b) (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   HA.Proofs f f⁻¹ ≃ HA.Proofs g f⁻¹
-Proofs-cong
-  {a = a} {b = b} {f = f} {g = g} {f⁻¹ = f⁻¹} ext f≡g =
-
+Proofs-cong {a} {b} {f} {g} {f⁻¹} ext f≡g =
   Σ-cong (∀-cong (lower-extensionality a a ext) λ _ →
           ≡⇒↝ equivalence $ cong (_≡ _) $ f≡g _) λ f-f⁻¹ →
   Σ-cong (∀-cong (lower-extensionality b b ext) λ _ →
@@ -3426,7 +3433,7 @@ Proofs-cong
     (trans (ext⁻¹ f≡g (f⁻¹ (g x)))
        (cong g (trans (sym (cong f⁻¹ (ext⁻¹ f≡g x))) (f⁻¹-f x))) ≡
      f-f⁻¹ (g x))
-  lemma {x = x} f-f⁻¹ f⁻¹-f = elim¹
+  lemma {x} f-f⁻¹ f⁻¹-f = elim¹
     (λ {g} f≡g →
        (cong f (f⁻¹-f x) ≡ f-f⁻¹ (f x))
          ≡
@@ -3502,7 +3509,7 @@ Is-equivalence≃Is-equivalence-CP =
 ≃≃≃-CP :
   ∀ {a b} {A : Type a} {B : Type b} →
   (A ≃ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A CP.≃ B)
-≃≃≃-CP {A = A} {B = B} ext =
+≃≃≃-CP {A} {B} ext =
   A ≃ B                                    ↔⟨ Eq.≃-as-Σ ⟩
   (∃ λ (f : A → B) → Is-equivalence f)     ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalence-CP ext) ⟩□
   (∃ λ (f : A → B) → CP.Is-equivalence f)  □
@@ -3526,7 +3533,7 @@ Is-equivalence≃Is-equivalence-∘ˡ :
     {f : B → C} {g : A → B} →
   Is-equivalence f →
   Is-equivalence g ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ˡ {b = b} {c = c} f-eq =
+Is-equivalence≃Is-equivalence-∘ˡ {b} {c} f-eq =
   generalise-ext?-prop
     (record
        { to   = flip (Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _))
@@ -3541,7 +3548,7 @@ Is-equivalence≃Is-equivalence-∘ʳ :
     {f : B → C} {g : A → B} →
   Is-equivalence g →
   Is-equivalence f ↝[ a ⊔ b ⊔ c ∣ a ⊔ b ⊔ c ] Is-equivalence (f ∘ g)
-Is-equivalence≃Is-equivalence-∘ʳ {a = a} {b = b} g-eq =
+Is-equivalence≃Is-equivalence-∘ʳ {a} {b} g-eq =
   generalise-ext?-prop
     (record
        { to   = Eq.Two-out-of-three.f-g (Eq.two-out-of-three _ _) g-eq
@@ -3585,7 +3592,7 @@ Split-surjective-cong :
   Extensionality? k b (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   Split-surjective f ↝[ k ] Split-surjective g
-Split-surjective-cong {f = f} {g = g} ext f≡g =
+Split-surjective-cong {f} {g} ext f≡g =
   (∀ y → ∃ λ x → f x ≡ y)  ↝⟨ (∀-cong ext λ _ → ∃-cong λ x → ≡⇒↝ _ $ cong (_≡ _) $ f≡g x) ⟩□
   (∀ y → ∃ λ x → g x ≡ y)  □
 
@@ -3595,7 +3602,7 @@ Split-surjective-cong-refl :
   ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {p} →
   Extensionality b (a ⊔ b) →
   Split-surjective-cong _ (refl ⊚ f) p ≡ p
-Split-surjective-cong-refl {p = p} ext = apply-ext ext λ x →
+Split-surjective-cong-refl {p} ext = apply-ext ext λ x →
   ( proj₁ (p x)
   , ≡⇒↝ _ (cong (_≡ _) (refl _)) (proj₂ (p x))
   )                                             ≡⟨ cong (proj₁ (p x) ,_) $ cong (flip (≡⇒↝ _) _) $
@@ -3615,8 +3622,7 @@ Split-surjective≃Split-surjective-∘ˡ :
   Extensionality? k (b ⊔ c) (a ⊔ b ⊔ c) →
   Is-equivalence f →
   Split-surjective g ↝[ k ] Split-surjective (f ∘ g)
-Split-surjective≃Split-surjective-∘ˡ
-  {k = k} {b = b} {c = c} {f = f} {g = g} ext f-eq =
+Split-surjective≃Split-surjective-∘ˡ {k} {b} {c} {f} {g} ext f-eq =
   (∀ y → ∃ λ x → g x ≡ y)        ↝⟨ (∀-cong ext′ λ _ → from-equivalence $ ∃-cong λ _ → inverse $
                                      Eq.≃-≡ B≃C) ⟩
   (∀ y → ∃ λ x → f (g x) ≡ f y)  ↝⟨ (Π-cong ext″ B≃C λ _ → id) ⟩□
@@ -3637,8 +3643,7 @@ Split-surjective≃Split-surjective-∘ʳ :
   Extensionality? k c (a ⊔ b ⊔ c) →
   Is-equivalence g →
   Split-surjective f ↝[ k ] Split-surjective (f ∘ g)
-Split-surjective≃Split-surjective-∘ʳ
-  {k = k} {b = b} {c = c} {f = f} {g = g} ext g-eq =
+Split-surjective≃Split-surjective-∘ʳ {k} {b} {c} {f} {g} ext g-eq =
   (∀ y → ∃ λ x → f x ≡ y)        ↝⟨ (∀-cong ext λ _ → Σ-cong-contra A≃B λ _ → id) ⟩□
   (∀ y → ∃ λ x → f (g x) ≡ y)    □
   where
@@ -3674,7 +3679,7 @@ Injective-cong :
   Extensionality? k a (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   Injective f ↝[ k ] Injective g
-Injective-cong {f = f} {g = g} ext f≡g =
+Injective-cong {f} {g} ext f≡g =
   (∀ {x y} → f x ≡ f y → x ≡ y)  ↝⟨ (implicit-∀-cong ext $ implicit-∀-cong ext $
                                      ≡⇒↝ _ $ cong₂ (λ u v → u ≡ v → _) (f≡g _) (f≡g _)) ⟩□
   (∀ {x y} → g x ≡ g y → x ≡ y)  □
@@ -3687,7 +3692,7 @@ Injective-cong-refl :
   _≡_ {A = Injective f}
     (Injective-cong _ (refl ⊚ f) p)
     p
-Injective-cong-refl {p = p} ext =
+Injective-cong-refl {p} ext =
   implicit-extensionality ext λ x →
   implicit-extensionality ext λ y →
   ≡⇒↝ _ (cong₂ (λ u v → u ≡ v → _) (refl _) (refl _)) p  ≡⟨ cong (flip (≡⇒↝ _) _) $ cong₂-refl (λ u v → u ≡ v → _) ⟩
@@ -3705,7 +3710,7 @@ Has-quasi-inverse-cong :
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   Has-quasi-inverse f ↝[ k ] Has-quasi-inverse g
-Has-quasi-inverse-cong {k = k} {a = a} {b = b} {f = f} {g = g} ext f≡g =
+Has-quasi-inverse-cong {k} {a} {b} {f} {g} ext f≡g =
   (∃ λ from → (∀ x → f (from x) ≡ x) × (∀ x → from (f x) ≡ x))  ↝⟨ (∃-cong λ from →
                                                                     (∀-cong (lower-extensionality? k a a ext) λ _ →
                                                                      ≡⇒↝ _ $ cong (_≡ _) $ f≡g _)
@@ -3720,8 +3725,7 @@ Has-quasi-inverse-cong-refl :
   ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {p} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Has-quasi-inverse-cong _ (refl ⊚ f) p ≡ p
-Has-quasi-inverse-cong-refl
-  {a = a} {b = b} {p = from , to-from , from-to} ext =
+Has-quasi-inverse-cong-refl {a} {b} {p = from , to-from , from-to} ext =
   ( from
   , ≡⇒↝ _ (cong (_≡ _) (refl _)) ⊚ to-from
   , ≡⇒↝ _ (cong ((_≡ _) ∘ from) (refl _)) ⊚ from-to
@@ -3750,7 +3754,7 @@ Is-embedding-cong :
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   (∀ x → f x ≡ g x) →
   Is-embedding f ↝[ k ] Is-embedding g
-Is-embedding-cong {k = k} {a = a} {b = b} {f = f} {g = g} ext f≡g =
+Is-embedding-cong {k} {a} {b} {f} {g} ext f≡g =
   (∀ x y → Is-equivalence (cong f))                                       ↝⟨ (∀-cong ext′ λ x → ∀-cong ext′ λ y →
                                                                              Is-equivalence≃Is-equivalence-∘ˡ
                                                                                (_≃_.is-equivalence $
@@ -3856,7 +3860,7 @@ to∘≡↔≡from∘ ext B≃C =
   {f : (x : A) → C x} {g : (x : B) → C (_≃_.from A≃B x)} →
   (f ⊚ _≃_.from A≃B ≡ g) ↔
   (f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B)
-∘from≡↔≡∘to′ {a = a} {b = b} ext {C = C} A≃B {f = f} {g = g} =
+∘from≡↔≡∘to′ {a} {b} ext {C} A≃B {f} {g} =
   f ⊚ _≃_.from A≃B ≡ g                                                  ↝⟨ ≡⇒↝ _ $ cong (_≡ g) $ apply-ext (lower-extensionality a lzero ext)
                                                                            lemma ⟩
   subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B _) ⊚
@@ -3896,7 +3900,7 @@ to∘≡↔≡from∘ ext B≃C =
   ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {z} →
   (f : B → C) (g : A → B) →
   f ∘ g ⁻¹ z ≃ ∃ λ ((y , _) : f ⁻¹ z) → g ⁻¹ y
-∘⁻¹≃ {z = z} f g =
+∘⁻¹≃ {z} f g =
   f ∘ g ⁻¹ z                                  ↔⟨⟩
   (∃ λ a → f (g a) ≡ z)                       ↔⟨ (∃-cong λ _ → other-∃-intro _ _) ⟩
   (∃ λ a → ∃ λ y → f y ≡ z × g a ≡ y)         ↔⟨ (∃-cong λ _ → Σ-assoc) ⟩
@@ -3910,7 +3914,7 @@ to-∘-⁻¹-≃-⁻¹-from :
   ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} {f : A → B} {z : C} →
   (B≃C : B ≃ C) →
   _≃_.to B≃C ∘ f ⁻¹ z ≃ f ⁻¹ _≃_.from B≃C z
-to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
+to-∘-⁻¹-≃-⁻¹-from {f} {z} B≃C =
   _≃_.to B≃C ∘ f ⁻¹ z                         ↝⟨ ∘⁻¹≃ _ _ ⟩
   (∃ λ ((y , _) : _≃_.to B≃C ⁻¹ z) → f ⁻¹ y)  ↔⟨ drop-⊤-left-Σ $
                                                  _⇔_.to contractible⇔↔⊤ $
@@ -3926,7 +3930,7 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
   ∀ {a p q} {A : Type a} {P : A → Type p} {Q : A → Type q}
     {f : ∀ {x} → P x → Q x} {x : A} {y : Q x} →
   Σ-map P.id f ⁻¹ _,_ {B = Q} x y ≃ f ⁻¹ y
-Σ-map-id-⁻¹≃⁻¹ {Q = Q} {f = f} {x = x} {y = y} =
+Σ-map-id-⁻¹≃⁻¹ {Q} {f} {x} {y} =
   Σ-map P.id f ⁻¹ (x , y)                                        ↔⟨⟩
   (∃ λ (u , v) → (u , f v) ≡ (x , y))                            ↔⟨ inverse Bijection.Σ-assoc ⟩
   (∃ λ u → ∃ λ v → (u , f v) ≡ (x , y))                          ↔⟨ (∃-cong λ _ → ∃-cong λ _ → inverse
@@ -3950,7 +3954,7 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
     {f : A → B} {g : B → C} {y : B} →
   (Σ-map f id ⦂ (g ∘ f ⁻¹ g y → g ⁻¹ g y)) ⁻¹ (y , refl (g y)) ≃
   f ⁻¹ y
-Σ-map--id-⁻¹≃⁻¹ {A = A} {f = f} {g = g} {y = y} =
+Σ-map--id-⁻¹≃⁻¹ {A} {f} {g} {y} =
   (∃ λ ((x , p) : ∃ λ (x : A) → g (f x) ≡ g y) →
    (f x , p) ≡ (y , refl (g y)))                                  ↔⟨ inverse Σ-assoc ⟩
 
@@ -3981,7 +3985,7 @@ to-∘-⁻¹-≃-⁻¹-from {f = f} {z = z} B≃C =
 proj₁-⁻¹≃ :
   ∀ {a p} {A : Type a} {P : A → Type p} {x : A} →
   proj₁ {B = P} ⁻¹ x ≃ P x
-proj₁-⁻¹≃ {P = P} {x = x} =
+proj₁-⁻¹≃ {P} {x} =
   proj₁ ⁻¹ x                       ↔⟨⟩
   (∃ λ ((x′ , _) : ∃ P) → x′ ≡ x)  ↔⟨ inverse Σ-assoc ⟩
   (∃ λ x′ → P x′ × x′ ≡ x)         ↔⟨ inverse $ ∃-intro _ _ ⟩□
@@ -3997,7 +4001,7 @@ proj₁-⁻¹≃ {P = P} {x = x} =
     {f₁ : A → B} {f₂ : B → D} {g₁ : A → C} {g₂ : C → D} {y} →
   (∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)) →
   f₁ ⁻¹ y → g₂ ⁻¹ f₂ y
-⁻¹-map {f₁ = f₁} {f₂ = f₂} {g₁ = g₁} {g₂ = g₂} {y = y} eq (x , f₁x≡y) =
+⁻¹-map {f₁} {f₂} {g₁} {g₂} {y} eq (x , f₁x≡y) =
     g₁ x
   , (g₂ (g₁ x)  ≡⟨ eq x ⟩
      f₂ (f₁ x)  ≡⟨ cong f₂ f₁x≡y ⟩∎
@@ -4011,10 +4015,7 @@ proj₁-⁻¹≃ {P = P} {x = x} =
     {eq₁ : ∀ x → g₂ (g₁ x) ≡ f₂ (f₁ x)} {eq₂ : g₂ z ≡ f₂ y} →
   ⁻¹-map {f₂ = f₂} {g₂ = g₂} eq₁ ⁻¹ (z , eq₂) ≃
   ⁻¹-map {f₂ = g₂} {g₂ = f₂} (sym ⊚ eq₁) ⁻¹ (y , sym eq₂)
-3×3-⁻¹
-  {f₁ = f₁} {f₂ = f₂} {g₁ = g₁} {g₂ = g₂} {y = y} {z = z}
-  {eq₁ = eq₁} {eq₂ = eq₂} =
-
+3×3-⁻¹ {f₁} {f₂} {g₁} {g₂} {y} {z} {eq₁} {eq₂} =
   ⁻¹-map eq₁ ⁻¹ (z , eq₂)                                             ↔⟨⟩
 
   (∃ λ (p : f₁ ⁻¹ y) → ⁻¹-map eq₁ p ≡ (z , eq₂))                      ↔⟨ (∃-cong λ _ → inverse Bijection.Σ-≡,≡↔≡) ⟩
@@ -4100,7 +4101,7 @@ private
   ↑-cong-Embedding :
     ∀ {a b c} {B : Type b} {C : Type c} →
     Embedding B C → Embedding (↑ a B) (↑ a C)
-  ↑-cong-Embedding {a} {B = B} B↣C = record
+  ↑-cong-Embedding {a} {B} B↣C = record
     { to           = ↑-cong-→ to
     ; is-embedding = λ x y →
         _≃_.is-equivalence $
@@ -4185,14 +4186,14 @@ private
 
 ↑-cong : ∀ {k a b c} {B : Type b} {C : Type c} →
            B ↝[ k ] C → ↑ a B ↝[ k ] ↑ a C
-↑-cong {(implication)}         = ↑-cong-→
-↑-cong {(logical-equivalence)} = L.↑-cong
-↑-cong {(injection)}           = ↑-cong-↣
-↑-cong {(embedding)}           = ↑-cong-Embedding
-↑-cong {(surjection)}          = ↑-cong-↠
-↑-cong {(bijection)}           = ↑-cong-↔
-↑-cong {(equivalence)}         = ↑-cong-≃
-↑-cong {(equivalenceᴱ)}        = ↑-cong-≃ᴱ
+↑-cong {k = implication}         = ↑-cong-→
+↑-cong {k = logical-equivalence} = L.↑-cong
+↑-cong {k = injection}           = ↑-cong-↣
+↑-cong {k = embedding}           = ↑-cong-Embedding
+↑-cong {k = surjection}          = ↑-cong-↠
+↑-cong {k = bijection}           = ↑-cong-↔
+↑-cong {k = equivalence}         = ↑-cong-≃
+↑-cong {k = equivalenceᴱ}        = ↑-cong-≃ᴱ
 
 ------------------------------------------------------------------------
 -- Lemmas related to unit types
@@ -4237,14 +4238,14 @@ inhabited→propositional→↝⊤ x prop = generalise-ext?-prop
 
 ¬↔→⊥ : ∀ {a ℓ} {A : Type a} →
        ¬ A ↝[ a ∣ ℓ ] (A → ⊥ {ℓ = ℓ})
-¬↔→⊥ {A = A} ext =
+¬↔→⊥ {A} ext =
   (A → ⊥₀)  ↝⟨ (∀-cong ext λ _ → from-isomorphism ⊥↔⊥) ⟩□
   (A → ⊥)   □
 
 -- A type cannot be logically equivalent to its own negation.
 
 ¬[⇔¬] : ∀ {a} {A : Type a} → ¬ (A ⇔ ¬ A)
-¬[⇔¬] {A = A} =
+¬[⇔¬] {A} =
   A ⇔ ¬ A          ↝⟨ (λ eq → (λ a → _⇔_.to eq a a) , eq) ⟩
   ¬ A × (A ⇔ ¬ A)  ↝⟨ (λ { (¬a , eq) → ¬a , _⇔_.from eq ¬a }) ⟩
   ¬ A × A          ↝⟨ uncurry _$_ ⟩□
@@ -4271,7 +4272,7 @@ private
   ∀ {a b} {A : Type a} {B : Type b} →
   Extensionality (a ⊔ b) lzero →
   @0 A ⇔ B → (¬ A) ≃ (¬ B)
-¬-cong-⇔ {a = a} {b = b} ext A⇔B =
+¬-cong-⇔ {a} {b} ext A⇔B =
   _↠_.from
     (Eq.≃↠⇔ (¬-propositional (lower-extensionality b lzero ext))
             (¬-propositional (lower-extensionality a lzero ext)))
@@ -4284,7 +4285,7 @@ private
   ∀ {a b} {A : Type a} {B : Type b} →
   @0 Extensionality (a ⊔ b) lzero →
   @0 A ⇔ B → (¬ A) ≃ᴱ (¬ B)
-¬-cong-⇔-≃ᴱ {a = a} {b = b} ext A⇔B = EEq.⇔→≃ᴱ
+¬-cong-⇔-≃ᴱ {a} {b} ext A⇔B = EEq.⇔→≃ᴱ
   (¬-propositional (lower-extensionality b lzero ext))
   (¬-propositional (lower-extensionality a lzero ext))
   (_⇔_.to   ¬A⇔¬B)
@@ -4328,7 +4329,7 @@ private
   (Extensionality (a ⊔ b) (a ⊔ b) → A → Is-proposition B) →
   (A → Dec B) →
   (A → B) ↝[ a ⊔ b ∣ a ⊔ b ] (¬ B → ¬ A)
-→≃¬→¬ {a = a} {b = b} prop dec =
+→≃¬→¬ {a} {b} prop dec =
   generalise-ext?-prop
     (→⇔¬→¬ dec)
     (λ ext → Π-closure (lower-extensionality b a ext) 1 (prop ext))
@@ -4344,7 +4345,7 @@ private
 H-level↔H-level′ :
   ∀ {a} {A : Type a} {n} →
   H-level n A ↝[ a ∣ a ] H-level′ n A
-H-level↔H-level′ {n = n} =
+H-level↔H-level′ {n} =
   generalise-ext?-prop
     H-level⇔H-level′
     (λ ext → H-level-propositional  ext _)
@@ -4356,7 +4357,7 @@ H-level-cong :
   ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
   Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
   ∀ n → A ↔[ k₁ ] B → H-level n A ↝[ k₂ ] H-level n B
-H-level-cong {a = a} {b} ext n A↔B′ =
+H-level-cong {a} {b} ext n A↔B′ =
   generalise-ext?-prop
     (record
        { to   = respects-surjection (_↔_.surjection          A↔B)  n
@@ -4374,7 +4375,7 @@ H-level′-cong :
   ∀ {k₁ k₂ a b} {A : Type a} {B : Type b} →
   Extensionality? k₂ (a ⊔ b) (a ⊔ b) →
   ∀ n → A ↔[ k₁ ] B → H-level′ n A ↝[ k₂ ] H-level′ n B
-H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
+H-level′-cong {k₂} {a} {b} {A} {B} ext n A↔B =
   H-level′ n A  ↝⟨ inverse-ext? H-level↔H-level′ (lower-extensionality? k₂ b b ext) ⟩
   H-level n A   ↝⟨ H-level-cong ext n A↔B ⟩
   H-level n B   ↝⟨ H-level↔H-level′ (lower-extensionality? k₂ a a ext) ⟩□
@@ -4386,7 +4387,7 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
 ≡↔+ :
   ∀ {a} {A : Type a} n →
   ((x y : A) → H-level n (x ≡ y)) ↝[ a ∣ a ] H-level (suc n) A
-≡↔+ {A = A} n ext =
+≡↔+ {A} n ext =
   ((x y : A) → H-level  n (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level↔H-level′ ext) ⟩
   ((x y : A) → H-level′ n (x ≡ y))  ↔⟨⟩
   H-level′ (suc n) A                ↝⟨ inverse-ext? H-level↔H-level′ ext ⟩□
@@ -4406,7 +4407,7 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
         g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
     ↠
   (A ≃ B)
-→≃→↠≃ _ {A = A} {B} ext hA hB = record
+→≃→↠≃ _ {A} {B} ext hA hB = record
   { logical-equivalence = record
     { from = λ A≃B → (λ _ _ → →-cong₁ ext A≃B)
                    , (λ _ _ g → refl (g ∘ _≃_.from A≃B))
@@ -4447,7 +4448,7 @@ H-level′-cong {k₂ = k₂} {a = a} {b = b} {A = A} {B = B} ext n A↔B =
         g ∘ _≃_.from (f B hB) id ≡ _≃_.from (f C hC) g))
     ↔
   (A ≃ B)
-→≃→↔≃ {A = A} {B} ext hA hB = record
+→≃→↔≃ {A} {B} ext hA hB = record
   { surjection      = →≃→↠≃ 2 ext′ hA hB
   ; left-inverse-of = λ { (A→≃B→ , ∘to≡ , _) →
       Σ-≡,≡→≡
@@ -4479,7 +4480,7 @@ Dec-cong :
   Extensionality? ⌊ k ⌋-sym (a ⊔ b) lzero →
   A ↝[ ⌊ k ⌋-sym ] B →
   Dec A ↝[ ⌊ k ⌋-sym ] Dec B
-Dec-cong {A = A} {B = B} ext A↝B =
+Dec-cong {A} {B} ext A↝B =
   A ⊎ ¬ A  ↝⟨ A↝B ⊎-cong →-cong ext A↝B id ⟩□
   B ⊎ ¬ B  □
 
@@ -4499,7 +4500,7 @@ Decidable-cong :
      P₂ (to-implication A₁↔A₂ x) (to-implication B₁↔B₂ y)) →
   Decidable P₁ ↝[ ⌊ k₃ ⌋-sym ] Decidable P₂
 Decidable-cong
-  {k₃ = k₃} {a₁} {b₁} {p₁} {a₂} {b₂} {p₂} {P₁ = P₁} {P₂ = P₂}
+  {k₃} {a₁} {b₁} {p₁} {a₂} {b₂} {p₂} {P₁} {P₂}
   ext A₁↔A₂ B₁↔B₂ P₁↝P₂ =
 
   (∀ x y → Dec (P₁ x y))  ↝⟨ (Π-cong   (lower-extensionality? ⌊ k₃ ⌋-sym (b₁ ⊔ b₂ ⊔ p₁ ⊔ p₂) lzero     ext) A₁↔A₂ λ x →
@@ -4537,12 +4538,12 @@ Decidable-equality-cong ext A↔B =
 if-lemma : ∀ {a b p} {A : Type a} {B : Type b} (P : Bool → Type p) →
            A ↔ P true → B ↔ P false →
            ∀ b → T b × A ⊎ T (not b) × B ↔ P b
-if-lemma {A = A} {B} P A↔ B↔ true =
+if-lemma {A} {B} P A↔ B↔ true =
   ⊤ × A ⊎ ⊥ × B  ↔⟨ ×-left-identity ⊎-cong ×-left-zero ⟩
   A ⊎ ⊥₀         ↔⟨ ⊎-right-identity ⟩
   A              ↔⟨ A↔ ⟩
   P true         □
-if-lemma {A = A} {B} P A↔ B↔ false =
+if-lemma {A} {B} P A↔ B↔ false =
   ⊥ × A ⊎ ⊤ × B  ↔⟨ ×-left-zero ⊎-cong ×-left-identity ⟩
   ⊥₀ ⊎ B         ↔⟨ ⊎-left-identity ⟩
   B              ↔⟨ B↔ ⟩
@@ -4552,7 +4553,7 @@ if-lemma {A = A} {B} P A↔ B↔ false =
 
 if-encoding : ∀ {ℓ} {A B : Type ℓ} →
               ∀ b → (if b then A else B) ↔ T b × A ⊎ T (not b) × B
-if-encoding {A = A} {B} =
+if-encoding {A} {B} =
   inverse ⊚ if-lemma (λ b → if b then A else B) id id
 
 ------------------------------------------------------------------------
@@ -4566,7 +4567,7 @@ W-cong-⇔ :
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₂ (_↠_.to A₁↠A₂ x) ⇔ B₁ x) →
   W A₁ B₁ ⇔ W A₂ B₂
-W-cong-⇔ {B₁ = B₁} {B₂ = B₂} A₁↠A₂ B₂⇔B₁ = record
+W-cong-⇔ {B₁} {B₂} A₁↠A₂ B₂⇔B₁ = record
   { to   = W-map (_↠_.to A₁↠A₂) (_⇔_.to (B₂⇔B₁ _))
   ; from = W-map (_↠_.from A₁↠A₂) λ {x} →
       B₁ (_↠_.from A₁↠A₂ x)                 →⟨ _⇔_.from (B₂⇔B₁ _) ⟩
@@ -4583,7 +4584,7 @@ W-cong-↠ :
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
   W A₁ B₁ ↠ W A₂ B₂
-W-cong-↠ {A₂ = A₂} {B₁ = B₁} {B₂ = B₂} ext A₁↠A₂ B₁↠B₂ = record
+W-cong-↠ {A₂} {B₁} {B₂} ext A₁↠A₂ B₁↠B₂ = record
   { logical-equivalence =
       W-cong-⇔ A₁↠A₂ (inverse ⊚ _↠_.logical-equivalence ⊚ B₁↠B₂)
   ; right-inverse-of = lemma
@@ -4661,8 +4662,7 @@ private
     (A₁≃A₂ : A₁ ≃ A₂) →
     (∀ x → B₁ x ↔ B₂ (_≃_.to A₁≃A₂ x)) →
     W A₁ B₁ ↔ W A₂ B₂
-  W-cong-↔ {a₁ = a₁} {a₂ = a₂} {b₁ = b₁} {b₂ = b₂}
-           {A₁ = A₁} {B₁ = B₁} {B₂ = B₂} ext A₁≃A₂ B₁↔B₂ = record
+  W-cong-↔ {a₁} {a₂} {b₁} {b₂} {A₁} {B₁} {B₂} ext A₁≃A₂ B₁↔B₂ = record
     { surjection =
         W-cong-↠ (lower-extensionality b₁ (a₁ ⊔ b₁) ext)
           (_≃_.surjection A₁≃A₂) (_↔_.surjection ⊚ B₁↔B₂)
@@ -4843,7 +4843,7 @@ private
     Extensionality (b₁ ⊔ b₂) (a ⊔ b₁ ⊔ b₂) →
     (∀ x → B₁ x ↔ B₂ x) →
     W A B₁ ↔ W A B₂
-  W-cong₂-↔ {b₁ = b₁} {b₂ = b₂} ext B₁↔B₂ = record
+  W-cong₂-↔ {b₁} {b₂} ext B₁↔B₂ = record
     { surjection =
         W-cong₂-↠ (lower-extensionality b₁ b₁ ext)
           (_↔_.surjection ⊚ B₁↔B₂)
@@ -4919,7 +4919,7 @@ private
   Σℕ≃′ :
     ∀ {p} {P : ℕ → Type p} →
     (∃ λ n → P n) ≃ (P zero ⊎ ∃ λ n → P (suc n))
-  Σℕ≃′ {P = P} =
+  Σℕ≃′ {P} =
     (∃ λ n → P n)                             ↝⟨ (Σ-cong-contra (inverse ℕ↔ℕ⊎⊤) λ _ → id) ⟩
     (∃ λ (x : ℕ ⊎ ⊤) → P (_↔_.from ℕ↔ℕ⊎⊤ x))  ↔⟨ ∃-⊎-distrib-right ⟩
     (∃ λ (n : ℕ) → P (suc n)) ⊎ ⊤ × P zero    ↔⟨ ⊎-comm ⟩
@@ -4929,7 +4929,7 @@ private
   Πℕ≃′ :
     ∀ {p} {P : ℕ → Type p} →
     (∀ n → P n) ↝[ lzero ∣ p ] (P zero × ∀ n → P (suc n))
-  Πℕ≃′ {P = P} ext =
+  Πℕ≃′ {P} ext =
     (∀ n → P n)                           ↝⟨ (Π-cong-contra ext (inverse ℕ↔ℕ⊎⊤) λ _ → id) ⟩
     ((x : ℕ ⊎ ⊤) → P (_↔_.from ℕ↔ℕ⊎⊤ x))  ↝⟨ Π⊎↔Π×Π ext ⟩
     ((n : ℕ) → P (suc n)) × (⊤ → P zero)  ↔⟨ ×-comm ⟩
@@ -4942,7 +4942,7 @@ private
 Σℕ≃ :
   ∀ {p} {P : ℕ → Type p} →
   (∃ λ n → P n) ≃ (P zero ⊎ ∃ λ n → P (suc n))
-Σℕ≃ {P = P} = Eq.↔→≃
+Σℕ≃ {P} = Eq.↔→≃
   (λ where
       (zero  , p) → inj₁ p
       (suc n , p) → inj₂ (n , p))
@@ -4955,7 +4955,7 @@ private
 Πℕ≃ :
   ∀ {p} {P : ℕ → Type p} →
   (∀ n → P n) ↝[ lzero ∣ p ] (P zero × ∀ n → P (suc n))
-Πℕ≃ {P = P} =
+Πℕ≃ {P} =
   generalise-ext?
     Πℕ⇔
     (λ ext →
@@ -5186,7 +5186,7 @@ suc≤suc↔ =
   record { to = ≤→<⊎≡; from = [ <→≤ , ≤-refl′ ] }
 
 ≤↔≡0⊎0<×≤ : ∀ {m n} → m ≤ n ↔ m ≡ 0 ⊎ 0 < m × m ≤ n
-≤↔≡0⊎0<×≤ {(zero)} {n} =
+≤↔≡0⊎0<×≤ {m = zero} {n} =
   0 ≤ n                  ↝⟨ zero≤↔ ⟩
   ⊤                      ↝⟨ inverse ⊎-right-identity ⟩
   ⊤ ⊎ ⊥₀                 ↝⟨ id ⊎-cong inverse ×-left-zero ⟩
@@ -5195,7 +5195,7 @@ suc≤suc↔ =
                             inverse <zero↔ ×-cong id ⟩□
   0 ≡ 0 ⊎ 0 < 0 × 0 ≤ n  □
 
-≤↔≡0⊎0<×≤ {suc m} {n} =
+≤↔≡0⊎0<×≤ {m = suc m} {n} =
   m < n                          ↝⟨ inverse ×-left-identity ⟩
   ⊤ × m < n                      ↝⟨ inverse zero≤↔ ×-cong id ⟩
   0 ≤ m × m < n                  ↝⟨ inverse ⊎-left-identity ⟩
@@ -5217,12 +5217,12 @@ suc≤suc↔ =
 ∃0<↔∃suc :
   ∀ {p} {P : ℕ → Type p} →
   (∃ λ n → 0 < n × P n) ↔ (∃ λ n → P (suc n))
-∃0<↔∃suc {P = P} = record
+∃0<↔∃suc {P} = record
   { surjection = record
     { logical-equivalence = record
       { to   = Σ-map pred λ where
-                 {(zero)} (0<0 , _) → ⊥-elim (≮0 _ 0<0)
-                 {suc _}  (_   , p) → p
+                 {x = zero}  (0<0 , _) → ⊥-elim (≮0 _ 0<0)
+                 {x = suc _} (_   , p) → p
       ; from = Σ-map suc (λ p → suc≤suc (zero≤ _) , p)
       }
     ; right-inverse-of = refl
@@ -5247,7 +5247,7 @@ suc≤suc↔ =
 -- The ordering test Nat._<=_ gives the right result.
 
 T[<=]↔≤ : {m n : ℕ} → T (m <= n) ↔ m ≤ n
-T[<=]↔≤ {m = zero} {n = n} =
+T[<=]↔≤ {m = zero} {n} =
   T (zero <= n)  ↔⟨⟩
   ⊤              ↝⟨ inverse zero≤↔ ⟩□
   zero ≤ n       □
@@ -5281,7 +5281,7 @@ T[<=]↔≤ {m = suc m} {n = suc n} =
 -- isomorphic.
 
 Distinct↔≢ : ∀ {m n} → Distinct m n ↝[ lzero ∣ lzero ] m ≢ n
-Distinct↔≢ {m = m} {n} =
+Distinct↔≢ {m} {n} =
   generalise-ext?-prop
     Distinct⇔≢
     (λ _ → Distinct-propositional m n)
@@ -5352,7 +5352,7 @@ private
   Well-behaved (_↔_.to   f) →
   Well-behaved (_↔_.from f) →
   B ↔ C
-⊎-left-cancellative {A = A} = λ inv to-hyp from-hyp → record
+⊎-left-cancellative {A} = λ inv to-hyp from-hyp → record
   { surjection = record
     { logical-equivalence = record
       { to   = g (to   inv) to-hyp
@@ -5424,7 +5424,7 @@ private
     wb : ∀ {a b} {A : Type a} {B : Type b}
          (⊤⊎A↔⊤⊎B : (⊤ ⊎ A) ↔ (⊤ ⊎ B)) →
          Well-behaved (_↔_.to ⊤⊎A↔⊤⊎B)
-    wb ⊤⊎A↔⊤⊎B {b = b} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
+    wb ⊤⊎A↔⊤⊎B {b} eq₁ eq₂ = ⊎.inj₁≢inj₂ (
       inj₁ tt                 ≡⟨ sym $ to-from ⊤⊎A↔⊤⊎B eq₂ ⟩
       from ⊤⊎A↔⊤⊎B (inj₁ tt)  ≡⟨ to-from ⊤⊎A↔⊤⊎B eq₁ ⟩∎
       inj₂ b                  ∎)
@@ -5438,7 +5438,7 @@ private
   ∀ {a b} {A : Type a} {B : Type b} →
   Decidable-equality B →
   ((⊤ ⊎ A) ↔ (⊤ ⊎ B)) ↝[ a ⊔ b ∣ a ⊔ b ] (⊤ ⊎ B) × (A ↔ B)
-[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a = a} {b = b} {A = A} {B = B} _≟B_ =
+[⊤⊎↔⊤⊎]↔[⊤⊎×↔] {a} {b} {A} {B} _≟B_ =
   generalise-ext? [⊤⊎↔⊤⊎]⇔[⊤⊎×↔] (λ ext → to∘from ext , from∘to ext)
   where
   _≟_ : Decidable-equality (⊤ ⊎ B)

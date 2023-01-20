@@ -224,7 +224,7 @@ fold-lemma : ∀ {A B : Type}
              (∀ l x r b₁ b₂ →
                 P l b₁ → P r b₂ → P (node l x r) (fn l x r b₁ b₂)) →
              ∀ t → P t (fold fl fn t)
-fold-lemma {A} {fl = fl} {fn} P resp P-le P-no = uncurry fold-lemma′
+fold-lemma {A} {fl} {fn} P resp P-le P-no = uncurry fold-lemma′
   where
   fold-lemma′ : (s : Shape) (lkup : Position s → A) →
                 P (s , lkup) (fold fl fn (s , lkup))

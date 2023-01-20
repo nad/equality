@@ -72,7 +72,7 @@ private
   -- A preliminary definition of function extensionality.
 
   ⟨ext⟩′ : Function-extensionality a p
-  ⟨ext⟩′ {f = f} {g = g} =
+  ⟨ext⟩′ {f} {g} =
     (∀ x → f x ≡ g x)    ↝⟨ (λ p x → _↔_.to ≡↔≡ (p x)) ⟩
     (∀ x → f x P.≡ g x)  ↝⟨ P.⟨ext⟩ ⟩
     f P.≡ g              ↔⟨ inverse ≡↔≡ ⟩□
@@ -142,7 +142,7 @@ private
 ↔≃↔ :
   {A : Type a} {B : Type b} →
   (A ↔ B) ≃ (A PB.↔ B)
-↔≃↔ {A = A} {B = B} =
+↔≃↔ {A} {B} =
   A ↔ B                                                 ↔⟨ B.↔-as-Σ ⟩
 
   (∃ λ (f : A → B) → ∃ λ (f⁻¹ : B → A) →
@@ -159,13 +159,13 @@ private
 -- using paths.
 
 H-level↔H-level : ∀ n → H-level n A ↔ PH.H-level n A
-H-level↔H-level {A = A} zero =
+H-level↔H-level {A} zero =
   H-level 0 A                    ↔⟨⟩
   (∃ λ (x : A) → ∀ y → x ≡ y)    ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → ≡↔≡) ⟩
   (∃ λ (x : A) → ∀ y → x P.≡ y)  ↔⟨⟩
   PH.H-level 0 A                 □
 
-H-level↔H-level {A = A} (suc n) =
+H-level↔H-level {A} (suc n) =
   H-level (suc n) A                 ↝⟨ inverse $ ≡↔+ _ ext ⟩
   (∀ x y → H-level n (x ≡ y))       ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level-cong ext _ ≡↔≡) ⟩
   (∀ x y → H-level n (x P.≡ y))     ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level↔H-level n) ⟩
@@ -176,7 +176,7 @@ H-level↔H-level {A = A} (suc n) =
 
 Is-equivalence-CP↔Is-equivalence-CP :
   CP.Is-equivalence f ↔ PCP.Is-equivalence f
-Is-equivalence-CP↔Is-equivalence-CP {f = f} =
+Is-equivalence-CP↔Is-equivalence-CP {f} =
   CP.Is-equivalence f                         ↔⟨⟩
   (∀ y →   Contractible (∃ λ x → f x   ≡ y))  ↝⟨ (∀-cong ext λ _ → H-level-cong ext _ $ ∃-cong λ _ → ≡↔≡) ⟩
   (∀ y →   Contractible (∃ λ x → f x P.≡ y))  ↝⟨ (∀-cong ext λ _ → H-level↔H-level _) ⟩
@@ -190,7 +190,7 @@ Is-equivalence-CP↔Is-equivalence-CP {f = f} =
 ≃-CP↔≃-CP :
   {A : Type a} {B : Type b} →
   A CP.≃ B ↔ A PCP.≃ B
-≃-CP↔≃-CP {A = A} {B = B} =
+≃-CP↔≃-CP {A} {B} =
   ∃ CP.Is-equivalence   ↝⟨ (∃-cong λ _ → Is-equivalence-CP↔Is-equivalence-CP) ⟩□
   ∃ PCP.Is-equivalence  □
 
@@ -200,7 +200,7 @@ Is-equivalence-CP↔Is-equivalence-CP {f = f} =
 cong≡cong :
   {A : Type a} {B : Type b} {f : A → B} {x y : A} {x≡y : x P.≡ y} →
   cong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.cong f x≡y)
-cong≡cong {f = f} {x≡y = x≡y} = P.elim
+cong≡cong {f} {x≡y} = P.elim
   (λ x≡y → cong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.cong f x≡y))
   (λ x →
      cong f (_↔_.from ≡↔≡ P.refl)    ≡⟨ cong (cong f) from-≡↔≡-refl ⟩
@@ -216,7 +216,7 @@ cong≡cong {f = f} {x≡y = x≡y} = P.elim
 sym≡sym :
   {x≡y : x P.≡ y} →
   sym (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.sym x≡y)
-sym≡sym {x≡y = x≡y} = P.elim₁
+sym≡sym {x≡y} = P.elim₁
   (λ x≡y → sym (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from ≡↔≡ (P.sym x≡y))
   (sym (_↔_.from ≡↔≡ P.refl)    ≡⟨ cong sym from-≡↔≡-refl ⟩
    sym (refl _)                 ≡⟨ sym-refl ⟩
@@ -232,7 +232,7 @@ trans≡trans :
   {x≡y : x P.≡ y} {y≡z : y P.≡ z} →
   trans (_↔_.from ≡↔≡ x≡y) (_↔_.from ≡↔≡ y≡z) ≡
   _↔_.from ≡↔≡ (P.trans x≡y y≡z)
-trans≡trans {x≡y = x≡y} {y≡z = y≡z} = P.elim₁
+trans≡trans {x≡y} {y≡z} = P.elim₁
   (λ x≡y → trans (_↔_.from ≡↔≡ x≡y) (_↔_.from ≡↔≡ y≡z) ≡
            _↔_.from ≡↔≡ (P.trans x≡y y≡z))
   (trans (_↔_.from ≡↔≡ P.refl) (_↔_.from ≡↔≡ y≡z)  ≡⟨ cong (flip trans _) from-≡↔≡-refl ⟩
@@ -246,7 +246,7 @@ trans≡trans {x≡y = x≡y} {y≡z = y≡z} = P.elim₁
 
 Is-equivalence↔Is-equivalence :
   Is-equivalence f ↔ PE.Is-equivalence f
-Is-equivalence↔Is-equivalence {f = f} =
+Is-equivalence↔Is-equivalence {f} =
   (∃ λ f⁻¹ →
    ∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
    ∃ λ (f⁻¹-f : ∀ x → f⁻¹ (f x) ≡ x) →
@@ -282,7 +282,7 @@ Is-equivalence↔Is-equivalence {f = f} =
 ≃↔≃ :
   {A : Type a} {B : Type b} →
   A ≃ B ↔ A PE.≃ B
-≃↔≃ {A = A} {B = B} =
+≃↔≃ {A} {B} =
   A ≃ B                ↝⟨ Eq.≃-as-Σ ⟩
   ∃ Is-equivalence     ↝⟨ (∃-cong λ _ → Is-equivalence↔Is-equivalence) ⟩
   ∃ PE.Is-equivalence  ↝⟨ inverse $ ↔→↔ PE.≃-as-Σ ⟩□
@@ -310,7 +310,7 @@ private
 Embedding↔Embedding :
   {A : Type a} {B : Type b} →
   Embedding A B ↔ PM.Embedding A B
-Embedding↔Embedding {A = A} {B = B} =
+Embedding↔Embedding {A} {B} =
   Embedding A B                                   ↝⟨ Embedding-as-Σ ⟩
   (∃ λ f → ∀ x y → Is-equivalence (cong f))       ↔⟨ (∃-cong λ f → ∀-cong ext λ x → ∀-cong ext λ y →
                                                       Eq.⇔→≃ (Is-equivalence-propositional ext) (Is-equivalence-propositional ext)
@@ -348,7 +348,7 @@ Embedding↔Embedding {A = A} {B = B} =
 subst≡subst :
   ∀ {P : A → Type p} {x≡y : x P.≡ y} {p} →
   subst P (_↔_.from ≡↔≡ x≡y) p ≡ P.subst P x≡y p
-subst≡subst {P = P} {x≡y} = P.elim
+subst≡subst {P} {x≡y} = P.elim
   (λ x≡y → ∀ {p} → subst P (_↔_.from ≡↔≡ x≡y) p ≡ P.subst P x≡y p)
   (λ x {p} →
      subst P (_↔_.from ≡↔≡ P.refl) p  ≡⟨ cong (λ eq → subst P eq p) from-≡↔≡-refl ⟩
@@ -364,7 +364,7 @@ subst≡subst-refl :
   subst≡subst {x≡y = P.refl} ≡
   trans (cong (λ eq → subst P eq p) from-≡↔≡-refl)
     (trans (subst-refl _ _) (sym $ _↔_.from ≡↔≡ $ P.subst-refl P _))
-subst≡subst-refl {P = P} = cong (λ f → f {p = _}) $ _↔_.from ≡↔≡ $
+subst≡subst-refl {P} = cong (λ f → f {p = _}) $ _↔_.from ≡↔≡ $
   P.elim-refl
     (λ x≡y → ∀ {p} → subst P (_↔_.from ≡↔≡ x≡y) p ≡ P.subst P x≡y p)
     (λ _ → trans (cong (λ eq → subst P eq _) from-≡↔≡-refl)
@@ -377,7 +377,7 @@ subst≡↔subst≡ :
   ∀ {eq : x P.≡ y} →
   subst B (_↔_.from ≡↔≡ eq) u ≡ v ↔
   P.subst B eq u P.≡ v
-subst≡↔subst≡ {B = B} {u = u} {v = v} {eq = eq} =
+subst≡↔subst≡ {B} {u} {v} {eq} =
   subst B (_↔_.from ≡↔≡ eq) u ≡ v  ↝⟨ ≡⇒↝ _ $ cong (_≡ _) subst≡subst ⟩
   P.subst B eq u ≡ v               ↝⟨ ≡↔≡ ⟩□
   P.subst B eq u P.≡ v             □
@@ -386,7 +386,7 @@ subst≡↔[]≡ :
   {eq : x P.≡ y} →
   subst B (_↔_.from ≡↔≡ eq) u ≡ v ↔
   P.[ (λ i → B (eq i)) ] u ≡ v
-subst≡↔[]≡ {B = B} {u = u} {v = v} {eq = eq} =
+subst≡↔[]≡ {B} {u} {v} {eq} =
   subst B (_↔_.from ≡↔≡ eq) u ≡ v  ↝⟨ subst≡↔subst≡ ⟩
   P.subst B eq u P.≡ v             ↝⟨ ↔→↔ $ PB.inverse $ P.heterogeneous↔homogeneous _ ⟩□
   P.[ (λ i → B (eq i)) ] u ≡ v     □
@@ -398,7 +398,7 @@ dcong≡dcong :
   {f : (x : A) → B x} {x≡y : x P.≡ y} →
   _↔_.to subst≡↔subst≡ (dcong f (_↔_.from ≡↔≡ x≡y)) ≡
   P.dcong f x≡y
-dcong≡dcong {B = B} {f = f} {x≡y} = P.elim
+dcong≡dcong {B} {f} {x≡y} = P.elim
   (λ x≡y → _↔_.to subst≡↔subst≡ (dcong f (_↔_.from ≡↔≡ x≡y)) ≡
            P.dcong f x≡y)
   (λ x →
@@ -475,7 +475,7 @@ dcong≡dcong {B = B} {f = f} {x≡y} = P.elim
 dcong≡hcong :
   {x≡y : x P.≡ y} (f : (x : A) → B x) →
   dcong f (_↔_.from ≡↔≡ x≡y) ≡ _↔_.from subst≡↔[]≡ (P.hcong f x≡y)
-dcong≡hcong {x≡y = x≡y} f =
+dcong≡hcong {x≡y} f =
   dcong f (_↔_.from ≡↔≡ x≡y)                                     ≡⟨ sym $ _↔_.from-to (inverse subst≡↔subst≡) dcong≡dcong ⟩
 
   _↔_.from subst≡↔subst≡ (P.dcong f x≡y)                         ≡⟨ cong (_↔_.from subst≡↔subst≡) $ _↔_.from ≡↔≡ $ P.dcong≡hcong f ⟩
@@ -499,7 +499,7 @@ dcong-subst≡→[]≡ :
   {eq₁ : x P.≡ y} {eq₂ : subst B (_↔_.from ≡↔≡ eq₁) (f x) ≡ f y} →
   P.hcong f eq₁ ≡ subst≡→[]≡ eq₂ →
   dcong f (_↔_.from ≡↔≡ eq₁) ≡ eq₂
-dcong-subst≡→[]≡ {B = B} {f = f} {eq₁} {eq₂} hyp =
+dcong-subst≡→[]≡ {B} {f} {eq₁} {eq₂} hyp =
   dcong f (_↔_.from ≡↔≡ eq₁)                   ≡⟨ dcong≡hcong f ⟩
   _↔_.from subst≡↔[]≡ (P.hcong f eq₁)          ≡⟨ cong (_↔_.from subst≡↔[]≡) hyp ⟩
   _↔_.from subst≡↔[]≡ (_↔_.to subst≡↔[]≡ eq₂)  ≡⟨ _↔_.left-inverse-of subst≡↔[]≡ _ ⟩∎
@@ -509,7 +509,7 @@ cong-≡↔≡ :
   {eq₁ : x P.≡ y} {eq₂ : f x ≡ f y} →
   P.cong f eq₁ ≡ _↔_.to ≡↔≡ eq₂ →
   cong f (_↔_.from ≡↔≡ eq₁) ≡ eq₂
-cong-≡↔≡ {f = f} {eq₁ = eq₁} {eq₂} hyp =
+cong-≡↔≡ {f} {eq₁} {eq₂} hyp =
   cong f (_↔_.from ≡↔≡ eq₁)      ≡⟨ cong≡cong ⟩
   _↔_.from ≡↔≡ $ P.cong f eq₁    ≡⟨ cong (_↔_.from ≡↔≡) hyp ⟩
   _↔_.from ≡↔≡ $ _↔_.to ≡↔≡ eq₂  ≡⟨ _↔_.left-inverse-of ≡↔≡ _ ⟩∎
@@ -523,7 +523,7 @@ cong-≡↔≡ {f = f} {eq₁ = eq₁} {eq₂} hyp =
 Univalence′-CP≃Univalence′-CP :
   {A B : Type ℓ} →
   CP.Univalence′ A B ≃ PCP.Univalence′ A B
-Univalence′-CP≃Univalence′-CP {A = A} {B = B} =
+Univalence′-CP≃Univalence′-CP {A} {B} =
   ((A≃B : A CP.≃ B) →
    ∃ λ (x : ∃ λ A≡B → CP.≡⇒≃ A≡B ≡ A≃B) → ∀ y → x ≡ y)       ↔⟨⟩
 
@@ -580,7 +580,7 @@ Univalence′-CP≃Univalence′-CP {A = A} {B = B} =
 Univalence′≃Univalence′ :
   {A B : Type ℓ} →
   Univalence′ A B ≃ PU.Univalence′ A B
-Univalence′≃Univalence′ {A = A} {B = B} =
+Univalence′≃Univalence′ {A} {B} =
   Univalence′ A B      ↝⟨ Univalence′≃Univalence′-CP ext ⟩
   CP.Univalence′ A B   ↝⟨ Univalence′-CP≃Univalence′-CP ⟩
   PCP.Univalence′ A B  ↝⟨ inverse $ _↔_.from ≃↔≃ $ PU.Univalence′≃Univalence′-CP P.ext ⟩□
@@ -590,6 +590,6 @@ Univalence′≃Univalence′ {A = A} {B = B} =
 -- expressed using paths.
 
 Univalence≃Univalence : Univalence ℓ ≃ PU.Univalence ℓ
-Univalence≃Univalence {ℓ = ℓ} =
+Univalence≃Univalence {ℓ} =
   ({A B : Type ℓ} → Univalence′ A B)     ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext Univalence′≃Univalence′ ⟩□
   ({A B : Type ℓ} → PU.Univalence′ A B)  □

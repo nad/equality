@@ -215,7 +215,7 @@ Fundamental-group′ = Homotopy-group-[1+ 0 ]′
 Homotopy-group-[1+]′≃ᴳHomotopy-group-[1+] :
   {s : Is-set (proj₁ (Ω[ 1 + n ] P))} →
   Homotopy-group-[1+ n ]′ P s ≃ᴳ Homotopy-group-[1+ n ] P
-Homotopy-group-[1+]′≃ᴳHomotopy-group-[1+] {s = s} = λ where
+Homotopy-group-[1+]′≃ᴳHomotopy-group-[1+] {s} = λ where
   .G.Homomorphic.related →
     inverse $ Eq.↔⇒≃ $ _⇔_.to T.+⇔∥∥↔ (λ {_ _} → s)
   .G.Homomorphic.homomorphic p q →

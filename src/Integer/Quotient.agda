@@ -118,7 +118,7 @@ infix 8 +_
 -- the corresponding integer.
 
 []≡[suc,suc] : _≡_ {A = ℤ} [ (m , n) ] [ (P.suc m , P.suc n) ]
-[]≡[suc,suc] {m = m} {n = n} = []-respects-relation
+[]≡[suc,suc] {m} {n} = []-respects-relation
   (m ⊕ P.suc n  ≡⟨ sym $ Nat.suc+≡+suc m ⟩
    P.suc m ⊕ n  ≡⟨ Nat.+-comm (P.suc m) ⟩∎
    n ⊕ P.suc m  ∎)
@@ -143,19 +143,19 @@ infix 8 +_
   where
   to-lemma₁ : m₁ ⊕ P.suc n₂ ≡ m₂ →
               (Data.+ m₁) ≡ Data.+ m₂ +-[1+ n₂ ]
-  to-lemma₁ {m₁ = m₁} {n₂ = n₂} {m₂ = zero} hyp =
+  to-lemma₁ {m₁} {n₂} {m₂ = zero} hyp =
     ⊥-elim $
     Nat.0≢+
       (zero             ≡⟨ sym hyp ⟩
        m₁ ⊕ P.suc n₂    ≡⟨ sym $ Nat.suc+≡+suc m₁ ⟩∎
        P.suc (m₁ ⊕ n₂)  ∎)
-  to-lemma₁ {m₁ = m₁} {n₂ = zero} {m₂ = P.suc m₂} hyp =
+  to-lemma₁ {m₁} {n₂ = zero} {m₂ = P.suc m₂} hyp =
     cong (Data.+_) $
     Nat.cancel-suc
       (P.suc m₁  ≡⟨ Nat.+-comm 1 ⟩
        m₁ ⊕ 1    ≡⟨ hyp ⟩∎
        P.suc m₂  ∎)
-  to-lemma₁ {m₁ = m₁} {n₂ = P.suc n₂} {m₂ = P.suc m₂} hyp =
+  to-lemma₁ {m₁} {n₂ = P.suc n₂} {m₂ = P.suc m₂} hyp =
     to-lemma₁ $
     Nat.cancel-suc
       (P.suc (m₁ ⊕ P.suc n₂)  ≡⟨ Nat.suc+≡+suc m₁ ⟩
@@ -166,7 +166,7 @@ infix 8 +_
               Data.+ m₁ +-[1+ n₁ ] ≡ Data.+ m₂
   to-lemma₂ {m₁ = zero} hyp =
     ⊥-elim $ Nat.0≢+ hyp
-  to-lemma₂ {m₁ = P.suc m₁} {n₁ = zero} {m₂ = m₂} hyp =
+  to-lemma₂ {m₁ = P.suc m₁} {n₁ = zero} {m₂} hyp =
     cong (Data.+_) $
     Nat.cancel-suc
       (P.suc m₁      ≡⟨ sym Nat.+-right-identity ⟩
@@ -279,7 +279,7 @@ infix 8 +_
 -- The bijection is homomorphic with respect to +_/Data.+_.
 
 ℤ↔ℤ-+ : _↔_.to ℤ↔ℤ (+ n) ≡ Data.+ n
-ℤ↔ℤ-+ {n = n} =
+ℤ↔ℤ-+ {n} =
   Data.+ (n ⊕ 0)  ≡⟨ cong Data.+_ Nat.+-right-identity ⟩∎
   Data.+ n        ∎
 
@@ -374,13 +374,13 @@ mutual
     (f : ∀ m n → P [ (m , n) ]) →
     (∀ m n → subst P []≡[suc,suc] (f m n) ≡ f (P.suc m) (P.suc n)) →
     elim P f [ (m , n) ] ≡ f m n
-  elim-[]′ {m = m} {n = zero} {P = P} f hyp =
+  elim-[]′ {m} {n = zero} {P} f hyp =
     elim P f [ (m , 0) ]                                  ≡⟨⟩
     subst P (cong +_ Nat.+-right-identity) (f (m ⊕ 0) 0)  ≡⟨ sym $ subst-∘ _ _ _ ⟩
     subst (P ∘ +_) Nat.+-right-identity (f (m ⊕ 0) 0)     ≡⟨ elim¹ (λ eq → subst (P ∘ +_) eq (f _ _) ≡ f _ _) (subst-refl _ _) _ ⟩∎
     f m 0                                                 ∎
 
-  elim-[]′ {m = m} {n = P.suc n} {P = P} f hyp =
+  elim-[]′ {m} {n = P.suc n} {P} f hyp =
     elim P f [ (m , P.suc n) ]                                          ≡⟨⟩
 
     subst P (_↔_.left-inverse-of ℤ↔ℤ [ (m , P.suc n) ]) $
@@ -428,7 +428,7 @@ private
 -- A recursor for integers.
 
 rec : (ℕ → ℕ → A) → ℤ → A
-rec {A = A} f =
+rec {A} f =
   ℤ       ↔⟨ ℤ↔ℤ ⟩
   Data.ℤ  ↝⟨ rec′ (λ n → f n 0) (λ n → f 0 (P.suc n)) ⟩□
   A       □
@@ -440,7 +440,7 @@ rec {A = A} f =
 -- computational behaviour.
 
 rec≡elim : (f : ℕ → ℕ → A) → rec f i ≡ elim (const _) f i
-rec≡elim {i = i} f =
+rec≡elim {i} f =
   rec f i                                                               ≡⟨⟩
 
   rec′ (λ n → f n 0) (λ n → f 0 (P.suc n)) (_↔_.to ℤ↔ℤ i)               ≡⟨ lemma (_↔_.to ℤ↔ℤ i) ⟩
@@ -468,7 +468,7 @@ rec-[] :
   (f : ℕ → ℕ → A) →
   (∀ {p q} → Same-difference p q → uncurry f p ≡ uncurry f q) →
   rec f [ (m , n) ] ≡ f m n
-rec-[] {m = m} {n = n} f hyp =
+rec-[] {m} {n} f hyp =
   rec f [ (m , n) ]                                         ≡⟨ rec≡elim f ⟩
   elim (const _) f [ (m , n) ]                              ≡⟨ elim-[] f (λ {p q} s →
     subst (const _) ([]-respects-relation s) (uncurry f p)       ≡⟨ subst-const _ ⟩
@@ -575,8 +575,8 @@ _+_ = binary-operator
        (k₂ ⊕ m₂) ⊕ (ℓ₁ ⊕ n₁)  ∎
      })
   where
-  lemma : ∀ _ {_ _ _} → _
-  lemma a {(b)} {(c)} {(d)} =
+  lemma : ∀ _ {b c d} → _
+  lemma a {b} {c} {d} =
     (a ⊕ b) ⊕ (c ⊕ d)  ≡⟨ sym $ Nat.+-assoc a ⟩
     a ⊕ (b ⊕ (c ⊕ d))  ≡⟨ cong (a ⊕_) $ Nat.+-assoc b ⟩
     a ⊕ ((b ⊕ c) ⊕ d)  ≡⟨ cong ((a ⊕_) ∘ (_⊕ d)) $ Nat.+-comm b ⟩
@@ -602,7 +602,7 @@ i - j = i + - j
 -- A lemma used in the implementation of +≡+.
 
 ++-[1+]≡++-[1+] : + m + -[ P.suc n ] ≡ _↔_.from ℤ↔ℤ (Data.+ m +-[1+ n ])
-++-[1+]≡++-[1+] {m = zero}    {n = n}    = refl _
+++-[1+]≡++-[1+] {m = zero}    {n}        = refl _
 ++-[1+]≡++-[1+] {m = P.suc m} {n = zero} =
   [ (P.suc (m ⊕ 0) , 1) ]  ≡⟨ cong (Q.[_] ∘ (_, 1) ∘ P.suc) Nat.+-right-identity ⟩
   [ (P.suc m , 1) ]        ≡⟨ sym []≡[suc,suc] ⟩∎
@@ -665,7 +665,7 @@ Same-difference≃[]≡[] prop-ext =
 -- Non-negative integers are not equal to negative integers.
 
 +≢-[1+] : + m ≢ -[ P.suc n ]
-+≢-[1+] {m = m} {n = n} =
++≢-[1+] {m} {n} =
   Stable-¬
     [ + m ≡ -[ P.suc n ]                     ↔⟨⟩
       [ (m , 0) ] ≡ [ (0 , P.suc n) ]        ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
@@ -678,7 +678,7 @@ Same-difference≃[]≡[] prop-ext =
 -- Non-positive integers are not equal to positive integers.
 
 +[1+]≢- : + P.suc m ≢ -[ n ]
-+[1+]≢- {m = m} {n = n} =
++[1+]≢- {m} {n} =
   Stable-¬
     [ + P.suc m ≡ -[ n ]                     ↔⟨⟩
       [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
@@ -693,7 +693,7 @@ Same-difference≃[]≡[] prop-ext =
 +-cancellative :
   Propositional-extensionality lzero →
   + m ≡ + n → m ≡ n
-+-cancellative {m = m} {n = n} prop-ext =
++-cancellative {m} {n} prop-ext =
   + m ≡ + n                  ↔⟨⟩
   [ (m , 0) ] ≡ [ (n , 0) ]  ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
   m ⊕ 0 ≡ 0 ⊕ n              ↝⟨ trans (sym Nat.+-right-identity) ⟩□
@@ -705,7 +705,7 @@ Same-difference≃[]≡[] prop-ext =
 -[]-cancellative :
   Propositional-extensionality lzero →
   -[ m ] ≡ -[ n ] → m ≡ n
--[]-cancellative {m = m} {n = n} prop-ext =
+-[]-cancellative {m} {n} prop-ext =
   -[ m ] ≡ -[ n ]  ↝⟨ cong (-_) ⟩
   + m ≡ + n        ↝⟨ +-cancellative prop-ext ⟩□
   m ≡ n            □

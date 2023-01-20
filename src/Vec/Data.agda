@@ -56,8 +56,8 @@ map f (x ∷ xs) = f x ∷ map f xs
 -- given element.
 
 replicate : ∀ {n a} {A : Type a} → A → Vec A n
-replicate {(zero)} _ = []
-replicate {suc _}  x = x ∷ replicate x
+replicate {n = zero}  _ = []
+replicate {n = suc _} x = x ∷ replicate x
 
 -- The head of the vector.
 
@@ -87,7 +87,7 @@ from-list (x ∷ xs) = x ∷ from-list xs
 -- ∃ (Vec A) is isomorphic to List A.
 
 ∃Vec↔List : ∀ {a} {A : Type a} → ∃ (Vec A) ↔ List A
-∃Vec↔List {A = A} = record
+∃Vec↔List {A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to-list ∘ proj₂

@@ -31,7 +31,7 @@ private
 -- Rijke, Shulman and Spitters.
 
 Identity-modality : Modality ℓ
-Identity-modality {ℓ = ℓ} = λ where
+Identity-modality {ℓ} = λ where
     .◯       → id
     .η       → id
     .Modal _ → ↑ ℓ ⊤
@@ -60,7 +60,7 @@ very-modal = _
 -- The identity modality is topological.
 
 topological : Topological (Identity-modality {ℓ = ℓ})
-topological {ℓ = ℓ} =
+topological {ℓ} =
     ( ↑ ℓ ⊤
     , (λ _ → ↑ ℓ ⊤)
     , (λ _ → record { to = λ _ _ → ∞-extendable-along-id })
@@ -70,7 +70,7 @@ topological {ℓ = ℓ} =
 -- The identity modality is left exact.
 
 left-exact : Left-exact (λ (A : Type ℓ) → A)
-left-exact {A = A} {x = x} {y = y} =
+left-exact {A} {x} {y} =
   Contractible A        →⟨ H-level.⇒≡ 0 ⟩□
   Contractible (x ≡ y)  □
 
@@ -83,7 +83,7 @@ cotopological = left-exact , (λ _ c → c)
 
 accessibility-modal :
   Modality.Accessibility-modal (Identity-modality {ℓ = ℓ})
-accessibility-modal {ℓ = ℓ} =
+accessibility-modal {ℓ} =
     (λ acc → Modal→Acc→Acc-[]◯-η _ id acc)
   , id
   where

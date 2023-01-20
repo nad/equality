@@ -164,7 +164,7 @@ private
   open Elimᴾ′
 
   elimᴾ′ : Elimᴾ′ P → (x : Finite-subset-of A) → P x
-  elimᴾ′ {A = A} {P = P} e = helper
+  elimᴾ′ {A} {P} e = helper
     where
     module E = Elimᴾ′ e
 
@@ -172,7 +172,7 @@ private
     helper []      = E.[]ʳ
     helper (x ∷ y) = E.∷ʳ x (helper y)
 
-    helper (extensionalityᴾ {x = x} {y = y} _ i) =
+    helper (extensionalityᴾ {x} {y} _ i) =
       E.extensionalityʳ (helper x) (helper y) i
 
     helper (is-setᴾ x y i j) =
@@ -184,7 +184,7 @@ private
 
   motive-propositional :
     Elimᴾ′ P → ∀ x → P.Is-proposition (P x)
-  motive-propositional {P = P} e x p q =
+  motive-propositional {P} e x p q =
     p                                         P.≡⟨ P.sym $ P.subst-refl P _ ⟩
     P.subst P P.refl p                        P.≡⟨ P.cong (λ eq → P.subst P eq p) $ is-setᴾ _ _ ⟩
     P.subst P (extensionalityᴾ λ _ → F.id) p  P.≡⟨ PB._↔_.to (P.heterogeneous↔homogeneous _)
@@ -204,7 +204,7 @@ record Elimᴾ {A : Type a} (P : Finite-subset-of A → Type p) :
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : Finite-subset-of A) → P x
-elimᴾ {A = A} {P = P} e = elimᴾ′ e′
+elimᴾ {A} {P} e = elimᴾ′ e′
   where
   module E = Elimᴾ e
 
@@ -228,13 +228,13 @@ record Recᴾ (A : Type a) (B : Type b) : Type (a ⊔ b) where
 open Recᴾ public
 
 recᴾ : Recᴾ A B → Finite-subset-of A → B
-recᴾ {A = A} {B = B} r = elimᴾ e
+recᴾ {A} {B} r = elimᴾ e
   where
   module R = Recᴾ r
 
   e : Elimᴾ _
   e .[]ʳ               = R.[]ʳ
-  e .∷ʳ {y = y} x      = R.∷ʳ x y
+  e .∷ʳ {y} x          = R.∷ʳ x y
   e .is-propositionʳ _ = R.is-propositionʳ
 
 -- A dependent eliminator, expressed using equality.
@@ -276,7 +276,7 @@ rec r = elim e
 
   e : Elim _
   e .[]ʳ               = R.[]ʳ
-  e .∷ʳ {y = y} x      = R.∷ʳ x y
+  e .∷ʳ {y} x          = R.∷ʳ x y
   e .is-propositionʳ _ = R.is-propositionʳ
 
 ------------------------------------------------------------------------
@@ -285,7 +285,7 @@ rec r = elim e
 -- If A is inhabited, then Finite-subset-of A is not a proposition.
 
 ¬-proposition : A → ¬ Is-proposition (Finite-subset-of A)
-¬-proposition {A = A} x =
+¬-proposition {A} x =
   Is-proposition (Finite-subset-of A)  ↝⟨ (λ hyp → hyp _ _) ⟩
   x ∷ [] ≡ []                          ↝⟨ (λ hyp → subst (x ∈_) hyp (Trunc.∣inj₁∣ (refl _))) ⟩
   x ∈ []                               ↔⟨ ⊥↔⊥ ⟩□
@@ -296,14 +296,14 @@ abstract
   -- Duplicated elements can be dropped.
 
   drop : x ∷ x ∷ y ≡ x ∷ y
-  drop {x = x} {y = y} = extensionality λ z →
+  drop {x} {y} = extensionality λ z →
     z ≡ x ∥⊎∥ (z ≡ x ∥⊎∥ z ∈ y)  ↔⟨ Trunc.drop-left-∥⊎∥ Trunc.∥⊎∥-propositional Trunc.∣inj₁∣ ⟩□
     z ≡ x ∥⊎∥ z ∈ y              □
 
   -- The "first" two elements can be swapped.
 
   swap : x ∷ y ∷ z ≡ y ∷ x ∷ z
-  swap {x = x} {y = y} {z = z} = extensionality λ u →
+  swap {x} {y} {z} = extensionality λ u →
     u ≡ x ∥⊎∥ (u ≡ y ∥⊎∥ u ∈ z)  ↔⟨ Trunc.∥⊎∥-assoc ⟩
     (u ≡ x ∥⊎∥ u ≡ y) ∥⊎∥ u ∈ z  ↔⟨ Trunc.∥⊎∥-comm Trunc.∥⊎∥-cong F.id ⟩
     (u ≡ y ∥⊎∥ u ≡ x) ∥⊎∥ u ∈ z  ↔⟨ inverse Trunc.∥⊎∥-assoc ⟩□
@@ -312,10 +312,10 @@ abstract
 -- If x is a member of y, then x ∷ y is equal to y.
 
 ∈→∷≡ : x ∈ y → x ∷ y ≡ y
-∈→∷≡ {x = x} = elim e _
+∈→∷≡ {x} = elim e _
   where
   e : Elim (λ y → x ∈ y → x ∷ y ≡ y)
-  e .∷ʳ {y = y} z hyp =
+  e .∷ʳ {y} z hyp =
     Trunc.rec is-set
       [ (λ x≡z →
            x ∷ z ∷ y  ≡⟨ cong (λ x → x ∷ _) x≡z ⟩
@@ -343,7 +343,7 @@ singleton x = x ∷ []
 
 ∈singleton≃ :
   (x ∈ singleton y) ≃ ∥ x ≡ y ∥
-∈singleton≃ {x = x} {y = y} =
+∈singleton≃ {x} {y} =
   x ∈ singleton y  ↔⟨⟩
   x ≡ y ∥⊎∥ ⊥      ↔⟨ Trunc.∥∥-cong $ drop-⊥-right ⊥↔⊥ ⟩□
   ∥ x ≡ y ∥        □
@@ -390,7 +390,7 @@ private
     (x y : Finite-subset-of A) →
     Is-union-of x y z₁ → Is-union-of x y z₂ →
     z₁ ≡ z₂
-  Is-union-of-functional {z₁ = z₁} {z₂ = z₂} x y p₁ p₂ =
+  Is-union-of-functional {z₁} {z₂} x y p₁ p₂ =
     extensionality λ u →
       u ∈ z₁           ↔⟨ p₁ u ⟩
       u ∈ x ∥⊎∥ u ∈ y  ↔⟨ inverse $ p₂ u ⟩□
@@ -417,7 +417,7 @@ private
           u ∈ y        ↔⟨ inverse $ Trunc.∥⊎∥-left-identity (∈-propositional y) ⟩□
           ⊥ ∥⊎∥ u ∈ y  □
 
-    e .∷ʳ {y = y} x hyp z =
+    e .∷ʳ {y} x hyp z =
         x ∷ proj₁ (hyp z)
       , λ u →
           u ∈ x ∷ proj₁ (hyp z)        ↔⟨⟩
@@ -452,7 +452,7 @@ _ = refl _
 -- membership of the subsets.
 
 ∈∪≃∈∥⊎∥∈ : ∀ y → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
-∈∪≃∈∥⊎∥∈ {z = z} y = proj₂ (union y z) _
+∈∪≃∈∥⊎∥∈ {z} y = proj₂ (union y z) _
 
 -- If x is a member of y, then x is a member of y ∪ z.
 
@@ -474,7 +474,7 @@ _ = refl _
   e : Elim _
   e .is-propositionʳ _ = is-set
   e .[]ʳ               = refl _
-  e .∷ʳ {y = y} x hyp  =
+  e .∷ʳ {y} x hyp      =
     x ∷ y ∪ []  ≡⟨ cong (x ∷_) hyp ⟩∎
     x ∷ y        ∎
 
@@ -483,7 +483,7 @@ _ = refl _
 ∪∷ :
   (x : Finite-subset-of A) →
   x ∪ (y ∷ z) ≡ y ∷ x ∪ z
-∪∷ {y = y} {z = z} = elim e
+∪∷ {y} {z} = elim e
   where
   e : Elim _
   e .is-propositionʳ _ = is-set
@@ -502,7 +502,7 @@ _ = refl _
 ∪-assoc :
   (x : Finite-subset-of A) →
   x ∪ (y ∪ z) ≡ (x ∪ y) ∪ z
-∪-assoc {y = y} {z = z} = elim e
+∪-assoc {y} {z} = elim e
   where
   e : Elim _
   e .is-propositionʳ _ = is-set
@@ -518,7 +518,7 @@ _ = refl _
 ∪-comm :
   (x : Finite-subset-of A) →
   x ∪ y ≡ y ∪ x
-∪-comm {y = y} = elim e
+∪-comm {y} = elim e
   where
   e : Elim _
   e .is-propositionʳ _ = is-set
@@ -543,7 +543,7 @@ _ = refl _
     [] ∪ []  ≡⟨⟩
     []       ∎
 
-  e .∷ʳ {y = y} x hyp =
+  e .∷ʳ {y} x hyp =
     (x ∷ y) ∪ (x ∷ y)  ≡⟨⟩
     x ∷ y ∪ x ∷ y      ≡⟨ cong (_ ∷_) (∪∷ y) ⟩
     x ∷ x ∷ y ∪ y      ≡⟨ drop ⟩
@@ -555,7 +555,7 @@ _ = refl _
 -- The union operator distributes from the left and right over itself.
 
 ∪-distrib-left : ∀ x → x ∪ (y ∪ z) ≡ (x ∪ y) ∪ (x ∪ z)
-∪-distrib-left {y = y} {z = z} x =
+∪-distrib-left {y} {z} x =
   x ∪ (y ∪ z)        ≡⟨ cong (_∪ _) $ sym (∪-idem x) ⟩
   (x ∪ x) ∪ (y ∪ z)  ≡⟨ sym $ ∪-assoc x ⟩
   x ∪ (x ∪ (y ∪ z))  ≡⟨ cong (x ∪_) $ ∪-assoc x ⟩
@@ -565,7 +565,7 @@ _ = refl _
   (x ∪ y) ∪ (x ∪ z)  ∎
 
 ∪-distrib-right : ∀ x → (x ∪ y) ∪ z ≡ (x ∪ z) ∪ (y ∪ z)
-∪-distrib-right {y = y} {z = z} x =
+∪-distrib-right {y} {z} x =
   (x ∪ y) ∪ z        ≡⟨ ∪-comm (x ∪ _) ⟩
   z ∪ (x ∪ y)        ≡⟨ ∪-distrib-left z ⟩
   (z ∪ x) ∪ (z ∪ y)  ≡⟨ cong₂ _∪_ (∪-comm z) (∪-comm z) ⟩∎
@@ -593,7 +593,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- The function x ∷_ is monotone with respect to _⊆_.
 
 ∷-cong-⊆ : ∀ y z → y ⊆ z → x ∷ y ⊆ x ∷ z
-∷-cong-⊆ {x = x} y z y⊆z = λ u →
+∷-cong-⊆ {x} y z y⊆z = λ u →
   u ∈ x ∷ y        ↔⟨⟩
   u ≡ x ∥⊎∥ u ∈ y  ↝⟨ id Trunc.∥⊎∥-cong y⊆z _ ⟩
   u ≡ x ∥⊎∥ u ∈ z  ↔⟨⟩
@@ -602,7 +602,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- The union operator is monotone with respect to _⊆_.
 
 ∪-mono-⊆ : ∀ x₁ x₂ → x₁ ⊆ x₂ → y₁ ⊆ y₂ → x₁ ∪ y₁ ⊆ x₂ ∪ y₂
-∪-mono-⊆ {y₁ = y₁} {y₂ = y₂} x₁ x₂ x₁⊆x₂ y₁⊆y₂ = λ u →
+∪-mono-⊆ {y₁} {y₂} x₁ x₂ x₁⊆x₂ y₁⊆y₂ = λ u →
   u ∈ x₁ ∪ y₁        ↔⟨ ∈∪≃∈∥⊎∥∈ x₁ ⟩
   u ∈ x₁ ∥⊎∥ u ∈ y₁  ↝⟨ x₁⊆x₂ u Trunc.∥⊎∥-cong y₁⊆y₂ u ⟩
   u ∈ x₂ ∥⊎∥ u ∈ y₂  ↔⟨ inverse $ ∈∪≃∈∥⊎∥∈ x₂ ⟩□
@@ -611,7 +611,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- The subset property can be expressed using _∪_ and _≡_.
 
 ⊆≃∪≡ : ∀ x → (x ⊆ y) ≃ (x ∪ y ≡ y)
-⊆≃∪≡ {y = y} x = Eq.⇔→≃
+⊆≃∪≡ {y} x = Eq.⇔→≃
   (⊆-propositional x y)
   is-set
   (elim e x)
@@ -653,7 +653,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- Equality can be expressed using _⊆_.
 
 ≡≃⊆×⊇ : (x ≡ y) ≃ (x ⊆ y × y ⊆ x)
-≡≃⊆×⊇ {x = x} {y = y} =
+≡≃⊆×⊇ {x} {y} =
   x ≡ y                  ↝⟨ Eq.⇔→≃
                               is-set
                               (×-closure 1 is-set is-set)
@@ -675,7 +675,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- Extensional equality is equivalent to equality.
 
 ∼≃≡ : (x ∼ y) ≃ (x ≡ y)
-∼≃≡ {x = x} {y = y} =
+∼≃≡ {x} {y} =
   x ∼ y                                      ↔⟨⟩
   (∀ z → z ∈ x ⇔ z ∈ y)                      ↔⟨ (∀-cong ext λ _ → ⇔↔→×→) ⟩
   (∀ z → (z ∈ x → z ∈ y) × (z ∈ y → z ∈ x))  ↔⟨ ΠΣ-comm ⟩
@@ -706,7 +706,7 @@ private
     -- A lemma relating from, _∈_ and LM._∈_.
 
     ∈from≃ : ∀ x → (z ∈ from x) ≃ (z LM.∈ x)
-    ∈from≃ {z = z} = Listed.elim-prop e
+    ∈from≃ {z} = Listed.elim-prop e
       where
       e : Listed.Elim-prop _
       e .Listed.Elim-prop.[]ʳ =
@@ -715,7 +715,7 @@ private
         ⊥₀                  ↝⟨ inverse $ LM.∈[]≃ ⟩
         z LM.∈ Listed.[]    □
 
-      e .Listed.Elim-prop.∷ʳ {y = y} x hyp =
+      e .Listed.Elim-prop.∷ʳ {y} x hyp =
         z ∈ from (x Listed.∷ y)  ↔⟨⟩
         z ≡ x ∥⊎∥ z ∈ from y     ↝⟨ F.id Trunc.∥⊎∥-cong hyp ⟩
         z ≡ x ∥⊎∥ z LM.∈ y       ↝⟨ inverse LM.∈∷≃ ⟩□
@@ -737,7 +737,7 @@ private
         e′ : Listed.Elim-prop _
         e′ .Listed.Elim-prop.[]ʳ _ = LM.⊆-refl
 
-        e′ .Listed.Elim-prop.∷ʳ {y = y} x _ _ z =
+        e′ .Listed.Elim-prop.∷ʳ {y} x _ _ z =
           z LM.∈ Listed.[]     ↔⟨ LM.∈[]≃ ⟩
           ⊥₀                   ↝⟨ ⊥-elim ⟩□
           z LM.∈ x Listed.∷ y  □
@@ -770,7 +770,7 @@ private
     -- The function from is injective.
 
     from-injective : Injective (from {A = A})
-    from-injective {x = x} {y = y} =
+    from-injective {x} {y} =
       from x ≡ from y                    ↔⟨ ≡≃⊆×⊇ ⟩
       from x ⊆ from y × from y ⊆ from x  ↝⟨ Σ-map (from⊆from→ _ _) (from⊆from→ _ _) ⟩
       x LM.⊆ y × y LM.⊆ x                ↝⟨ uncurry LM.⊆-antisymmetric ⟩□
@@ -820,7 +820,7 @@ Listed≃Listed = Eq.↔→≃ (proj₁ ∘ to) from to-from (proj₂ ∘ to)
 -- The equivalence preserves membership.
 
 ∈≃∈ : ∀ y → (x ∈ y) ≃ (x LM.∈ _≃_.to Listed≃Listed y)
-∈≃∈ {x = x} y =
+∈≃∈ {x} y =
   x ∈ y                                                ↝⟨ ≡⇒↝ _ $ cong (_ ∈_) $ sym $ _≃_.left-inverse-of Listed≃Listed y ⟩
   x ∈ _≃_.from Listed≃Listed (_≃_.to Listed≃Listed y)  ↝⟨ ∈from≃ _ ⟩□
   x LM.∈ _≃_.to Listed≃Listed y                        □
@@ -847,7 +847,7 @@ record Elim′ {A : Type a} (P : Finite-subset-of A → Type p) :
 open Elim′ public
 
 elim′ : Elim′ P → (x : Finite-subset-of A) → P x
-elim′ {P = P} e x =
+elim′ {P} e x =
   subst P (_≃_.left-inverse-of Listed≃Listed x)
     (Listed.elim e′ (_≃_.to Listed≃Listed x))
   where

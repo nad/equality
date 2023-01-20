@@ -143,11 +143,11 @@ private abstract
   ext-helper :
     {f g : (x : A) → P x} →
     (∀ x → f x ≡ g x) → Interval → (x : A) → P x
-  ext-helper {f = f} {g = g} f≡g i =
+  ext-helper {f} {g} f≡g i =
     λ x → rec (f x) (g x) (f≡g x) i
 
   ⟨ext⟩′ : Function-extensionality a p
-  ⟨ext⟩′ {f = f} {g = g} f≡g =
+  ⟨ext⟩′ {f} {g} f≡g =
     f                   ≡⟨⟩
     ext-helper f≡g [0]  ≡⟨ cong (ext-helper f≡g) 0≡1 ⟩∎
     ext-helper f≡g [1]  ∎

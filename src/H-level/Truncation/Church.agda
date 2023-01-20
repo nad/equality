@@ -116,7 +116,7 @@ private
     Extensionality (d ⊔ lsuc ℓ) (d ⊔ ℓ) →
     (C↔D : C ↔ D) (∥d∥ : ∥ D ∥ n ℓ) →
     ∥∥-map _ (_↔_.to C↔D) (∥∥-map _ (_↔_.from C↔D) ∥d∥) ≡ ∥d∥
-  lemma {d = d} ext C↔D ∥d∥ =
+  lemma {d} ext C↔D ∥d∥ =
     apply-ext (lower-extensionality d        lzero ext) λ P →
     apply-ext (lower-extensionality _        lzero ext) λ h →
     apply-ext (lower-extensionality (lsuc ℓ) d     ext) λ g →
@@ -273,7 +273,7 @@ surjective×embedding≃equivalence :
   ∀ {a b} ℓ {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (lsuc (a ⊔ b ⊔ ℓ)) →
   (Surjective (a ⊔ b ⊔ ℓ) f × Is-embedding f) ≃ Is-equivalence f
-surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
+surjective×embedding≃equivalence {a} {b} ℓ {f} ext =
   Eq.⇔→≃
     (×-closure 1 (Surjective-propositional ext)
                  (Is-embedding-propositional
@@ -335,7 +335,7 @@ surjective×embedding≃equivalence {a} {b} ℓ {f = f} ext =
   ∀ {ℓ a} {A : Type a} →
   Extensionality (lsuc ℓ ⊔ a) (ℓ ⊔ a) →
   ∥ A ∥ 1 ℓ × A ↔ A
-∥∥×↔ {ℓ} {A = A} ext =
+∥∥×↔ {ℓ} {A} ext =
   ∥ A ∥ 1 ℓ × A  ↝⟨ ×-comm ⟩
   A × ∥ A ∥ 1 ℓ  ↝⟨ (drop-⊤-right λ a →
                      _⇔_.to contractible⇔↔⊤ $
@@ -418,7 +418,7 @@ inhabited⇒∥∥↔⊤ ext ∥a∥ =
 not-inhabited⇒∥∥↔⊥ :
   ∀ {ℓ₁ ℓ₂ a} {A : Type a} →
   ¬ A → ∥ A ∥ 1 ℓ₁ ↔ ⊥ {ℓ = ℓ₂}
-not-inhabited⇒∥∥↔⊥ {A = A} =
+not-inhabited⇒∥∥↔⊥ {A} =
   ¬ A            ↝⟨ (λ ¬a ∥a∥ → rec 1 ⊥-propositional ¬a (with-lower-level _ 1 ∥a∥)) ⟩
   ¬ ∥ A ∥ 1 _    ↝⟨ inverse ∘ Bijection.⊥↔uninhabited ⟩□
   ∥ A ∥ 1 _ ↔ ⊥  □
@@ -516,7 +516,7 @@ drop-∥∥₃ :
     ↔
   (∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)
 
-drop-∥∥₃ ℓ {b = b} {c} {A = A} {B} {C} {D} ext =
+drop-∥∥₃ ℓ {b} {c} {A} {B} {C} {D} ext =
   (∥ A ∥ 1 _ →
    ∃ λ (f : ∀ x → B x) → ∃ λ (g : ∀ x → C x f) → ∀ x → D x f g)  ↝⟨ push-∥∥ ℓ ext ⟩
 
@@ -912,7 +912,7 @@ universal-property :
   Extensionality (lsuc (a ⊔ b ⊔ ℓ)) (a ⊔ b ⊔ ℓ) →
   Is-proposition B →
   (∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B) ≃ (A → B)
-universal-property {a = a} {b} ℓ {A} {B} ext B-prop =
+universal-property {a} {b} ℓ {A} {B} ext B-prop =
   Eq.with-other-function
     ((∥ A ∥ 1 (a ⊔ b ⊔ ℓ) → B)       ↝⟨ inverse $ constant-function≃∥inhabited∥⇒inhabited ℓ ext (mono₁ 1 B-prop) ⟩
      (∃ λ (f : A → B) → Constant f)  ↔⟨ (drop-⊤-right λ _ →
@@ -971,7 +971,7 @@ module Real-propositional-truncation
     (∀ x → Is-proposition (P x)) →
     ((x : A) → P ∣ x ∣ʳ) →
     (x : ∥ A ∥ʳ) → P x
-  elimʳ {A = A} ext P P-prop f x =
+  elimʳ {A} ext P P-prop f x =
     recʳ {A = A}
          {B = ∀ x → P x}
          (Π-closure ext 1 P-prop)

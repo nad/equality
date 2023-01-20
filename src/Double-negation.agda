@@ -181,7 +181,7 @@ Excluded-middle≃Double-negation-elimination ext =
 -- Rijke, Shulman and Spitters, but the proof might be different.
 
 ¬¬-modality : ∀ {ℓ} → Extensionality ℓ ℓ → Modality ℓ
-¬¬-modality {ℓ = ℓ} ext = λ where
+¬¬-modality {ℓ} ext = λ where
     .◯ → ¬¬_
 
     .η → return
@@ -195,13 +195,13 @@ Excluded-middle≃Double-negation-elimination ext =
 
     .Modal-◯ → ¬¬-propositional ext₀ , _>>= id
 
-    .Modal-respects-≃ {A = A} {B = B} A≃B →
+    .Modal-respects-≃ {A} {B} A≃B →
       Σ-map
         (H-level-cong _ 1 A≃B)
         ((¬¬ A → A)  →⟨ (_≃_.to A≃B ∘_) ∘ (_∘ map (_≃_.from A≃B)) ⟩□
          (¬¬ B → B)  □)
 
-    .extendable-along-η {A = A} {P = P} →
+    .extendable-along-η {A} {P} →
       (∀ x → ¬¬-modal (P x))              →⟨ lemma ⟩
       Is-equivalence (_∘ return)          ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
       Is-∞-extendable-along-[ return ] P  □
@@ -220,7 +220,7 @@ Excluded-middle≃Double-negation-elimination ext =
     {A : Type ℓ} {P : ¬¬ A → Type ℓ} →
     (∀ x → ¬¬-modal (P x)) →
     Is-equivalence (λ (g : ∀ x → P x) → g ∘ return)
-  lemma {A = A} {P = P} hyp =
+  lemma {A} {P} hyp =
     _≃_.is-equivalence $
     Eq.⇔→≃
       (Π-closure ext 1 λ x →
@@ -247,7 +247,7 @@ Excluded-middle≃Double-negation-elimination ext =
   ∀ {a} →
   Extensionality a a →
   ¬ Left-exact (¬¬_ {a = a})
-¬¬-not-left-exact {a = a} ext =
+¬¬-not-left-exact {a} ext =
   Empty-modal→Is-proposition-◯→¬-Left-exact
     (¬¬-empty-modal ext)
     (¬¬-propositional (lower-extensionality lzero _ ext))
@@ -259,7 +259,7 @@ Excluded-middle≃Double-negation-elimination ext =
 ¬¬-not-very-modal :
   ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
   ¬ Very-modal (¬¬-modality ext)
-¬¬-not-very-modal {ℓ = ℓ} ext =
+¬¬-not-very-modal {ℓ} ext =
   ({A : Type ℓ} → ¬¬ (Is-proposition A × (¬¬ A → A)))        →⟨ (λ hyp → hyp) ⟩
   ¬¬ (Is-proposition (↑ ℓ Bool) × (¬¬ ↑ ℓ Bool → ↑ ℓ Bool))  →⟨ map′ proj₁ ⟩
   ¬¬ Is-proposition (↑ ℓ Bool)                               →⟨ map′ (H-level-cong _ 1 B.↑↔) ⟩
@@ -274,7 +274,7 @@ Excluded-middle≃Double-negation-elimination ext =
   ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
   Double-negation-elimination ℓ →
   W-modal (¬¬-modality ext)
-¬¬-W-modal ext dne {A = A} {P = P} (p , _) =
+¬¬-W-modal ext dne {A} {P} (p , _) =
   prop , dne prop
   where
   open Modality (¬¬-modality ext)
@@ -287,7 +287,7 @@ Excluded-middle≃Double-negation-elimination ext =
 ¬¬-not-accessibility-modal :
   ∀ {ℓ} (ext : Extensionality ℓ ℓ) →
   ¬ Modality.Accessibility-modal (¬¬-modality ext)
-¬¬-not-accessibility-modal {ℓ = ℓ} ext =
+¬¬-not-accessibility-modal {ℓ} ext =
   Is-proposition-◯→¬-Accessibility-modal
     (¬¬-propositional (lower-extensionality lzero _ ext))
   where
@@ -304,7 +304,7 @@ Excluded-middle≃Double-negation-elimination ext =
   Is-proposition A →
   (∀ {x y} → Is-proposition (x < y)) →
   Modality.Accessibility-modal-for (¬¬-modality ext) _<_
-¬¬-accessibility-modal-for-propositions {_<_ = _<_} ext dne prop prop′ =
+¬¬-accessibility-modal-for-propositions {_<_} ext dne prop prop′ =
     (λ acc → Modal→Acc→Acc-[]◯-η (prop , dne prop) (dne prop′) acc)
   , dne (A.Acc-propositional ext)
   where
@@ -324,7 +324,7 @@ commutes-with-Erased :
   ∀ {ℓ} →
   (ext : Extensionality ℓ ℓ) →
   Modality.Commutes-with-Erased (¬¬-modality ext)
-commutes-with-Erased {ℓ = ℓ} ext =
+commutes-with-Erased {ℓ} ext =
   _≃_.is-equivalence $
   Eq.↔→≃
     _
@@ -342,7 +342,7 @@ commutes-with-Erased {ℓ = ℓ} ext =
   ext₀ = lower-extensionality lzero _ ext
 
   from : {@0 A : Type ℓ} → Erased (¬¬ A) → ¬¬ Erased A
-  from {A = A} =
+  from {A} =
     Erased (¬¬ A)   →⟨ E.map run ⟩
     Erased (¬ ¬ A)  →⟨ E.Erased-¬↔¬ _ ⟩
     ¬ Erased (¬ A)  →⟨ →-cong-→ (_⇔_.from (E.Erased-¬↔¬ _)) id ⟩

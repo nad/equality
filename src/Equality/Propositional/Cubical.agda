@@ -29,13 +29,13 @@ private
 
 equality-with-paths :
   ∀ {a p} → P.Equality-with-paths a p equivalence-relation⁺
-equality-with-paths         .P.Equality-with-paths.equality-with-J   = equality-with-paths′         .P.Equality-with-paths.equality-with-J
-equality-with-paths {p = p} .P.Equality-with-paths.to-path           = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path
-equality-with-paths {p = p} .P.Equality-with-paths.from-path         = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path
-equality-with-paths {p = p} .P.Equality-with-paths.to-path∘from-path = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path∘from-path
-equality-with-paths {p = p} .P.Equality-with-paths.from-path∘to-path = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path∘to-path
-equality-with-paths {p = p} .P.Equality-with-paths.to-path-refl      = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path-refl
-equality-with-paths {p = p} .P.Equality-with-paths.from-path-refl    = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path-refl
+equality-with-paths     .P.Equality-with-paths.equality-with-J   = equality-with-paths′         .P.Equality-with-paths.equality-with-J
+equality-with-paths {p} .P.Equality-with-paths.to-path           = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path
+equality-with-paths {p} .P.Equality-with-paths.from-path         = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path
+equality-with-paths {p} .P.Equality-with-paths.to-path∘from-path = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path∘from-path
+equality-with-paths {p} .P.Equality-with-paths.from-path∘to-path = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path∘to-path
+equality-with-paths {p} .P.Equality-with-paths.to-path-refl      = equality-with-paths′ {p = p} .P.Equality-with-paths.to-path-refl
+equality-with-paths {p} .P.Equality-with-paths.from-path-refl    = equality-with-paths′ {p = p} .P.Equality-with-paths.from-path-refl
 
 open P.Derived-definitions-and-properties equality-with-paths public
   hiding (refl)

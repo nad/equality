@@ -38,7 +38,7 @@ private
 -- Is-equivalence with erased proofs.
 
 Is-equivalenceᴱ : {A : Type a} {B : Type b} → @0 (A → B) → Type (a ⊔ b)
-Is-equivalenceᴱ {A = A} {B = B} f =
+Is-equivalenceᴱ {A} {B} f =
   ∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹)
 
 ------------------------------------------------------------------------
@@ -62,7 +62,7 @@ Is-equivalenceᴱ→Is-equivalence = Σ-map P.id erased
 Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP :
   {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} →
   Is-equivalenceᴱ f ⇔ ECP.Is-equivalenceᴱ f
-Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f = f} =
+Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP {f} =
   record { to = to; from = from }
   where
   to : Is-equivalenceᴱ f → ECP.Is-equivalenceᴱ f
@@ -225,7 +225,7 @@ record Erased-proofs {A : Type a} {B : Type b}
   {@0 A : Type a} {@0 B : Type b} {to : A → B} {from : B → A} →
   @0 Erased-proofs to from →
   A ≃ᴱ B
-[≃]→≃ᴱ {to = to} {from = from} ep =
+[≃]→≃ᴱ {to} {from} ep =
   ⟨ to , (from , [ ep .Erased-proofs.proofs ]) ⟩
 
 -- A function with a quasi-inverse with erased proofs can be turned
@@ -237,7 +237,7 @@ record Erased-proofs {A : Type a} {B : Type b}
   @0 (∀ x → f (g x) ≡ x) →
   @0 (∀ x → g (f x) ≡ x) →
   A ≃ᴱ B
-↔→≃ᴱ {A = A} {B = B} f g f∘g g∘f = [≃]→≃ᴱ ([proofs] A≃B′)
+↔→≃ᴱ {A} {B} f g f∘g g∘f = [≃]→≃ᴱ ([proofs] A≃B′)
   where
   @0 A≃B′ : A ≃ B
   A≃B′ = Eq.↔⇒≃ (record
@@ -297,7 +297,7 @@ Is-equivalenceᴱ-cong-⇔ :
   {@0 A : Type a} {@0 B : Type b} {@0 f g : A → B} →
   @0 (∀ x → f x ≡ g x) →
   Is-equivalenceᴱ f ⇔ Is-equivalenceᴱ g
-Is-equivalenceᴱ-cong-⇔ {f = f} {g = g} f≡g =
+Is-equivalenceᴱ-cong-⇔ {f} {g} f≡g =
   record { to = to f≡g; from = to (sym ⊚ f≡g) }
   where
   to :

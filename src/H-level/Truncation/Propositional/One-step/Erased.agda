@@ -71,7 +71,7 @@ record Elimᴾ {A : Type a} (P : ∥ A ∥¹ᴱ → Type p) : Type (a ⊔ p) whe
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : ∥ A ∥¹ᴱ) → P x
-elimᴾ {A = A} {P = P} e = helper
+elimᴾ {A} {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -177,7 +177,7 @@ private
     subst (λ z → ∥∥¹ᴱ-map f (∥∥¹ᴱ-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x)) ≡
     cong ∣_∣ (eq y)
-  ∥∥¹ᴱ-cong-lemma {x = x} {y = y} f g eq =
+  ∥∥¹ᴱ-cong-lemma {x} {y} f g eq =
     subst
       (λ z → ∥∥¹ᴱ-map f (∥∥¹ᴱ-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x))                           ≡⟨ subst-in-terms-of-trans-and-cong ⟩
@@ -274,8 +274,8 @@ private
 
 ∥∥¹ᴱ-out-^+≃ :
   ∀ m → ∥ A ∥¹ᴱ-out-^ (m + n) ≃ ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ-out-^ m
-∥∥¹ᴱ-out-^+≃                 zero    = F.id
-∥∥¹ᴱ-out-^+≃ {A = A} {n = n} (suc m) =
+∥∥¹ᴱ-out-^+≃         zero    = F.id
+∥∥¹ᴱ-out-^+≃ {A} {n} (suc m) =
   ∥ ∥ A ∥¹ᴱ-out-^ (m + n) ∥¹ᴱ          ↝⟨ ∥∥¹ᴱ-cong-≃ (∥∥¹ᴱ-out-^+≃ m) ⟩□
   ∥ ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ-out-^ m ∥¹ᴱ  □
 
@@ -283,8 +283,8 @@ private
 
 ∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute :
   ∀ n → ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ ↔ ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-out-^ n
-∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute         zero    = F.id
-∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute {A = A} (suc n) =
+∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute     zero    = F.id
+∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute {A} (suc n) =
   ∥ ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ-cong-↔ (∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute n) ⟩□
   ∥ ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-out-^ n ∥¹ᴱ  □
 
@@ -316,8 +316,8 @@ private
 -- The two variants of ∥_∥¹ᴱ^ are pointwise equivalent.
 
 ∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ : ∀ n → ∥ A ∥¹ᴱ-out-^ n ≃ ∥ A ∥¹ᴱ-in-^ n
-∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^         zero    = F.id
-∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ {A = A} (suc n) =
+∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^     zero    = F.id
+∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ {A} (suc n) =
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↔⟨ ∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute n ⟩
   ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-out-^ n  ↝⟨ ∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n ⟩□
   ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n   □
@@ -325,7 +325,7 @@ private
 -- ∥_∥¹ᴱ commutes with ∥_∥¹ᴱ-in-^ n.
 
 ∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute : ∀ n → ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ ≃ ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n
-∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute {A = A} n =
+∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute {A} n =
   ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ   ↝⟨ ∥∥¹ᴱ-cong-≃ (inverse $ ∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) ⟩
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↔⟨⟩
   ∥ A ∥¹ᴱ-out-^ (suc n)  ↝⟨ ∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (suc n) ⟩
@@ -344,8 +344,8 @@ private
   ∀ n {x : ∥ A ∥¹ᴱ-out-^ n} →
   _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (suc n)) ∣ x ∣ ≡
   ∣ n , _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) x ∣-in-^
-∣∣≡∣,∣-in-^ zero    {x = x} = ∣ x ∣  ∎
-∣∣≡∣,∣-in-^ (suc n) {x = x} =
+∣∣≡∣,∣-in-^ zero    {x} = ∣ x ∣  ∎
+∣∣≡∣,∣-in-^ (suc n) {x} =
   _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (2 + n)) ∣ x ∣            ≡⟨⟩
 
   _≃_.to (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (1 + n))
@@ -360,8 +360,8 @@ private
   ∀ n {x : ∥ A ∥¹ᴱ-in-^ n} →
   _≃_.from (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
   ∣ _≃_.from (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ n) x ∣
-∣,∣-in-^≡∣∣ zero    {x = x} = ∣ x ∣  ∎
-∣,∣-in-^≡∣∣ (suc n) {x = x} =
+∣,∣-in-^≡∣∣ zero    {x} = ∣ x ∣  ∎
+∣,∣-in-^≡∣∣ (suc n) {x} =
   _≃_.from (∥∥¹ᴱ-out-^≃∥∥¹ᴱ-in-^ (2 + n)) ∣ 1 + n , x ∣-in-^  ≡⟨⟩
 
   _↔_.from (∥∥¹ᴱ-∥∥¹ᴱ-out-^-commute (1 + n))

@@ -70,7 +70,7 @@ module _
     -- to force users to work in a parametrised setting.)
 
     Queue_⟪_⟫ : {A : Type a} → @0 List A → Type a
-    Queue_⟪_⟫ {A = A} xs =
+    Queue_⟪_⟫ {A} xs =
       ∥ (∃ λ (q : Q A) → Erased (Q.to-List _ q ≡ xs)) ∥
 
   -- Queues.
@@ -108,7 +108,7 @@ module _
   ≡-for-indices↔≡ :
     {xs ys : Queue Q A} →
     Erased (⌊ xs ⌋ ≡ ⌊ ys ⌋) ↔ xs ≡ ys
-  ≡-for-indices↔≡ {xs = xs} {ys = ys} =
+  ≡-for-indices↔≡ {xs} {ys} =
     Erased (⌊ xs ⌋ ≡ ⌊ ys ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
     proj₁ xs ≡ proj₁ ys       ↝⟨ ignore-propositional-component Queue-⟪⟫-propositional ⟩□
     xs ≡ ys                   □
@@ -122,7 +122,7 @@ module _
 
   strengthen-queue-equality :
     {q₁ q₂ : Queue Q A} → (Very-stable-≡ A → q₁ ≡ q₂) → q₁ ≡ q₂
-  strengthen-queue-equality {q₁ = q₁} {q₂ = q₂} eq =
+  strengthen-queue-equality {q₁} {q₂} eq =
     _↔_.to ≡-for-indices↔≡
       [ ⌊ q₁ ⌋  ≡⟨ cong ⌊_⌋ (eq (Very-stable→Very-stable-≡ 0 (erased Erased-Very-stable))) ⟩∎
         ⌊ q₂ ⌋  ∎
@@ -154,7 +154,7 @@ module _
       {@0 ys : List A} →
       Very-stableᴱ-≡ A →
       Queue Q ⟪ ys ⟫ ↔ ∃ λ xs → Erased (xs ≡ ys)
-    Queue-⟪⟫↔Σ-List {ys = ys} s = Bijection.with-other-inverse
+    Queue-⟪⟫↔Σ-List {ys} s = Bijection.with-other-inverse
       Queue-⟪⟫↔Σ-List′
       Σ-List→Queue-⟪⟫
       (λ _ → from-Queue-⟪⟫↔Σ-List′)
@@ -176,7 +176,7 @@ module _
   -- Queue Q A is isomorphic to List A.
 
   Queue↔List : Very-stableᴱ-≡ A → Queue Q A ↔ List A
-  Queue↔List {A = A} s =
+  Queue↔List {A} s =
     Queue Q A                                                        ↔⟨⟩
     (∃ λ (xs : Erased (List A)) → Queue Q ⟪ erased xs ⟫)             ↝⟨ (∃-cong λ _ → Queue-⟪⟫↔Σ-List s) ⟩
     (∃ λ (xs : Erased (List A)) → ∃ λ ys → Erased (ys ≡ erased xs))  ↝⟨ Σ-Erased-Erased-singleton↔ ⟩□
@@ -204,7 +204,7 @@ module _
     -- The function to-List returns the index.
 
     @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋
-    ≡⌊⌋ {s = s} {q = q} =
+    ≡⌊⌋ {s} {q} =
       to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
         (Q.Queue↠List _) (Very-stableᴱ-≡-List 0 s) q
 
@@ -212,7 +212,7 @@ module _
   -- forward direction of this isomorphism returns the index directly.
 
   @0 Queue↔Listⁱ : Queue Q A ↔ List A
-  Queue↔Listⁱ {A = A} =
+  Queue↔Listⁱ {A} =
     Queue Q A                                             ↔⟨⟩
     (∃ λ (xs : Erased (List A)) → Queue Q ⟪ erased xs ⟫)  ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $
                                                              propositional⇒inhabited⇒contractible Queue-⟪⟫-propositional $
@@ -238,14 +238,14 @@ module _
   Maybe[×Queue]↔List :
     Very-stableᴱ-≡ A →
     Maybe (A × Queue Q A) ↔ List A
-  Maybe[×Queue]↔List {A = A} s =
+  Maybe[×Queue]↔List {A} s =
     Maybe (A × Queue Q A)  ↝⟨ F.id ⊎-cong F.id ×-cong Queue↔List s ⟩
     Maybe (A × List A)     ↝⟨ inverse List↔Maybe[×List] ⟩□
     List A                 □
 
   @0 Maybe[×Queue]↔Listⁱ :
     Maybe (A × Queue Q A) ↔ List A
-  Maybe[×Queue]↔Listⁱ {A = A} =
+  Maybe[×Queue]↔Listⁱ {A} =
     Maybe (A × Queue Q A)  ↝⟨ F.id ⊎-cong F.id ×-cong Queue↔Listⁱ ⟩
     Maybe (A × List A)     ↝⟨ inverse List↔Maybe[×List] ⟩□
     List A                 □
@@ -254,7 +254,7 @@ module _
     ∀ xs →
     _↔_.to (Maybe[×Queue]↔List s) xs ≡
     _↔_.to Maybe[×Queue]↔Listⁱ xs
-  to-Maybe[×Queue]↔List {s = s} xs =
+  to-Maybe[×Queue]↔List {s} xs =
     _↔_.from List↔Maybe[×List]
       (⊎-map id (Σ-map id (_↔_.to (Queue↔List s))) xs)  ≡⟨ cong (λ f → _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id f) xs)) (⟨ext⟩ λ _ →
                                                            to-Queue↔List) ⟩∎
@@ -266,7 +266,7 @@ module _
   ⌊⌋≡→to-List≡ :
     Erased (⌊ q ⌋ ≡ xs) →
     to-List s q ≡ xs
-  ⌊⌋≡→to-List≡ {q = q} {xs = xs} {s = s} eq =
+  ⌊⌋≡→to-List≡ {q} {xs} {s} eq =
     to-List s q               ≡⟨ cong (to-List _) (_↔_.to ≡-for-indices↔≡ eq) ⟩
     to-List s (from-List xs)  ≡⟨ _↔_.right-inverse-of (Queue↔List _) _ ⟩∎
     xs                        ∎
@@ -289,7 +289,7 @@ module _
           (g : Q A → Q B) →
           @0 (∀ {q} → Q.to-List _ (g q) ≡ f (Q.to-List _ q)) →
           Queue Q ⟪ xs ⟫ → Queue Q ⟪ f xs ⟫
-        unary {xs = xs} {f = f} g hyp = Trunc.rec
+        unary {xs} {f} g hyp = Trunc.rec
           truncation-is-proposition
           (uncurry λ q p →
              ∣ g q
@@ -320,7 +320,7 @@ module _
     -- this definition.
 
     Result-⟪_⟫ : {A : Type a} → @0 List A → Type a
-    Result-⟪_⟫ {A = A} xs =
+    Result-⟪_⟫ {A} xs =
       ∃ λ (q : Maybe (A × Queue Q A)) →
         Erased (_↔_.to Maybe[×Queue]↔Listⁱ q ≡ xs)
 
@@ -331,8 +331,7 @@ module _
       {@0 xs : List A} →
       Very-stableᴱ-≡ A →
       Is-proposition Result-⟪ xs ⟫
-    Result-⟪⟫-propositional {A = A} {xs = xs} s =
-                                            $⟨ erased-singleton-with-erased-center-propositional (Very-stableᴱ-≡-List 0 s) ⟩
+    Result-⟪⟫-propositional {A} {xs} s =    $⟨ erased-singleton-with-erased-center-propositional (Very-stableᴱ-≡-List 0 s) ⟩
       Is-proposition (Erased-singleton xs)  ↝⟨ H-level-cong _ 1 (inverse lemma) ⦂ (_ → _) ⟩□
       Is-proposition Result-⟪ xs ⟫          □
       where
@@ -359,7 +358,7 @@ module _
         Very-stableᴱ-≡ A →
         Queue Q ⟪ xs ⟫ →
         Result-⟪ xs ⟫
-      dequeue {xs = xs} s = Trunc.rec
+      dequeue {xs} s = Trunc.rec
         (Result-⟪⟫-propositional s)
         (λ (q , [ eq ]) →
 
@@ -392,14 +391,14 @@ module _
       dequeue⁻¹ :
         {@0 xs : List A} →
         Result-⟪ xs ⟫ → Queue Q ⟪ xs ⟫
-      dequeue⁻¹ {xs = xs} (nothing , eq) =
+      dequeue⁻¹ {xs} (nothing , eq) =
         ∣ Q.empty
         , [ Q.to-List _ (Q.empty ⦂ Q _)  ≡⟨ Q.to-List-empty ⟩
             []                           ≡⟨ erased eq ⟩∎
             xs                           ∎
           ]
         ∣
-      dequeue⁻¹ {xs = xs} (just (x , ys , q) , eq) =
+      dequeue⁻¹ {xs} (just (x , ys , q) , eq) =
         ∥∥-map (Σ-map (Q.cons x)
                       (λ {q′} → Erased-cong λ eq′ →
                                   Q.to-List _ (Q.cons x q′)  ≡⟨ Q.to-List-cons ⟩
@@ -438,7 +437,7 @@ module _
     enqueue x = Σ-map _ (Indexed.enqueue x)
 
     to-List-enqueue : to-List s (enqueue x q) ≡ to-List s q ++ x ∷ []
-    to-List-enqueue {s = s} {x = x} {q = q} = ⌊⌋≡→to-List≡
+    to-List-enqueue {s} {x} {q} = ⌊⌋≡→to-List≡
       [ ⌊ q ⌋ ++ x ∷ []        ≡⟨ cong (_++ _) $ sym ≡⌊⌋ ⟩∎
         to-List s q ++ x ∷ []  ∎
       ]
@@ -449,7 +448,7 @@ module _
     map f = Σ-map _ (Indexed.map f)
 
     to-List-map : to-List s₁ (map f q) ≡ L.map f (to-List s₂ q)
-    to-List-map {f = f} {q = q} {s₂ = s₂} = ⌊⌋≡→to-List≡
+    to-List-map {f} {q} {s₂} = ⌊⌋≡→to-List≡
       [ L.map f ⌊ q ⌋           ≡⟨ cong (L.map f) $ sym ≡⌊⌋ ⟩∎
         L.map f (to-List s₂ q)  ∎
       ]
@@ -498,7 +497,7 @@ module _
     Queue↔Maybe[×Queue] :
       Very-stableᴱ-≡ A →
       Queue Q A ↔ Maybe (A × Queue Q A)
-    Queue↔Maybe[×Queue] {A = A} s =
+    Queue↔Maybe[×Queue] {A} s =
       Queue Q A              ↝⟨ ∃-cong (λ _ → Indexed.Queue-⟪⟫↔Result-⟪⟫ s) ⟩
       Result A               ↝⟨ Result↔Maybe[×Queue] s ⟩□
       Maybe (A × Queue Q A)  □
@@ -519,7 +518,7 @@ module _
       _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
     to-List-dequeue⁻¹ {x = nothing} = ⌊⌋≡→to-List≡ [ refl _ ]
 
-    to-List-dequeue⁻¹ {s = s} {x = just (x , q)} = ⌊⌋≡→to-List≡
+    to-List-dequeue⁻¹ {s} {x = just (x , q)} = ⌊⌋≡→to-List≡
       [ x ∷ ⌊ q ⌋        ≡⟨ cong (_ ∷_) $ sym ≡⌊⌋ ⟩∎
         x ∷ to-List s q  ∎
       ]
@@ -532,7 +531,7 @@ module _
     to-List-dequeue :
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q) ≡
       _↔_.to List↔Maybe[×List] (to-List s q)
-    to-List-dequeue {s = s} {q = q} =
+    to-List-dequeue {s} {q} =
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q)                   ≡⟨ _↔_.to (from≡↔≡to (from-isomorphism List↔Maybe[×List])) $
                                                                          sym to-List-dequeue⁻¹ ⟩
       _↔_.to List↔Maybe[×List] (to-List s (dequeue⁻¹ (dequeue s q)))  ≡⟨ cong (_↔_.to List↔Maybe[×List] ∘ to-List s) $

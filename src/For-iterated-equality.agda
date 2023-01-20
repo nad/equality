@@ -46,8 +46,7 @@ For-iterated-equality-For-iterated-equality′ :
   For-iterated-equality (m + n) P A
 For-iterated-equality-For-iterated-equality′ zero _ _ = F.id
 
-For-iterated-equality-For-iterated-equality′ {P = P} {A = A}
-                                             (suc m) n ext =
+For-iterated-equality-For-iterated-equality′ {P} {A} (suc m) n ext =
   ((x y : A) →
    For-iterated-equality m (For-iterated-equality n P) (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                      For-iterated-equality-For-iterated-equality′ m n ext) ⟩□
@@ -60,8 +59,7 @@ For-iterated-equality-For-iterated-equality :
   ∀ m n →
   For-iterated-equality m (For-iterated-equality n P) A ↝[ a ∣ a ]
   For-iterated-equality (n + m) P A
-For-iterated-equality-For-iterated-equality {P = P} {A = A}
-                                            m n ext =
+For-iterated-equality-For-iterated-equality {P} {A} m n ext =
   For-iterated-equality m (For-iterated-equality n P) A  ↝⟨ For-iterated-equality-For-iterated-equality′ m n ext ⟩
   For-iterated-equality (m + n) P A                      ↝⟨ ≡⇒↝ _ $ cong (λ n → For-iterated-equality n P A) (+-comm m) ⟩□
   For-iterated-equality (n + m) P A                      □
@@ -79,7 +77,7 @@ For-iterated-equality-cong₁ :
   For-iterated-equality n P A ↝[ k ] For-iterated-equality n Q A
 For-iterated-equality-cong₁ _ zero P↝Q = P↝Q
 
-For-iterated-equality-cong₁ {A = A} {P = P} {Q = Q} ext (suc n) P↝Q =
+For-iterated-equality-cong₁ {A} {P} {Q} ext (suc n) P↝Q =
   ((x y : A) → For-iterated-equality n P (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                        For-iterated-equality-cong₁ ext n P↝Q) ⟩□
   ((x y : A) → For-iterated-equality n Q (x ≡ y))  □
@@ -93,7 +91,7 @@ For-iterated-equality-cong₁ᴱ-→ :
   For-iterated-equality n P A → For-iterated-equality n Q A
 For-iterated-equality-cong₁ᴱ-→ zero P→Q = P→Q
 
-For-iterated-equality-cong₁ᴱ-→ {A = A} {P = P} {Q = Q} (suc n) P→Q =
+For-iterated-equality-cong₁ᴱ-→ {A} {P} {Q} (suc n) P→Q =
   ((x y : A) → For-iterated-equality n P (x ≡ y))  →⟨ For-iterated-equality-cong₁ᴱ-→ n (λ {A} → P→Q {A = A}) ∘_ ∘_ ⟩□
   ((x y : A) → For-iterated-equality n Q (x ≡ y))  □
 
@@ -106,8 +104,7 @@ For-iterated-equality-cong-→ :
   For-iterated-equality n P A → For-iterated-equality n Q B
 For-iterated-equality-cong-→ zero P↝Q A↠B = P↝Q A↠B
 
-For-iterated-equality-cong-→ {P = P} {Q = Q} {A = A} {B = B}
-                             (suc n) P↝Q A↠B =
+For-iterated-equality-cong-→ {P} {Q} {A} {B} (suc n) P↝Q A↠B =
   ((x y : A) → For-iterated-equality n P (x ≡ y))  ↝⟨ (Π-cong-contra-→ (_↠_.from A↠B) λ _ → Π-cong-contra-→ (_↠_.from A↠B) λ _ →
                                                        For-iterated-equality-cong-→ n P↝Q $ Surj.↠-≡ A↠B) ⟩□
   ((x y : B) → For-iterated-equality n Q (x ≡ y))  □
@@ -121,8 +118,7 @@ For-iterated-equality-cong :
   For-iterated-equality n P A ↝[ k ] For-iterated-equality n Q B
 For-iterated-equality-cong _ zero P↝Q A↔B = P↝Q A↔B
 
-For-iterated-equality-cong {A = A} {B = B} {P = P} {Q = Q}
-                           ext (suc n) P↝Q A↔B =
+For-iterated-equality-cong {A} {B} {P} {Q} ext (suc n) P↝Q A↔B =
   ((x y : A) → For-iterated-equality n P (x ≡ y))  ↝⟨ (Π-cong ext A↔B λ _ → Π-cong ext A↔B λ _ →
                                                        For-iterated-equality-cong ext n P↝Q $ inverse $ _≃_.bijection $
                                                        Eq.≃-≡ $ from-isomorphism A↔B) ⟩□
@@ -147,7 +143,7 @@ For-iterated-equality-↑-⊤ :
   P (↑ ℓ ⊤) ↝[ k ] For-iterated-equality n P (↑ ℓ ⊤)
 For-iterated-equality-↑-⊤ _ zero _ = F.id
 
-For-iterated-equality-↑-⊤ {P = P} ext (suc n) resp =
+For-iterated-equality-↑-⊤ {P} ext (suc n) resp =
   P (↑ _ ⊤)                                                ↝⟨ For-iterated-equality-↑-⊤ ext n resp ⟩
   For-iterated-equality n P (↑ _ ⊤)                        ↝⟨ For-iterated-equality-cong ext n resp $
                                                               inverse lift≡lift↔ F.∘ inverse tt≡tt↔⊤ F.∘ Bijection.↑↔ ⟩
@@ -160,7 +156,7 @@ For-iterated-equality-⊤ :
   ∀ n →
   (∀ {A B} → A ↔ B → P A ↝[ k ] P B) →
   P ⊤ ↝[ k ] For-iterated-equality n P ⊤
-For-iterated-equality-⊤ {P = P} ext n resp =
+For-iterated-equality-⊤ {P} ext n resp =
   P ⊤                                ↝⟨ resp (inverse Bijection.↑↔) ⟩
   P (↑ _ ⊤)                          ↝⟨ For-iterated-equality-↑-⊤ ext n resp ⟩
   For-iterated-equality n P (↑ _ ⊤)  ↝⟨ For-iterated-equality-cong ext n resp Bijection.↑↔ ⟩□
@@ -171,7 +167,7 @@ For-iterated-equality-⊤ {P = P} ext n resp =
 For-iterated-equality-suc-⊥ :
   {P : Type p → Type p} →
   ∀ n → ⊤ ↝[ p ∣ p ] For-iterated-equality (suc n) P ⊥
-For-iterated-equality-suc-⊥ {P = P} n ext =
+For-iterated-equality-suc-⊥ {P} n ext =
   ⊤                                                ↝⟨ inverse-ext? Π⊥↔⊤ ext ⟩□
   ((x y : ⊥) → For-iterated-equality n P (x ≡ y))  □
 
@@ -198,7 +194,7 @@ For-iterated-equality-Π :
   For-iterated-equality n Q (∀ x → B x)
 For-iterated-equality-Π _ zero _ hyp = hyp
 
-For-iterated-equality-Π {Q = Q} {P = P} {B = B} ext (suc n) resp hyp =
+For-iterated-equality-Π {Q} {P} {B} ext (suc n) resp hyp =
   (∀ x (y z : B x) → For-iterated-equality n P (y ≡ z))              ↝⟨ (λ hyp _ _ _ → hyp _ _ _) ⟩
   (∀ (f g : ∀ x → B x) x → For-iterated-equality n P (f x ≡ g x))    ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → For-iterated-equality-Π ext n resp hyp) ⟩
   ((f g : ∀ x → B x) → For-iterated-equality n Q (∀ x → f x ≡ g x))  ↝⟨ (∀-cong _ λ _ → ∀-cong _ λ _ → For-iterated-equality-cong _ n resp $
@@ -218,9 +214,7 @@ For-iterated-equality-Σ :
   For-iterated-equality n R (Σ A B)
 For-iterated-equality-Σ zero _ hyp = hyp
 
-For-iterated-equality-Σ {R = R} {P = P} {Q = Q} {A = A} {B = B}
-  (suc n) resp hyp = curry (
-
+For-iterated-equality-Σ {R} {P} {Q} {A} {B} (suc n) resp hyp = curry (
   ((x y : A) → For-iterated-equality n P (x ≡ y)) ×
   ((x : A) (y z : B x) → For-iterated-equality n Q (y ≡ z))            ↝⟨ (λ (hyp₁ , hyp₂) _ _ → hyp₁ _ _ , λ _ → hyp₂ _ _ _) ⟩
 
@@ -245,9 +239,7 @@ For-iterated-equality-× :
   For-iterated-equality n R (A × B)
 For-iterated-equality-× zero _ hyp = hyp
 
-For-iterated-equality-× {R = R} {P = P} {Q = Q} {A = A} {B = B}
-  (suc n) resp hyp = curry (
-
+For-iterated-equality-× {R} {P} {Q} {A} {B} (suc n) resp hyp = curry (
   ((x y : A) → For-iterated-equality n P (x ≡ y)) ×
   ((x y : B) → For-iterated-equality n Q (x ≡ y))      ↝⟨ (λ (hyp₁ , hyp₂) _ _ → hyp₁ _ _ , hyp₂ _ _) ⟩
 
@@ -285,8 +277,8 @@ For-iterated-equality-W-suc :
    P A → (∀ x → Q (B x)) → Q (Σ A B)) →
   For-iterated-equality (suc n) P A →
   For-iterated-equality (suc n) Q (W A B)
-For-iterated-equality-W-suc {Q = Q} {P = P} {B = B}
-  ext n resp hyp-Π hyp-Σ fie = lemma
+For-iterated-equality-W-suc {Q} {P} {B} ext n resp hyp-Π hyp-Σ fie =
+  lemma
   where
   lemma : ∀ x y → For-iterated-equality n Q (x ≡ y)
   lemma (sup x f) (sup y g) =                                        $⟨ (λ p i → lemma (f i) _) ⟩
@@ -329,7 +321,7 @@ For-iterated-equality-⊎-suc :
   For-iterated-equality (suc n) P (↑ b A) →
   For-iterated-equality (suc n) P (↑ a B) →
   For-iterated-equality (suc n) P (A ⊎ B)
-For-iterated-equality-⊎-suc {P = P} n resp hyp-⊥ fie-A fie-B = λ where
+For-iterated-equality-⊎-suc {P} n resp hyp-⊥ fie-A fie-B = λ where
   (inj₁ x) (inj₁ y) →                            $⟨ fie-A (lift x) (lift y) ⟩
     For-iterated-equality n P (lift x ≡ lift y)  ↝⟨ For-iterated-equality-cong _ n resp (Bijection.≡↔inj₁≡inj₁ F.∘ lift≡lift↔) ⟩□
     For-iterated-equality n P (inj₁ x ≡ inj₁ y)  □
@@ -372,7 +364,7 @@ For-iterated-equality-List-suc :
   (∀ {A B} → P A → P B → P (A × B)) →
   For-iterated-equality (suc n) P A →
   For-iterated-equality (suc n) P (List A)
-For-iterated-equality-List-suc {P = P} n resp hyp-⊤ hyp-⊥ hyp-× fie = λ where
+For-iterated-equality-List-suc {P} n resp hyp-⊤ hyp-⊥ hyp-× fie = λ where
   [] [] →                                $⟨ hyp-⊤ ⟩
     P (↑ _ ⊤)                            ↝⟨ For-iterated-equality-↑-⊤ _ n resp ⟩
     For-iterated-equality n P (↑ _ ⊤)    ↝⟨ For-iterated-equality-cong _ n resp (inverse []≡[]↔⊤ F.∘ Bijection.↑↔) ⟩□
@@ -429,7 +421,7 @@ For-iterated-equality-commutes :
   For-iterated-equality n (F ∘ P) A
 For-iterated-equality-commutes _ _ zero _ = F.id
 
-For-iterated-equality-commutes {P = P} {A = A} ext F (suc n) hyp =
+For-iterated-equality-commutes {P} {A} ext F (suc n) hyp =
   F ((x y : A) → For-iterated-equality n P (x ≡ y))            ↝⟨ hyp ⟩
   ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  ↝⟨ (∀-cong ext λ _ → hyp) ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → For-iterated-equality-commutes ext F n hyp) ⟩□
@@ -447,7 +439,7 @@ For-iterated-equality-commutesᴱ-→ :
   For-iterated-equality n (F ∘ P) A
 For-iterated-equality-commutesᴱ-→ _ zero _ = id
 
-For-iterated-equality-commutesᴱ-→ {A = A} {P = P} F (suc n) hyp =
+For-iterated-equality-commutesᴱ-→ {A} {P} F (suc n) hyp =
   F ((x y : A) → For-iterated-equality n P (x ≡ y))            →⟨ hyp ⟩
   ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  →⟨ hyp ∘_ ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          →⟨ For-iterated-equality-commutesᴱ-→ F n hyp ∘_ ∘_ ⟩□
@@ -465,7 +457,7 @@ For-iterated-equality-commutes-← :
   F (For-iterated-equality n P A)
 For-iterated-equality-commutes-← _ _ zero _ = F.id
 
-For-iterated-equality-commutes-← {P = P} {A = A} ext F (suc n) hyp =
+For-iterated-equality-commutes-← {P} {A} ext F (suc n) hyp =
   ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → For-iterated-equality-commutes-← ext F n hyp) ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          ↝⟨ (∀-cong ext λ _ → hyp) ⟩
   ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  ↝⟨ hyp ⟩□
@@ -483,7 +475,7 @@ For-iterated-equality-commutesᴱ-← :
   F (For-iterated-equality n P A)
 For-iterated-equality-commutesᴱ-← _ zero _ = id
 
-For-iterated-equality-commutesᴱ-← {A = A} {P = P} F (suc n) hyp =
+For-iterated-equality-commutesᴱ-← {A} {P} F (suc n) hyp =
   ((x y : A) → For-iterated-equality n (F ∘ P) (x ≡ y))        →⟨ For-iterated-equality-commutesᴱ-← F n hyp ∘_ ∘_ ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y)))          →⟨ hyp ∘_ ⟩
   ((x : A) → F ((y : A) → For-iterated-equality n P (x ≡ y)))  →⟨ hyp ⟩□
@@ -502,8 +494,7 @@ For-iterated-equality-commutes₂ :
   For-iterated-equality n (λ A → F (P A) (Q A)) A
 For-iterated-equality-commutes₂ _ _ zero _ = F.id
 
-For-iterated-equality-commutes₂ {P = P} {A = A} {Q = Q}
-                                ext F (suc n) hyp =
+For-iterated-equality-commutes₂ {P} {A} {Q} ext F (suc n) hyp =
   F ((x y : A) → For-iterated-equality n P (x ≡ y))
     ((x y : A) → For-iterated-equality n Q (x ≡ y))                    ↝⟨ hyp ⟩
 
@@ -527,8 +518,7 @@ For-iterated-equality-commutes₂ᴱ-→ :
   For-iterated-equality n (λ A → F (P A) (Q A)) A
 For-iterated-equality-commutes₂ᴱ-→ _ zero _ = id
 
-For-iterated-equality-commutes₂ᴱ-→ {A = A} {P = P} {Q = Q}
-                                   F (suc n) hyp =
+For-iterated-equality-commutes₂ᴱ-→ {A} {P} {Q} F (suc n) hyp =
   F ((x y : A) → For-iterated-equality n P (x ≡ y))
     ((x y : A) → For-iterated-equality n Q (x ≡ y))                    →⟨ hyp ⟩
 
@@ -551,8 +541,7 @@ For-iterated-equality-commutes₂-← :
   F (For-iterated-equality n P A) (For-iterated-equality n Q A)
 For-iterated-equality-commutes₂-← _ _ zero _ = F.id
 
-For-iterated-equality-commutes₂-← {P = P} {Q = Q} {A = A}
-                                  ext F (suc n) hyp =
+For-iterated-equality-commutes₂-← {P} {Q} {A} ext F (suc n) hyp =
   ((x y : A) → For-iterated-equality n (λ A → F (P A) (Q A)) (x ≡ y))  ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                                            For-iterated-equality-commutes₂-← ext F n hyp) ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y))
@@ -576,8 +565,7 @@ For-iterated-equality-commutes₂ᴱ-← :
   F (For-iterated-equality n P A) (For-iterated-equality n Q A)
 For-iterated-equality-commutes₂ᴱ-← _ zero _ = id
 
-For-iterated-equality-commutes₂ᴱ-← {A = A} {P = P} {Q = Q}
-                                   F (suc n) hyp =
+For-iterated-equality-commutes₂ᴱ-← {A} {P} {Q} F (suc n) hyp =
   ((x y : A) → For-iterated-equality n (λ A → F (P A) (Q A)) (x ≡ y))  →⟨ For-iterated-equality-commutes₂ᴱ-← F n hyp ∘_ ∘_ ⟩
   ((x y : A) → F (For-iterated-equality n P (x ≡ y))
                  (For-iterated-equality n Q (x ≡ y)))                  →⟨ hyp ∘_ ⟩

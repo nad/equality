@@ -53,7 +53,7 @@ private
 _-Local_ :
   {A : Type a} {P : A → Type p} {Q : A → Type q} →
   (f : ∀ x → P x → Q x) → Type b → Type (a ⊔ b ⊔ p ⊔ q)
-_-Local_ {Q = Q} f B =
+_-Local_ {Q} f B =
   ∀ x → Is-equivalence (λ (g : Q x → B) → g ∘ f x)
 
 -- Locality can be expressed in another way.
@@ -63,8 +63,7 @@ Local≃Split-surjective-∘×Split-surjective-∘∇ :
   f -Local B ≃
   (∀ x → Split-surjective ((_∘ f x)     ⦂ ((_ → B) → _)) ×
          Split-surjective ((_∘ ∇ (f x)) ⦂ ((_ → B) → _)))
-Local≃Split-surjective-∘×Split-surjective-∘∇
-  {P = P} {Q = Q} {B = B} {f = f} =
+Local≃Split-surjective-∘×Split-surjective-∘∇ {P} {Q} {B} {f} =
   f -Local B                                                         ↔⟨⟩
   (∀ x → Is-equivalence (_∘ f x))                                    ↝⟨ (∀-cong I.ext λ x → lemma (f x)) ⟩□
   (∀ x → Split-surjective (_∘ f x) × Split-surjective (_∘ ∇ (f x)))  □
@@ -90,7 +89,7 @@ Local≃Is-equivalence-∘×Is-equivalence-∘∇ :
   f -Local B ≃
   (∀ x → Is-equivalence ((_∘ f x)     ⦂ ((_ → B) → _)) ×
          Is-equivalence ((_∘ ∇ (f x)) ⦂ ((_ → B) → _)))
-Local≃Is-equivalence-∘×Is-equivalence-∘∇ {P = P} {Q = Q} {B = B} {f = f} =
+Local≃Is-equivalence-∘×Is-equivalence-∘∇ {P} {Q} {B} {f} =
   f -Local B                                                     ↔⟨⟩
   (∀ x → Is-equivalence (_∘ f x))                                ↝⟨ (∀-cong I.ext λ x → lemma (f x)) ⟩□
   (∀ x → Is-equivalence (_∘ f x) × Is-equivalence (_∘ ∇ (f x)))  □
@@ -149,14 +148,14 @@ record Elimᴾ
 open Elimᴾ public
 
 elimᴾ : Elimᴾ R → (x : Localisation′ f B) → R x
-elimᴾ {f = f} {B = B} {R = R} e = helper
+elimᴾ {f} {B} {R} e = helper
   where
   module E = Elimᴾ e
 
   helper : (x : Localisation′ f B) → R x
-  helper [ x ]             = E.[]ʳ x
-  helper (ext _ g y)       = E.extʳ (λ y → helper (g y)) y
-  helper (ext≡ᴾ {g = g} i) = E.ext≡ʳ (λ y → helper (g y)) i
+  helper [ x ]         = E.[]ʳ x
+  helper (ext _ g y)   = E.extʳ (λ y → helper (g y)) y
+  helper (ext≡ᴾ {g} i) = E.ext≡ʳ (λ y → helper (g y)) i
 
 -- A non-dependent eliminator, expressed using paths.
 
@@ -198,7 +197,7 @@ record Elim
 open Elim public
 
 elim : Elim R → (x : Localisation′ f B) → R x
-elim {R = R} e = elimᴾ eᴾ
+elim {R} e = elimᴾ eᴾ
   where
   module E = Elim e
 
@@ -230,7 +229,7 @@ record Rec
 open Rec public
 
 rec : Rec f B C → Localisation′ f B → C
-rec {f = f} {B = B} {C = C} r = recᴾ rᴾ
+rec {f} {B} {C} r = recᴾ rᴾ
   where
   module R = Rec r
 
@@ -259,7 +258,7 @@ Local→Is-equivalence-∘[] :
   {f : ∀ x → P x → Q x} →
   f -Local C →
   Is-equivalence (λ (g : Localisation′ f B → C) → g ∘ [_])
-Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
+Local→Is-equivalence-∘[] {P} {Q} {C} {B} {f} local =
                            $⟨ (λ g → from g , from-[])
                             , (λ g h →
                                    (λ g∘[]≡h∘[] →
@@ -275,11 +274,11 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
 
   from : (B → C) → (Localisation′ f B → C)
   from g = elim λ where
-    .[]ʳ          → g
-    .extʳ {x = x} →
+    .[]ʳ      → g
+    .extʳ {x} →
       (P x → C)  ↔⟨ inverse $ Q→C≃P→C x ⟩□
       (Q x → C)  □
-    .ext≡ʳ {x = x} {y = y} h →
+    .ext≡ʳ {x} {y} h →
       subst (λ _ → C) ext≡ (_≃_.from (Q→C≃P→C x) h (f x y))  ≡⟨ subst-const _ ⟩
       _≃_.from (Q→C≃P→C x) h (f x y)                         ≡⟨⟩
       _≃_.to (Q→C≃P→C x) (_≃_.from (Q→C≃P→C x) h) y          ≡⟨ cong (_$ y) $ _≃_.right-inverse-of (Q→C≃P→C x) _ ⟩∎
@@ -296,13 +295,13 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
 
       .extʳ {g = k} → _≃_.to (lemma k)
 
-      .ext≡ʳ {x = x} {g = k} {y = y} g∘k≡h∘k →
+      .ext≡ʳ {x} {g = k} {y} g∘k≡h∘k →
         subst (λ x → g x ≡ h x) ext≡ (_≃_.to (lemma k) g∘k≡h∘k (f x y))  ≡⟨ sym $ from-lemma _ _ ⟩
         _≃_.from (lemma k) (_≃_.to (lemma k) g∘k≡h∘k) y                  ≡⟨ cong (_$ y) $ _≃_.left-inverse-of (lemma k) _ ⟩∎
         g∘k≡h∘k y                                                        ∎
     where
     lemma : ∀ {x} (k : P x → Localisation′ f B) → _ ≃ _
-    lemma {x = x} k =
+    lemma {x} k =
       ((y : P x) → g (k y) ≡ h (k y))              ↔⟨ Π≡≃≡ ⟩
       g ∘ k ≡ h ∘ k                                ↔⟨ (≡⇒↝ equivalence $ cong (λ f → g ∘ f ≡ h ∘ f) $ ⟨ext⟩ λ _ → sym ext≡) ⟩
       g ∘ ext x k ∘ f x ≡ h ∘ ext x k ∘ f x        ↔⟨ Eq.≃-≡ $ Q→C≃P→C x ⟩
@@ -314,7 +313,7 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
       (k : P x → Localisation′ f B)
       (eq : ∀ y → g (ext x k y) ≡ h (ext x k y)) →
       _
-    from-lemma {x = x} {y = y} k eq =
+    from-lemma {x} {y} k eq =
       _≃_.from (lemma k) eq y                          ≡⟨⟩
 
       cong (_$ y)
@@ -367,7 +366,7 @@ Local→Is-equivalence-∘[] {P = P} {Q = Q} {C = C} {B = B} {f = f} local =
     {g h : Localisation′ f B → C}
     (g∘[]≡h∘[] : g ∘ [_] ≡ h ∘ [_]) →
     cong (_∘ [_]) (drop-∘[] g h g∘[]≡h∘[]) ≡ g∘[]≡h∘[]
-  cong-∘[]-drop-∘[] {g = g} {h = h} g∘[]≡h∘[] =
+  cong-∘[]-drop-∘[] {g} {h} g∘[]≡h∘[] =
     cong (_∘ [_]) (drop-∘[] g h g∘[]≡h∘[])           ≡⟨⟩
     cong (_∘ [_]) (⟨ext⟩ $ drop-∘[]′ g h g∘[]≡h∘[])  ≡⟨ cong-pre-∘-ext I.ext I.ext ⟩
     ⟨ext⟩ (drop-∘[]′ g h g∘[]≡h∘[] ∘ [_])            ≡⟨⟩
@@ -381,7 +380,7 @@ Split-surjective→Local-Localisation′ :
   {f : (x : A) → P x → Q x} →
   (∀ x → Split-surjective (f x)) →
   f -Local Localisation′ f B
-Split-surjective→Local-Localisation′ {P = P} {Q = Q} {f = f} f-surj x =
+Split-surjective→Local-Localisation′ {P} {Q} {f} f-surj x =
   _≃_.is-equivalence $
   Eq.↔→≃
     _
@@ -405,7 +404,7 @@ Localisation :
   {A : Type a} {P : A → Type p} {Q : A → Type q} →
   (∀ x → P x → Q x) →
   Type b → Type (a ⊔ b ⊔ p ⊔ q)
-Localisation {p = p} {q = q} {A = A} {P = P} {Q = Q} f =
+Localisation {p} {q} {A} {P} {Q} f =
   Localisation′ f̂
   where
   P̂ : A ⊎ A → Type (p ⊔ q)
@@ -424,7 +423,7 @@ Localisation {p = p} {q = q} {A = A} {P = P} {Q = Q} f =
 -- Localisation f B is f-local.
 
 Local-Localisation : f -Local Localisation f B
-Local-Localisation {f = f} {B = B} =
+Local-Localisation {f} {B} =
   _≃_.from Local≃Split-surjective-∘×Split-surjective-∘∇ λ x →
     (λ g → ext (inj₁ x) (g ∘ lower)
          , ⟨ext⟩ λ y →
@@ -455,7 +454,7 @@ Local-Localisation {f = f} {B = B} =
 Local→Is-equivalence-[] :
   f -Local C →
   Is-equivalence (λ (g : Localisation f B → C) → g ∘ [_])
-Local→Is-equivalence-[] {f = f} local =
+Local→Is-equivalence-[] {f} local =
   Local→Is-equivalence-∘[] $
   _≃_.from Local≃Is-equivalence-∘×Is-equivalence-∘∇ $
   P.[ (_≃_.to Local≃Is-equivalence-∘×Is-equivalence-∘∇ λ x →

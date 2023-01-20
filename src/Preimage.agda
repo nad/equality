@@ -39,7 +39,7 @@ id⁻¹-contractible = singleton-contractible
 respects-extensional-equality :
   ∀ {a b} {A : Type a} {B : Type b} {f g : A → B} {y} →
   (∀ x → f x ≡ g x) → (f ⁻¹ y) ↔ (g ⁻¹ y)
-respects-extensional-equality {f = f} {g} {y} f≡g = record
+respects-extensional-equality {f} {g} {y} f≡g = record
   { surjection = record
     { logical-equivalence = record
       { to   = to′
@@ -84,7 +84,7 @@ respects-extensional-equality {f = f} {g} {y} f≡g = record
 lift-surjection :
   ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) → let open _↠_ A↠B in
   ∀ {y} → (from ∘ to ⁻¹ y) ↠ (from ⁻¹ y)
-lift-surjection {A = A} {B} A↠B {y} = record
+lift-surjection {A} {B} A↠B {y} = record
   { logical-equivalence = record
     { to   = drop-∘
     ; from = add-∘
@@ -125,7 +125,7 @@ lift-surjection {A = A} {B} A↠B {y} = record
       lemma : ∀ {x y z} {f : B → A}
               (y≡x : y ≡ x) (p : f x ≡ z) →
               _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p)
-      lemma {z = z} {f} = elim
+      lemma {z} {f} = elim
         (λ {y x} y≡x → (p : f x ≡ z) →
            _≡_ {A = f ⁻¹ z} (x , p) (y , trans (cong f y≡x) p))
         (λ x p → cong (_,_ x) (

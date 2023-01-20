@@ -48,7 +48,7 @@ private
 
 Modal-Erased :
   {@0 A : Type a} → @0 Modal A → Modal (Erased A)
-Modal-Erased {A = A} m =
+Modal-Erased {A} m =
   Stable→left-inverse→Modal
     (Stable-Erased (Modal→Stable m))
     (λ x →
@@ -74,8 +74,7 @@ Modal→Stable-Is-equivalenceᴱ :
   {@0 f : A → B} →
   Modal A → @0 Separated B →
   Stable (Is-equivalenceᴱ f)
-Modal→Stable-Is-equivalenceᴱ {f = f} m s =
-                                          $⟨ s′ ⟩
+Modal→Stable-Is-equivalenceᴱ {f} m s =    $⟨ s′ ⟩
   Stable (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))  →⟨ Stable-respects-⇔ $ inverse $
                                              EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩□
   Stable (Is-equivalenceᴱ f)              □
@@ -132,7 +131,7 @@ Modal-Is-equivalenceᴱ ext m s =
 Stable-respects-↝-↜ :
   Left-exact-η-cong →
   A ↝[ k ] B → B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
-Stable-respects-↝-↜ {A = A} {B = B} lex A↝B B↝A s =
+Stable-respects-↝-↜ {A} {B} lex A↝B B↝A s =
   ◯ B  ↝⟨ ◯-cong-◯ lex (η B↝A) ⟩
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A↝B ⟩□
@@ -141,23 +140,22 @@ Stable-respects-↝-↜ {A = A} {B = B} lex A↝B B↝A s =
 Stable-respects-↝-sym :
   A ↝[ ⌊ k ⌋-sym ] B →
   Stable-[ ⌊ k ⌋-sym ] A → Stable-[ ⌊ k ⌋-sym ] B
-Stable-respects-↝-sym
-  {A = A} {k = logical-equivalence} {B = B} A⇔B s =
+Stable-respects-↝-sym {A} {k = logical-equivalence} {B} A⇔B s =
   ◯ B  ↝⟨ ◯-cong-⇔-◯ (η (inverse A⇔B)) ⟩
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A⇔B ⟩□
   B    □
-Stable-respects-↝-sym {A = A} {k = bijection} {B = B} A↔B s =
+Stable-respects-↝-sym {A} {k = bijection} {B} A↔B s =
   ◯ B  ↝⟨ ◯-cong-↔-◯ (η (inverse A↔B)) ⟩
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A↔B ⟩□
   B    □
-Stable-respects-↝-sym {A = A} {k = equivalence} {B = B} A≃B s =
+Stable-respects-↝-sym {A} {k = equivalence} {B} A≃B s =
   ◯ B  ↝⟨ ◯-cong-≃-◯ (η (inverse A≃B)) ⟩
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A≃B ⟩□
   B    □
-Stable-respects-↝-sym {A = A} {k = equivalenceᴱ} {B = B} A≃ᴱB s =
+Stable-respects-↝-sym {A} {k = equivalenceᴱ} {B} A≃ᴱB s =
   ◯ B  ↝⟨ ◯-cong-≃ᴱ-◯ (η (inverse A≃ᴱB)) ⟩
   ◯ A  ↝⟨ s ⟩
   A    ↝⟨ A≃ᴱB ⟩□
@@ -170,7 +168,7 @@ Stable-respects-↝-sym {A = A} {k = equivalenceᴱ} {B = B} A≃ᴱB s =
   {A : Type a} {@0 B : Type a} {@0 f : A → B} {y : ◯ B} →
   Commutes-with-Σ →
   ◯ (η ∘ f ⁻¹ᴱ y) ≃ ◯-map f ⁻¹ᴱ y
-◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ {f = f} {y = y} comm =
+◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ {f} {y} comm =
   ◯ (∃ λ x → Erased (η (f x) ≡ y))        ↝⟨ (◯-cong-≃ $ ∃-cong λ _ →
                                               E₂.[]-cong₂-⊔.Erased-cong ax ax ax (
                                               ≡⇒↝ _ $ cong (_≡ _) $ sym ◯-map-η)) ⟩

@@ -294,7 +294,7 @@ open ℤG public
 -- _*+ n distributes over addition.
 
 *+-distrib-+ : ∀ n → (i + j) *+ n ≡ i *+ n + j *+ n
-*+-distrib-+ {i = i} n = ℤG.∘^+≡^+∘^+ (+-comm i) n
+*+-distrib-+ {i} n = ℤG.∘^+≡^+∘^+ (+-comm i) n
 
 -- If a positive number is multiplied by a positive number, then
 -- the result is positive.

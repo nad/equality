@@ -117,7 +117,7 @@ Contractibleᴱ-respects-surjection :
   {@0 A : Type a} {@0 B : Type b}
   (f : A → B) → @0 Split-surjective f →
   Contractibleᴱ A → Contractibleᴱ B
-Contractibleᴱ-respects-surjection {A = A} {B = B} f s h@(x , _) =
+Contractibleᴱ-respects-surjection {A} {B} f s h@(x , _) =
     f x
   , [ proj₂ (H-level.respects-surjection surj 0
                (Contractibleᴱ→Contractible h))
@@ -142,7 +142,7 @@ Contractibleᴱ-⁻¹ᴱ :
   (@0 f∘g : ∀ x → f (g x) ≡ x)
   (@0 g∘f : ∀ x → g (f x) ≡ x) →
   ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
-Contractibleᴱ-⁻¹ᴱ {A = A} {B = B} f g f∘g g∘f y =
+Contractibleᴱ-⁻¹ᴱ {A} {B} f g f∘g g∘f y =
     (g y , [ proj₂ (proj₁ c′) ])
   , [ cong ⁻¹→⁻¹ᴱ ∘ proj₂ c′ ∘ ⁻¹ᴱ→⁻¹ ]
   where

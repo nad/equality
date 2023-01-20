@@ -311,7 +311,7 @@ module Class (Univ : Universe) where
       f : ∀ {D} {y : El a D} {eq : C ≡ D} →
           subst (El a) eq x ≡ y →
           resp a (≡⇒≃ eq) x ≡ y
-      f {y = y} {eq} eq′ =
+      f {y} {eq} eq′ =
         _↔_.from (≡⇒↝ _ $ cong (λ z → z ≡ y) $
                     transport-theorem (El a) (resp a) (resp-id ass a)
                                       univ₁ (≡⇒≃ eq) x)
@@ -321,7 +321,7 @@ module Class (Univ : Universe) where
       lemma₁ : ∀ {ℓ} {A B C : Type ℓ} {x} (eq₁ : B ≡ A) (eq₂ : C ≡ B) →
                _↔_.from (≡⇒↝ _ eq₂) (_↔_.to (≡⇒↝ _ (sym eq₁)) x) ≡
                _↔_.to (≡⇒↝ _ (sym (trans eq₂ eq₁))) x
-      lemma₁ {x = x} eq₁ eq₂ =
+      lemma₁ {x} eq₁ eq₂ =
         _↔_.from (≡⇒↝ _ eq₂) (_↔_.to (≡⇒↝ _ (sym eq₁)) x)      ≡⟨ sym $ cong (λ f → f (_↔_.to (≡⇒↝ _ (sym eq₁)) x)) $ ≡⇒↝-sym bijection ⟩
         _↔_.to (≡⇒↝ _ (sym eq₂)) (_↔_.to (≡⇒↝ _ (sym eq₁)) x)  ≡⟨ sym $ cong (λ f → f x) $ ≡⇒↝-trans bijection ⟩
         _↔_.to (≡⇒↝ _ (trans (sym eq₁) (sym eq₂))) x           ≡⟨ sym $ cong (λ eq → _↔_.to (≡⇒↝ _ eq) x) $ sym-trans _ _ ⟩∎
@@ -331,7 +331,7 @@ module Class (Univ : Universe) where
                (x≡y : x ≡ y) (y≡z : y ≡ z) →
                _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
                trans x≡y y≡z
-      lemma₂ {y = y} {z} x≡y y≡z = elim₁
+      lemma₂ {y} {z} x≡y y≡z = elim₁
         (λ x≡y → _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym x≡y))) y≡z ≡
                  trans x≡y y≡z)
         (_↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) (sym (refl y)))) y≡z  ≡⟨ cong (λ eq → _↔_.to (≡⇒↝ _ (cong (λ x → x ≡ z) eq)) y≡z) sym-refl ⟩
@@ -642,7 +642,7 @@ abstract
     ∀ a {B C x y} (eq : B ≃ C) →
     Is-isomorphism a eq x y ↔ Is-isomorphism′ a eq x y
 
-  is-isomorphism-isomorphic ass id {x = x} {y} eq =
+  is-isomorphism-isomorphic ass id {x} {y} eq =
 
     (_≃_.to eq x ≡ y)  □
 
@@ -656,7 +656,7 @@ abstract
 
     where open Assumptions ass
 
-  is-isomorphism-isomorphic ass (k A) {x = x} {y} eq =
+  is-isomorphism-isomorphic ass (k A) {x} {y} eq =
 
     (x ≡ y) □
 
@@ -676,7 +676,7 @@ abstract
 
     where open Assumptions ass
 
-  is-isomorphism-isomorphic ass (a ⊗ b) {x = x , u} {y , v} eq =
+  is-isomorphism-isomorphic ass (a ⊗ b) {x = x , u} {y = y , v} eq =
 
     ((resp a eq x , resp b eq u) ≡ (y , v))              ↝⟨ inverse ≡×≡↔≡ ⟩
 
@@ -686,7 +686,7 @@ abstract
 
     where open Assumptions ass
 
-  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₁ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {y = inj₁ y} eq =
 
     (inj₁ (resp a eq x) ≡ inj₁ y)  ↝⟨ inverse B.≡↔inj₁≡inj₁ ⟩
 
@@ -696,7 +696,7 @@ abstract
 
     where open Assumptions ass
 
-  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₂ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {y = inj₂ y} eq =
 
     (inj₂ (resp b eq x) ≡ inj₂ y)  ↝⟨ inverse B.≡↔inj₂≡inj₂ ⟩
 
@@ -706,13 +706,13 @@ abstract
 
     where open Assumptions ass
 
-  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {inj₂ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₁ x} {y = inj₂ y} eq =
 
     (inj₁ _ ≡ inj₂ _)  ↝⟨ inverse $ B.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     ⊥                  □
 
-  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {inj₁ y} eq =
+  is-isomorphism-isomorphic ass (a ⊕ b) {x = inj₂ x} {y = inj₁ y} eq =
 
     (inj₂ _ ≡ inj₁ _)  ↝⟨ inverse $ B.⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
@@ -981,8 +981,7 @@ Isomorphism-poset-equal-to-order-isomorphism :
     ≡
   Σ (C₁ ↔ C₂) λ eq → let open _↔_ eq in
   ∀ x y → (x ≤₁ y) ⇔ (to x ≤₂ to y)
-Isomorphism-poset-equal-to-order-isomorphism ass
-  {laws₁ = laws₁} {laws₂ = laws₂} =
+Isomorphism-poset-equal-to-order-isomorphism ass {laws₁} {laws₂} =
   ≃⇒≡ univ₁ $ Eq.↔⇒≃ $
     Isomorphism-poset-isomorphic-to-order-isomorphism ass
       {laws₁ = laws₁} {laws₂ = laws₂}
@@ -1164,7 +1163,7 @@ private
     (∀ x → (x * 1#) ≡ x) →
     ∀ x → ∃ (λ y → (x * y) ≡ 1#) → Injective (_*_ x)
   *-injective _*_ 1# *-assoc *-comm *1 x (x⁻¹ , xx⁻¹≡1)
-             {x = y₁} {y = y₂} xy₁≡xy₂ =
+              {x = y₁} {y = y₂} xy₁≡xy₂ =
     y₁                ≡⟨ lemma y₁ ⟩
     (x⁻¹ * (x * y₁))  ≡⟨ cong (_*_ x⁻¹) xy₁≡xy₂ ⟩
     (x⁻¹ * (x * y₂))  ≡⟨ sym $ lemma y₂ ⟩∎

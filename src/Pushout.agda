@@ -149,7 +149,7 @@ module Cocone (c : Cocone S A) where
 -- A universal property for pushouts.
 
 Pushout→↔Cocone : (Pushout S → A) ↔ Cocone S A
-Pushout→↔Cocone {S = S} {A = A} = record
+Pushout→↔Cocone {S} {A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -276,7 +276,7 @@ Pushout→≃Pullback :
   let open Span S in
   (Pushout S → A) ≃
   Pullback (record { Middle = Middle → A; left = _∘ left ; right = _∘ right })
-Pushout→≃Pullback {S = S} {A = A} =
+Pushout→≃Pullback {S} {A} =
   (Pushout S → A)                                                        ↔⟨ Pushout→↔Cocone ⟩
 
   Cocone S A                                                             ↝⟨ (∃-cong λ _ → ∃-cong λ _ → Π≡≃≡) ⟩□
@@ -296,7 +296,7 @@ Pushout→≃Pullback {S = S} {A = A} =
 ∘∇≡∆∘ :
   {f : A → B} →
   _≃_.to (Pushout→≃Pullback {A = C}) ∘ (_∘ ∇ f) ≡ ∆ (_∘ f)
-∘∇≡∆∘ {f = f} = ⟨ext⟩ λ g →
+∘∇≡∆∘ {f} = ⟨ext⟩ λ g →
   (g , g , ⟨ext⟩ (cong (g ∘ ∇ f) ∘ glue))  ≡⟨ cong (λ p → g , g , ⟨ext⟩ p) $ ⟨ext⟩ $ lemma g ⟩
   (g , g , ⟨ext⟩ (refl ∘ g ∘ f))           ≡⟨ cong (λ p → g , g , p) $ ext-refl ext ⟩∎
   (g , g , refl (g ∘ f))                   ∎
@@ -314,7 +314,7 @@ Pushout→≃Pullback {S = S} {A = A} =
 Is-equivalence-∆∘≃Is-equivalence-∘∇ :
   Is-equivalence (∆ (_∘ f) ⦂ ((_ → C) → _)) ≃
   Is-equivalence (_∘ ∇ f ⦂ ((_ → C) → _))
-Is-equivalence-∆∘≃Is-equivalence-∘∇ {f = f} =
+Is-equivalence-∆∘≃Is-equivalence-∘∇ {f} =
   Is-equivalence (∆ (_∘ f))                             ↝⟨ Is-equivalence-cong ext $ ext⁻¹ $ sym ∘∇≡∆∘ ⟩
   Is-equivalence (_≃_.to Pushout→≃Pullback ∘ (_∘ ∇ f))  ↝⟨ inverse $
                                                            Is-equivalence≃Is-equivalence-∘ˡ
@@ -327,7 +327,7 @@ Is-equivalence-∆∘≃Is-equivalence-∘∇ {f = f} =
 Is-equivalence-∘∇ :
   Is-equivalence (_∘ f ⦂ ((_ → C) → _)) →
   Is-equivalence (_∘ ∇ f ⦂ ((_ → C) → _))
-Is-equivalence-∘∇ {f = f} =
+Is-equivalence-∘∇ {f} =
   Is-equivalence (_∘ f)      →⟨ PB.Is-equivalence-∆ ⟩
   Is-equivalence (∆ (_∘ f))  ↔⟨ Is-equivalence-∆∘≃Is-equivalence-∘∇ ⟩□
   Is-equivalence (_∘ ∇ f)    □

@@ -60,7 +60,7 @@ private
 @0 Is-equivalence≃Is-equivalenceᴱ :
   {A : Type a} {B : Type b} {f : A → B} →
   Is-equivalence f ≃ Is-equivalenceᴱ f
-Is-equivalence≃Is-equivalenceᴱ {f = f} =
+Is-equivalence≃Is-equivalenceᴱ {f} =
   (∃ λ f⁻¹ → HA.Proofs f f⁻¹)           F.↔⟨ (∃-cong λ _ → F.inverse $ erased Erased↔) ⟩□
   (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  □
 
@@ -77,7 +77,7 @@ _ = refl _
 -- In an erased context _≃_ and _≃ᴱ_ are pointwise equivalent.
 
 @0 ≃≃≃ᴱ : (A ≃ B) ≃ (A ≃ᴱ B)
-≃≃≃ᴱ {A = A} {B = B} =
+≃≃≃ᴱ {A} {B} =
   A ≃ B                        F.↔⟨ Eq.≃-as-Σ ⟩
   (∃ λ f → Is-equivalence f)   ↝⟨ (∃-cong λ _ → Is-equivalence≃Is-equivalenceᴱ) ⟩
   (∃ λ f → Is-equivalenceᴱ f)  F.↔⟨ Eq.inverse ≃ᴱ-as-Σ ⟩□
@@ -180,7 +180,7 @@ Is-equivalenceᴱ-propositional ext f =
   {A : Type a} {P : A → Type p} {B : Type b} →
   Extensionality (a ⊔ p ⊔ b) (p ⊔ b) →
   Is-proposition (P -Nullᴱ B)
-Nullᴱ-propositional {a = a} {p = p} {b = b} ext =
+Nullᴱ-propositional {a} {p} {b} ext =
   Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
   Is-equivalenceᴱ-propositional (lower-extensionality a lzero ext) _
 
@@ -211,7 +211,7 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext =
   {A : Type a} {B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   (A ≃ᴱ B) ≃ᴱ (A ECP.≃ᴱ B)
-≃ᴱ≃ᴱ≃ᴱ-CP {A = A} {B = B} ext =
+≃ᴱ≃ᴱ≃ᴱ-CP {A} {B} ext =
   A ≃ᴱ B                                 ↔⟨ ≃ᴱ-as-Σ ⟩
   (∃ λ (f : A → B) → Is-equivalenceᴱ f)  ↝⟨ (∃-cong λ _ → Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩□
   A ECP.≃ᴱ B                             □
@@ -279,7 +279,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
   @0 (∀ x → g (f x) ≡ x) →
   (∀ x → P x ≃ᴱ Q (f x)) →
   Σ A P ≃ᴱ Σ B Q
-Σ-cong-≃ᴱ {Q = Q} f g f-g g-f P≃Q =
+Σ-cong-≃ᴱ {Q} f g f-g g-f P≃Q =
   [≃]→≃ᴱ
     {from = λ (x , y) →
                 g x
@@ -314,7 +314,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
       _≃_.from Eq.⟨ P→Q (_≃ᴱ_.from A≃ᴱB x) , eq (_≃ᴱ_.from A≃ᴱB x) ⟩
         (subst Q (sym (_≃ᴱ_.right-inverse-of A≃ᴱB x)) y)) →
   Σ A P ≃ᴱ Σ B Q
-Σ-cong-≃ᴱ′ {A = A} {B = B} {P = P} {Q = Q} A≃B P→Q Q→P eq hyp =
+Σ-cong-≃ᴱ′ {A} {B} {P} {Q} A≃B P→Q Q→P eq hyp =
   [≃]→≃ᴱ ([proofs] ΣAP≃ΣBQ)
   where
   @0 ΣAP≃ΣBQ : Σ A P ≃ Σ B Q
@@ -337,7 +337,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
   @0 (∀ x → g (f x) ≡ x) →
   (∀ x → P x ≃ᴱ Q (f x)) →
   ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
-Π-cong-≃ᴱ {Q = Q} ext f g f-g g-f P≃Q =
+Π-cong-≃ᴱ {Q} ext f g f-g g-f P≃Q =
   [≃]→≃ᴱ
     {to = λ h x → subst Q (f-g x) (_≃ᴱ_.to (P≃Q (g x)) (h (g x)))}
     ([proofs] (Π-cong ext {B₂ = Q} (Eq.↔→≃ f g f-g g-f) (≃ᴱ→≃ ⊚ P≃Q)))
@@ -367,8 +367,7 @@ A≃ᴱC ×-cong-≃ᴱ B≃ᴱD = ↔→≃ᴱ
       subst Q (_≃ᴱ_.right-inverse-of A≃ᴱB y)
         (_≃_.from Eq.⟨ Q→P x , eq x ⟩ (f x))) →
   ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
-Π-cong-≃ᴱ′ {a = a} {p = p} {A = A} {B = B} {P = P} {Q = Q}
-           ext A≃B P→Q Q→P eq hyp =
+Π-cong-≃ᴱ′ {a} {p} {A} {B} {P} {Q} ext A≃B P→Q Q→P eq hyp =
   [≃]→≃ᴱ ([proofs] ΠAP≃ΠBQ)
   where
   @0 ΠAP≃ΠBQ : ((x : A) → P x) ≃ ((x : B) → Q x)
@@ -409,7 +408,7 @@ Is-equivalenceᴱ-cong-≃ᴱ ext f≡g =
   {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} {@0 D : Type d} →
   @0 Extensionality (a ⊔ b ⊔ c ⊔ d) (a ⊔ b ⊔ c ⊔ d) →
   A ≃ᴱ B → C ≃ᴱ D → (A ≃ᴱ C) ≃ᴱ (B ≃ᴱ D)
-≃ᴱ-cong {A = A} {B = B} {C = C} {D = D} ext A≃B C≃D =
+≃ᴱ-cong {A} {B} {C} {D} ext A≃B C≃D =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 lemma : (A ≃ᴱ C) ≃ (B ≃ᴱ D)
@@ -442,7 +441,7 @@ drop-⊤-left-Σ-≃ᴱ :
   (A≃⊤ : A ≃ᴱ ⊤) →
   (∀ x y → P x ≃ᴱ P y) →
   Σ A P ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-drop-⊤-left-Σ-≃ᴱ {A = A} {P = P} A≃⊤ P≃P =
+drop-⊤-left-Σ-≃ᴱ {A} {P} A≃⊤ P≃P =
   Σ A P                            ≃ᴱ⟨ Σ-cong-≃ᴱ
                                          _
                                          (_≃ᴱ_.from A≃⊤)
@@ -462,7 +461,7 @@ drop-⊤-left-Π-≃ᴱ :
   (A≃⊤ : A ≃ᴱ ⊤) →
   (∀ x y → P x ≃ᴱ P y) →
   ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-drop-⊤-left-Π-≃ᴱ {A = A} {P = P} ext A≃⊤ P≃P =
+drop-⊤-left-Π-≃ᴱ {A} {P} ext A≃⊤ P≃P =
   ((x : A) → P x)                  ≃ᴱ⟨ Π-cong-≃ᴱ
                                          ext
                                          _
@@ -496,7 +495,7 @@ to≡to→≡ ext p≡q =
   {A : Type a} {B : Type b} {p q : A ≃ᴱ B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x) ≃ (p ≡ q)
-to≡to≃≡ {p = p} {q = q} ext =
+to≡to≃≡ {p} {q} ext =
   (∀ x → _≃ᴱ_.to p x ≡ _≃ᴱ_.to q x)                                F.↔⟨⟩
   (∀ x → _≃_.to (_≃_.from ≃≃≃ᴱ p) x ≡ _≃_.to (_≃_.from ≃≃≃ᴱ q) x)  F.↔⟨ ≃-to-≡↔≡ ext ⟩
   _≃_.from ≃≃≃ᴱ p ≡ _≃_.from ≃≃≃ᴱ q                                ↝⟨ Eq.≃-≡ (Eq.inverse ≃≃≃ᴱ) ⟩□
@@ -589,7 +588,7 @@ record Erased-proofs′
   {to : A → B} {from : B → A} {from-to : ∀ x → from (to x) ≡ x} →
   @0 Erased-proofs′ to from from-to →
   A ≃ᴱ′ B
-[≃]→≃ᴱ′ {to = to} {from = from} {from-to = from-to} ep = λ where
+[≃]→≃ᴱ′ {to} {from} {from-to} ep = λ where
   .Dummy._≃ᴱ′_.to         → to
   .Dummy._≃ᴱ′_.from       → from
   .Dummy._≃ᴱ′_.to-from    → ep .Erased-proofs′.to-from
@@ -605,7 +604,7 @@ record Erased-proofs′
   @0 (∀ x → f (g x) ≡ x) →
   (∀ x → g (f x) ≡ x) →
   A ≃ᴱ′ B
-↔→≃ᴱ′ {A = A} {B = B} to from to-from from-to =
+↔→≃ᴱ′ {A} {B} to from to-from from-to =
   [≃]→≃ᴱ′ ([proofs′] equiv)
   where
   @0 equiv : A ≃ B
@@ -629,7 +628,7 @@ record Erased-proofs′
 ≡≃ᴱ′to≡to :
   (A≃ᴱ′B : A ≃ᴱ′ B) →
   (x ≡ y) ≃ᴱ′ (_≃ᴱ′_.to A≃ᴱ′B x ≡ _≃ᴱ′_.to A≃ᴱ′B y)
-≡≃ᴱ′to≡to {x = x} {y = y} A≃ᴱ′B =
+≡≃ᴱ′to≡to {x} {y} A≃ᴱ′B =
   ↔→≃ᴱ′
     (_↠_.from ≡↠≡)
     (_↠_.to   ≡↠≡)
@@ -706,9 +705,7 @@ record Erased-proofs′
   (A≃B : A ≃ᴱ′ B) →
   (∀ x → P (_≃ᴱ′_.from A≃B x) ≃ᴱ′ Q x) →
   ((x : A) → P x) ≃ᴱ′ ((x : B) → Q x)
-Π-cong-≃ᴱ′-≃ᴱ′
-  {a = a} {b = b} {p = p} {q = q} {A = A} {B = B} {P = P} {Q = Q}
-  ext A≃B P≃Q =
+Π-cong-≃ᴱ′-≃ᴱ′ {a} {b} {p} {q} {A} {B} {P} {Q} ext A≃B P≃Q =
   ↔→≃ᴱ′
     (λ f x → _≃ᴱ′_.to (P≃Q x) (f (_≃ᴱ′_.from A≃B x)))
     (λ f x →
@@ -837,7 +834,7 @@ Contractibleᴱ-commutes-with-× :
   {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   Contractibleᴱ (A × B) ≃ᴱ (Contractibleᴱ A × Contractibleᴱ B)
-Contractibleᴱ-commutes-with-× {A = A} {B = B} ext =
+Contractibleᴱ-commutes-with-× {A} {B} ext =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 lemma : _
@@ -933,7 +930,7 @@ inverse-equivalence ext = ↔→≃ᴱ
   {A B : Type a} →
   Univalence a →
   (A ≡ B) ≃ (A ≃ᴱ B)
-≡≃≃ᴱ {A = A} {B = B} univ =
+≡≃≃ᴱ {A} {B} univ =
   Eq.with-other-function
     (A ≡ B   ↝⟨ ≡≃≃ univ ⟩
      A ≃ B   ↝⟨ ≃≃≃ᴱ ⟩□
@@ -995,7 +992,7 @@ singleton-with-≃ᴱ-≃ᴱ-⊤ :
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   @0 Univalence (a ⊔ b) →
   (∃ λ (A : Type (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
-singleton-with-≃ᴱ-≃ᴱ-⊤ {b = b} a {B = B} ext univ =
+singleton-with-≃ᴱ-≃ᴱ-⊤ {b} a {B} ext univ =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 lemma : (∃ λ (A : Type (a ⊔ b)) → A ≃ᴱ B) ≃ ⊤
@@ -1009,7 +1006,7 @@ other-singleton-with-≃ᴱ-≃ᴱ-⊤ :
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   @0 Univalence (a ⊔ b) →
   (∃ λ (B : Type (a ⊔ b)) → A ≃ᴱ B) ≃ᴱ ⊤
-other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A = A} ext univ =
+other-singleton-with-≃ᴱ-≃ᴱ-⊤ b {A} ext univ =
   (∃ λ B → A ≃ᴱ B)  ≃ᴱ⟨ (∃-cong λ _ → inverse-equivalence ext) ⟩
   (∃ λ B → B ≃ᴱ A)  ≃ᴱ⟨ singleton-with-≃ᴱ-≃ᴱ-⊤ b ext univ ⟩□
   ⊤                 □
@@ -1021,7 +1018,7 @@ singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
   @0 Extensionality a (lsuc q) →
   @0 Univalence q →
   (∃ λ (P : A → Type q) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
+singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a} {q} {A} {Q} ext univ =
   [≃]→≃ᴱ ([proofs] lemma)
   where
   @0 ext′ : Extensionality a q
@@ -1038,8 +1035,7 @@ other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ :
   @0 Extensionality (a ⊔ p) (lsuc p) →
   @0 Univalence p →
   (∃ λ (Q : A → Type p) → ∀ x → P x ≃ᴱ Q x) ≃ᴱ ⊤
-other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a = a} {p = p} {A = A} {P = P}
-                               ext univ =
+other-singleton-with-Π-≃ᴱ-≃ᴱ-⊤ {a} {p} {A} {P} ext univ =
   (∃ λ (Q : A → Type p) → ∀ x → P x ≃ᴱ Q x)  ≃ᴱ⟨ (∃-cong λ _ → ∀-cong-≃ᴱ ext₁ λ _ → inverse-equivalence ext₂) ⟩
   (∃ λ (Q : A → Type p) → ∀ x → Q x ≃ᴱ P x)  ≃ᴱ⟨ singleton-with-Π-≃ᴱ-≃ᴱ-⊤ ext₃ univ ⟩□
   ⊤                                          □
@@ -1076,7 +1072,7 @@ right-inverse-of-id = refl _
 
 @0 left-inverse-of-id :
   _≃ᴱ_.left-inverse-of id x ≡ refl x
-left-inverse-of-id {x = x} =
+left-inverse-of-id {x} =
   left-inverse-of x               ≡⟨⟩
   left-inverse-of (P.id x)        ≡⟨ sym $ right-left-lemma x ⟩
   cong P.id (right-inverse-of x)  ≡⟨ sym $ cong-id _ ⟩
@@ -1097,7 +1093,7 @@ right-inverse-of∘inverse _ = refl _
   (A≃B : A ≃ᴱ B) →
   _≃ᴱ_.left-inverse-of (inverse A≃B) x ≡
   _≃ᴱ_.right-inverse-of A≃B x
-left-inverse-of∘inverse {A = A} {B = B} {x = x} A≃B =
+left-inverse-of∘inverse {A} {B} {x} A≃B =
   subst (λ x → _≃ᴱ_.left-inverse-of (inverse A≃B) x ≡
                right-inverse-of x)
         (right-inverse-of x)
@@ -1114,7 +1110,7 @@ to-subst :
   {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
   _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
   subst (λ x → P x → Q x) eq (_≃ᴱ_.to f)
-to-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+to-subst {P} {Q} {eq} {f} = elim¹
   (λ eq →
      _≃ᴱ_.to (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
      subst (λ x → P x → Q x) eq (_≃ᴱ_.to f))
@@ -1127,7 +1123,7 @@ from-subst :
   {eq : x ≡ y} {f : P x ≃ᴱ Q x} →
   _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
   subst (λ x → Q x → P x) eq (_≃ᴱ_.from f)
-from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
+from-subst {P} {Q} {eq} {f} = elim¹
   (λ eq →
      _≃ᴱ_.from (subst (λ x → P x ≃ᴱ Q x) eq f) ≡
      subst (λ x → Q x → P x) eq (_≃ᴱ_.from f))
@@ -1157,7 +1153,7 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
   {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
   {@0 f : A → B} {g : B → C} →
   @0 Is-equivalenceᴱ g → Is-equivalenceᴱ (g ⊚ f) → Is-equivalenceᴱ f
-23→1 {f = f} {g = g} q r =
+23→1 {f} {g} q r =
   let record { to = to } =
         Is-equivalenceᴱ-cong-⇔ λ x →
           _≃ᴱ_.from ⟨ g , q ⟩ (g (f x))  ≡⟨ _≃ᴱ_.left-inverse-of ⟨ g , q ⟩ (f x) ⟩∎
@@ -1176,7 +1172,7 @@ from-subst {P = P} {Q = Q} {eq = eq} {f = f} = elim¹
   {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
   {f : A → B} {@0 g : B → C} →
   Is-equivalenceᴱ (g ⊚ f) → @0 Is-equivalenceᴱ f → Is-equivalenceᴱ g
-31→2 {f = f} {g = g} r p =
+31→2 {f} {g} r p =
   let record { to = to } =
         Is-equivalenceᴱ-cong-⇔ λ x →
           g (f (_≃ᴱ_.from ⟨ f , p ⟩ x))  ≡⟨ cong g (_≃ᴱ_.right-inverse-of ⟨ f , p ⟩ x) ⟩∎
@@ -1216,7 +1212,7 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ˡ :
   @0 Extensionality (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
   Is-equivalenceᴱ f →
   Is-equivalenceᴱ g ≃ᴱ Is-equivalenceᴱ (f ⊚ g)
-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ˡ {b = b} {c = c} ext f-eq = ⇔→≃ᴱ
+Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ˡ {b} {c} ext f-eq = ⇔→≃ᴱ
   (Is-equivalenceᴱ-propositional (lower-extensionality c c ext) _)
   (Is-equivalenceᴱ-propositional (lower-extensionality b b ext) _)
   (flip 12→3 f-eq)
@@ -1228,7 +1224,7 @@ Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ʳ :
   @0 Extensionality (a ⊔ b ⊔ c) (a ⊔ b ⊔ c) →
   Is-equivalenceᴱ g →
   Is-equivalenceᴱ f ≃ᴱ Is-equivalenceᴱ (f ⊚ g)
-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ʳ {a = a} {b = b} ext g-eq = ⇔→≃ᴱ
+Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-∘ʳ {a} {b} ext g-eq = ⇔→≃ᴱ
   (Is-equivalenceᴱ-propositional (lower-extensionality a a ext) _)
   (Is-equivalenceᴱ-propositional (lower-extensionality b b ext) _)
   (12→3 g-eq)
@@ -1254,7 +1250,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     Σ A P ≃ᴱ Σ B (λ x → Q x)
-  Σ-cong-≃ᴱ-Erased {A = A} {B = B} {P = P} {Q = Q} A≃B P≃Q =
+  Σ-cong-≃ᴱ-Erased {A} {B} {P} {Q} A≃B P≃Q =
     [≃]→≃ᴱ ([proofs] ΣAP≃ΣBQ)
     where
     @0 ΣAP≃ΣBQ : Σ A P ≃ Σ B (λ x → Q x)
@@ -1278,7 +1274,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     Σ A (λ x → P x) ≃ᴱ Σ B Q
-  Σ-cong-contra-≃ᴱ-Erased {P = P} {Q = Q} B≃A P≃Q = ↔→≃ᴱ
+  Σ-cong-contra-≃ᴱ-Erased {P} {Q} B≃A P≃Q = ↔→≃ᴱ
     (λ (x , y) →
          _≃ᴱ_.from B≃A x
        , _≃ᴱ_.to (P≃Q (_≃ᴱ_.from B≃A x))
@@ -1360,8 +1356,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (A≃B : A ≃ᴱ B) →
     (∀ x → P x ≃ᴱ Q (_≃ᴱ_.to A≃B x)) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
-  Π-cong-≃ᴱ-Erased
-    {a = a} {p = p} {A = A} {B = B} {P = P} {Q = Q} ext A≃B P≃Q =
+  Π-cong-≃ᴱ-Erased {a} {p} {A} {B} {P} {Q} ext A≃B P≃Q =
     [≃]→≃ᴱ ([proofs] ΠAP≃ΠBQ)
     where
     @0 ΠAP≃ΠBQ : ((x : A) → P x) ≃ ((x : B) → Q x)
@@ -1389,8 +1384,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (B≃A : B ≃ᴱ A) →
     (∀ x → P (_≃ᴱ_.to B≃A x) ≃ᴱ Q x) →
     ((x : A) → P x) ≃ᴱ ((x : B) → Q x)
-  Π-cong-contra-≃ᴱ-Erased
-    {b = b} {q = q} {A = A} {B = B} {P = P} {Q = Q} ext B≃A P≃Q =
+  Π-cong-contra-≃ᴱ-Erased {b} {q} {A} {B} {P} {Q} ext B≃A P≃Q =
     [≃]→≃ᴱ ([proofs] ΠAP≃ΠBQ)
     where
     @0 ΠAP≃ΠBQ : ((x : A) → P x) ≃ ((x : B) → Q x)
@@ -1416,7 +1410,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {A : Type a} {B : Type ℓ} →
     @0 Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
     A ≃ᴱ B → Contractibleᴱ A ≃ᴱ Contractibleᴱ B
-  Contractibleᴱ-cong-≃ᴱ {A = A} {B = B} ext A≃ᴱB =
+  Contractibleᴱ-cong-≃ᴱ {A} {B} ext A≃ᴱB =
     (∃ λ (x : A) → Erased ((y : A) → x ≡ y))  ↝⟨ (Σ-cong-≃ᴱ-Erased A≃ᴱB λ _ →
                                                   Erased-cong-≃ᴱ
                                                     (let A≃B = ≃ᴱ→≃ A≃ᴱB in
@@ -1432,7 +1426,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   drop-⊤-left-Σ-≃ᴱ-Erased :
     {@0 A : Type ℓ} {P : @0 A → Type p} →
     (A≃⊤ : A ≃ᴱ ⊤) → Σ A (λ x → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Σ-≃ᴱ-Erased {A = A} {P = P} A≃⊤ =
+  drop-⊤-left-Σ-≃ᴱ-Erased {A} {P} A≃⊤ =
     Σ A (λ x → P x)                  ≃ᴱ⟨ inverse $ Σ-cong-≃ᴱ-Erased (inverse A≃⊤) (λ _ → F.id) ⟩
     Σ ⊤ (λ x → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Σ-left-identity ⟩□
     P (_≃ᴱ_.from A≃⊤ tt)             □
@@ -1444,7 +1438,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     @0 Extensionality ℓ p →
     (A≃⊤ : A ≃ᴱ ⊤) →
     ((x : A) → P x) ≃ᴱ P (_≃ᴱ_.from A≃⊤ tt)
-  drop-⊤-left-Π-≃ᴱ-Erased {A = A} {P = P} ext A≃⊤ =
+  drop-⊤-left-Π-≃ᴱ-Erased {A} {P} ext A≃⊤ =
     ((x : A) → P x)                  ≃ᴱ⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
     ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
     P (_≃ᴱ_.from A≃⊤ tt)             □
@@ -1459,7 +1453,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ {@0 A : Type ℓ} {x y}
     (A≃B : Erased A ≃ᴱ B) →
     (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ᴱ (x ≡ y)
-  to≡to≃ᴱ≡-Erased {B = B} {A = A} {x = x} {y = y} A≃B =
+  to≡to≃ᴱ≡-Erased {B} {A} {x} {y} A≃B =
     [≃]→≃ᴱ ([proofs] ≡≃≡)
     where
     @0 ≡≃≡ : (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ (x ≡ y)
@@ -1509,7 +1503,7 @@ module []-cong₂-⊔
       @0 Extensionality? k (a ⊔ b) (a ⊔ b) →
       @0 (∀ x → f x ≡ g x) →
       Is-equivalenceᴱ f ↝[ k ] Is-equivalenceᴱ g
-    Is-equivalenceᴱ-cong′ {f = f} {g = g} ax ext f≡g =
+    Is-equivalenceᴱ-cong′ {f} {g} ax ext f≡g =
       generalise-erased-ext?
         (Is-equivalenceᴱ-cong-⇔ f≡g)
         (λ ext →
@@ -1535,9 +1529,7 @@ module []-cong₂-⊔
     {P : A → Type ℓ₂} {Q : A → Type q} →
     @0 Extensionality (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂ ⊔ q) (b ⊔ ℓ₁ ⊔ ℓ₂ ⊔ q) →
     (∀ x → P x ≃ᴱ Q x) → B ≃ᴱ C → P -Nullᴱ B ≃ᴱ Q -Nullᴱ C
-  Nullᴱ-cong
-    {a = a} {b = b} {q = q} {B = B} {C = C} {P = P} {Q = Q}
-    ext P≃ᴱQ B≃ᴱC =
+  Nullᴱ-cong {a} {b} {q} {B} {C} {P} {Q} ext P≃ᴱQ B≃ᴱC =
     P -Nullᴱ B                                                            ↔⟨⟩
 
     (∀ x → Is-equivalenceᴱ (const ⦂ (B → P x → B)))                       ↝⟨ (∀-cong [ ext′ ] λ x →
@@ -1587,14 +1579,14 @@ module []-cong₂-⊔
   Erased-Is-equivalenceᴱ≃Erased-Is-equivalence :
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
     Erased (Is-equivalenceᴱ f) ≃ Erased (Is-equivalence f)
-  Erased-Is-equivalenceᴱ≃Erased-Is-equivalence {f = f} =
+  Erased-Is-equivalenceᴱ≃Erased-Is-equivalence {f} =
     Erased (∃ λ f⁻¹ → Erased (HA.Proofs f f⁻¹))  ↝⟨ Erased-cong-≃ (∃-cong λ _ → Eq.↔⇒≃ $ erased Erased↔) ⟩□
     Erased (∃ λ f⁻¹ → HA.Proofs f f⁻¹)           □
 
   Erased-Is-equivalence≃Is-equivalenceᴱ :
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
     Erased (Is-equivalence f) ≃ Is-equivalenceᴱ f
-  Erased-Is-equivalence≃Is-equivalenceᴱ {A = A} {B = B} {f = f} =
+  Erased-Is-equivalence≃Is-equivalenceᴱ {A} {B} {f} =
     Erased (Is-equivalence f)                                F.↔⟨⟩
 
     Erased (∃ λ (f⁻¹ : B → Erased A) → HA.Proofs f f⁻¹)      F.↔⟨ Erased-cong-↔ (F.inverse $ Σ-cong-id →≃→Erased) ⟩
@@ -1625,7 +1617,7 @@ module []-cong₂-⊔
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
     @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Is-proposition (Is-equivalenceᴱ f)
-  Is-equivalenceᴱ-propositional-for-Erased {f = f} ext =
+  Is-equivalenceᴱ-propositional-for-Erased {f} ext =
                                                 F.$⟨ H-level-Erased 1 (Is-equivalence-propositional ext) ⟩
     Is-proposition (Erased (Is-equivalence f))  ↝⟨ H-level-cong _ 1 Erased-Is-equivalence≃Is-equivalenceᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Is-equivalenceᴱ f)          □
@@ -1653,7 +1645,7 @@ module []-cong₂-⊔
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
     Is-equivalenceᴱ (map f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     Is-equivalence (map f)
-  Is-equivalenceᴱ↔Is-equivalence {f = f} =
+  Is-equivalenceᴱ↔Is-equivalence {f} =
     generalise-ext?-prop
       (Is-equivalenceᴱ (map f)                                        ↝⟨ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
        (∀ y → Contractibleᴱ (map f ⁻¹ᴱ y))                            F.↔⟨⟩
@@ -1673,7 +1665,7 @@ module []-cong₂-⊔
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
     Erased (Is-equivalenceᴱ f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]ᴱ
     Is-equivalenceᴱ (map f)
-  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f = f} ext =
+  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f} ext =
     Erased (Is-equivalenceᴱ f)          F.↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
     Erased (Is-equivalence f)           F.↔⟨ F.inverse Erased-Erased↔Erased ⟩
     Erased (Erased (Is-equivalence f))  ↝⟨ Erased-cong? Erased-Is-equivalence↔Is-equivalence ext ⟩

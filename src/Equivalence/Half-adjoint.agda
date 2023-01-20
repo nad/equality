@@ -43,7 +43,7 @@ mutual
   Is-equivalence :
     {A : Type a} {B : Type b} →
     (A → B) → Type (a ⊔ b)
-  Is-equivalence {A = A} {B = B} f =
+  Is-equivalence {A} {B} f =
     ∃ λ (f⁻¹ : B → A) → Proofs f f⁻¹
 
   -- The "proofs" contained in Is-equivalence f.
@@ -93,7 +93,7 @@ id-equivalence =
 
 inverse-equivalence :
   (eq : Is-equivalence f) → Is-equivalence (inverse eq)
-inverse-equivalence {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
+inverse-equivalence {f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
   f , f⁻¹-f , f-f⁻¹ , f⁻¹-f-f⁻¹
   where
 
@@ -116,7 +116,7 @@ inverse-equivalence {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
 composition-equivalence :
   Is-equivalence f → Is-equivalence g → Is-equivalence (f ∘ g)
 composition-equivalence
-  {f = f} {g = g}
+  {f} {g}
   (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f)
   (g⁻¹ , g-g⁻¹ , g⁻¹-g , g-g⁻¹-g) =
     [f-g]⁻¹
@@ -163,7 +163,7 @@ composition-equivalence
 Is-equivalence→↔ :
   {@0 A : Type a} {@0 B : Type b} {f : A → B} →
   Is-equivalence f → A ↔ B
-Is-equivalence→↔ {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
+Is-equivalence→↔ {f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
   { surjection = record
     { logical-equivalence = record
       { to   = f
@@ -269,7 +269,7 @@ Is-equivalence⇔Is-equivalence-CP = record
   }
   where
   to : Is-equivalence f → CP.Is-equivalence f
-  to {f = f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) y =
+  to {f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) y =
       (f⁻¹ y , f-f⁻¹ y)
     , λ (x , f-f⁻¹′) →
       Σ-≡,≡→≡
@@ -338,7 +338,7 @@ respects-extensional-equality :
   (∀ x → f x ≡ g x) →
   Is-equivalence f → Is-equivalence g
 respects-extensional-equality
-  {f = f} {g = g} f≡g (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
+  {f} {g} f≡g (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
   ↔→Is-equivalenceʳ (record
     { surjection = record
       { logical-equivalence = record

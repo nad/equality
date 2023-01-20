@@ -187,7 +187,7 @@ step-∼ _ ys∼zs xs∼ys = transitive-∼ xs∼ys ys∼zs
 syntax step-∼ xs ys∼zs xs∼ys = xs ∼⟨ xs∼ys ⟩ ys∼zs
 
 step-≡ : ∀ xs → [ i ] ys ∼ zs → xs ≡ ys → [ i ] xs ∼ zs
-step-≡ {i = i} _ ys∼zs xs≡ys = E.subst ([ i ]_∼ _) (E.sym xs≡ys) ys∼zs
+step-≡ {i} _ ys∼zs xs≡ys = E.subst ([ i ]_∼ _) (E.sym xs≡ys) ys∼zs
 
 syntax step-≡ xs ys∼zs xs≡ys = xs ≡⟨ xs≡ys ⟩ ys∼zs
 
@@ -226,8 +226,8 @@ tail-cong (_ ∷ ps) = ps
 map-cong :
   (∀ x → f x ≡ g x) →
   [ i ] xs ∼ ys → [ i ] map f xs ∼ map g ys
-map-cong                 f≡g []                           = []
-map-cong {f = f} {g = g} f≡g (_∷_ {x = x} {y = y} x≡y ps) =
+map-cong         f≡g []                   = []
+map-cong {f} {g} f≡g (_∷_ {x} {y} x≡y ps) =
   (f x  E.≡⟨ E.cong f x≡y ⟩
    f y  E.≡⟨ f≡g y ⟩∎
    g y  ∎) ∷ λ { .force →
@@ -255,8 +255,7 @@ cycle-cong p = E.refl _ ∷ λ { .force → force p ++-cong cycle-cong p }
 scanl-cong : [ i ] xs ∼ ys → [ i ] scanl c n xs ∼ scanl c n ys
 scanl-cong [] = E.refl _ ∷ λ { .force → [] }
 
-scanl-cong {c = c} {n = n}
-           (_∷_ {x = x} {y = y} {xs = xs} {ys = ys} x≡y ps) =
+scanl-cong {c} {n} (_∷_ {x} {y} {xs} {ys} x≡y ps) =
   E.refl n ∷ λ { .force →
     scanl c (c n x) (force xs)  ≡⟨ E.cong (λ x → scanl _ (c _ x) _) x≡y ⟩
     scanl c (c n y) (force xs)  ∼⟨ scanl-cong (force ps) ⟩
@@ -358,7 +357,7 @@ infix 4 [_]_∈_
 -- xs".
 
 ◇⇔∈× : ◇ i P xs ⇔ ∃ λ x → [ i ] x ∈ xs × P x
-◇⇔∈× {P = P} = record { to = to; from = from }
+◇⇔∈× {P} = record { to = to; from = from }
   where
   to : ◇ i P xs → ∃ λ x → [ i ] x ∈ xs × P x
   to (here p)  = _ , here (E.refl _) , p
@@ -372,7 +371,7 @@ infix 4 [_]_∈_
 -- holds for x, and vice versa.
 
 ◇-replicate-suc⇔ : ◇ i P (replicate (suc n) x) ⇔ P x
-◇-replicate-suc⇔ {P = P} {x = x} = record
+◇-replicate-suc⇔ {P} {x} = record
   { to   = to _
   ; from = here
   }
@@ -386,7 +385,7 @@ infix 4 [_]_∈_
 -- some element in x ∷ xs, and vice versa.
 
 ◇-cycle⇔ : ◇ i P (cycle x xs) ⇔ ◇ i P (x ∷ xs)
-◇-cycle⇔ {i = i} {P = P} {x = x} {xs = xs} = record
+◇-cycle⇔ {i} {P} {x} {xs} = record
   { to   = ◇ i P (cycle x xs)               ↝⟨ ◇-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
            ◇ i P ((x ∷ xs) ++ cycle x xs)   ↝⟨ to _ ⟩
            ◇ i P (x ∷ xs) ⊎ ◇ i P (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
@@ -447,7 +446,7 @@ open □′ public
 -- in xs".
 
 □⇔∈→ : □ i P xs ⇔ (∀ x → [ i ] x ∈ xs → P x)
-□⇔∈→ {P = P} = record { to = to; from = from _ }
+□⇔∈→ {P} = record { to = to; from = from _ }
   where
   to : □ i P xs → (∀ x → [ i ] x ∈ xs → P x)
   to (p ∷ ps) x (here eq)    = E.subst P (E.sym eq) p
@@ -505,7 +504,7 @@ _□◇-⊛_ : □ i (λ x → P x → Q x) xs → ◇ i P xs → ◇ i Q xs
 -- for x, and vice versa.
 
 □-replicate-suc⇔ : □ i P (replicate (suc n) x) ⇔ P x
-□-replicate-suc⇔ {P = P} {x = x} = record
+□-replicate-suc⇔ {P} {x} = record
   { to   = □-head
   ; from = from _
   }
@@ -518,7 +517,7 @@ _□◇-⊛_ : □ i (λ x → P x → Q x) xs → ◇ i P xs → ◇ i Q xs
 -- every element in x ∷ xs, and vice versa.
 
 □-cycle⇔ : □ i P (cycle x xs) ⇔ □ i P (x ∷ xs)
-□-cycle⇔ {i = i} {P = P} {x = x} {xs = xs} = record
+□-cycle⇔ {i} {P} {x} {xs} = record
   { to   = □ i P (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
            □ i P ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
            □ i P (x ∷ xs)                  □
@@ -608,7 +607,7 @@ data ◇ˢ {A : Type a} (i : Size)
 ◇ˢ⇔∈× :
   (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
   ◇ˢ ∞ Pˢ xs ⇔ (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)
-◇ˢ⇔∈× {Pˢ = Pˢ} →∞ = record
+◇ˢ⇔∈× {Pˢ} →∞ = record
   { to   = to
   ; from = λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }
   }
@@ -634,7 +633,7 @@ data ◇ˢ {A : Type a} (i : Size)
 -- ◇ ∞ (Pˢ ∞) is "contained in" ◇ˢ ∞ Pˢ.
 
 ◇∞→◇ˢ∞ : ◇ ∞ (Pˢ ∞) xs → ◇ˢ ∞ Pˢ xs
-◇∞→◇ˢ∞ {Pˢ = Pˢ} {xs = xs} =
+◇∞→◇ˢ∞ {Pˢ} {xs} =
   ◇ ∞ (Pˢ ∞) xs                    ↝⟨ _⇔_.to ◇⇔∈× ⟩
   (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)  ↝⟨ (λ { (_ , x∈xs , p) → ∈×∞→◇ˢ x∈xs p }) ⟩□
   ◇ˢ ∞ Pˢ xs                       □
@@ -645,7 +644,7 @@ data ◇ˢ {A : Type a} (i : Size)
 ◇ˢ∞⇔◇∞ :
   (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
   ◇ˢ ∞ Pˢ xs ⇔ ◇ ∞ (Pˢ ∞) xs
-◇ˢ∞⇔◇∞ {Pˢ = Pˢ} {xs = xs} →∞ =
+◇ˢ∞⇔◇∞ {Pˢ} {xs} →∞ =
   ◇ˢ ∞ Pˢ xs                       ↝⟨ ◇ˢ⇔∈× →∞ ⟩
   (∃ λ x → [ ∞ ] x ∈ xs × Pˢ ∞ x)  ↝⟨ inverse ◇⇔∈× ⟩□
   ◇ ∞ (Pˢ ∞) xs                    □
@@ -653,7 +652,7 @@ data ◇ˢ {A : Type a} (i : Size)
 -- ◇ˢ i (const P) is pointwise logically equivalent to ◇ i P.
 
 ◇ˢ⇔◇ : ◇ˢ i (λ _ → P) xs ⇔ ◇ i P xs
-◇ˢ⇔◇ {P = P} = record { to = to; from = from }
+◇ˢ⇔◇ {P} = record { to = to; from = from }
   where
   to : ◇ˢ i (λ _ → P) xs → ◇ i P xs
   to (here p)  = here p
@@ -666,7 +665,7 @@ data ◇ˢ {A : Type a} (i : Size)
 -- If ◇ˢ i Pˢ (x ∷ xs) holds, then ◇ˢ i Pˢ (cycle x xs) also holds.
 
 ◇ˢ-cycle← : ◇ˢ i Pˢ (x ∷ xs) → ◇ˢ i Pˢ (cycle x xs)
-◇ˢ-cycle← {i = i} {Pˢ = Pˢ} {x = x} {xs = xs} =
+◇ˢ-cycle← {i} {Pˢ} {x} {xs} =
   ◇ˢ i Pˢ (x ∷ xs)                  ↝⟨ from ⟩
   ◇ˢ i Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩□
   ◇ˢ i Pˢ (cycle x xs)              □
@@ -681,7 +680,7 @@ data ◇ˢ {A : Type a} (i : Size)
 ◇ˢ-cycle⇔ :
   (∀ {i x} → Pˢ i x → Pˢ ∞ x) →
   ◇ˢ ∞ Pˢ (cycle x xs) ⇔ ◇ˢ ∞ Pˢ (x ∷ xs)
-◇ˢ-cycle⇔ {Pˢ = Pˢ} {x = x} {xs = xs} →∞ = record
+◇ˢ-cycle⇔ {Pˢ} {x} {xs} →∞ = record
   { to   = ◇ˢ ∞ Pˢ (cycle x xs)                 ↝⟨ ◇ˢ-∼ (transitive-∼ ∷∼∷′ (symmetric-∼ ∷∼∷′)) ⟩
            ◇ˢ ∞ Pˢ ((x ∷ xs) ++ cycle x xs)     ↝⟨ to _ ⟩
            ◇ˢ ∞ Pˢ (x ∷ xs) ⊎ ◇ˢ ∞ Pˢ (x ∷ xs)  ↝⟨ [ id , id ] ⟩□
@@ -767,7 +766,7 @@ open □ˢ′ public
 □ˢ⇔∈→ :
   (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
   □ˢ ∞ Pˢ xs ⇔ (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)
-□ˢ⇔∈→ {Pˢ = Pˢ} ∞→ = record { to = λ p _ → □ˢ∞∈→ p; from = from _ }
+□ˢ⇔∈→ {Pˢ} ∞→ = record { to = λ p _ → □ˢ∞∈→ p; from = from _ }
   where
   from : ∀ xs → (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x) → □ˢ i Pˢ xs
   from []       f = []
@@ -794,7 +793,7 @@ open □ˢ′ public
 -- □ˢ ∞ Pˢ is "contained in" □ ∞ (Pˢ ∞).
 
 □ˢ∞→□∞ : □ˢ ∞ Pˢ xs → □ ∞ (Pˢ ∞) xs
-□ˢ∞→□∞ {Pˢ = Pˢ} {xs = xs} =
+□ˢ∞→□∞ {Pˢ} {xs} =
   □ˢ ∞ Pˢ xs                     ↝⟨ (λ p _ → □ˢ∞∈→ p) ⟩
   (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)  ↝⟨ _⇔_.from □⇔∈→ ⟩□
   □ ∞ (Pˢ ∞) xs                  □
@@ -805,7 +804,7 @@ open □ˢ′ public
 □ˢ∞⇔□∞ :
   (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
   □ˢ ∞ Pˢ xs ⇔ □ ∞ (Pˢ ∞) xs
-□ˢ∞⇔□∞ {Pˢ = Pˢ} {xs = xs} ∞→ =
+□ˢ∞⇔□∞ {Pˢ} {xs} ∞→ =
   □ˢ ∞ Pˢ xs                     ↝⟨ □ˢ⇔∈→ ∞→ ⟩
   (∀ x → [ ∞ ] x ∈ xs → Pˢ ∞ x)  ↝⟨ inverse □⇔∈→ ⟩□
   □ ∞ (Pˢ ∞) xs                  □
@@ -813,7 +812,7 @@ open □ˢ′ public
 -- □ˢ i (const P) is pointwise logically equivalent to □ i P.
 
 □ˢ⇔□ : □ˢ i (λ _ → P) xs ⇔ □ i P xs
-□ˢ⇔□ {P = P} = record { to = to; from = from }
+□ˢ⇔□ {P} = record { to = to; from = from }
   where
   to : □ˢ i (λ _ → P) xs → □ i P xs
   to []       = []
@@ -849,8 +848,8 @@ _□ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → □ˢ i Pˢ xs →
 □ˢ-map′ :
   (∀ {i x} → Pˢ i (f x) → Qˢ i (g x)) →
   (∀ {xs} → □ˢ i Pˢ (map f xs) → □ˢ i Qˢ (map g xs))
-□ˢ-map′ g {([])}  []       = []
-□ˢ-map′ g {_ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
+□ˢ-map′ g {xs = []}    []       = []
+□ˢ-map′ g {xs = _ ∷ _} (p ∷ ps) = g p ∷ λ { .force → □ˢ-map′ g (force ps) }
 
 -- Something resembling applicative functor application for □ˢ and ◇ˢ.
 
@@ -873,7 +872,7 @@ _□ˢ◇ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → ◇ˢ i Pˢ x
 -- If □ˢ i Pˢ (cycle x xs) holds, then □ˢ i Pˢ (x ∷ xs) also holds.
 
 □ˢ-cycle→ : □ˢ i Pˢ (cycle x xs) → □ˢ i Pˢ (x ∷ xs)
-□ˢ-cycle→ {i = i} {Pˢ = Pˢ} {x = x} {xs = xs} =
+□ˢ-cycle→ {i} {Pˢ} {x} {xs} =
   □ˢ i Pˢ (cycle x xs)              ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩
   □ˢ i Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ to _ ⟩□
   □ˢ i Pˢ (x ∷ xs)                  □
@@ -888,7 +887,7 @@ _□ˢ◇ˢ-⊛_ : □ˢ i (λ j x → Pˢ j x → Qˢ j x) xs → ◇ˢ i Pˢ x
 □ˢ-cycle⇔ :
   (∀ {i x} → Pˢ ∞ x → Pˢ i x) →
   □ˢ ∞ Pˢ (cycle x xs) ⇔ □ˢ ∞ Pˢ (x ∷ xs)
-□ˢ-cycle⇔ {Pˢ = Pˢ} {x = x} {xs = xs} ∞→ = record
+□ˢ-cycle⇔ {Pˢ} {x} {xs} ∞→ = record
   { to   = □ˢ-cycle→
   ; from = □ˢ ∞ Pˢ (x ∷ xs)                  ↝⟨ (λ hyp → from hyp hyp) ⟩
            □ˢ ∞ Pˢ ((x ∷ xs) ++ cycle x xs)  ↝⟨ (λ { (p ∷ ps) → p ∷ ps }) ⟩□

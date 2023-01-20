@@ -79,8 +79,8 @@ Set _ = ∃ Is-set
 -- H-level′ is upwards closed in its first argument.
 
 mono₁′ : ∀ n → H-level′ n A → H-level′ (1 + n) A
-mono₁′         (suc n) h x y = mono₁′ n (h x y)
-mono₁′ {A = A} zero    h x y = trivial x y , irr
+mono₁′     (suc n) h x y = mono₁′ n (h x y)
+mono₁′ {A} zero    h x y = trivial x y , irr
   where
   trivial : (x y : A) → x ≡ y
   trivial x y =
@@ -103,9 +103,9 @@ H-level⇔H-level′ = record { to = to _; from = from _ }
   to (suc (suc n)) h = λ x y → to (suc n) h
 
   from : ∀ n → H-level′ n A → H-level n A
-  from zero          h = h
-  from (suc zero)    h x y = proj₁ (h x y)
-  from (suc (suc n)) h {x = x} {y = y} = from (suc n) (h x y)
+  from zero          h         = h
+  from (suc zero)    h x y     = proj₁ (h x y)
+  from (suc (suc n)) h {x} {y} = from (suc n) (h x y)
 
 -- If A has h-level 1 + n, then the types of equality proofs between
 -- elements of type A have h-level n.

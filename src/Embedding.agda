@@ -46,7 +46,7 @@ Is-embedding-propositional :
   {A : Type a} {B : Type b} {f : A → B} →
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-proposition (Is-embedding f)
-Is-embedding-propositional {b = b} ext =
+Is-embedding-propositional {b} ext =
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
   Π-closure (lower-extensionality b lzero ext) 1 λ _ →
   Is-equivalence-propositional ext
@@ -98,7 +98,7 @@ Is-equivalence→Is-embedding is-equiv _ _ =
 -- Embedding is a preorder.
 
 id : Embedding A A
-id {A = A} = record
+id {A} = record
   { to           = P.id
   ; is-embedding = λ x y →
       Eq.respects-extensional-equality
@@ -132,7 +132,7 @@ f ∘ g = record
 embedding→⁻¹-propositional :
   Is-embedding f →
   ∀ y → Is-proposition (f ⁻¹ y)
-embedding→⁻¹-propositional {f = f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
+embedding→⁻¹-propositional {f} is-emb y (x₁ , eq₁) (x₂ , eq₂) =
   let
     equiv : (x₁ ≡ x₂) ≃ (f x₁ ≡ f x₂)
     equiv = ⟨ _ , is-emb _ _ ⟩
@@ -179,7 +179,7 @@ private
     {A : Type a} {B : Type b} {f : A → B} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-set A → Is-proposition (Injective f)
-  Injective-propositional {a = a} {b = b} ext A-set =
+  Injective-propositional {a} {b} ext A-set =
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     implicit-Π-closure (lower-extensionality b lzero ext) 1 λ _ →
     Π-closure (lower-extensionality a b ext)              1 λ _ →
@@ -269,7 +269,7 @@ Injective≃Is-embedding ext A-set B-set f =
 
 Is-embedding×Split-surjective⇔Is-equivalence :
   Is-embedding f × Split-surjective f ⇔ Is-equivalence f
-Is-embedding×Split-surjective⇔Is-equivalence {f = f} = record
+Is-embedding×Split-surjective⇔Is-equivalence {f} = record
   { to = λ (emb , surj) →
       _⇔_.from HA.Is-equivalence⇔Is-equivalence-CP λ y →
       propositional⇒inhabited⇒contractible
@@ -288,7 +288,7 @@ Embedding→↠ :
   {A : Type a} {B : Type b} →
   Excluded-middle (a ⊔ b) →
   A → Embedding A B → B ↠ A
-Embedding→↠ {A = A} {B = B} em a A↣B = record
+Embedding→↠ {A} {B} em a A↣B = record
   { logical-equivalence = record
     { to   = from
     ; from = to

@@ -74,7 +74,7 @@ left-exact = _⇔_.from (Left-exact≃Left-exact-η-cong _) lex
 -- A "computation rule" for η-cong⁻¹.
 
 η-cong⁻¹-η : η-cong⁻¹ (refl (η x)) ≡ η (refl x)
-η-cong⁻¹-η {x = x} = _≃_.to-from ◯≡≃η≡η
+η-cong⁻¹-η {x} = _≃_.to-from ◯≡≃η≡η
   (η-cong (η (refl x))  ≡⟨ η-cong-η ⟩
    cong η (refl x)      ≡⟨ cong-refl _ ⟩∎
    refl (η x)           ∎)
@@ -89,7 +89,7 @@ left-exact = _⇔_.from (Left-exact≃Left-exact-η-cong _) lex
 
 Separated≃Is-embedding-η :
   Separated A ↝[ a ∣ a ] Is-embedding (η ⦂ (A → ◯ A))
-Separated≃Is-embedding-η {A = A} ext =
+Separated≃Is-embedding-η {A} ext =
   (∀ x y → Modal (x ≡ y))                            ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Modal≃Is-equivalence-η ext) ⟩
   (∀ x y → Is-equivalence (η {A = x ≡ y}))           ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ →
                                                          Is-equivalence≃Is-equivalence-∘ˡ lex ext) ⟩
@@ -102,10 +102,10 @@ Separated≃Is-embedding-η {A = A} ext =
 -- If A has a given h-level, then ◯ A has the same h-level.
 
 H-level′→H-level′-◯ : ∀ n → H-level′ n A → H-level′ n (◯ A)
-H-level′→H-level′-◯ {A = A} zero =
+H-level′→H-level′-◯ {A} zero =
   Contractible A      →⟨ Contractible→Connected ⟩□
   Contractible (◯ A)  □
-H-level′→H-level′-◯ {A = A} (suc n) =
+H-level′→H-level′-◯ {A} (suc n) =
   ((x y : A) → H-level′ n (x ≡ y))      →⟨ (∀-cong _ λ _ → ∀-cong _ λ _ →
                                             H-level′→H-level′-◯ n) ⟩
   ((x y : A) → H-level′ n (◯ (x ≡ y)))  →⟨ (λ h →
@@ -132,7 +132,7 @@ H-level′→H-level′-◯ {A = A} (suc n) =
 -- extensionality.
 
 H-level→H-level-◯ : ∀ n → H-level n A → H-level n (◯ A)
-H-level→H-level-◯ {A = A} n =
+H-level→H-level-◯ {A} n =
   H-level n A       ↝⟨ H-level↔H-level′ _ ⟩
   H-level′ n A      ↝⟨ H-level′→H-level′-◯ n ⟩
   H-level′ n (◯ A)  ↝⟨ _⇔_.from (H-level↔H-level′ _) ⟩□
@@ -146,7 +146,7 @@ H-level→H-level-◯ {A = A} n =
 
 Connected-→≃Is-equivalence-◯-map :
   ◯ -Connected-→ f ↝[ a ∣ a ] Is-equivalence (◯-map f)
-Connected-→≃Is-equivalence-◯-map {f = f} =
+Connected-→≃Is-equivalence-◯-map {f} =
   generalise-ext?-prop
     (record
        { to   = Connected-→→Is-equivalence-◯-map
@@ -170,8 +170,7 @@ Connected-→-Σ-map→Π-Connected-→ :
   ◯ -Connected-→ f →
   ◯ -Connected-→ Σ-map {Q = Q} f (g _) →
   ∀ x → ◯ -Connected-→ g x
-Connected-→-Σ-map→Π-Connected-→
-  {P = P} {Q = Q} {f = f} {g = g} c-f c-f-g x q =
+Connected-→-Σ-map→Π-Connected-→ {P} {Q} {f} {g} c-f c-f-g x q =
                                             $⟨ c-h x q (x , refl (f x)) ⟩
   ◯ -Connected (h x q ⁻¹ (x , refl (f x)))  →⟨ Connected-cong _ lemma ⟩□
   ◯ -Connected (g x ⁻¹ q)                   □
@@ -267,7 +266,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
 -- ◯ (Injective f) implies Injective (◯-map f).
 
 ◯-Injective→Injective : ◯ (Injective f) → Injective (◯-map f)
-◯-Injective→Injective {f = f} =
+◯-Injective→Injective {f} =
   ◯ (∀ {x y} → f x ≡ f y → x ≡ y)                      →⟨ ◯-map (λ g _ _ → g) ⟩
   ◯ (∀ x y → f x ≡ f y → x ≡ y)                        →⟨ ◯Π→Π◯ ⟩
   (∀ x → ◯ (∀ y → f x ≡ f y → x ≡ y))                  →⟨ (∀-cong _ λ _ → ◯Π→Π◯) ⟩
@@ -305,7 +304,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
    _≃_.to (≡⇒↝ _ (cong₂ _≡_ ◯-map-η ◯-map-η)) ∘
    cong (◯-map f) ∘
    η-cong) p
-◯-map-cong≡ {f = f} =
+◯-map-cong≡ {f} =
   ◯-elim (λ _ → Separated-◯ _ _) $
   elim¹
     (λ p →
@@ -344,7 +343,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
 
 ◯-Is-embedding→Is-embedding :
   ◯ (Is-embedding f) → Is-embedding (◯-map f)
-◯-Is-embedding→Is-embedding {f = f} =
+◯-Is-embedding→Is-embedding {f} =
   ◯ (∀ x y → Is-equivalence (cong f ⦂ (x ≡ y → f x ≡ f y)))             →⟨ ◯Π→Π◯ ⟩
 
   (∀ x → ◯ (∀ y → Is-equivalence (cong f ⦂ (x ≡ y → f x ≡ f y))))       →⟨ (∀-cong _ λ _ → ◯Π→Π◯) ⟩
@@ -409,7 +408,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
 -- The type η x [ _<_ ]◯ η y is equivalent to ◯ (x < y).
 
 η-[]◯-η≃◯ : (η x [ _<_ ]◯ η y) ≃ ◯ (x < y)
-η-[]◯-η≃◯ {x = x} {_<_ = _<_} {y = y} =
+η-[]◯-η≃◯ {x} {_<_} {y} =
   η x [ _<_ ]◯ η y                                           ↔⟨⟩
 
   ◯ (∃ λ x′ → ∃ λ y′ → η x ≡ η x′ × η y ≡ η y′ × (x′ < y′))  ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ∃-cong λ _ → inverse $
@@ -481,7 +480,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
   (∀ {x y} → Stable (R x y)) →
   (∀ {x y} → R (η x) (η y) ⇔ ◯ (x < y)) →
   R x y ⇔ (x [ _<_ ]◯ y)
-⇔[]◯ {_<_ = _<_} {x = x} {y = y} {R = R} s Rηη⇔◯< =
+⇔[]◯ {_<_} {x} {y} {R} s Rηη⇔◯< =
   ◯-elim′
     {P = λ x → R x y ⇔ (x [ _<_ ]◯ y)}
     (λ _ → Stable-⇔ s (Modal→Stable Modal-◯))
@@ -506,7 +505,7 @@ Accessible→ ext acc@(_ , P , _) x Q m =
   (∀ {x y} → Modal (R x y)) →
   (∀ {x y} → R (η x) (η y) ≃ ◯ (x < y)) →
   R x y ≃ (x [ _<_ ]◯ y)
-≃[]◯ {_<_ = _<_} {x = x} {y = y} {R = R} ext m Rηη≃◯< =
+≃[]◯ {_<_} {x} {y} {R} ext m Rηη≃◯< =
   ◯-elim
     {P = λ x → R x y ≃ (x [ _<_ ]◯ y)}
     (λ _ → Modal-≃ ext m Modal-◯)

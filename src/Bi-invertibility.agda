@@ -104,7 +104,7 @@ module More
   Is-bi-invertible→Has-quasi-inverse :
     Is-bi-invertible f → Has-quasi-inverse f
   Is-bi-invertible→Has-quasi-inverse
-    {f = f} ((f⁻¹₁ , f⁻¹₁∘f≡id) , (f⁻¹₂ , f∘f⁻¹₂≡id)) =
+    {f} ((f⁻¹₁ , f⁻¹₁∘f≡id) , (f⁻¹₂ , f∘f⁻¹₂≡id)) =
       (f⁻¹₁ ∘ f ∘ f⁻¹₂)
     , (f ∘ f⁻¹₁ ∘ f ∘ f⁻¹₂    ≡⟨ cong (f ∘_) $ associativity _ _ _ ⟩
        f ∘ (f⁻¹₁ ∘ f) ∘ f⁻¹₂  ≡⟨ cong (λ f′ → f ∘ f′ ∘ f⁻¹₂) f⁻¹₁∘f≡id ⟩
@@ -120,8 +120,7 @@ module More
 
   Has-left-inverse-contractible :
     Has-quasi-inverse f → Contractible (Has-left-inverse f)
-  Has-left-inverse-contractible
-    {f = f} (f⁻¹ , f∘f⁻¹≡id , f⁻¹∘f≡id) =
+  Has-left-inverse-contractible {f} (f⁻¹ , f∘f⁻¹≡id , f⁻¹∘f≡id) =
     bijection⁻¹-contractible (record
       { surjection = record
         { logical-equivalence = record
@@ -146,8 +145,7 @@ module More
 
   Has-right-inverse-contractible :
     Has-quasi-inverse f → Contractible (Has-right-inverse f)
-  Has-right-inverse-contractible
-    {f = f} (f⁻¹ , f∘f⁻¹≡id , f⁻¹∘f≡id) =
+  Has-right-inverse-contractible {f} (f⁻¹ , f∘f⁻¹≡id , f⁻¹∘f≡id) =
     bijection⁻¹-contractible (record
       { surjection = record
         { logical-equivalence = record
@@ -187,7 +185,7 @@ module More
     {f : Hom A B} →
     Is-set (Hom A A) →
     Is-proposition (Has-quasi-inverse f)
-  Has-quasi-inverse-propositional-domain {f = f} s =              $⟨ (λ inv → Σ-closure 1
+  Has-quasi-inverse-propositional-domain {f} s =                  $⟨ (λ inv → Σ-closure 1
                                                                                 (mono₁ 0 $ Has-right-inverse-contractible inv)
                                                                                 (λ _ → s)) ⟩
     (Has-quasi-inverse f →
@@ -205,7 +203,7 @@ module More
     {f : Hom A B} →
     Is-set (Hom B B) →
     Is-proposition (Has-quasi-inverse f)
-  Has-quasi-inverse-propositional-codomain {f = f} s =            $⟨ (λ inv → Σ-closure 1
+  Has-quasi-inverse-propositional-codomain {f} s =                $⟨ (λ inv → Σ-closure 1
                                                                                 (mono₁ 0 $ Has-left-inverse-contractible inv)
                                                                                 (λ _ → s)) ⟩
     (Has-quasi-inverse f →
@@ -317,7 +315,7 @@ module More
     {f : Hom A B} →
     Has-quasi-inverse f →
     Has-quasi-inverse f ≃ (id ≡ id {A = A})
-  Has-quasi-inverse≃id≡id-domain {f = f} q-inv@(f⁻¹ , _ , f⁻¹∘f≡id) =
+  Has-quasi-inverse≃id≡id-domain {f} q-inv@(f⁻¹ , _ , f⁻¹∘f≡id) =
     Has-quasi-inverse f                                     ↔⟨ Σ-assoc ⟩
     (∃ λ ((f⁻¹ , _) : Has-right-inverse f) → f⁻¹ ∘ f ≡ id)  ↔⟨ drop-⊤-left-Σ (_⇔_.to contractible⇔↔⊤ $ Has-right-inverse-contractible q-inv) ⟩
     (f⁻¹ ∘ id) ∘ f ≡ id                                     ↝⟨ ≡⇒↝ _ $ cong (λ f′ → f′ ∘ _ ≡ _) $ right-identity _ ⟩
@@ -328,7 +326,7 @@ module More
     {f : Hom A B} →
     Has-quasi-inverse f →
     Has-quasi-inverse f ≃ (id ≡ id {A = B})
-  Has-quasi-inverse≃id≡id-codomain {f = f} q-inv@(f⁻¹ , f∘f⁻¹≡id , _) =
+  Has-quasi-inverse≃id≡id-codomain {f} q-inv@(f⁻¹ , f∘f⁻¹≡id , _) =
     Has-quasi-inverse f                                    ↔⟨ Σ-assoc F.∘ (∃-cong λ _ → ×-comm) ⟩
     (∃ λ ((f⁻¹ , _) : Has-left-inverse f) → f ∘ f⁻¹ ≡ id)  ↔⟨ drop-⊤-left-Σ (_⇔_.to contractible⇔↔⊤ $ Has-left-inverse-contractible q-inv) ⟩
     f ∘ id ∘ f⁻¹ ≡ id                                      ↝⟨ ≡⇒↝ _ $ cong (λ f′ → _ ∘ f′ ≡ _) $ left-identity _ ⟩

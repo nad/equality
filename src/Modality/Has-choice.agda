@@ -107,7 +107,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   Π◯→◯Π-η :
     Extensionality a a →
     Π◯→◯Π (η ∘ f) ≡ η f
-  Π◯→◯Π-η {f = f} ext =
+  Π◯→◯Π-η {f} ext =
     Π◯→◯Π (η ∘ f)        ≡⟨ cong Π◯→◯Π $ sym $ ◯Π→Π◯-η ext ⟩
     Π◯→◯Π (◯Π→Π◯ (η f))  ≡⟨ _≃_.right-inverse-of (Π◯≃◯Π ext) _ ⟩∎
     η f                  ∎
@@ -119,7 +119,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     {f : ∀ {x} → P x → Q x} {g : (x : A) → ◯ (P x)} →
     Extensionality a a →
     Π◯→◯Π (◯-map f ∘ g) ≡ ◯-map (f ∘_) (Π◯→◯Π g)
-  Π◯→◯Π-◯-map {f = f} {g = g} ext =
+  Π◯→◯Π-◯-map {f} {g} ext =
     _≃_.from-to (Π◯≃◯Π ext)
       (◯Π→Π◯ (◯-map (f ∘_) (Π◯→◯Π g))  ≡⟨ (apply-ext ext λ _ → ◯Π→Π◯-◯-map) ⟩
        ◯-map f ∘ ◯Π→Π◯ (Π◯→◯Π g)       ≡⟨ cong (◯-map f ∘_) $ _≃_.left-inverse-of (Π◯≃◯Π ext) _ ⟩∎
@@ -134,7 +134,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   ◯Π◯≃◯Π :
     {P : A → Type a} →
     ◯ ((x : A) → ◯ (P x)) ↝[ a ∣ a ] ◯ ((x : A) → P x)
-  ◯Π◯≃◯Π {P = P} ext =
+  ◯Π◯≃◯Π {P} ext =
     ◯ ((x : A) → ◯ (P x))  ↝⟨ ◯-cong-↝ ext Π◯≃◯Π ⟩
     ◯ (◯ ((x : A) → P x))  ↔⟨ inverse ◯≃◯◯ ⟩□
     ◯ ((x : A) → P x)      □
@@ -142,7 +142,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   -- Two "computation rules" for ◯Π◯≃◯Π.
 
   ◯Π◯≃◯Π-η : ◯Π◯≃◯Π _ (η f) ≡ Π◯→◯Π f
-  ◯Π◯≃◯Π-η {f = f} =
+  ◯Π◯≃◯Π-η {f} =
     ◯Π◯≃◯Π _ (η f)                        ≡⟨⟩
     ◯-rec Modal-◯ id (◯-map Π◯→◯Π (η f))  ≡⟨ cong (◯-rec _ _) ◯-map-η ⟩
     ◯-rec Modal-◯ id (η (Π◯→◯Π f))        ≡⟨ ◯-rec-η ⟩∎
@@ -151,7 +151,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   ◯Π◯≃◯Π⁻¹-η :
     Extensionality a a →
     _⇔_.from (◯Π◯≃◯Π _) (η f) ≡ η (η ∘ f)
-  ◯Π◯≃◯Π⁻¹-η {f = f} ext =
+  ◯Π◯≃◯Π⁻¹-η {f} ext =
     _⇔_.from (◯Π◯≃◯Π _) (η f)  ≡⟨⟩
     ◯-map ◯Π→Π◯ (η (η f))      ≡⟨ ◯-map-η ⟩
     η (◯Π→Π◯ (η f))            ≡⟨ cong η $ ◯Π→Π◯-η ext ⟩∎
@@ -165,7 +165,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     -- ◯ commutes with the non-dependent function space (up to _⇔_).
 
     ◯→⇔◯→◯ : ◯ (A → B) ⇔ (◯ A → ◯ B)
-    ◯→⇔◯→◯ {B = B} = record
+    ◯→⇔◯→◯ {B} = record
       { to   = ◯-map-◯
       ; from =
           (◯ A → ◯ B)  →⟨ Π◯◯≃Π◯η _ ⟩
@@ -180,7 +180,7 @@ module Valid-domain₁ (v : Valid-domain A) where
       ◯→⇔◯→◯-◯→⇔◯→◯ :
         (f : ◯ A → ◯ B) →
         _⇔_.to ◯→⇔◯→◯ (_⇔_.from ◯→⇔◯→◯ f) x ≡ f x
-      ◯→⇔◯→◯-◯→⇔◯→◯ {x = x} f =
+      ◯→⇔◯→◯-◯→⇔◯→◯ {x} f =
         ◯-elim
           (λ _ → Separated-◯ _ _)
           (λ x →
@@ -195,7 +195,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   -- function extensionality).
 
   ◯→≃◯→◯ : ◯ (A → B) ↝[ a ∣ a ] (◯ A → ◯ B)
-  ◯→≃◯→◯ {B = B} =
+  ◯→≃◯→◯ {B} =
     generalise-ext?
       ◯→⇔◯→◯
       (λ ext →
@@ -224,7 +224,7 @@ module Valid-domain₁ (v : Valid-domain A) where
   Σ◯→⇔Σ◯→◯ :
     ({f g : ◯ A → ◯ B} → (∀ x → f x ≡ g x) → P f → P g) →
     Σ (◯ (A → B)) (P ∘ ◯-map-◯) ⇔ Σ (◯ A → ◯ B) P
-  Σ◯→⇔Σ◯→◯ {P = P} P-resp = record { to = to; from = from }
+  Σ◯→⇔Σ◯→◯ {P} P-resp = record { to = to; from = from }
     where
     to   = Σ-map (_⇔_.to   ◯→⇔◯→◯) id
     from = Σ-map (_⇔_.from ◯→⇔◯→◯) λ {f} →
@@ -238,7 +238,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     (P-resp : {f g : ◯ A → ◯ B} → (∀ x → f x ≡ g x) → P f → P g) →
     (∀ {f x} → Extensionality a a → P-resp (refl ∘ f) x ≡ x) →
     Σ (◯ (A → B)) (P ∘ ◯-map-◯) ↝[ a ∣ a ] Σ (◯ A → ◯ B) P
-  Σ◯→↝Σ◯→◯ {P = P} P-resp P-resp-refl = generalise-ext?
+  Σ◯→↝Σ◯→◯ {P} P-resp P-resp-refl = generalise-ext?
     (Σ◯→⇔Σ◯→◯ P-resp)
     (λ ext →
          (λ (f , p) → Σ-≡,≡→≡
@@ -332,7 +332,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     Extensionality? k a a →
     (∀ x → Stable-[ k ] (P x)) →
     Stable-[ k ] ((x : A) → P x)
-  Stable-Π {P = P} ext hyp =
+  Stable-Π {P} ext hyp =
     ◯ ((x : A) → P x)    ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
     ((x : A) → ◯ (P x))  ↝⟨ ∀-cong ext hyp ⟩□
     ((x : A) → P x)      □
@@ -345,7 +345,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     Extensionality? k a a →
     (∀ x → Stable-[ k ] (P x)) →
     Stable-[ k ] ({x : A} → P x)
-  Stable-implicit-Π {P = P} ext hyp =
+  Stable-implicit-Π {P} ext hyp =
     ◯ ({x : A} → P x)  ↔⟨ ◯-cong-↔ Bijection.implicit-Π↔Π ⟩
     ◯ ((x : A) → P x)  ↝⟨ Stable-Π ext hyp ⟩
     ((x : A) → P x)    ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
@@ -359,7 +359,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     (∀ {f x} → Extensionality a a → P-resp (refl ∘ f) x ≡ x) →
     (∀ f → Stable-[ k ] (P f)) →
     Stable-[ k ] (Σ (◯ A → ◯ B) P)
-  Stable-Σ[◯→◯] {B = B} {P = P} ext P-resp P-resp-refl s =
+  Stable-Σ[◯→◯] {B} {P} ext P-resp P-resp-refl s =
     ◯ (Σ (◯ A → ◯ B) P)              ↝⟨ ◯-cong-↝ ext $ inverse-ext? (Σ◯→↝Σ◯→◯ P-resp P-resp-refl) ⟩
     ◯ (Σ (◯ (A → B)) (P ∘ ◯-map-◯))  ↝⟨ Stable-Σ Modal-◯ (s ∘ ◯-map-◯) ⟩
     Σ (◯ (A → B)) (P ∘ ◯-map-◯)      ↝⟨ Σ◯→↝Σ◯→◯ P-resp P-resp-refl ext ⟩□
@@ -398,7 +398,7 @@ module Valid-domain₁ (v : Valid-domain A) where
     ◯-Split-surjective≃Split-surjective :
       {f : B → A} →
       ◯ (Split-surjective f) ↝[ a ∣ a ] Split-surjective (◯-map f)
-    ◯-Split-surjective≃Split-surjective {f = f} {k = k} ext =
+    ◯-Split-surjective≃Split-surjective {f} {k} ext =
       ◯ (∀ y → ∃ λ x → f x ≡ y)              ↝⟨ inverse-ext? Π◯≃◯Π ext ⟩
       (∀ y → ◯ (∃ λ x → f x ≡ y))            ↝⟨ (∀-cong′ λ _ → inverse ◯Σ◯≃◯Σ) ⟩
       (∀ y → ◯ (∃ λ x → ◯ (f x ≡ y)))        ↝⟨ (∀-cong′ λ _ → ◯-cong-≃ $ ∃-cong λ _ → ◯≡≃η≡η) ⟩
@@ -447,7 +447,7 @@ module Valid-domain-Π◯
     Extensionality a a →
     (f : P (η x) → W (◯ A) P) →
     W◯→◯Wη (sup (η x) f) ≡ ◯-map (sup x) (Π◯→◯Π (W◯→◯Wη ∘ f))
-  W◯→◯Wη-sup-η {x = x} ext f =
+  W◯→◯Wη-sup-η {x} ext f =
     ◯-elim′
       {P = λ x → (P x → ◯ (W A (P ∘ η))) → ◯ (W A (P ∘ η))}
       (λ _ → M.Stable-Π λ _ → Modal→Stable Modal-◯)
@@ -572,7 +572,7 @@ module Valid-domain-Π◯
   ◯Wη≃Σ◯Π◯Wη-η :
     Extensionality a a →
     ◯Wη≃Σ◯Π◯Wη _ (η (sup x f)) ≡ (η x , η ∘ f)
-  ◯Wη≃Σ◯Π◯Wη-η {x = x} {f = f} ext =
+  ◯Wη≃Σ◯Π◯Wη-η {x} {f} ext =
     Σ-map id ◯Π→Π◯
       (◯Ση≃Σ◯◯ _ (◯-map (λ w → headᵂ w , tailᵂ w) (η (sup x f))))  ≡⟨ cong (Σ-map id ◯Π→Π◯ ∘ ◯Ση≃Σ◯◯ _) ◯-map-η ⟩
 
@@ -767,8 +767,7 @@ module Valid-domain-Π
    (∃ λ (f : ◯ A → ◯ B) → P f)) →
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
-◯↝↝◯↝◯ {A = A} {B = B} {F = F} {P = P}
-  F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→↝Σ◯→◯ ext =
+◯↝↝◯↝◯ {A} {B} {F} {P} F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→↝Σ◯→◯ ext =
   ◯ (F A B)                                  ↔⟨ ◯-cong-↔ F↔ ⟩
   ◯ (∃ λ (f : A → B) → P f)                  ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
   ◯ (∃ λ (f : A → B) → ◯ (P f))              ↝⟨ (◯-cong-↝ ext λ ext → ∃-cong λ _ → ◯∘P↝P∘◯-map ext) ⟩
@@ -796,7 +795,7 @@ module Valid-domain-Π
   ({f : ◯ A → ◯ B} → Stable-[ k ] (P f)) →
   Extensionality? k a a →
   ◯ (F A B) ↝[ k ] F (◯ A) (◯ B)
-◯↝↝◯↝◯′ {A = A} {B = B} {F = F} {P = P}
+◯↝↝◯↝◯′ {A} {B} {F} {P}
   F↔ ◯∘P↝P∘◯-map v P-cong P-cong-refl P-stable ext =
   ◯↝↝◯↝◯
     F↔
@@ -829,7 +828,7 @@ module Valid-domain-Π
   ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x) ≡
   _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))
 ◯↝↝◯↝◯-η
-  F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η Σ◯→→Σ◯→◯ hyp {x = x} =
+  F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η Σ◯→→Σ◯→◯ hyp {x} =
   ◯↝↝◯↝◯ F↔ ◯∘P↝P∘◯-map P-cong P-stable Σ◯→→Σ◯→◯ _ (η x)          ≡⟨⟩
 
   (_↔_.from F↔ $ Σ◯→→Σ◯→◯ $ Σ-map id P-stable $ ◯Ση≃Σ◯◯ _ $
@@ -885,8 +884,8 @@ module Valid-domain-Π
   {x : F A B} →
   ◯↝↝◯↝◯′ F↔ ◯∘P↝P∘◯-map v P-cong P-cong-refl P-stable _ (η x) ≡
   _↔_.from F↔ (Σ-map ◯-map (◯∘P↝P∘◯-map _ ∘ η) (_↔_.to F↔ x))
-◯↝↝◯↝◯′-η {P = P}
-  F↔ ◯∘P↝P∘◯-map v P-cong P-cong-refl P-stable P-stable-η ext {x = x} =
+◯↝↝◯↝◯′-η
+  {P} F↔ ◯∘P↝P∘◯-map v P-cong P-cong-refl P-stable P-stable-η ext {x} =
   ◯↝↝◯↝◯-η F↔ ◯∘P↝P∘◯-map P-cong P-stable P-stable-η
     (Valid-domain₁.Σ◯→↝Σ◯→◯ v (P-cong _) P-cong-refl _)
     (λ f p →
@@ -993,13 +992,13 @@ module Valid-domain-Σ≡◯
       ∀ n →
       For-iterated-equality n Modal A →
       Stable-[ k ] (H-level′ n A)
-    Stable-H-level′′ {k = k} {A = A} ext v zero =
+    Stable-H-level′′ {k} {A} ext v zero =
       Modal A                        →⟨ (λ m →
                                            Stable-Σ m λ _ →
                                            Stable-Π v ext λ _ →
                                            Modal→Stable $ Modal→Separated m _ _) ⟩□
       Stable-[ k ] (Contractible A)  □
-    Stable-H-level′′ {k = k} {A = A} ext v (suc n) =
+    Stable-H-level′′ {k} {A} ext v (suc n) =
       For-iterated-equality (suc n) Modal A          →⟨ (λ m →
                                                            Stable-Π v ext λ _ →
                                                            Stable-Π v ext λ _ →
@@ -1018,7 +1017,7 @@ module Valid-domain-Σ≡◯
       ∀ n → H-level′ n (◯ A) ↝[ a ∣ a ] ◯ (H-level′ n A)
     H-level′-◯≃◯-H-level′′ lex v zero ext =
       Valid-domain₁.Left-exact.Contractible-◯≃◯-Contractible v lex ext
-    H-level′-◯≃◯-H-level′′ {A = A} lex v (suc n) ext =
+    H-level′-◯≃◯-H-level′′ {A} lex v (suc n) ext =
       H-level′ (suc n) (◯ A)                            ↝⟨ inverse-ext?
                                                              (λ ext → Stable-H-level′′ ext (v-◯ v) (suc n)
                                                                         (Modal→Modalⁿ (suc n) Modal-◯))
@@ -1117,8 +1116,7 @@ module Valid-domain-Σ≡◯
         Extensionality? k a a →
         Modal A → Separated B →
         Stable-[ k ] (Is-equivalence f)
-      Modal→Stable-Is-equivalence {k = k} {f = f} ext m s =
-                                                    $⟨ s′ ⟩
+      Modal→Stable-Is-equivalence {k} {f} ext m s = $⟨ s′ ⟩
         Stable-[ k ] (∀ y → Contractible (f ⁻¹ y))  →⟨ Stable-respects-↝ ext $ inverse-ext?
                                                        Is-equivalence≃Is-equivalence-CP ⟩□
         Stable-[ k ] (Is-equivalence f)             □
@@ -1151,7 +1149,7 @@ module Valid-domain-Σ≡◯
         Connected-→≃◯-Is-equivalence :
           {f : A → B} →
           ◯ -Connected-→ f ↝[ a ∣ a ] ◯ (Is-equivalence f)
-        Connected-→≃◯-Is-equivalence {f = f} ext =
+        Connected-→≃◯-Is-equivalence {f} ext =
           ◯ -Connected-→ f                   ↔⟨⟩
           (∀ y → Contractible (◯ (f ⁻¹ y)))  ↝⟨ (∀-cong ext λ _ → Contractible-◯≃◯-Contractible (v-⁻¹ vA vB) ext) ⟩
           (∀ y → ◯ (Contractible (f ⁻¹ y)))  ↝⟨ Π◯≃◯Π vB ext ⟩
@@ -1165,7 +1163,7 @@ module Valid-domain-Σ≡◯
         ◯-Is-equivalence≃Is-equivalence :
           {f : A → B} →
           ◯ (Is-equivalence f) ↝[ a ∣ a ] Is-equivalence (◯-map f)
-        ◯-Is-equivalence≃Is-equivalence {f = f} ext =
+        ◯-Is-equivalence≃Is-equivalence {f} ext =
           ◯ (Is-equivalence f)      ↝⟨ inverse-ext? Connected-→≃◯-Is-equivalence ext ⟩
           ◯ -Connected-→ f          ↝⟨ Connected-→≃Is-equivalence-◯-map ext ⟩□
           Is-equivalence (◯-map f)  □
@@ -1233,7 +1231,7 @@ module Valid-domain-Σ≡◯
           (∀ x → g x ≡ h x) →
           Has-quasi-inverse-proofs f g →
           Has-quasi-inverse-proofs f h
-        Has-quasi-inverse-proofs-resp {f = f} g≡h =
+        Has-quasi-inverse-proofs-resp {f} g≡h =
           Σ-map (trans (cong f $ sym $ g≡h _) ∘_)
                 (trans (sym $ g≡h _) ∘_)
 
@@ -1262,7 +1260,7 @@ module Valid-domain-Σ≡◯
       ◯-Has-quasi-inverse≃Has-quasi-inverse :
         {f : A → B} →
         ◯ (Has-quasi-inverse f) ↝[ a ∣ a ] Has-quasi-inverse (◯-map f)
-      ◯-Has-quasi-inverse≃Has-quasi-inverse {f = f} ext =
+      ◯-Has-quasi-inverse≃Has-quasi-inverse {f} ext =
         ◯ (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))            ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
 
         ◯ (∃ λ g → ◯ ((∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x)))        ↔⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯×) ⟩
@@ -1342,7 +1340,7 @@ module Valid-domain-Σ≡◯
       ◯-Injective≃Injective :
         {f : A → B} →
         ◯ (Injective f) ↝[ a ∣ a ] Injective (◯-map f)
-      ◯-Injective≃Injective {f = f} ext =
+      ◯-Injective≃Injective {f} ext =
         ◯ (∀ {x y} → f x ≡ f y → x ≡ y)                      ↔⟨ ◯-cong-≃ $ inverse lemma ⟩
         ◯ (∀ x y → f x ≡ f y → x ≡ y)                        ↝⟨ inverse-ext? (Π◯≃◯Π vA) ext ⟩
         (∀ x → ◯ (∀ y → f x ≡ f y → x ≡ y))                  ↝⟨ (∀-cong ext λ _ → inverse-ext? (Π◯≃◯Π vA) ext) ⟩
@@ -1393,7 +1391,7 @@ module Valid-domain-Σ≡◯
       ◯-Is-embedding≃Is-embedding :
         {f : A → B} →
         ◯ (Is-embedding f) ↝[ a ∣ a ] Is-embedding (◯-map f)
-      ◯-Is-embedding≃Is-embedding {f = f} ext =
+      ◯-Is-embedding≃Is-embedding {f} ext =
         ◯ (∀ x y → Is-equivalence (cong f ⦂ (x ≡ y → f x ≡ f y)))             ↝⟨ inverse-ext? (Π◯≃◯Π vA) ext ⟩
 
         (∀ x → ◯ (∀ y → Is-equivalence (cong f ⦂ (x ≡ y → f x ≡ f y))))       ↝⟨ (∀-cong ext λ _ → inverse-ext? (Π◯≃◯Π vA) ext) ⟩
@@ -1477,7 +1475,7 @@ module Valid-domain-Σ≡◯
         Extensionality a a →
         ◯ (HA.Proofs f f⁻¹) ≃ HA.Proofs (◯-map f) (◯-map f⁻¹)
       ◯-Half-adjoint-proofs≃Half-adjoint-proofs-◯-map-◯-map
-        {f⁻¹ = f⁻¹} {f = f} ext =
+        {f⁻¹} {f} ext =
         ◯ (HA.Proofs f f⁻¹)                                               ↔⟨⟩
 
         ◯ (∃ λ (f-f⁻¹ : ∀ x → f (f⁻¹ x) ≡ x) →
@@ -1524,7 +1522,7 @@ module Valid-domain-Σ≡◯
         lemma₁ :
           ∀ {A B : Type a} (g : A → B) (h : B → A) {x} →
           ◯-map g (◯-map h (η x)) ≡ η (g (h x))
-        lemma₁ g h {x = x} =
+        lemma₁ g h {x} =
           ◯-map g (◯-map h (η x))  ≡⟨ cong (◯-map g) ◯-map-η ⟩
           ◯-map g (η (h x))        ≡⟨ ◯-map-η ⟩∎
           η (g (h x))              ∎
@@ -1539,7 +1537,7 @@ module Valid-domain-Σ≡◯
             Valid-domain B →
             ◯ ((x : B) → g (h x) ≡ x) ≃
             ((x : ◯ B) → ◯-map g (◯-map h x) ≡ x)
-          lemma₂ {B = B} g h v =
+          lemma₂ {B} g h v =
             ◯ ((x : B) → g (h x) ≡ x)                  ↝⟨ inverse (Π◯≃◯Π v ext) ⟩
             ((x : B) → ◯ (g (h x) ≡ x))                ↝⟨ (∀-cong ext λ _ → ◯≡≃η≡η) ⟩
             ((x : B) → η (g (h x)) ≡ η x)              ↔⟨ (∀-cong ext λ _ → trans-isomorphism (lemma₁ g h)) ⟩
@@ -1550,7 +1548,7 @@ module Valid-domain-Σ≡◯
             ∀ {A B : Type a} {g : A → B} {h v p x} →
             _≃_.to (lemma₂ g h v) (η p) (η x) ≡
             trans (lemma₁ g h) (cong η (p x))
-          lemma₂-η {g = g} {h = h} {v = v} {p = p} {x = x} =
+          lemma₂-η {g} {h} {v} {p} {x} =
             _≃_.to (lemma₂ g h v) (η p) (η x)              ≡⟨⟩
 
             _≃_.from (Π◯≃Πη ext s)
@@ -1569,7 +1567,7 @@ module Valid-domain-Σ≡◯
           _≃_.to (lemma₂ g h v) (η p) x ≡
           ◯-elim (λ _ → Separated-◯ _ _)
             (trans (lemma₁ g h) ∘ cong η ∘ p) x
-        lemma₂-ηˡ {g = g} {h = h} {v = v} {p = p} {x = x} =
+        lemma₂-ηˡ {g} {h} {v} {p} {x} =
           ◯-elim
             {P = λ x →
                    _≃_.to (lemma₂ g h v) (η p) x ≡
@@ -1590,7 +1588,7 @@ module Valid-domain-Σ≡◯
           (◯-map (cong f ∘ (_$ x)) f⁻¹-f ≡ ◯-map (_$ f x) f-f⁻¹) ≃
           (cong (◯-map f) (_≃_.to (lemma₂ f⁻¹ f v₁) f⁻¹-f (η x)) ≡
            _≃_.to (lemma₂ f f⁻¹ v₂) f-f⁻¹ (◯-map f (η x)))
-        lemma₃ {v₁ = v₁} {v₂ = v₂} x =
+        lemma₃ {v₁} {v₂} x =
           ◯-elim (λ _ → Modal-Π ext λ _ → m) λ f-f⁻¹ →
           ◯-elim (λ _ → m) λ f⁻¹-f →
 

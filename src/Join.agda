@@ -114,7 +114,7 @@ Join-⊥ʳ = Eq.↔→≃
 -- The empty type is a left identity for Join.
 
 Join-⊥ˡ : Join (⊥ {ℓ = ℓ}) A ≃ A
-Join-⊥ˡ {A = A} =
+Join-⊥ˡ {A} =
   Join ⊥ A  ↝⟨ Join-symmetric ⟩
   Join A ⊥  ↝⟨ Join-⊥ʳ ⟩□
   A         □
@@ -141,7 +141,7 @@ Join-⊤ˡ = Eq.↔→≃
 -- The unit type is a right zero for Join.
 
 Join-⊤ʳ : Join A ⊤ ≃ ⊤
-Join-⊤ʳ {A = A} =
+Join-⊤ʳ {A} =
   Join A ⊤  ↝⟨ Join-symmetric ⟩
   Join ⊤ A  ↝⟨ Join-⊤ˡ ⟩□
   ⊤         □
@@ -438,7 +438,7 @@ private
   -- A lemma used below.
 
   Join≃⊤ : Is-proposition A → A → Join A B ≃ ⊤
-  Join≃⊤ {A = A} {B = B} prop x =
+  Join≃⊤ {A} {B} prop x =
     Join A B  ↔⟨ flip Join-cong-↔ F.id $
                  _⇔_.to contractible⇔↔⊤ $
                  propositional⇒inhabited⇒contractible prop x ⟩
@@ -512,7 +512,7 @@ Closed-topological :
   {A : Type a}
   (prop : Is-proposition A) →
   Topological (Closed A prop)
-Closed-topological {A = A} prop =
+Closed-topological {A} prop =
     ( A
     , (λ _ → ⊥)
     , (λ B →
@@ -542,7 +542,7 @@ Closed-topological {A = A} prop =
 Empty-modal-Closed≃¬ :
   (prop : Is-proposition A) →
   Empty-modal (Closed A prop) ≃ (¬ A)
-Empty-modal-Closed≃¬ {A = A} prop =
+Empty-modal-Closed≃¬ {A} prop =
   (A → Contractible ⊥)  ↝⟨ (∀-cong ext λ _ → _⇔_.from (≃⊥≃¬ _) ¬-⊥-contractible) ⟩□
   (A → ⊥)               □
 
@@ -558,7 +558,7 @@ Empty-modal-Closed≃¬ {A = A} prop =
 Very-modal-Closed≃Dec :
   (prop : Is-proposition A) →
   Very-modal (Closed A prop) ≃ Dec A
-Very-modal-Closed≃Dec {A = A} prop =
+Very-modal-Closed≃Dec {A} prop =
   Eq.⇔→≃
     (Very-modal-propositional ext (Closed _ prop))
     (Dec-closure-propositional ext prop)
@@ -594,7 +594,7 @@ Very-modal-Closed≃Has-choice-Closed≃Dec :
     , Modality.Has-choice-for (Closed A prop) A
     , Dec A
     )
-Very-modal-Closed≃Has-choice-Closed≃Dec {A = A} prop =
+Very-modal-Closed≃Has-choice-Closed≃Dec {A} prop =
     ( (Very-modal (Closed A prop)  →⟨ Very-modal.has-choice (Closed A prop) ⟩⇔
        Has-choice                  →⟨ (λ hyp → hyp) ⟩⇔
        Has-choice-for A            →⟨ lemma ⟩⇔□)
@@ -643,7 +643,7 @@ Accessibility-modal-for-Closed≃¬ :
   {_<_ : B → B → Type a} →
   (prop : Is-proposition A) →
   Modality.Accessibility-modal-for (Closed A prop) _<_ ≃ (¬ A)
-Accessibility-modal-for-Closed≃¬ {a = a} {A = A} {_<_ = _<_} prop =
+Accessibility-modal-for-Closed≃¬ {a} {A} {_<_} prop =
   Eq.⇔→≃
     (Accessibility-modal-for-propositional ext)
     (¬-propositional ext)
@@ -670,7 +670,7 @@ Accessibility-modal-for-Closed≃¬ {a = a} {A = A} {_<_ = _<_} prop =
   open Modality (Closed A prop)
 
   stable : ¬ A → Join A B → B
-  stable {B = B} not-inh =
+  stable {B} not-inh =
     Join A B   ↔⟨ Join-cong-≃ (_⇔_.from (≃⊥≃¬ _) not-inh) F.id ⟩
     Join ⊥₀ B  ↔⟨ Join-⊥ˡ ⟩□
     B          □
@@ -680,7 +680,7 @@ Accessibility-modal-for-Closed≃¬ {a = a} {A = A} {_<_ = _<_} prop =
 Accessibility-modal-Closed≃¬ :
   (prop : Is-proposition A) →
   Modality.Accessibility-modal (Closed A prop) ≃ (¬ A)
-Accessibility-modal-Closed≃¬ {A = A} prop =
+Accessibility-modal-Closed≃¬ {A} prop =
   Eq.⇔→≃
     (Accessibility-modal-propositional ext)
     (¬-propositional ext)
@@ -701,7 +701,7 @@ Accessibility-modal-Closed≃Empty-modal-Closed :
   (prop : Is-proposition A) →
   Modality.Accessibility-modal (Closed A prop) ≃
   Empty-modal (Closed A prop)
-Accessibility-modal-Closed≃Empty-modal-Closed {A = A} prop =
+Accessibility-modal-Closed≃Empty-modal-Closed {A} prop =
   Accessibility-modal          ↝⟨ Accessibility-modal-Closed≃¬ prop ⟩
   ¬ A                          ↝⟨ inverse $ Empty-modal-Closed≃¬ prop ⟩□
   Empty-modal (Closed A prop)  □
@@ -714,7 +714,7 @@ W-modal-Closed≃Empty-modal-Closed :
   (prop : Is-proposition A) →
   W-modal (Closed A prop) ≃
   Empty-modal (Closed A prop)
-W-modal-Closed≃Empty-modal-Closed {A = A} prop =
+W-modal-Closed≃Empty-modal-Closed {A} prop =
   Eq.⇔→≃
     (W-modal-propositional {M = Closed A prop} ext)
     (Empty-modal-propositional {M = Closed A prop} ext)
@@ -736,7 +736,7 @@ W-modal-Closed≃Empty-modal-Closed {A = A} prop =
 Closed-commutes-with-Σ :
   (prop : Is-proposition A) →
   Modality.Commutes-with-Σ (Closed A prop)
-Closed-commutes-with-Σ {A = A} prop =
+Closed-commutes-with-Σ {A} prop =
   Modality.commutes-with-Σ (Closed A prop) ext
 
 -- If Dec A holds, then Closed A prop commutes with Erased.
@@ -744,7 +744,7 @@ Closed-commutes-with-Σ {A = A} prop =
 Dec→Closed-commutes-with-Erased :
   (prop : Is-proposition A) →
   Dec A → Modality.Commutes-with-Erased (Closed A prop)
-Dec→Closed-commutes-with-Erased {A = A} prop =
+Dec→Closed-commutes-with-Erased {A} prop =
   Dec A                       →⟨ _≃_.from $ Very-modal-Closed≃Dec prop ⟩
   Very-modal (Closed A prop)  →⟨ (λ very-modal →
                                     Very-modal.[]-cong.commutes-with-Erased
@@ -761,7 +761,7 @@ Dec→Closed-commutes-with-Erased {A = A} prop =
 Closed-commutes-with-Erased→Very-stable-Dec :
   (prop : Is-proposition A) →
   Modality.Commutes-with-Erased (Closed A prop) → E.Very-stable (Dec A)
-Closed-commutes-with-Erased→Very-stable-Dec {A = A} prop comm =
+Closed-commutes-with-Erased→Very-stable-Dec {A} prop comm =
   _≃_.is-equivalence $
   Eq.⇔→≃
     Dec-prop
@@ -785,7 +785,7 @@ Dec→Closed-commutes-with-Erased≃Dec :
   (prop : Is-proposition A) →
   @0 Dec A →
   Modality.Commutes-with-Erased (Closed A prop) ≃ Dec A
-Dec→Closed-commutes-with-Erased≃Dec {A = A} prop dec =
+Dec→Closed-commutes-with-Erased≃Dec {A} prop dec =
   Eq.⇔→≃
     (Commutes-with-Erased-propositional ext)
     (Dec-closure-propositional ext prop)

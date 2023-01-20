@@ -61,9 +61,9 @@ record Elim {A : Type a} (P : ∥ A ∥ → Type p) : Type (a ⊔ p) where
 open Elim public
 
 elim : Elim P → (x : ∥ A ∥) → P x
-elim {A = A} {P = P} e = C.elim λ where
-    .C.Elim.∣∣ʳ {n = n} → helper n
-    .C.Elim.∣∣≡∣∣ʳ _    → E.is-propositionʳ _ _ _
+elim {A} {P} e = C.elim λ where
+    .C.Elim.∣∣ʳ {n}  → helper n
+    .C.Elim.∣∣≡∣∣ʳ _ → E.is-propositionʳ _ _ _
   where
   module E = Elim e
 
@@ -79,11 +79,11 @@ _ = refl _
 -- The propositional truncation operator returns propositions.
 
 ∥∥-proposition : Is-proposition ∥ A ∥
-∥∥-proposition {A = A} = elim λ where
+∥∥-proposition {A} = elim λ where
     .is-propositionʳ → Π≡-proposition ext
     .∣∣ʳ x → C.elim λ where
-      .C.Elim.∣∣ʳ              → lemma₁ _ x
-      .C.Elim.∣∣≡∣∣ʳ {n = n} y →
+      .C.Elim.∣∣ʳ          → lemma₁ _ x
+      .C.Elim.∣∣≡∣∣ʳ {n} y →
         subst (∣ x ∣ ≡_) (C.∣∣≡∣∣ y) (lemma₁ (suc n) x O.∣ y ∣)   ≡⟨ sym trans-subst ⟩
 
         trans (lemma₁ (1 + n) x O.∣ y ∣) (C.∣∣≡∣∣ y)              ≡⟨⟩
@@ -185,7 +185,7 @@ _ = refl _
     ≃
   (∃ λ (f : ∀ n → ∥ A ∥¹-out-^ n → B) →
      ∀ n x → f (suc n) O.∣ x ∣ ≡ f n x)
-∥∥→≃ {A = A} {B = B} =
+∥∥→≃ {A} {B} =
   (T.∥ A ∥ → B)                          ↝⟨ →-cong ext (inverse ∥∥≃∥∥) F.id ⟩
 
   (∥ A ∥ → B)                            ↝⟨ C.universal-property ⟩□

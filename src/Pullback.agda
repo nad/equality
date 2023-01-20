@@ -85,7 +85,7 @@ Cone-≡-↔-Σ :
        (cong₂ _,_ p q)
        (Cone.commutes c) ≡
      Cone.commutes d)
-Cone-≡-↔-Σ {C = C} {c = c} {d = d} =
+Cone-≡-↔-Σ {C} {c} {d} =
   c ≡ d                                                      ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ Cone↔Σ) ⟩
 
   ((Cone.left c , Cone.right c) , Cone.commutes c) ≡
@@ -148,7 +148,7 @@ Is-homotopy-pullback c b =
 -- The pullback is a homotopy pullback for pullback-cone.
 
 is-homotopy-pullback : Is-homotopy-pullback (pullback-cone {C = C}) b
-is-homotopy-pullback {C = C} B =
+is-homotopy-pullback {C} B =
   _≃_.is-equivalence (
     (B → Pullback C)                                                    ↔⟨⟩
     (B → ∃ λ x → ∃ λ y → Cospan.left C x ≡ Cospan.right C y)            ↔⟨ ΠΣ-comm ⟩
@@ -169,7 +169,7 @@ universal-property′ :
   (c : Cone A C) →
   Contractible
     (∃ λ (f : A → Pullback C) → composition pullback-cone f ≡ c)
-universal-property′ {A = A} {C = C} c = _⇔_.from contractible⇔↔⊤ (
+universal-property′ {A} {C} c = _⇔_.from contractible⇔↔⊤ (
   (∃ λ (f : A → Pullback C) → composition pullback-cone f ≡ c)  ↝⟨ (Σ-cong universal-property λ _ → F.id) ⟩
   (∃ λ (d : Cone A C) → d ≡ c)                                  ↝⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
   ⊤                                                             □)
@@ -181,7 +181,7 @@ Cone-cong :
   Extensionality? k (a₁ ⊔ a₂) (l ⊔ r ⊔ m) →
   A₁ ≃ A₂ →
   Cone A₁ C ↝[ k ] Cone A₂ C
-Cone-cong {A₁ = A₁} {A₂ = A₂} {C = C} ext A₁≃A₂ =
+Cone-cong {A₁} {A₂} {C} ext A₁≃A₂ =
   Cone A₁ C          ↔⟨ inverse universal-property ⟩
   (A₁ → Pullback C)  ↝⟨ →-cong₁ ext A₁≃A₂ ⟩
   (A₂ → Pullback C)  ↔⟨ universal-property ⟩□
@@ -192,7 +192,7 @@ private
   -- A special case of Cone-cong that does not require extensionality.
 
   Cone-↑⊤↔Cone-↑⊤ : Cone (↑ a₁ ⊤) C ↔ Cone (↑ a₂ ⊤) C
-  Cone-↑⊤↔Cone-↑⊤ {C = C} =
+  Cone-↑⊤↔Cone-↑⊤ {C} =
     Cone (↑ _ ⊤) C        ↔⟨ inverse universal-property ⟩
     (↑ _ ⊤ → Pullback C)  ↝⟨ Π-left-identity-↑ ⟩
     Pullback C            ↝⟨ inverse Π-left-identity-↑ ⟩
@@ -207,7 +207,7 @@ homotopy-pullbacks-equivalent :
   Is-homotopy-pullback c₁ b₁ →
   Is-homotopy-pullback c₂ b₂ →
   A₁ ≃ A₂
-homotopy-pullbacks-equivalent {A₁ = A₁} {C = C} {A₂ = A₂} _ _ p₁ p₂ =
+homotopy-pullbacks-equivalent {A₁} {C} {A₂} _ _ p₁ p₂ =
   A₁              ↔⟨ inverse Π-left-identity-↑ ⟩
   (↑ _ ⊤ → A₁)    ↝⟨ Eq.⟨ _ , p₁ (↑ _ ⊤) ⟩ ⟩
   Cone (↑ _ ⊤) C  ↔⟨ Cone-↑⊤↔Cone-↑⊤ ⟩
@@ -232,7 +232,7 @@ homotopy-pullbacks-equivalent {A₁ = A₁} {C = C} {A₂ = A₂} _ _ p₁ p₂ 
 -- Rijke, Shulman and Spitters.
 
 Is-equivalence-∆ : Is-equivalence f → Is-equivalence (∆ f)
-Is-equivalence-∆ {f = f} f-eq =
+Is-equivalence-∆ {f} f-eq =
   _≃_.is-equivalence $
   Eq.↔→≃
     _

@@ -97,8 +97,7 @@ elimᴾ :
   {@0 step₊ : ∀ {n} → P₊ n → P₊ (suc n)}
   {Q : Colimitᴱ P₀ P₊ step₀ step₊ → Type q} →
   Elimᴾ Q → (x : Colimitᴱ P₀ P₊ step₀ step₊) → Q x
-elimᴾ {P₀ = P₀} {P₊ = P₊} {step₀ = step₀} {step₊ = step₊} {Q = Q} e =
-  helper
+elimᴾ {P₀} {P₊} {step₀} {step₊} {Q} e = helper
   where
   module E = Elimᴾ e
 
@@ -241,8 +240,7 @@ universal-property :
      Erased (∃ λ (f₊ : ∀ n → P₊ n → B) →
                (∀ x → f₊ zero (step₀ x) ≡ f₀ x) ×
                (∀ n x → f₊ (suc n) (step₊ x) ≡ f₊ n x)))
-universal-property
-  {P₀ = P₀} {B = B} {P₊ = P₊} {step₀ = step₀} {step₊ = step₊} =
+universal-property {P₀} {B} {P₊} {step₀} {step₊} =
   Eq.↔→≃ to from to∘from from∘to
   where
   to :
@@ -327,8 +325,7 @@ universal-property-Π :
                (∀ x → subst Q (∣∣₊≡∣∣₀ x) (f₊ zero (step₀ x)) ≡ f₀ x) ×
                (∀ n x → subst Q (∣∣₊≡∣∣₊ x) (f₊ (suc n) (step₊ x)) ≡
                         f₊ n x)))
-universal-property-Π
-  {P₀ = P₀} {P₊ = P₊} {step₀ = step₀} {step₊ = step₊} {Q = Q} =
+universal-property-Π {P₀} {P₊} {step₀} {step₊} {Q} =
   Eq.↔→≃ to from to∘from from∘to
   where
   RHS =

@@ -74,7 +74,7 @@ record Elimᴾ {A : Type a} (P : ∥ A ∥¹ → Type p) : Type (a ⊔ p) where
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : ∥ A ∥¹) → P x
-elimᴾ {A = A} {P = P} e = helper
+elimᴾ {A} {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -180,7 +180,7 @@ private
     subst (λ z → ∥∥¹-map f (∥∥¹-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x)) ≡
     cong ∣_∣ (eq y)
-  ∥∥¹-cong-lemma {x = x} {y = y} f g eq =
+  ∥∥¹-cong-lemma {x} {y} f g eq =
     subst
       (λ z → ∥∥¹-map f (∥∥¹-map g z) ≡ z)
       (∣∣-constant x y) (cong ∣_∣ (eq x))                         ≡⟨ subst-in-terms-of-trans-and-cong ⟩
@@ -275,16 +275,16 @@ private
 -- A rearrangement lemma.
 
 ∥∥¹-out-^+≃ : ∀ m → ∥ A ∥¹-out-^ (m + n) ≃ ∥ ∥ A ∥¹-out-^ n ∥¹-out-^ m
-∥∥¹-out-^+≃                 zero    = F.id
-∥∥¹-out-^+≃ {A = A} {n = n} (suc m) =
+∥∥¹-out-^+≃         zero    = F.id
+∥∥¹-out-^+≃ {A} {n} (suc m) =
   ∥ ∥ A ∥¹-out-^ (m + n) ∥¹         ↝⟨ ∥∥¹-cong-≃ (∥∥¹-out-^+≃ m) ⟩□
   ∥ ∥ ∥ A ∥¹-out-^ n ∥¹-out-^ m ∥¹  □
 
 -- ∥_∥¹ commutes with ∥_∥¹-out-^ n.
 
 ∥∥¹-∥∥¹-out-^-commute : ∀ n → ∥ ∥ A ∥¹-out-^ n ∥¹ ↔ ∥ ∥ A ∥¹ ∥¹-out-^ n
-∥∥¹-∥∥¹-out-^-commute         zero    = F.id
-∥∥¹-∥∥¹-out-^-commute {A = A} (suc n) =
+∥∥¹-∥∥¹-out-^-commute     zero    = F.id
+∥∥¹-∥∥¹-out-^-commute {A} (suc n) =
   ∥ ∥ ∥ A ∥¹-out-^ n ∥¹ ∥¹  ↝⟨ ∥∥¹-cong-↔ (∥∥¹-∥∥¹-out-^-commute n) ⟩□
   ∥ ∥ ∥ A ∥¹ ∥¹-out-^ n ∥¹  □
 
@@ -316,8 +316,8 @@ private
 -- The two variants of ∥_∥¹^ are pointwise equivalent.
 
 ∥∥¹-out-^≃∥∥¹-in-^ : ∀ n → ∥ A ∥¹-out-^ n ≃ ∥ A ∥¹-in-^ n
-∥∥¹-out-^≃∥∥¹-in-^         zero    = F.id
-∥∥¹-out-^≃∥∥¹-in-^ {A = A} (suc n) =
+∥∥¹-out-^≃∥∥¹-in-^     zero    = F.id
+∥∥¹-out-^≃∥∥¹-in-^ {A} (suc n) =
   ∥ ∥ A ∥¹-out-^ n ∥¹  ↔⟨ ∥∥¹-∥∥¹-out-^-commute n ⟩
   ∥ ∥ A ∥¹ ∥¹-out-^ n  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ n ⟩□
   ∥ ∥ A ∥¹ ∥¹-in-^ n   □
@@ -325,7 +325,7 @@ private
 -- ∥_∥¹ commutes with ∥_∥¹-in-^ n.
 
 ∥∥¹-∥∥¹-in-^-commute : ∀ n → ∥ ∥ A ∥¹-in-^ n ∥¹ ≃ ∥ ∥ A ∥¹ ∥¹-in-^ n
-∥∥¹-∥∥¹-in-^-commute {A = A} n =
+∥∥¹-∥∥¹-in-^-commute {A} n =
   ∥ ∥ A ∥¹-in-^ n ∥¹    ↝⟨ ∥∥¹-cong-≃ (inverse $ ∥∥¹-out-^≃∥∥¹-in-^ n) ⟩
   ∥ ∥ A ∥¹-out-^ n ∥¹   ↔⟨⟩
   ∥ A ∥¹-out-^ (suc n)  ↝⟨ ∥∥¹-out-^≃∥∥¹-in-^ (suc n) ⟩
@@ -344,8 +344,8 @@ private
   ∀ n {x : ∥ A ∥¹-out-^ n} →
   _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (suc n)) ∣ x ∣ ≡
   ∣ n , _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣-in-^
-∣∣≡∣,∣-in-^ zero    {x = x} = ∣ x ∣  ∎
-∣∣≡∣,∣-in-^ (suc n) {x = x} =
+∣∣≡∣,∣-in-^ zero    {x} = ∣ x ∣  ∎
+∣∣≡∣,∣-in-^ (suc n) {x} =
   _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (2 + n)) ∣ x ∣            ≡⟨⟩
 
   _≃_.to (∥∥¹-out-^≃∥∥¹-in-^ (1 + n))
@@ -360,8 +360,8 @@ private
   ∀ n {x : ∥ A ∥¹-in-^ n} →
   _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
   ∣ _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ n) x ∣
-∣,∣-in-^≡∣∣ zero    {x = x} = ∣ x ∣  ∎
-∣,∣-in-^≡∣∣ (suc n) {x = x} =
+∣,∣-in-^≡∣∣ zero    {x} = ∣ x ∣  ∎
+∣,∣-in-^≡∣∣ (suc n) {x} =
   _≃_.from (∥∥¹-out-^≃∥∥¹-in-^ (2 + n)) ∣ 1 + n , x ∣-in-^  ≡⟨⟩
 
   _↔_.from (∥∥¹-∥∥¹-out-^-commute (1 + n))
@@ -426,8 +426,8 @@ private
 -- ∥ A ∥¹ᴱ-out-^ n implies ∥ A ∥¹-out-^ n.
 
 ∥∥¹ᴱ-out-^→∥∥¹-out-^ : ∀ n → ∥ A ∥¹ᴱ-out-^ n → ∥ A ∥¹-out-^ n
-∥∥¹ᴱ-out-^→∥∥¹-out-^         zero    = id
-∥∥¹ᴱ-out-^→∥∥¹-out-^ {A = A} (suc n) =
+∥∥¹ᴱ-out-^→∥∥¹-out-^     zero    = id
+∥∥¹ᴱ-out-^→∥∥¹-out-^ {A} (suc n) =
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
   ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-map (∥∥¹ᴱ-out-^→∥∥¹-out-^ n) ⟩□
   ∥ ∥ A ∥¹-out-^ n ∥¹    □
@@ -442,8 +442,8 @@ private
     (lemma n)
   where
   ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ : ∀ n → ∥ A ∥¹ᴱ-out-^ n ≃ ∥ A ∥¹-out-^ n
-  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′         zero    = F.id
-  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ {A = A} (suc n) =
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′     zero    = F.id
+  ∥∥¹ᴱ-out-^≃∥∥¹-out-^′ {A} (suc n) =
     ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩
     ∥ ∥ A ∥¹ᴱ-out-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (∥∥¹ᴱ-out-^≃∥∥¹-out-^′ n) ⟩□
     ∥ ∥ A ∥¹-out-^ n ∥¹    □
@@ -462,8 +462,8 @@ private
 -- ∥ A ∥¹ᴱ-in-^ n implies ∥ A ∥¹-in-^ n.
 
 ∥∥¹ᴱ-in-^→∥∥¹-in-^ : ∀ n → ∥ A ∥¹ᴱ-in-^ n → ∥ A ∥¹-in-^ n
-∥∥¹ᴱ-in-^→∥∥¹-in-^         zero    = id
-∥∥¹ᴱ-in-^→∥∥¹-in-^ {A = A} (suc n) =
+∥∥¹ᴱ-in-^→∥∥¹-in-^     zero    = id
+∥∥¹ᴱ-in-^→∥∥¹-in-^ {A} (suc n) =
   ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↔⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
   ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ→∥∥¹ ⟩
   ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹   ↝⟨ ∥∥¹-map (∥∥¹ᴱ-in-^→∥∥¹-in-^ n) ⟩
@@ -480,8 +480,8 @@ private
     (lemma n)
   where
   ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ : ∀ n → ∥ A ∥¹ᴱ-in-^ n ≃ ∥ A ∥¹-in-^ n
-  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′         zero    = F.id
-  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ {A = A} (suc n) =
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′     zero    = F.id
+  ∥∥¹ᴱ-in-^≃∥∥¹-in-^′ {A} (suc n) =
     ∥ ∥ A ∥¹ᴱ ∥¹ᴱ-in-^ n  ↝⟨ inverse $ O.∥∥¹ᴱ-∥∥¹ᴱ-in-^-commute n ⟩
     ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹ᴱ  ↝⟨ ∥∥¹ᴱ≃∥∥¹ ⟩
     ∥ ∥ A ∥¹ᴱ-in-^ n ∥¹   ↝⟨ ∥∥¹-cong-≃ (∥∥¹ᴱ-in-^≃∥∥¹-in-^′ n) ⟩
@@ -512,7 +512,7 @@ private
   ∀ n {x : ∥ A ∥¹ᴱ-in-^ n} →
   ∥∥¹ᴱ-in-^→∥∥¹-in-^ (suc n) O.∣ n , x ∣-in-^ ≡
   ∣ n , ∥∥¹ᴱ-in-^→∥∥¹-in-^ n x ∣-in-^
-∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ n {x = x} =
+∥∥¹ᴱ-in-^→∥∥¹-in-^-∣,∣-in-^ n {x} =
   ∥∥¹ᴱ-in-^→∥∥¹-in-^ (1 + n) O.∣ n , x ∣-in-^                ≡⟨⟩
 
   _≃_.to (∥∥¹-∥∥¹-in-^-commute n)
@@ -554,7 +554,7 @@ private
   ∀ n {x : ∥ A ∥¹-in-^ n} →
   _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^ ≡
   O.∣ n , _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) x ∣-in-^
-from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ n {x = x} =
+from-∥∥¹ᴱ-in-^≃∥∥¹-in-^-∣,∣-in-^ n {x} =
   _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^  ≡⟨ cong (λ x → _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n)) ∣ n , x ∣-in-^) $ sym $
                                                            _≃_.right-inverse-of (∥∥¹ᴱ-in-^≃∥∥¹-in-^ n) _ ⟩
   _≃_.from (∥∥¹ᴱ-in-^≃∥∥¹-in-^ (suc n))

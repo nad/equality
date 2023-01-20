@@ -93,7 +93,7 @@ record Elimᴾ′ {A : Type a} (P : ∥ A ∥ᴱ → Type p) : Type (a ⊔ p) wh
 open Elimᴾ′ public
 
 elimᴾ′ : Elimᴾ′ P → (x : ∥ A ∥ᴱ) → P x
-elimᴾ′ {A = A} {P = P} e = helper
+elimᴾ′ {A} {P} e = helper
   where
   module E = Elimᴾ′ e
 
@@ -184,7 +184,7 @@ rec r = recᴾ λ where
 -- Erased (Is-proposition A) holds.
 
 ∥∥ᴱ-modality : Modality ℓ
-∥∥ᴱ-modality {ℓ = ℓ} = λ where
+∥∥ᴱ-modality {ℓ} = λ where
     .◯                   → ∥_∥ᴱ
     .η                   → ∣_∣
     .Modal A             → Erased (Is-proposition A)
@@ -201,7 +201,7 @@ rec r = recᴾ λ where
     {A : Type ℓ} {P : ∥ A ∥ᴱ → Type ℓ} →
     (∀ x → Erased (Is-proposition (P x))) →
     Is-∞-extendable-along-[ ∣_∣ ] P
-  extendable {A = A} {P = P} =
+  extendable {A} {P} =
     (∀ x → Erased (Is-proposition (P x)))                  →⟨ (λ prop →
                                                                  _≃_.is-equivalence $
                                                                  Eq.↔→≃
@@ -224,7 +224,7 @@ rec r = recᴾ λ where
 -- The modality is not left exact.
 
 ¬-∥∥ᴱ-left-exact : ¬ Left-exact (∥_∥ᴱ {a = a})
-¬-∥∥ᴱ-left-exact {a = a} =
+¬-∥∥ᴱ-left-exact {a} =
   Er.Stable-¬
     [ Empty-modal→Is-proposition-◯→¬-Left-exact
         ∥∥ᴱ-empty-modal truncation-is-proposition
@@ -235,7 +235,7 @@ rec r = recᴾ λ where
 -- The modality is not very modal.
 
 ¬-∥∥ᴱ-very-modal : ¬ Very-modal (∥∥ᴱ-modality {ℓ = ℓ})
-¬-∥∥ᴱ-very-modal {ℓ = ℓ} =
+¬-∥∥ᴱ-very-modal {ℓ} =
   Very-modal (∥∥ᴱ-modality {ℓ = ℓ})                ↔⟨⟩
   ({A : Type ℓ} → ∥ Erased (Is-proposition A) ∥ᴱ)  →⟨ (λ hyp → hyp) ⟩
   ∥ Erased (Is-proposition (↑ ℓ Bool)) ∥ᴱ          →⟨ ◯-map (Er.map (⊥-elim ∘ ¬-Bool-propositional ∘ H-level-cong _ 1 Bijection.↑↔)) ⟩
@@ -254,7 +254,7 @@ rec r = recᴾ λ where
 
 ¬-∥∥ᴱ-accessibility-modal :
   ¬ Modality.Accessibility-modal (∥∥ᴱ-modality {ℓ = ℓ})
-¬-∥∥ᴱ-accessibility-modal {ℓ = ℓ} acc =
+¬-∥∥ᴱ-accessibility-modal {ℓ} acc =
   Er.Very-stable→Stable 0 Er.Very-stable-⊥
     [ Is-proposition-◯→¬-Accessibility-modal
         truncation-is-proposition acc
@@ -270,7 +270,7 @@ Is-proposition→∥∥ᴱ-accessibility-modal :
   @0 Is-proposition A →
   @0 (∀ x y → Is-proposition (x < y)) →
   Modality.Accessibility-modal-for ∥∥ᴱ-modality _<_
-Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
+Is-proposition→∥∥ᴱ-accessibility-modal {ℓ} p₁ p₂ =
     (λ acc →
        Modal→Acc→Acc-[]◯-η
          [ p₁ ]
@@ -292,8 +292,7 @@ Is-proposition→∥∥ᴱ-accessibility-modal {ℓ = ℓ} p₁ p₂ =
   ({_<_ : A → A → Type ℓ} →
    Modality.Accessibility-modal-for ∥∥ᴱ-modality _<_) →
   ¬ ¬ x ≡ y
-∥∥ᴱ-accessibility-modal→¬¬≡
-  {ℓ = ℓ} {A = A} {x = x} {y = y} acc x≢y =
+∥∥ᴱ-accessibility-modal→¬¬≡ {ℓ} {A} {x} {y} acc x≢y =
   Er.Very-stable→Stable₀ Er.Very-stable-⊥
     [                        $⟨ (A.acc λ _ x≡y → ⊥-elim $ x≢y x≡y) ⟩
       Acc _<_ x              →⟨ Acc-[]◯-η acc ⟩
@@ -444,7 +443,7 @@ inhabited⇒∥∥ᴱ≃ᴱ⊤ ∥a∥ =
 -- isomorphic to the empty type.
 
 not-inhabited⇒∥∥ᴱ↔⊥ : ¬ A → ∥ A ∥ᴱ ↔ ⊥ {ℓ = ℓ}
-not-inhabited⇒∥∥ᴱ↔⊥ {A = A} =
+not-inhabited⇒∥∥ᴱ↔⊥ {A} =
   ¬ A         ↝⟨ (λ ¬a → rec λ where
                            .∣∣ʳ                        → ¬a
                            .truncation-is-propositionʳ → ⊥-propositional) ⟩
@@ -455,7 +454,7 @@ not-inhabited⇒∥∥ᴱ↔⊥ {A = A} =
 -- of A.
 
 ¬∥∥ᴱ↔¬ : ¬ ∥ A ∥ᴱ ↔ ¬ A
-¬∥∥ᴱ↔¬ {A = A} = record
+¬∥∥ᴱ↔¬ {A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f → f ∘ ∣_∣
@@ -492,7 +491,7 @@ mutual
   universal-property-Π :
     @0 (∀ x → Is-proposition (P x)) →
     ((x : ∥ A ∥ᴱ) → P x) ≃ ((x : A) → P ∣ x ∣)
-  universal-property-Π {A = A} {P = P} P-prop =
+  universal-property-Π {A} {P} P-prop =
     ((x : ∥ A ∥ᴱ) → P x)      ↝⟨ Eq.↔⇒≃ (record
                                    { surjection = record
                                      { logical-equivalence = record
@@ -541,7 +540,7 @@ _ = λ _ _ _ → refl _
      Erased (∃ λ (g : ∀ n → ∥ A ∥¹-out-^ (suc n) → B) →
                (∀ x → g zero O.∣ x ∣ ≡ f x) ×
                (∀ n x → g (suc n) O.∣ x ∣ ≡ g n x)))
-∥∥ᴱ→≃ {A = A} {B = B} =
+∥∥ᴱ→≃ {A} {B} =
   (∥ A ∥ᴱ → B)                                           ↝⟨ →-cong ext ∥∥ᴱ≃∥∥ᴱ F.id ⟩
 
   (N.∥ A ∥ᴱ → B)                                         ↝⟨ C.universal-property ⟩□
@@ -560,7 +559,7 @@ _ = λ _ _ _ → refl _
   {@0 g : (x : ∥ A ∥ᴱ) → P x} →
   (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g)) ≃
   (∃ λ (f : (x : A) → P ∣ x ∣) → Erased (f ≡ g ∘ ∣_∣))
-Σ-Π-∥∥ᴱ-Erased-≡-≃ {A = A} {P = P} {g = g} =
+Σ-Π-∥∥ᴱ-Erased-≡-≃ {A} {P} {g} =
   (∃ λ (f : (x : ∥ A ∥ᴱ) → P x) → Erased (f ≡ g))       ↝⟨ (Σ-cong lemma λ _ → Er.Erased-cong (inverse $ Eq.≃-≡ lemma)) ⟩
 
   (∃ λ (f : (x : N.∥ A ∥ᴱ) → P (_≃_.from ∥∥ᴱ≃∥∥ᴱ x)) →
@@ -579,7 +578,7 @@ _ = λ _ _ _ → refl _
 
 constant-endofunction⇒h-stable :
   {f : A → A} → @0 Constant f → ∥ A ∥ᴱ → A
-constant-endofunction⇒h-stable {A = A} {f = f} c =
+constant-endofunction⇒h-stable {A} {f} c =
   ∥ A ∥ᴱ                            ↝⟨ (rec λ where
                                           .∣∣ʳ x → f x , [ c (f x) x ]
                                           .truncation-is-propositionʳ → prop) ⟩
@@ -690,7 +689,7 @@ H-level-×₁ inhabited (suc n) =
 H-level-×₂ :
   (B → ∥ A ∥ᴱ) →
   ∀ n → H-level n (A × B) → H-level n B
-H-level-×₂ {B = B} {A = A} inhabited n =
+H-level-×₂ {B} {A} inhabited n =
   H-level n (A × B)  ↝⟨ H-level.respects-surjection (from-bijection ×-comm) n ⟩
   H-level n (B × A)  ↝⟨ H-level-×₁ inhabited n ⟩□
   H-level n B        □
@@ -729,7 +728,7 @@ flatten′ _ map f f-map map-f = record
 -- Nested truncations can be flattened.
 
 flatten : ∥ ∥ A ∥ᴱ ∥ᴱ ↔ ∥ A ∥ᴱ
-flatten {A = A} = flatten′
+flatten {A} = flatten′
   (λ F → F A)
   (λ f → f)
   id
@@ -744,7 +743,7 @@ private
   -- be used.
 
   ∥∃∥∥ᴱ∥ᴱ↔∥∃∥ᴱ : ∥ ∃ (∥_∥ᴱ ∘ P) ∥ᴱ ↔ ∥ ∃ P ∥ᴱ
-  ∥∃∥∥ᴱ∥ᴱ↔∥∃∥ᴱ {P = P} = flatten′
+  ∥∃∥∥ᴱ∥ᴱ↔∥∃∥ᴱ {P} = flatten′
     (λ F → ∃ (F ∘ P))
     (λ f → Σ-map id f)
     (uncurry λ x → ∥∥ᴱ-map (x ,_))
@@ -851,7 +850,7 @@ Split-surjective→Surjectiveᴱ s = λ y → ∣ ECP.⁻¹→⁻¹ᴱ (s y) ∣
 
 Surjectiveᴱ×Erased-Is-embedding≃ᴱIs-equivalenceᴱ :
   (Surjectiveᴱ f × Erased (Is-embedding f)) ≃ᴱ Is-equivalenceᴱ f
-Surjectiveᴱ×Erased-Is-embedding≃ᴱIs-equivalenceᴱ {f = f} = EEq.⇔→≃ᴱ
+Surjectiveᴱ×Erased-Is-embedding≃ᴱIs-equivalenceᴱ {f} = EEq.⇔→≃ᴱ
   (×-closure 1
      Surjectiveᴱ-propositional
      (Er.H-level-Erased 1
@@ -958,7 +957,7 @@ truncate-left-∥⊎∥ᴱ =
       ]
 
 truncate-right-∥⊎∥ᴱ : A ∥⊎∥ᴱ B ↔ A ∥⊎∥ᴱ ∥ B ∥ᴱ
-truncate-right-∥⊎∥ᴱ {A = A} {B = B} =
+truncate-right-∥⊎∥ᴱ {A} {B} =
   A ∥⊎∥ᴱ B       ↝⟨ ∥⊎∥ᴱ-comm ⟩
   B ∥⊎∥ᴱ A       ↝⟨ truncate-left-∥⊎∥ᴱ ⟩
   ∥ B ∥ᴱ ∥⊎∥ᴱ A  ↝⟨ ∥⊎∥ᴱ-comm ⟩□
@@ -967,7 +966,7 @@ truncate-right-∥⊎∥ᴱ {A = A} {B = B} =
 -- _∥⊎∥ᴱ_ is associative.
 
 ∥⊎∥ᴱ-assoc : A ∥⊎∥ᴱ (B ∥⊎∥ᴱ C) ↔ (A ∥⊎∥ᴱ B) ∥⊎∥ᴱ C
-∥⊎∥ᴱ-assoc {A = A} {B = B} {C = C} =
+∥⊎∥ᴱ-assoc {A} {B} {C} =
   ∥ A ⊎ ∥ B ⊎ C ∥ᴱ ∥ᴱ  ↝⟨ inverse truncate-right-∥⊎∥ᴱ ⟩
   ∥ A ⊎ B ⊎ C ∥ᴱ       ↝⟨ ∥∥ᴱ-cong ⊎-assoc ⟩
   ∥ (A ⊎ B) ⊎ C ∥ᴱ     ↝⟨ truncate-left-∥⊎∥ᴱ ⟩□
@@ -977,13 +976,13 @@ truncate-right-∥⊎∥ᴱ {A = A} {B = B} =
 -- proposition.
 
 ∥⊎∥ᴱ-left-identity : @0 Is-proposition A → ⊥ {ℓ = ℓ} ∥⊎∥ᴱ A ↔ A
-∥⊎∥ᴱ-left-identity {A = A} A-prop =
+∥⊎∥ᴱ-left-identity {A} A-prop =
   ∥ ⊥ ⊎ A ∥ᴱ  ↝⟨ ∥∥ᴱ-cong ⊎-left-identity ⟩
   ∥ A ∥ᴱ      ↝⟨ ∥∥ᴱ↔ A-prop ⟩□
   A          □
 
 ∥⊎∥ᴱ-right-identity : @0 Is-proposition A → A ∥⊎∥ᴱ ⊥ {ℓ = ℓ} ↔ A
-∥⊎∥ᴱ-right-identity {A = A} A-prop =
+∥⊎∥ᴱ-right-identity {A} A-prop =
   A ∥⊎∥ᴱ ⊥  ↔⟨ ∥⊎∥ᴱ-comm ⟩
   ⊥ ∥⊎∥ᴱ A  ↔⟨ ∥⊎∥ᴱ-left-identity A-prop ⟩□
   A         □
@@ -992,7 +991,7 @@ truncate-right-∥⊎∥ᴱ {A = A} {B = B} =
 -- erased proofs).
 
 ∥⊎∥ᴱ-idempotent : @0 Is-proposition A → (A ∥⊎∥ᴱ A) ≃ᴱ A
-∥⊎∥ᴱ-idempotent {A = A} A-prop =
+∥⊎∥ᴱ-idempotent {A} A-prop =
   ∥ A ⊎ A ∥ᴱ  ↝⟨ idempotent ⟩
   ∥ A ∥ᴱ      ↔⟨ ∥∥ᴱ↔ A-prop ⟩□
   A           □
@@ -1012,7 +1011,7 @@ drop-left-∥⊎∥ᴱ B-prop A→B = EEq.⇔→≃ᴱ
 
 drop-right-∥⊎∥ᴱ :
   @0 Is-proposition A → (B → A) → (A ∥⊎∥ᴱ B) ≃ᴱ A
-drop-right-∥⊎∥ᴱ {A = A} {B = B} A-prop B→A =
+drop-right-∥⊎∥ᴱ {A} {B} A-prop B→A =
   A ∥⊎∥ᴱ B  ↔⟨ ∥⊎∥ᴱ-comm ⟩
   B ∥⊎∥ᴱ A  ↝⟨ drop-left-∥⊎∥ᴱ A-prop B→A ⟩□
   A        □
@@ -1065,7 +1064,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
   ((x : A ∥⊎∥ᴱ B) → P x)
     ↔
   ((x : A) → P (∣inj₁∣ x)) × ((y : B) → P (∣inj₂∣ y))
-Π∥⊎∥ᴱ↔Π×Π {A = A} {B = B} {P = P} P-prop =
+Π∥⊎∥ᴱ↔Π×Π {A} {B} {P} P-prop =
   ((x : A ∥⊎∥ᴱ B) → P x)                               ↔⟨ universal-property-Π P-prop ⟩
   ((x : A ⊎ B) → P ∣ x ∣)                              ↝⟨ Π⊎↔Π×Π ext ⟩□
   ((x : A) → P (∣inj₁∣ x)) × ((y : B) → P (∣inj₂∣ y))  □
@@ -1075,7 +1074,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
 Σ-∥⊎∥ᴱ-distrib-left :
   @0 Is-proposition A →
   Σ A (λ x → P x ∥⊎∥ᴱ Q x) ↔ Σ A P ∥⊎∥ᴱ Σ A Q
-Σ-∥⊎∥ᴱ-distrib-left {P = P} {Q = Q} A-prop =
+Σ-∥⊎∥ᴱ-distrib-left {P} {Q} A-prop =
   (∃ λ x → ∥ P x ⊎ Q x ∥ᴱ)       ↝⟨ inverse $ ∥∥ᴱ↔ (Σ-closure 1 A-prop λ _ → ∥⊎∥ᴱ-propositional) ⟩
   ∥ (∃ λ x → ∥ P x ⊎ Q x ∥ᴱ) ∥ᴱ  ↝⟨ flatten′
                                       (λ F → (∃ λ x → F (P x ⊎ Q x)))
@@ -1092,7 +1091,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
 Σ-∥⊎∥ᴱ-distrib-right :
   @0 (∀ x → Is-proposition (P x)) →
   Σ (A ∥⊎∥ᴱ B) P ↔ Σ A (P ∘ ∣inj₁∣) ∥⊎∥ᴱ Σ B (P ∘ ∣inj₂∣)
-Σ-∥⊎∥ᴱ-distrib-right {A = A} {B = B} {P = P} P-prop = record
+Σ-∥⊎∥ᴱ-distrib-right {A} {B} {P} P-prop = record
   { surjection = record
     { logical-equivalence = record
       { to = uncurry $ elim λ where
@@ -1124,7 +1123,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
 ¬∥⊎∥ᴱ¬↔¬× :
   Dec (¬ A) → Dec (¬ B) →
   (¬ A ∥⊎∥ᴱ ¬ B) ≃ᴱ (¬ (A × B))
-¬∥⊎∥ᴱ¬↔¬× {A = A} {B = B} dec-¬A dec-¬B = EEq.⇔→≃ᴱ
+¬∥⊎∥ᴱ¬↔¬× {A} {B} dec-¬A dec-¬B = EEq.⇔→≃ᴱ
   ∥⊎∥ᴱ-propositional
   (¬-propositional ext)
   (rec λ where
@@ -1141,7 +1140,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
   {@0 y : B}
   (A↠B : A ↠ B) →
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ ↠ Erased-singleton y
-↠→↠Erased-singleton {A = A} {y = y} A↠B =
+↠→↠Erased-singleton {A} {y} A↠B =
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ  ↝⟨ ∥∥ᴱ-cong-↠ (S.Σ-cong A↠B λ _ → F.id) ⟩
   ∥ Erased-singleton y ∥ᴱ                         ↔⟨ ∥∥ᴱ↔
                                                        (Er.erased-singleton-with-erased-center-propositional $
@@ -1157,7 +1156,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
   {@0 y : B}
   (A↠B : A ↠ B) →
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ ≃ᴱ Erased-singleton y
-↠→≃ᴱErased-singleton {A = A} {y = y} A↠B =
+↠→≃ᴱErased-singleton {A} {y} A↠B =
   ∥ (∃ λ (x : A) → Erased (_↠_.to A↠B x ≡ y)) ∥ᴱ  ↝⟨ ∥∥ᴱ-cong-⇔ (S.Σ-cong-⇔ A↠B λ _ → F.id) ⟩
   ∥ Erased-singleton y ∥ᴱ                         ↔⟨ ∥∥ᴱ↔
                                                        (Er.erased-singleton-with-erased-center-propositional $
@@ -1173,7 +1172,7 @@ drop-⊥-left-∥⊎∥ᴱ B-prop ¬A = record
   (∃ λ (x : Erased B) →
      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥ᴱ) ≃ᴱ
   B
-Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ {A = A} {B = B} A↠B =
+Σ-Erased-∥-Σ-Erased-≡-∥≃ᴱ {A} {B} A↠B =
   (∃ λ (x : Erased B) →
      ∥ (∃ λ (y : A) → Erased (_↠_.to A↠B y ≡ erased x)) ∥ᴱ)  ↝⟨ (∃-cong λ _ → ↠→≃ᴱErased-singleton A↠B) ⟩
 

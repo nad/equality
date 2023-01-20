@@ -438,7 +438,8 @@ abstract
     open _≃_
     open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₁ x} {inj₁ y} =
+  isomorphism-definitions-isomorphic
+    ass (a ⊕ b) B↔C {x = inj₁ x} {y = inj₁ y} =
     let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism a B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass a B↔C ⟩
@@ -451,7 +452,8 @@ abstract
     open _≃_
     open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₂ x} {inj₂ y} =
+  isomorphism-definitions-isomorphic
+    ass (a ⊕ b) B↔C {x = inj₂ x} {y = inj₂ y} =
     let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism b B↔C x y                 ↝⟨ isomorphism-definitions-isomorphic ass b B↔C ⟩
@@ -464,19 +466,22 @@ abstract
     open _≃_
     open Assumptions ass
 
-  isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₁ x} {inj₂ y} =
+  isomorphism-definitions-isomorphic
+    ass (a ⊕ b) B↔C {x = inj₁ x} {y = inj₂ y} =
 
     ⊥                  ↝⟨ B.⊥↔uninhabited ⊎.inj₁≢inj₂ ⟩□
 
     (inj₁ _ ≡ inj₂ _)  □
 
-  isomorphism-definitions-isomorphic ass (a ⊕ b) B↔C {inj₂ x} {inj₁ y} =
+  isomorphism-definitions-isomorphic
+    ass (a ⊕ b) B↔C {x = inj₂ x} {y = inj₁ y} =
 
     ⊥                  ↝⟨ B.⊥↔uninhabited (⊎.inj₁≢inj₂ ∘ sym) ⟩□
 
     (inj₂ _ ≡ inj₁ _)  □
 
-  isomorphism-definitions-isomorphic ass (a ⊗ b) B↔C {x , u} {y , v} =
+  isomorphism-definitions-isomorphic
+    ass (a ⊗ b) B↔C {x = x , u} {y = y , v} =
     let B≃C = Eq.↔⇒≃ B↔C in
 
     Is-isomorphism  a B↔C x y × Is-isomorphism  b B↔C u v        ↝⟨ isomorphism-definitions-isomorphic ass a B↔C ×-cong
@@ -589,7 +594,7 @@ Isomorphism-monoid-isomorphic-to-standard :
   to e₁ ≡ e₂
 
 Isomorphism-monoid-isomorphic-to-standard ext
-  {M₁} {S₁} {_∙₁_} {e₁} {M₂ = M₂} {_∙₂_ = _∙₂_} {e₂} =
+  {M₁} {S₁} {_∙₁_} {e₁} {M₂} {_∙₂_} {e₂} =
 
   (Σ (M₁ ↔ M₂) λ M₁↔M₂ → let open _↔_ (↑-cong M₁↔M₂) in
    (∀ x y → to x ≡ y → ∀ u v → to u ≡ v → to (x ∙₁ u) ≡ (y ∙₂ v)) ×

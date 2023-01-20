@@ -104,7 +104,7 @@ Has-left-inverse→Has-left-inverseᴱ = Σ-map P.id [_]→
 
 @0 Has-left-inverse≃Has-left-inverseᴱ :
   Has-left-inverse f ≃ Has-left-inverseᴱ f
-Has-left-inverse≃Has-left-inverseᴱ {f = f} =
+Has-left-inverse≃Has-left-inverseᴱ {f} =
   (∃ λ f⁻¹ →         f⁻¹ ∘ f ≡ id )  ↔⟨ (∃-cong λ _ → inverse $ erased Erased↔) ⟩□
   (∃ λ f⁻¹ → Erased (f⁻¹ ∘ f ≡ id))  □
 
@@ -114,7 +114,7 @@ Has-right-inverse→Has-right-inverseᴱ = Σ-map P.id [_]→
 
 @0 Has-right-inverse≃Has-right-inverseᴱ :
   Has-right-inverse f ≃ Has-right-inverseᴱ f
-Has-right-inverse≃Has-right-inverseᴱ {f = f} =
+Has-right-inverse≃Has-right-inverseᴱ {f} =
   (∃ λ f⁻¹ →         f ∘ f⁻¹ ≡ id )  ↔⟨ (∃-cong λ _ → inverse $ erased Erased↔) ⟩□
   (∃ λ f⁻¹ → Erased (f ∘ f⁻¹ ≡ id))  □
 
@@ -126,7 +126,7 @@ Is-bi-invertible→Is-bi-invertibleᴱ =
 
 @0 Is-bi-invertible≃Is-bi-invertibleᴱ :
   Is-bi-invertible f ≃ Is-bi-invertibleᴱ f
-Is-bi-invertible≃Is-bi-invertibleᴱ {f = f} =
+Is-bi-invertible≃Is-bi-invertibleᴱ {f} =
   Has-left-inverse  f × Has-right-inverse  f  ↝⟨ Has-left-inverse≃Has-left-inverseᴱ ×-cong
                                                  Has-right-inverse≃Has-right-inverseᴱ ⟩□
   Has-left-inverseᴱ f × Has-right-inverseᴱ f  □
@@ -137,7 +137,7 @@ Has-quasi-inverse→Has-quasi-inverseᴱ = Σ-map P.id [_]→
 
 @0 Has-quasi-inverse≃Has-quasi-inverseᴱ :
   Has-quasi-inverse f ≃ Has-quasi-inverseᴱ f
-Has-quasi-inverse≃Has-quasi-inverseᴱ {f = f} =
+Has-quasi-inverse≃Has-quasi-inverseᴱ {f} =
   (∃ λ f⁻¹ →         f ∘ f⁻¹ ≡ id × f⁻¹ ∘ f ≡ id )  ↔⟨ (∃-cong λ _ → inverse $ erased Erased↔) ⟩□
   (∃ λ f⁻¹ → Erased (f ∘ f⁻¹ ≡ id × f⁻¹ ∘ f ≡ id))  □
 
@@ -145,7 +145,7 @@ Has-quasi-inverse≃Has-quasi-inverseᴱ {f = f} =
 ≊→≊ᴱ = Σ-map P.id Is-bi-invertible→Is-bi-invertibleᴱ
 
 @0 ≊≃≊ᴱ : (A ≊ B) ≃ (A ≊ᴱ B)
-≊≃≊ᴱ {A = A} {B = B} =
+≊≃≊ᴱ {A} {B} =
   (∃ λ (f : Hom A B) → Is-bi-invertible  f)  ↝⟨ (∃-cong λ _ → Is-bi-invertible≃Is-bi-invertibleᴱ) ⟩□
   (∃ λ (f : Hom A B) → Is-bi-invertibleᴱ f)  □
 
@@ -153,7 +153,7 @@ Has-quasi-inverse≃Has-quasi-inverseᴱ {f = f} =
 ≅→≅ᴱ = Σ-map P.id Has-quasi-inverse→Has-quasi-inverseᴱ
 
 @0 ≅≃≅ᴱ : (A ≅ B) ≃ (A ≅ᴱ B)
-≅≃≅ᴱ {A = A} {B = B} =
+≅≃≅ᴱ {A} {B} =
   (∃ λ (f : Hom A B) → Has-quasi-inverse  f)  ↝⟨ (∃-cong λ _ → Has-quasi-inverse≃Has-quasi-inverseᴱ) ⟩□
   (∃ λ (f : Hom A B) → Has-quasi-inverseᴱ f)  □
 
@@ -179,7 +179,7 @@ module More
   Is-bi-invertibleᴱ→Has-quasi-inverseᴱ :
     Is-bi-invertibleᴱ f → Has-quasi-inverseᴱ f
   Is-bi-invertibleᴱ→Has-quasi-inverseᴱ
-    {f = f} ((f⁻¹₁ , [ f⁻¹₁∘f≡id ]) , (f⁻¹₂ , [ f∘f⁻¹₂≡id ])) =
+    {f} ((f⁻¹₁ , [ f⁻¹₁∘f≡id ]) , (f⁻¹₂ , [ f∘f⁻¹₂≡id ])) =
       (f⁻¹₁ ∘ f ∘ f⁻¹₂)
     , [ (f ∘ f⁻¹₁ ∘ f ∘ f⁻¹₂    ≡⟨ cong (f ∘_) $ associativity _ _ _ ⟩
          f ∘ (f⁻¹₁ ∘ f) ∘ f⁻¹₂  ≡⟨ cong (λ f′ → f ∘ f′ ∘ f⁻¹₂) f⁻¹₁∘f≡id ⟩
@@ -198,8 +198,7 @@ module More
   Contractibleᴱ-Has-left-inverseᴱ :
     {@0 f : Hom A B} →
     Has-quasi-inverseᴱ f → Contractibleᴱ (Has-left-inverseᴱ f)
-  Contractibleᴱ-Has-left-inverseᴱ
-    {f = f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
+  Contractibleᴱ-Has-left-inverseᴱ {f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
     ECP.Contractibleᴱ-⁻¹ᴱ
       (_∘ f)
       (_∘ f⁻¹)
@@ -221,8 +220,7 @@ module More
   Contractibleᴱ-Has-right-inverseᴱ :
     {@0 f : Hom A B} →
     Has-quasi-inverseᴱ f → Contractibleᴱ (Has-right-inverseᴱ f)
-  Contractibleᴱ-Has-right-inverseᴱ
-    {f = f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
+  Contractibleᴱ-Has-right-inverseᴱ {f} (f⁻¹ , [ f∘f⁻¹≡id , f⁻¹∘f≡id ]) =
     ECP.Contractibleᴱ-⁻¹ᴱ
       (f ∘_)
       (f⁻¹ ∘_)
@@ -253,7 +251,7 @@ module More
     {f : Hom A B} →
     Is-set (Hom A A) →
     Is-proposition (Has-quasi-inverseᴱ f)
-  Has-quasi-inverseᴱ-propositional-domain {f = f} s =
+  Has-quasi-inverseᴱ-propositional-domain {f} s =
                                            $⟨ BiM.Has-quasi-inverse-propositional-domain s ⟩
     Is-proposition (Has-quasi-inverse  f)  ↝⟨ H-level-cong _ 1 Has-quasi-inverse≃Has-quasi-inverseᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Has-quasi-inverseᴱ f)  □
@@ -265,7 +263,7 @@ module More
     {f : Hom A B} →
     Is-set (Hom B B) →
     Is-proposition (Has-quasi-inverseᴱ f)
-  Has-quasi-inverseᴱ-propositional-codomain {f = f} s =
+  Has-quasi-inverseᴱ-propositional-codomain {f} s =
                                            $⟨ BiM.Has-quasi-inverse-propositional-codomain s ⟩
     Is-proposition (Has-quasi-inverse  f)  ↝⟨ H-level-cong _ 1 Has-quasi-inverse≃Has-quasi-inverseᴱ ⦂ (_ → _) ⟩□
     Is-proposition (Has-quasi-inverseᴱ f)  □
@@ -366,7 +364,7 @@ module More
     {f : Hom A B} →
     Has-quasi-inverseᴱ f →
     Has-quasi-inverseᴱ f ≃ (id ≡ id {A = A})
-  Has-quasi-inverseᴱ≃id≡id-domain {f = f} q-inv =
+  Has-quasi-inverseᴱ≃id≡id-domain {f} q-inv =
     Has-quasi-inverseᴱ f  ↝⟨ inverse Has-quasi-inverse≃Has-quasi-inverseᴱ ⟩
     Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-domain (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
     id ≡ id               □
@@ -375,7 +373,7 @@ module More
     {f : Hom A B} →
     Has-quasi-inverseᴱ f →
     Has-quasi-inverseᴱ f ≃ (id ≡ id {A = B})
-  Has-quasi-inverseᴱ≃id≡id-codomain {f = f} q-inv =
+  Has-quasi-inverseᴱ≃id≡id-codomain {f} q-inv =
     Has-quasi-inverseᴱ f  ↝⟨ inverse Has-quasi-inverse≃Has-quasi-inverseᴱ ⟩
     Has-quasi-inverse f   ↝⟨ BiM.Has-quasi-inverse≃id≡id-codomain (_≃_.from Has-quasi-inverse≃Has-quasi-inverseᴱ q-inv) ⟩□
     id ≡ id               □

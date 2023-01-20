@@ -80,7 +80,7 @@ Squash-propositional = λ _ _ → refl _
 infixl 5 _>>=′_
 
 _>>=′_ : Squash A → (A → Squash B) → Squash B
-_>>=′_ {A = A} {B = B} (squash x) f = squash (lemma x)
+_>>=′_ {A} {B} (squash x) f = squash (lemma x)
   where
   lemma : Squash′ A → Squash′ B
   lemma (squash′ x) = Squash.squashed (f x)
@@ -127,7 +127,7 @@ Very-stable-≡ = For-iterated-equality 1 Very-stable
 -- a stable proposition.
 
 modality : Modality ℓ
-modality {ℓ = ℓ} = λ where
+modality {ℓ} = λ where
     .Modality.◯                   → Squash
     .Modality.η                   → [_]
     .Modality.Modal               → Modal
@@ -153,14 +153,14 @@ modality {ℓ = ℓ} = λ where
       (H-level-propositional ext 1)
 
   resp : A ≃ B → Modal A → Modal B
-  resp {A = A} {B = B} A≃B =
+  resp {A} {B} A≃B =
     Stable A × Is-proposition A  →⟨ →-cong-→ (_>>= [_] ∘ _≃_.from A≃B) (_≃_.to A≃B)
                                       ×-cong
                                     H-level-cong _ 1 A≃B ⟩□
     Stable B × Is-proposition B  □
 
   Modal→Separated : {x y : A} → Modal A → Modal (x ≡ y)
-  Modal→Separated {A = A} {x = x} {y = y} (s , prop) =
+  Modal→Separated {A} {x} {y} (s , prop) =
       (Squash (x ≡ y)        →⟨ const prop ⟩
        Is-proposition A      →⟨ +⇒≡ ⟩
        Contractible (x ≡ y)  →⟨ proj₁ ⟩□
@@ -171,8 +171,8 @@ modality {ℓ = ℓ} = λ where
     {A : Type ℓ} {P : Squash A → Type ℓ} →
     (∀ x → Modal (P x)) →
     Is-∞-extendable-along-[ [_] ] P
-  extendable                 _ zero    = _
-  extendable {A = A} {P = P} m (suc n) =
+  extendable         _ zero    = _
+  extendable {A} {P} m (suc n) =
       (λ f → (λ x → m x .proj₁ (lemma x f))
            , (λ x →
                 m [ x ] .proj₁ (lemma [ x ] f)  ≡⟨ m [ x ] .proj₂ _ _ ⟩∎
@@ -214,7 +214,7 @@ private
 -- Squash commutes with Σ.
 
 Squash-Σ≃Σ-Squash-Squash : Squash (Σ A (P ∘ [_])) ≃ Σ (Squash A) (Squash ∘ P)
-Squash-Σ≃Σ-Squash-Squash {A = A} {P = P} =
+Squash-Σ≃Σ-Squash-Squash {A} {P} =
   Eq.↔→≃
     to
     from
@@ -409,7 +409,7 @@ Squash-↑↔↑ = record
 -- Squash A implies ¬ ¬ A.
 
 Squash→¬¬ : Squash A → ¬ ¬ A
-Squash→¬¬ {A = A} = curry (
+Squash→¬¬ {A} = curry (
   Squash A × ¬ A  ↝⟨ uncurry (flip Squash-cong) ⟩
   Squash ⊥        ↔⟨ Squash-⊥↔⊥ ⟩□
   ⊥               □)
@@ -419,7 +419,7 @@ Squash→¬¬ {A = A} = curry (
 
 ¬-[]≡[]→Squash-≡ :
   ¬ ({A : Type a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))
-¬-[]≡[]→Squash-≡ {a = a} =
+¬-[]≡[]→Squash-≡ {a} =
   ({A : Type a} {x y : A} → [ x ] ≡ [ y ] → Squash (x ≡ y))  ↝⟨ _$ refl _ ⟩
   Squash (lift true ≡ lift false)                            ↝⟨ Squash-cong (cong lower) ⟩
   Squash (true ≡ false)                                      ↝⟨ Squash-cong Bool.true≢false ⟩
@@ -490,7 +490,7 @@ Very-stable↔Is-equivalence-[] =
 Very-stable↔Stable×Is-proposition :
   {A : Type a} →
   Very-stable A ↝[ a ∣ a ] Stable A × Is-proposition A
-Very-stable↔Stable×Is-proposition {A = A} ext =
+Very-stable↔Stable×Is-proposition {A} ext =
   Very-stable A               ↝⟨ Very-stable↔Is-equivalence-[] ext ⟩
   Is-equivalence {A = A} [_]  ↝⟨ inverse-ext? Modal≃Is-equivalence-η ext ⟩□
   Modal A                     □
@@ -504,7 +504,7 @@ Stable→H-level-suc→Very-stable :
   ∀ n →
   For-iterated-equality n Stable A → H-level (suc n) A →
   For-iterated-equality n Very-stable A
-Stable→H-level-suc→Very-stable {A = A} n = curry (
+Stable→H-level-suc→Very-stable {A} n = curry (
   For-iterated-equality n Stable A × H-level (suc n) A            ↝⟨ (∃-cong λ _ → lemma) ⟩
 
   For-iterated-equality n Stable A ×
@@ -525,7 +525,7 @@ Stable→H-level-suc→Very-stable {A = A} n = curry (
 
 H-level→Very-stable :
   ∀ n → H-level n A → For-iterated-equality n Very-stable A
-H-level→Very-stable {A = A} n =
+H-level→Very-stable {A} n =
   H-level n A                            ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
   H-level′ n A                           ↝⟨ For-iterated-equality-cong₁ _ n Contractible→Very-stable ⟩□
   For-iterated-equality n Very-stable A  □
@@ -542,7 +542,7 @@ H-level→Very-stable {A = A} n =
 
 Very-stable→Is-embedding-[] :
   Very-stable A → Is-embedding {A = A} [_]
-Very-stable→Is-embedding-[] {A = A} =
+Very-stable→Is-embedding-[] {A} =
   Very-stable A             →⟨ _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
   Modal A                   →⟨ Modal→Is-embedding-η ⟩□
   Is-embedding {A = A} [_]  □
@@ -553,7 +553,7 @@ Very-stable→Is-embedding-[] {A = A} =
 
 Very-stable→Split-surjective-[] :
   Very-stable A → Split-surjective {A = A} [_]
-Very-stable→Split-surjective-[] {A = A} =
+Very-stable→Split-surjective-[] {A} =
   Very-stable A         ↝⟨ Very-stable↔Is-equivalence-[] _ ⟩
   Is-equivalence [_]    ↝⟨ (λ hyp → _↠_.split-surjective $ _≃_.surjection $ Eq.⟨ _ , hyp ⟩) ⟩
   Split-surjective [_]  □
@@ -586,7 +586,7 @@ Dec→Stable = EM.Dec→Stable
 
 Decidable-equality→Very-stable-≡ :
   Decidable-equality A → Very-stable-≡ A
-Decidable-equality→Very-stable-≡ {A = A} =
+Decidable-equality→Very-stable-≡ {A} =
   Decidable-equality A  →⟨ EM.Decidable-equality→Separated ⟩
   Separated A           →⟨ (λ hyp x y → _⇔_.from (Very-stable↔Stable×Is-proposition _) (hyp x y)) ⟩□
   Very-stable-≡ A       □
@@ -603,7 +603,7 @@ Stable-cong :
   {A : Type a} {B : Type b} →
   Extensionality? ⌊ k ⌋-sym (a ⊔ b) (a ⊔ b) →
   A ↝[ ⌊ k ⌋-sym ] B → Stable A ↝[ ⌊ k ⌋-sym ] Stable B
-Stable-cong {k = k} {A = A} {B = B} ext A↝B =
+Stable-cong {k} {A} {B} ext A↝B =
   Stable A        ↔⟨⟩
   (Squash A → A)  ↝⟨ →-cong ext (Squash-cong A↝B) A↝B ⟩
   (Squash B → B)  ↔⟨⟩
@@ -618,7 +618,7 @@ Stable-map = _⇔_.to ∘ Stable-cong _
 
 Very-stable-map :
   A ↠ B → Very-stable A → Very-stable B
-Very-stable-map {A = A} {B = B} A↠B s =
+Very-stable-map {A} {B} A↠B s =
   _↠_.from (Eq.≃↠⇔ Squash-propositional B-prop)
     (record { from = [_]
             ; to   = Squash B  ↝⟨ Squash-cong (_↠_.from A↠B) ⟩
@@ -639,7 +639,7 @@ Very-stable-cong :
   {A : Type a} {B : Type b} →
   Extensionality? k (a ⊔ b) (a ⊔ b) →
   A ≃ B → Very-stable A ↝[ k ] Very-stable B
-Very-stable-cong {A = A} {B = B} ext A≃B =
+Very-stable-cong {A} {B} ext A≃B =
   Very-stable A  ↔⟨⟩
   Squash A ≃ A   ↝⟨ generalise-ext?
                       (Eq.≃-preserves-⇔ (Squash-cong A≃B) A≃B)
@@ -656,8 +656,7 @@ Very-stable-cong {A = A} {B = B} ext A≃B =
 -- Squash A is very stable.
 
 Very-stable-Squash : Very-stable (Squash A)
-Very-stable-Squash {A = A} =
-                          $⟨ Modal-◯ ⟩
+Very-stable-Squash {A} =  $⟨ Modal-◯ ⟩
   Modal (Squash A)        →⟨ _⇔_.from (Very-stable↔Stable×Is-proposition _) ⟩□
   Very-stable (Squash A)  □
   where
@@ -678,7 +677,7 @@ Very-stable-⊥ = Eq.↔⇒≃ Squash-⊥↔⊥
 Stable-Π :
   (∀ x → Stable (P x)) →
   Stable ((x : A) → P x)
-Stable-Π {P = P} s =
+Stable-Π {P} s =
   Squash (∀ x → P x)    ↝⟨ (λ s x → Squash-cong (_$ x) s) ⟩
   (∀ x → Squash (P x))  ↝⟨ ∀-cong _ s ⟩□
   (∀ x → P x)           □
@@ -690,7 +689,7 @@ Very-stable-Π :
   Extensionality a p →
   (∀ x → Very-stable (P x)) →
   Very-stable ((x : A) → P x)
-Very-stable-Π {P = P} ext s =
+Very-stable-Π {P} ext s =
   _⇔_.from (Very-stable↔Stable×Is-proposition _)
     ( Stable-Π (Very-stable→Stable 0 ∘ s)
     , (Π-closure ext 1 λ x →
@@ -700,7 +699,7 @@ Very-stable-Π {P = P} ext s =
 -- Stable is closed under _×_.
 
 Stable-× : Stable A → Stable B → Stable (A × B)
-Stable-× {A = A} {B = B} s₁ s₂ =
+Stable-× {A} {B} s₁ s₂ =
   Squash (A × B)       ↔⟨ Squash-×↔× ⟩
   Squash A × Squash B  ↝⟨ s₁ ×-cong s₂ ⟩□
   A × B                □
@@ -718,7 +717,7 @@ Very-stable-× s₁ s₂ =
 -- Stable is closed under ↑ ℓ.
 
 Stable-↑ : Stable A → Stable (↑ ℓ A)
-Stable-↑ {A = A} s =
+Stable-↑ {A} s =
   Squash (↑ _ A)  ↔⟨ Squash-↑↔↑ ⟩
   ↑ _ (Squash A)  ↝⟨ ↑-cong s ⟩□
   ↑ _ A           □
@@ -726,7 +725,7 @@ Stable-↑ {A = A} s =
 -- Very-stable is closed under ↑ ℓ.
 
 Very-stable-↑ : Very-stable A → Very-stable (↑ ℓ A)
-Very-stable-↑ {A = A} s =
+Very-stable-↑ {A} s =
   Squash (↑ _ A)  ↔⟨ Squash-↑↔↑ ⟩
   ↑ _ (Squash A)  ↝⟨ ↑-cong s ⟩□
   ↑ _ A           □
@@ -737,7 +736,7 @@ Very-stable→Very-stable-≡ :
   ∀ n →
   For-iterated-equality n       Very-stable A →
   For-iterated-equality (suc n) Very-stable A
-Very-stable→Very-stable-≡ {A = A} n =
+Very-stable→Very-stable-≡ {A} n =
   For-iterated-equality n Very-stable A        →⟨ For-iterated-equality-cong₁ _ n $
                                                   _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
   For-iterated-equality n Modal A              →⟨ Modalⁿ→Modal¹⁺ⁿ n ⟩
@@ -774,7 +773,7 @@ private
     ∀ n →
     For-iterated-equality n Is-proposition A ↝[ a ∣ a ]
     H-level′ (suc n) A
-  For-iterated-equality-Is-proposition↔H-level′-suc {A = A} n ext =
+  For-iterated-equality-Is-proposition↔H-level′-suc {A} n ext =
     For-iterated-equality n Is-proposition A  ↝⟨ For-iterated-equality-cong₁ ext n (H-level↔H-level′ {n = 1} ext) ⟩
     For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-For-iterated-equality n 1 ext ⟩□
     H-level′ (suc n) A                        □
@@ -786,7 +785,7 @@ Stable-H-level′ :
   ∀ n →
   For-iterated-equality (suc n) Stable A →
   Stable (H-level′ (suc n) A)
-Stable-H-level′ {A = A} n =
+Stable-H-level′ {A} n =
   For-iterated-equality (suc n) Stable A               ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
   For-iterated-equality n Stable-≡ A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
   For-iterated-equality n (Stable ∘ Is-proposition) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n Stable-Π ⟩
@@ -806,7 +805,7 @@ Stable-H-level :
   ∀ n →
   For-iterated-equality (suc n) Stable A →
   Stable (H-level (suc n) A)
-Stable-H-level {A = A} n =
+Stable-H-level {A} n =
   For-iterated-equality (suc n) Stable A  ↝⟨ Stable-H-level′ n ⟩
   Stable (H-level′ (suc n) A)             ↝⟨ Stable-map (record { to = inverse-ext? H-level↔H-level′ _; from = H-level↔H-level′ _ }) ⟩□
   Stable (H-level (suc n) A)              □
@@ -820,7 +819,7 @@ Very-stable-H-level′ :
   ∀ n →
   For-iterated-equality n Very-stable A →
   Very-stable (H-level′ n A)
-Very-stable-H-level′ {A = A} ext n =
+Very-stable-H-level′ {A} ext n =
   For-iterated-equality n Very-stable A  →⟨ For-iterated-equality-cong₁ _ n $
                                             _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
   For-iterated-equality n Modal A        →⟨ Modal-H-level′ ext n ⟩
@@ -838,7 +837,7 @@ Very-stable-H-level :
   ∀ n →
   For-iterated-equality n Very-stable A →
   Very-stable (H-level n A)
-Very-stable-H-level {A = A} ext n =
+Very-stable-H-level {A} ext n =
   For-iterated-equality n Very-stable A  →⟨ For-iterated-equality-cong₁ _ n $
                                             _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
   For-iterated-equality n Modal A        →⟨ Modal-H-level ext n ⟩
@@ -896,7 +895,7 @@ Very-stable-≡-List :
   ∀ n →
   For-iterated-equality (suc n) Very-stable A →
   For-iterated-equality (suc n) Very-stable (List A)
-Very-stable-≡-List {A = A} n =
+Very-stable-≡-List {A} n =
   For-iterated-equality (suc n) Very-stable A         →⟨ For-iterated-equality-cong₁ _ (suc n) $
                                                          _⇔_.to (Very-stable↔Stable×Is-proposition _) ⟩
   For-iterated-equality (suc n) Modal A               →⟨ EM.Separated-List n ⟩

@@ -70,7 +70,7 @@ from-List xs = record
 -- The function from-List is a right inverse of to-List.
 
 to-List-from-List : to-List (from-List xs) ≡ xs
-to-List-from-List {xs = xs} =
+to-List-from-List {xs} =
   xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
   xs        ∎
 
@@ -145,8 +145,8 @@ private
 
   to-List-rotate′ :
     ∀ b {p} → to-List (rotate′ q b p) ≡ from-Almost-queue q
-  to-List-rotate′         false = refl _
-  to-List-rotate′ {q = q} true  =
+  to-List-rotate′     false = refl _
+  to-List-rotate′ {q} true  =
     (q .front ++ reverse (q .rear)) ++ []  ≡⟨ ++-right-identity _ ⟩∎
     q .front ++ reverse (q .rear)          ∎
 
@@ -170,7 +170,7 @@ enqueue x q =
     })
 
 to-List-enqueue : ∀ q → to-List (enqueue x q) ≡ to-List q ++ x ∷ []
-to-List-enqueue {x = x} q =
+to-List-enqueue {x} q =
   to-List (enqueue x q)                      ≡⟨ to-List-rotate (record
                                                   { length-invariant = suc≤suc (q .length-invariant)
                                                   }) ⟩
@@ -193,7 +193,7 @@ dequeue q@(record { front        = x ∷ front
     ; length-front≡    = cancel-suc (q .length-front≡)
     }))
 
-dequeue {A = A}
+dequeue {A}
         q@(record { front        = x ∷ front
                   ; length-front = zero
                   }) =                $⟨ [ q .length-front≡ ] ⟩
@@ -269,7 +269,7 @@ map f q = record
   }
 
 to-List-map : ∀ q → to-List (map f q) ≡ L.map f (to-List q)
-to-List-map {f = f} q =
+to-List-map {f} q =
   L.map f (q .front) ++ ⟨ reverse (L.map f (q .rear)) ⟩  ≡⟨ ⟨by⟩ (map-reverse (q .rear)) ⟩
   L.map f (q .front) ++ L.map f (reverse (q .rear))      ≡⟨ sym $ map-++ _ (q .front) _ ⟩∎
   L.map f (q .front ++ reverse (q .rear))                ∎

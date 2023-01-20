@@ -167,7 +167,7 @@ module _
       to-List-unary :
         ∀ {h : ∀ {q} → _} q →
         to-List s₁ (unary f g (λ {q} → h {q = q}) q) ≡ f (to-List s₂ q)
-      to-List-unary {s₁ = s₁} {f = f} {g = g} {s₂ = s₂} {h = h} =
+      to-List-unary {s₁} {f} {g} {s₂} {h} =
         Quotient.elim-prop λ where
           .[]ʳ q →
             to-List s₁ (unary f g h [ q ])  ≡⟨⟩
@@ -204,7 +204,7 @@ module _
           .is-setʳ → F-set Queue-is-set
         where
         lemma₁ : map from-List (map (to-List s) x) ≡ x
-        lemma₁ {x = x} =
+        lemma₁ {x} =
           map from-List (map (to-List s) x)  ≡⟨ sym $ map-∘ _ ⟩
           map (from-List ∘ to-List s) x      ≡⟨ cong (flip map x) $ ⟨ext⟩ $ _↔_.left-inverse-of (Queue↔List s) ⟩
           map id x                           ≡⟨ map-id ⟩∎
@@ -213,7 +213,7 @@ module _
         lemma₂ :
           map (to-List s) x₁ ≡ map (to-List s) x₂ →
           x₁ ≡ x₂
-        lemma₂ {x₁ = x₁} {x₂ = x₂} eq =
+        lemma₂ {x₁} {x₂} eq =
           x₁                                  ≡⟨ sym lemma₁ ⟩
           map from-List (map (to-List s) x₁)  ≡⟨ cong (map from-List) eq ⟩
           map from-List (map (to-List s) x₂)  ≡⟨ lemma₁ ⟩∎
@@ -233,7 +233,7 @@ module _
         ∀ q →
         map (to-List s) (unary′ F-set map map-id map-∘ f g h s q) ≡
         f (to-List s′ q)
-      to-List-unary′ {s′ = s′} F-set map map-id map-∘ f g h s =
+      to-List-unary′ {s′} F-set map map-id map-∘ f g h s =
         Quotient.elim-prop λ where
           .[]ʳ q →
             map (to-List s)
@@ -254,7 +254,7 @@ module _
     enqueue x = unary (_++ x ∷ []) (Q.enqueue x) Q.to-List-enqueue
 
     to-List-enqueue : to-List s (enqueue x q) ≡ to-List s q ++ x ∷ []
-    to-List-enqueue {q = q} = to-List-unary q
+    to-List-enqueue {q} = to-List-unary q
 
     -- Dequeues an element, if possible. (The carrier type is required
     -- to be a set.)
@@ -273,7 +273,7 @@ module _
     to-List-dequeue :
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q) ≡
       _↔_.to List↔Maybe[×List] (to-List s q)
-    to-List-dequeue {q = q} = to-List-unary′
+    to-List-dequeue {q} = to-List-unary′
       (Maybe-closure 0 ∘ ×-closure 2 _)
       (λ f → ⊎-map id (Σ-map id f))
       ⊎-map-id
@@ -302,4 +302,4 @@ module _
     map f = unary (L.map f) (Q.map f) Q.to-List-map
 
     to-List-map : to-List s₁ (map f q) ≡ L.map f (to-List s₂ q)
-    to-List-map {q = q} = to-List-unary q
+    to-List-map {q} = to-List-unary q

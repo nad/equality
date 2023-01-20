@@ -83,8 +83,7 @@ Cyclic→Abelian G c x y =
   (G₁≃G₂ : G₁ ≃ᴳ G₂) →
   Generated-by G₁ g →
   Generated-by G₂ (to G₁≃G₂ g)
-≃ᴳ→Generated-by→Generated-by
-  {G₁ = G₁} {G₂ = G₂} {g = g} G₁≃G₂ gen-by x =
+≃ᴳ→Generated-by→Generated-by {G₁} {G₂} {g} G₁≃G₂ gen-by x =
   flip T.∥∥-map (gen-by (_≃_.from (G₁≃G₂ .related) x)) λ (i , x≡) →
     i
   , (x                    ≡⟨ sym $ _≃_.from-to (G₁≃G₂ .related) x≡ ⟩
@@ -143,7 +142,7 @@ Cyclic→Abelian G c x y =
     ⊥              □
 
   -≡0→≡0 : - i ≡ + 0 → i ≡ + 0
-  -≡0→≡0 {i = i} hyp =
+  -≡0→≡0 {i} hyp =
     i      ≡⟨ sym $ ℤG.involutive _ ⟩
     - - i  ≡⟨ cong -_ hyp ⟩
     - + 0  ≡⟨ ℤG.identity ⟩∎
@@ -247,7 +246,7 @@ i ≡ j mod n = ∥ (∃ λ k → i ≡ j + k *+ n) ∥
 -- modulo n.
 
 +-cong : ∀ n j → i ≡ j mod n → i + k ≡ j + k mod n
-+-cong {i = i} {k = k} n j = T.∥∥-map λ (l , i≡j+ln) →
++-cong {i} {k} n j = T.∥∥-map λ (l , i≡j+ln) →
     l
   , (i + k             ≡⟨ cong (_+ k) i≡j+ln ⟩
      j + l *+ n + k    ≡⟨ sym $ +-assoc j ⟩
@@ -259,7 +258,7 @@ i ≡ j mod n = ∥ (∃ λ k → i ≡ j + k *+ n) ∥
 -- modulo n.
 
 negate-cong : ∀ n j → i ≡ j mod n → - i ≡ - j mod n
-negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
+negate-cong {i} n j = T.∥∥-map λ (k , i≡j+kn) →
     - k
   , (- i               ≡⟨ cong -_ i≡j+kn ⟩
      - (j + k *+ n)    ≡⟨ ℤG.∘⁻¹ {p = j} ⟩
@@ -271,7 +270,7 @@ negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
 -- modulo m * n.
 
 *+-cong : ∀ m → i ≡ j mod n → i *+ m ≡ j *+ m mod m * n
-*+-cong {i = i} {j = j} {n = n} m = T.∥∥-map λ (k , i≡j+kn) →
+*+-cong {i} {j} {n} m = T.∥∥-map λ (k , i≡j+kn) →
     k
   , (i *+ m                 ≡⟨ cong (_*+ m) i≡j+kn ⟩
      (j + k *+ n) *+ m      ≡⟨ ℤG.∘^+≡^+∘^+ (+-comm j) m ⟩
@@ -283,7 +282,7 @@ negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
 -- equal modulo n.
 
 ⌊/2⌋-cong : ∀ j n → i ≡ j mod 2 * n → ⌊ i /2⌋ ≡ ⌊ j /2⌋ mod n
-⌊/2⌋-cong {i = i} j n = T.∥∥-map λ (k , i≡j+k2n) →
+⌊/2⌋-cong {i} j n = T.∥∥-map λ (k , i≡j+k2n) →
     k
   , (⌊ i /2⌋                  ≡⟨ cong ⌊_/2⌋ i≡j+k2n ⟩
      ⌊ j + k *+ (2 * n) /2⌋   ≡⟨ cong (⌊_/2⌋ ⊚ (_+_ j) ⊚ (k *+_)) $ sym $ Nat.*-comm n ⟩
@@ -327,7 +326,7 @@ negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
 
 ¬⌊+/2⌋≡⌊/2⌋+⌊/2⌋mod2+ :
   ¬ (∀ i j → ⌊ i + j /2⌋ ≡ ⌊ i /2⌋ + ⌊ j /2⌋ mod 2 ⊕ n)
-¬⌊+/2⌋≡⌊/2⌋+⌊/2⌋mod2+ {n = n} =
+¬⌊+/2⌋≡⌊/2⌋+⌊/2⌋mod2+ {n} =
   (∀ i j → ⌊ i + j /2⌋ ≡ ⌊ i /2⌋ + ⌊ j /2⌋ mod 2 ⊕ n)  ↝⟨ (_$ (+ 1)) ⊚ (_$ (+ 1)) ⟩
   + 1 ≡ + 0 mod 2 ⊕ n                                  ↝⟨ ≡-mod-is-equivalence-relation (2 ⊕ n)
                                                             .Is-equivalence-relation.symmetric ⟩
@@ -410,7 +409,7 @@ negate-cong {i = i} n j = T.∥∥-map λ (k , i≡j+kn) →
 -- ℤ/[1+ n ]ℤ is cyclic.
 
 ℤ/ℤ-cyclic : Cyclic ℤ/[1+ n ]ℤ
-ℤ/ℤ-cyclic {n = n} =
+ℤ/ℤ-cyclic {n} =
   ∣ Q.[ + 1 ]
   , (Q.elim-prop λ where
        .Q.is-propositionʳ _ → T.truncation-is-proposition

@@ -75,7 +75,7 @@ open Elimᴾ public
 elimᴾ :
   {step : ∀ {n} → P n → P (suc n)} {Q : Colimit P step → Type q} →
   Elimᴾ Q → (x : Colimit P step) → Q x
-elimᴾ {P = P} {step = step} {Q = Q} e = helper
+elimᴾ {P} {step} {Q} e = helper
   where
   module E′ = Elimᴾ e
 
@@ -167,7 +167,7 @@ universal-property :
   {step : ∀ {n} → P n → P (suc n)} →
   (Colimit P step → B) ≃
   (∃ λ (f : ∀ n → P n → B) → ∀ n x → f (suc n) (step x) ≡ f n x)
-universal-property {P = P} {B = B} {step = step} =
+universal-property {P} {B} {step} =
   Eq.↔→≃ to from to∘from from∘to
   where
   to :
@@ -214,7 +214,7 @@ universal-property-Π :
   ((x : Colimit P step) → Q x) ≃
   (∃ λ (f : ∀ n (x : P n) → Q ∣ x ∣) →
      ∀ n x → subst Q (∣∣≡∣∣ x) (f (suc n) (step x)) ≡ f n x)
-universal-property-Π {P = P} {step = step} {Q = Q} =
+universal-property-Π {P} {step} {Q} =
   Eq.↔→≃ to from to∘from from∘to
   where
   to :

@@ -126,7 +126,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 ∃-cong :
   ∀ {a b₁ b₂} {A : Type a} {B₁ : A → Type b₁} {B₂ : A → Type b₂} →
   (∀ x → B₁ x ↠ B₂ x) → ∃ B₁ ↠ ∃ B₂
-∃-cong {B₁ = B₁} {B₂} B₁↠B₂ = record
+∃-cong {B₁} {B₂} B₁↠B₂ = record
   { logical-equivalence = record
     { to   = to′
     ; from = from′
@@ -153,7 +153,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
     {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ⇔ B₂ (_↠_.to A₁↠A₂ x)) →
   Σ A₁ B₁ ⇔ Σ A₂ B₂
-Σ-cong-⇔ {B₂ = B₂} A₁↠A₂ B₁⇔B₂ = record
+Σ-cong-⇔ {B₂} A₁↠A₂ B₁⇔B₂ = record
   { to   = Σ-map (_↠_.to A₁↠A₂) (_⇔_.to (B₁⇔B₂ _))
   ; from =
      Σ-map
@@ -170,7 +170,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
     {B₁ : A₁ → Type b₁} {B₂ : A₂ → Type b₂}
   (A₁↠A₂ : A₁ ↠ A₂) → (∀ x → B₁ x ↠ B₂ (_↠_.to A₁↠A₂ x)) →
   Σ A₁ B₁ ↠ Σ A₂ B₂
-Σ-cong {A₁ = A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁↠B₂ = record
+Σ-cong {A₁} {A₂} {B₁} {B₂} A₁↠A₂ B₁↠B₂ = record
   { logical-equivalence = logical-equivalence′
   ; right-inverse-of    = right-inverse-of′
   }
@@ -244,7 +244,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
 to-↠-≡-refl :
   ∀ {a b} {A : Type a} {B : Type b} (A↠B : A ↠ B) {x : B} →
   _↠_.to (↠-≡ A↠B) (refl (_↠_.from A↠B x)) ≡ refl x
-to-↠-≡-refl A↠B {x = x} =
+to-↠-≡-refl A↠B {x} =
   trans (sym $ _↠_.right-inverse-of A↠B x)
     (trans (cong (_↠_.to A↠B) (refl (_↠_.from A↠B x)))
        (_↠_.right-inverse-of A↠B x))                    ≡⟨ cong (λ p → trans _ (trans p _)) $ cong-refl _ ⟩

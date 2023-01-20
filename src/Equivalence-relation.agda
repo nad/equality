@@ -269,7 +269,7 @@ Listᴾ-preserves-Is-equivalence-relation R-equiv = λ where
 Listᴾ-preserves-Is-proposition :
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {xs ys} → Is-proposition (Listᴾ R xs ys)
-Listᴾ-preserves-Is-proposition {R = R} R-prop = prop _ _
+Listᴾ-preserves-Is-proposition {R} R-prop = prop _ _
   where
   prop : ∀ xs ys → Is-proposition (Listᴾ R xs ys)
   prop []       []       _        _        = refl _

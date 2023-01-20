@@ -59,7 +59,7 @@ Bool↔𝕊⁰ = Bool↔Susp-⊥
 -- as the point) are isomorphic to iterated loop spaces.
 
 𝕊→ᴮ↔ : ∀ n → (𝕊 n , north) →ᴮ C ↔ proj₁ (Ω[ n ] C)
-𝕊→ᴮ↔ {C = C} = lemma zero
+𝕊→ᴮ↔ {C} = lemma zero
   where
   lemma : ∀ m n → (𝕊 n , north) →ᴮ Ω[ m ] C ↔ proj₁ (Ω[ m + n ] C)
   lemma m zero =
@@ -79,7 +79,7 @@ Bool↔𝕊⁰ = Bool↔Susp-⊥
 +↔∀contractible𝕊→ᴮ :
   H-level (1 + n) A ↔
   (∀ x → Contractible ((𝕊 n , north) →ᴮ (A , x)))
-+↔∀contractible𝕊→ᴮ {n = n} {A = A} =
++↔∀contractible𝕊→ᴮ {n} {A} =
   H-level (1 + n) A                                ↔⟨ _↔_.to (Eq.⇔↔≃ ext (H-level-propositional ext _)
                                                                          (Π-closure ext 1 λ _ →
                                                                           H-level-propositional ext _))
@@ -96,7 +96,7 @@ Bool↔𝕊⁰ = Bool↔Susp-⊥
 𝕊-1-Null≃H-level : ((λ (_ : ⊤) → 𝕊[ n -1]) -Null A) ≃ H-level n A
 𝕊-1-Null≃H-level {n = zero} =
   PS.⊥-Null≃Contractible ext _ ext
-𝕊-1-Null≃H-level {n = suc n} {A = A} =
+𝕊-1-Null≃H-level {n = suc n} {A} =
   _↠_.from
     (Eq.≃↠⇔
        (PS.Null-propositional ext)

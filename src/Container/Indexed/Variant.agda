@@ -98,8 +98,7 @@ map-∘ _ _ = refl _
   (C : Container₂ I O s p) →
   (∀ i → P₁ i ↝[ k ] P₂ i) →
   (∀ o → ⟦ C ⟧ P₁ o ↝[ k ] ⟦ C ⟧ P₂ o)
-⟦⟧-cong {i = i} {k = k} {p = p} {P₁ = Q₁} {P₂ = Q₂}
-        ext (S ◁ P) Q₁↝Q₂ o =
+⟦⟧-cong {i} {k} {p} {P₁ = Q₁} {P₂ = Q₂} ext (S ◁ P) Q₁↝Q₂ o =
   (∃ λ (s : S o) → P s ⇾ Q₁)  ↝⟨ (∃-cong λ _ →
                                   ∀-cong (lower-extensionality? k p lzero ext) λ _ →
                                   ∀-cong (lower-extensionality? k i p ext) λ _ →
@@ -122,7 +121,7 @@ _ = refl _
 Shape≃⟦⟧⊤ :
   (C : Container₂ I O s p) →
   Shape C o ≃ ⟦ C ⟧ (λ _ → ⊤) o
-Shape≃⟦⟧⊤ {o = o} (S ◁ P) =
+Shape≃⟦⟧⊤ {o} (S ◁ P) =
   S o                                ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero F.∘ inverse currying) ⟩□
   (∃ λ (s : S o) → ∀ i → P s i → ⊤)  □
 
@@ -141,7 +140,7 @@ cong-map-ext :
   cong (map C) (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g)) ≡
   (apply-ext ext₃ λ _ → apply-ext ext₄ λ (s , h) →
    cong (s ,_) $ apply-ext ext₅ $ apply-ext ext₆ ∘ f≡g ∘⇾′ h)
-cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ ext₆ =
+cong-map-ext {C} {P} {f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ ext₆ =
   cong (λ f _ (s , h) → s , f ∘⇾ h)
     (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))               ≡⟨ sym $ ext-cong ext₃ ⟩
 
@@ -173,7 +172,7 @@ cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ 
 Container⇔Container :
   ∀ {I : Type i} {O : Type o} p →
   Container₂ I O s (i ⊔ p) ⇔ C.Container₂ I O s (i ⊔ p)
-Container⇔Container {i = iℓ} {s = s} {I = I} {O = O} p =
+Container⇔Container {i = iℓ} {s} {I} {O} p =
   Container₂ I O s (iℓ ⊔ p)                 ↔⟨ Container≃Σ ⟩
 
   (∃ λ (S : O → Type s) →
@@ -207,7 +206,7 @@ Container≃Container :
   Extensionality (i ⊔ o ⊔ s) (lsuc i ⊔ s ⊔ lsuc p) →
   Univalence (i ⊔ p) →
   Container₂ I O s (i ⊔ p) ≃ C.Container₂ I O s (i ⊔ p)
-Container≃Container {i = i} {o = o} {s = s} {I = I} {O = O} p ext univ =
+Container≃Container {i} {o} {s} {I} {O} p ext univ =
   Container₂ I O s (i ⊔ p)                 ↝⟨ Container≃Σ ⟩
 
   (∃ λ (S : O → Type s) →
@@ -255,7 +254,7 @@ _ = refl _
   {I : Type i} (C : Container₂ I O s (i ⊔ p)) {P : I → Type ℓ} →
   ∀ o →
   C.⟦ _⇔_.to (Container⇔Container p) C ⟧ P o ≃ ⟦ C ⟧ P o
-⟦⟧≃⟦⟧ _ {I = I} C {P = P} o =
+⟦⟧≃⟦⟧ _ {I} C {P} o =
   (∃ λ (s : Shape C o) → ((i , _) : Σ I (Position C s)) → P i)  ↔⟨ (∃-cong λ _ → currying) ⟩□
   (∃ λ (s : Shape C o) → (i : I) → Position C s i → P i)        □
 
@@ -267,7 +266,7 @@ _ = refl _
   ∀ o →
   ⟦ _⇔_.from (Container⇔Container p) C ⟧ P o ↝[ i ⊔ p ∣ i ⊔ p ⊔ ℓ ]
   C.⟦ C ⟧ P o
-⟦⟧≃⟦⟧′ {i = i} {ℓ = ℓ} p {I = I} C {P = P} _ {k = k} ext =
+⟦⟧≃⟦⟧′ {i} {ℓ} p {I} C {P} _ {k} ext =
   ∃-cong λ s →
 
   ((i : I) → (∃ λ (p : C .Position s) → C .index p ≡ i) → P i)     ↝⟨ (∀-cong (lower-extensionality? k l r ext) λ _ →
@@ -309,8 +308,7 @@ map≡map′ :
   (C : C.Container₂ I O s (i ⊔ p′)) {f : P ⇾ Q} →
   C.map C f ∘⇾ (λ o → ⟦⟧≃⟦⟧′ p′ C o _) ≡
   (λ o → ⟦⟧≃⟦⟧′ p′ C o _) ∘⇾ map (_⇔_.from (Container⇔Container p′) C) f
-map≡map′ {i = i} {o = o} {p = p} {q = q} {s = s} {P = P} {Q = Q}
-  p′ ext C {f = f} =
+map≡map′ {i} {o} {p} {q} {s} {P} {Q} p′ ext C {f} =
   apply-ext (lower-extensionality l r ext) λ _ →
   apply-ext (lower-extensionality l r ext) λ (_ , g) →
   cong (_ ,_) $

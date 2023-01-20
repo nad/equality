@@ -128,14 +128,14 @@ private
 -- Membership is propositional.
 
 ∈-propositional : Is-proposition (x ∈ y)
-∈-propositional {x = x} {y = y} =          $⟨ proj₂ (Membership x y) ⟩
+∈-propositional {x} {y} =                  $⟨ proj₂ (Membership x y) ⟩
   Is-proposition (proj₁ (Membership x y))  →⟨ H-level-cong _ 1 (inverse ∈≃) ⟩□
   Is-proposition (x ∈ y)                   □
 
 -- A lemma characterising [].
 
 ∈[]≃ : (x ∈ []) ≃ ⊥₀
-∈[]≃ {x = x} =
+∈[]≃ {x} =
   x ∈ []  ↝⟨ ∈≃ ⟩
   ⊥       ↔⟨ ⊥↔⊥ ⟩□
   ⊥₀      □
@@ -143,7 +143,7 @@ private
 -- A lemma characterising _∷_.
 
 ∈∷≃ : (x ∈ y ∷ z) ≃ (x ≡ y ∥⊎∥ x ∈ z)
-∈∷≃ {x = x} {y = y} {z = z} =
+∈∷≃ {x} {y} {z} =
   x ∈ y ∷ z                         ↝⟨ ∈≃ ⟩
   x ≡ y ∥⊎∥ proj₁ (Membership x z)  ↝⟨ F.id Trunc.∥⊎∥-cong inverse ∈≃ ⟩□
   x ≡ y ∥⊎∥ x ∈ z                   □
@@ -151,7 +151,7 @@ private
 -- A variant.
 
 ∈≢∷≃ : x ≢ y → (x ∈ y ∷ z) ≃ (x ∈ z)
-∈≢∷≃ {x = x} {y = y} {z = z} x≢y =
+∈≢∷≃ {x} {y} {z} x≢y =
   x ∈ y ∷ z        ↝⟨ ∈∷≃ ⟩
   x ≡ y ∥⊎∥ x ∈ z  ↔⟨ Trunc.drop-⊥-left-∥⊎∥ ∈-propositional x≢y ⟩□
   x ∈ z            □
@@ -160,7 +160,7 @@ private
 
 ∈singleton≃ :
   (x ∈ singleton y) ≃ ∥ x ≡ y ∥
-∈singleton≃ {x = x} {y = y} =
+∈singleton≃ {x} {y} =
   x ∈ singleton y   ↝⟨ ∈∷≃ ⟩
   x ≡ y ∥⊎∥ x ∈ []  ↔⟨ Trunc.∥∥-cong $ drop-⊥-right ∈[]≃ ⟩□
   ∥ x ≡ y ∥         □
@@ -168,13 +168,13 @@ private
 -- Some "introduction rules" for _∈_.
 
 ∈→∈∷ : x ∈ z → x ∈ y ∷ z
-∈→∈∷ {x = x} {z = z} {y = y} =
+∈→∈∷ {x} {z} {y} =
   x ∈ z            →⟨ ∣_∣ ∘ inj₂ ⟩
   x ≡ y ∥⊎∥ x ∈ z  ↔⟨ inverse ∈∷≃ ⟩□
   x ∈ y ∷ z        □
 
 ∥≡∥→∈∷ : ∥ x ≡ y ∥ → x ∈ y ∷ z
-∥≡∥→∈∷ {x = x} {y = y} {z = z} =
+∥≡∥→∈∷ {x} {y} {z} =
   ∥ x ≡ y ∥        →⟨ Trunc.∥∥-map inj₁ ⟩
   x ≡ y ∥⊎∥ x ∈ z  ↔⟨ inverse ∈∷≃ ⟩□
   x ∈ y ∷ z        □
@@ -192,7 +192,7 @@ private
 -- membership of the subsets.
 
 ∈∪≃ : (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
-∈∪≃ {x = x} {y = y} {z = z} = elim-prop e y
+∈∪≃ {x} {y} {z} = elim-prop e y
   where
   e : Elim-prop (λ y → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z))
   e .[]ʳ =
@@ -213,13 +213,13 @@ private
 -- More "introduction rules".
 
 ∈→∈∪ˡ : x ∈ y → x ∈ y ∪ z
-∈→∈∪ˡ {x = x} {y = y} {z = z} =
+∈→∈∪ˡ {x} {y} {z} =
   x ∈ y            →⟨ ∣_∣ ∘ inj₁ ⟩
   x ∈ y ∥⊎∥ x ∈ z  ↔⟨ inverse ∈∪≃ ⟩□
   x ∈ y ∪ z        □
 
 ∈→∈∪ʳ : ∀ y → x ∈ z → x ∈ y ∪ z
-∈→∈∪ʳ {x = x} {z = z} y =
+∈→∈∪ʳ {x} {z} y =
   x ∈ z      →⟨ ∈→∈∪ˡ ⟩
   x ∈ z ∪ y  →⟨ ≡⇒↝ _ (cong (_ ∈_) (comm z)) ⟩□
   x ∈ y ∪ z  □
@@ -227,7 +227,7 @@ private
 -- A lemma characterising join.
 
 ∈join≃ : (x ∈ join z) ≃ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥
-∈join≃ {x = x} = elim-prop e _
+∈join≃ {x} = elim-prop e _
   where
   e : Elim-prop (λ z → (x ∈ join z) ≃ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥)
   e .[]ʳ =
@@ -305,10 +305,10 @@ member?ᴱ equal? x = elim-prop e
 -- If x is a member of y, then x ∷ y is equal to y.
 
 ∈→∷≡ : x ∈ y → x ∷ y ≡ y
-∈→∷≡ {x = x} = elim-prop e _
+∈→∷≡ {x} = elim-prop e _
   where
   e : Elim-prop (λ y → x ∈ y → x ∷ y ≡ y)
-  e .∷ʳ {y = y} z hyp =
+  e .∷ʳ {y} z hyp =
     x ∈ z ∷ y            ↔⟨ ∈∷≃ ⟩
     x ≡ z ∥⊎∥ x ∈ y      →⟨ id Trunc.∥⊎∥-cong hyp ⟩
     x ≡ z ∥⊎∥ x ∷ y ≡ y  →⟨ Trunc.rec is-set
@@ -348,7 +348,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- The subset property can be expressed using _∪_ and _≡_.
 
 ⊆≃∪≡ : ∀ x → (x ⊆ y) ≃ (x ∪ y ≡ y)
-⊆≃∪≡ {y = y} x =
+⊆≃∪≡ {y} x =
   Eq.⇔→≃
     (Π-closure ext 1 λ _ →
      Π-closure ext 1 λ _ →
@@ -377,7 +377,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- Extensionality.
 
 extensionality : (x ≡ y) ≃ (∀ z → z ∈ x ⇔ z ∈ y)
-extensionality {x = x} {y = y} =
+extensionality {x} {y} =
   Eq.⇔→≃
     is-set
     (Π-closure ext 1 λ _ →
@@ -393,7 +393,7 @@ extensionality {x = x} {y = y} =
 -- Another way to characterise equality.
 
 ≡≃⊆×⊇ : (x ≡ y) ≃ (x ⊆ y × y ⊆ x)
-≡≃⊆×⊇ {x = x} {y = y} =
+≡≃⊆×⊇ {x} {y} =
   x ≡ y                  ↝⟨ extensionality ⟩
   (∀ z → z ∈ x ⇔ z ∈ y)  ↝⟨ Eq.⇔→≃
                               (Π-closure ext 1 λ _ →
@@ -408,7 +408,7 @@ extensionality {x = x} {y = y} =
 -- The empty set is not equal to a set constructed using _∷_.
 
 []≢∷ : Finite-subset-of.[] ≢ x ∷ y
-[]≢∷ {x = x} {y = y} =
+[]≢∷ {x} {y} =
   [] ≡ x ∷ y                  ↔⟨ extensionality ⟩
   (∀ z → z ∈ [] ⇔ z ∈ x ∷ y)  →⟨ (λ hyp → _⇔_.from (hyp x) (≡→∈∷ (refl _))) ⟩
   x ∈ []                      ↔⟨ ∈[]≃ ⟩□
@@ -533,7 +533,7 @@ equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subse
 
 ∈map-Maybe≃ :
   (x ∈ map-Maybe f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ just x) ∥
-∈map-Maybe≃ {x = x} {f = f} = elim-prop e _
+∈map-Maybe≃ {x} {f} = elim-prop e _
   where
   e : Elim-prop (λ y → (x ∈ map-Maybe f y) ≃
                        ∥ (∃ λ z → z ∈ y × f z ≡ just x) ∥)
@@ -545,7 +545,7 @@ equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subse
     ∥ (∃ λ z → ⊥ × f z ≡ just x) ∥       ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → inverse ∈[]≃ ×-cong F.id) ⟩□
     ∥ (∃ λ z → z ∈ [] × f z ≡ just x) ∥  □
 
-  e .∷ʳ {y = y} z hyp =
+  e .∷ʳ {y} z hyp =
     (x ∈ map-Maybe f (z ∷ y))                                          ↝⟨ lemma _ _ ⟩
     f z ≡ just x ∥⊎∥ (x ∈ map-Maybe f y)                               ↝⟨ from-isomorphism (inverse Trunc.truncate-right-∥⊎∥) F.∘
                                                                           (F.id Trunc.∥⊎∥-cong hyp) ⟩
@@ -579,7 +579,7 @@ equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subse
 -- A lemma characterising map.
 
 ∈map≃ : (x ∈ map f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ x) ∥
-∈map≃ {x = x} {f = f} {y = y} =
+∈map≃ {x} {f} {y} =
   x ∈ map f y                                ↝⟨ ≡⇒↝ _ $ cong (_ ∈_) $ map≡map-Maybe-just y ⟩
   x ∈ map-Maybe (just ∘ f) y                 ↝⟨ ∈map-Maybe≃ ⟩
   ∥ (∃ λ z → z ∈ y × just (f z) ≡ just x) ∥  ↔⟨ Trunc.∥∥-cong (∃-cong λ _ → ∃-cong λ _ → inverse Bijection.≡↔inj₂≡inj₂) ⟩□
@@ -590,7 +590,7 @@ equal?ᴱ eq? x y =                              $⟨ subset?ᴱ eq? x y , subse
 ∈→∈map :
   {f : A → B} →
   x ∈ y → f x ∈ map f y
-∈→∈map {x = x} {y = y} {f = f} =
+∈→∈map {x} {y} {f} =
   x ∈ y                            →⟨ (λ x∈y → ∣ x , x∈y , refl _ ∣) ⟩
   ∥ (∃ λ z → z ∈ y × f z ≡ f x) ∥  ↔⟨ inverse ∈map≃ ⟩□
   f x ∈ map f y                    □
@@ -599,7 +599,7 @@ Injective→∈map≃ :
   {f : A → B} →
   Injective f →
   (f x ∈ map f y) ≃ (x ∈ y)
-Injective→∈map≃ {x = x} {y = y} {f = f} inj =
+Injective→∈map≃ {x} {y} {f} inj =
   f x ∈ map f y                    ↝⟨ ∈map≃ ⟩
   ∥ (∃ λ z → z ∈ y × f z ≡ f x) ∥  ↝⟨ (Trunc.∥∥-cong-⇔ $ ∃-cong λ _ → ∃-cong λ _ →
                                        record { to = inj; from = cong f }) ⟩
@@ -611,7 +611,7 @@ Injective→∈map≃ {x = x} {y = y} {f = f} inj =
 
 ∈filter≃ :
   ∀ p → (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
-∈filter≃ {x = x} {y = y} p =
+∈filter≃ {x} {y} p =
   x ∈ map-Maybe (λ x → if p x then just x else nothing) y         ↝⟨ ∈map-Maybe≃ ⟩
   ∥ (∃ λ z → z ∈ y × if p z then just z else nothing ≡ just x) ∥  ↝⟨ (Trunc.∥∥-cong $ ∃-cong λ _ → ∃-cong λ _ → lemma _ (refl _)) ⟩
   ∥ (∃ λ z → z ∈ y × T (p z) × z ≡ x) ∥                           ↔⟨ (Trunc.∥∥-cong $ ∃-cong λ _ →
@@ -632,11 +632,11 @@ Injective→∈map≃ {x = x} {y = y} {f = f} inj =
     ∀ b → p z ≡ b →
     (if b then just z else nothing ≡ just x) ≃
     (T b × z ≡ x)
-  lemma {z = z} true eq =
+  lemma {z} true eq =
     just z ≡ just x  ↔⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
     z ≡ x            ↔⟨ inverse ×-left-identity ⟩□
     ⊤ × z ≡ x        □
-  lemma {z = z} false eq =
+  lemma {z} false eq =
     nothing ≡ just x  ↔⟨ Bijection.≡↔⊎ ⟩
     ⊥                 ↔⟨ inverse ×-left-zero ⟩□
     ⊥ × z ≡ x         □
@@ -644,7 +644,7 @@ Injective→∈map≃ {x = x} {y = y} {f = f} inj =
 -- The result of filtering is a subset of the original subset.
 
 filter⊆ : ∀ p → filter p x ⊆ x
-filter⊆ {x = x} p z =
+filter⊆ {x} p z =
   z ∈ filter p x   ↔⟨ ∈filter≃ p ⟩
   T (p z) × z ∈ x  →⟨ proj₂ ⟩□
   z ∈ x            □
@@ -664,7 +664,7 @@ minus _≟_ x y =
 -- A lemma characterising minus.
 
 ∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × x ∉ z)
-∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
+∈minus≃ {x} {_≟_} {y} {z} =
   x ∈ minus _≟_ y z                                     ↝⟨ ∈filter≃ (λ _ → if member?ᴱ _ _ z then _ else _) ⟩
   T (if member?ᴱ _≟_ x z then false else true) × x ∈ y  ↔⟨ lemma (member?ᴱ _≟_ x z) ×-cong F.id ⟩
   x ∉ z × x ∈ y                                         ↔⟨ ×-comm ⟩□
@@ -673,12 +673,12 @@ minus _≟_ x y =
   lemma :
     (d : Dec-Erased A) →
     T (if d then false else true) ↔ ¬ A
-  lemma {A = A} d@(yes a) =
+  lemma {A} d@(yes a) =
     T (if d then false else true)  ↔⟨⟩
     ⊥                              ↝⟨ Bijection.⊥↔uninhabited (_$ a) ⟩
     ¬ EC.Erased A                  ↝⟨ EC.¬-Erased↔¬ ext ⟩□
     ¬ A                            □
-  lemma {A = A} d@(no ¬a) =
+  lemma {A} d@(no ¬a) =
     T (if d then false else true) ↔⟨⟩
     ⊤                             ↝⟨ inverse $
                                      _⇔_.to contractible⇔↔⊤ $
@@ -718,7 +718,7 @@ minus⊆≃ :
   ∀ y →
   (minus (λ x y → Dec→Dec-Erased (x ≟ y)) x y ⊆ z) ≃
   (x ⊆ y ∪ z)
-minus⊆≃ {x = x} {z = z} {_≟_ = _≟_} y =
+minus⊆≃ {x} {z} {_≟_} y =
   Eq.⇔→≃
     ⊆-propositional
     ⊆-propositional
@@ -751,7 +751,7 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 -- A lemma characterising delete.
 
 ∈delete≃ : ∀ _≟_ → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
-∈delete≃ {x = x} {y = y} {z = z} _≟_ =
+∈delete≃ {x} {y} {z} _≟_ =
   x ∈ delete _≟_ y z       ↝⟨ ∈minus≃ {_≟_ = _≟_} ⟩
   x ∈ z × x ∉ singleton y  ↝⟨ F.id ×-cong →-cong₁ ext ∈singleton≃ ⟩
   x ∈ z × ¬ ∥ x ≡ y ∥      ↔⟨ F.id ×-cong Trunc.¬∥∥↔¬ ⟩
@@ -761,7 +761,7 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 -- A deleted element is no longer a member of the set.
 
 ∉delete : ∀ _≟_ y → x ∉ delete _≟_ x y
-∉delete {x = x} _≟_ y =
+∉delete {x} _≟_ y =
   x ∈ delete _≟_ x y  ↔⟨ ∈delete≃ _≟_ ⟩
   x ≢ x × x ∈ y       →⟨ (_$ refl _) ∘ proj₁ ⟩□
   ⊥                   □
@@ -794,14 +794,14 @@ delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
 -- Various operations preserve _⊆_.
 
 ∷-cong-⊆ : y ⊆ z → x ∷ y ⊆ x ∷ z
-∷-cong-⊆ {y = y} {z = z} {x = x} y⊆z u =
+∷-cong-⊆ {y} {z} {x} y⊆z u =
   u ∈ x ∷ y        ↔⟨ ∈∷≃ ⟩
   u ≡ x ∥⊎∥ u ∈ y  →⟨ id Trunc.∥⊎∥-cong y⊆z _ ⟩
   u ≡ x ∥⊎∥ u ∈ z  ↔⟨ inverse ∈∷≃ ⟩□
   u ∈ x ∷ z        □
 
 ∪-cong-⊆ : x₁ ⊆ x₂ → y₁ ⊆ y₂ → x₁ ∪ y₁ ⊆ x₂ ∪ y₂
-∪-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₁ = y₁} {y₂ = y₂} x₁⊆x₂ y₁⊆y₂ z =
+∪-cong-⊆ {x₁} {x₂} {y₁} {y₂} x₁⊆x₂ y₁⊆y₂ z =
   z ∈ x₁ ∪ y₁        ↔⟨ ∈∪≃ ⟩
   z ∈ x₁ ∥⊎∥ z ∈ y₁  →⟨ x₁⊆x₂ _ Trunc.∥⊎∥-cong y₁⊆y₂ _ ⟩
   z ∈ x₂ ∥⊎∥ z ∈ y₂  ↔⟨ inverse ∈∪≃ ⟩□
@@ -811,15 +811,14 @@ filter-cong-⊆ :
   ∀ p q →
   (∀ z → T (p z) → T (q z)) →
   x ⊆ y → filter p x ⊆ filter q y
-filter-cong-⊆ {x = x} {y = y} p q p⇒q x⊆y z =
+filter-cong-⊆ {x} {y} p q p⇒q x⊆y z =
   z ∈ filter p x   ↔⟨ ∈filter≃ p ⟩
   T (p z) × z ∈ x  →⟨ Σ-map (p⇒q _) (x⊆y _) ⟩
   T (q z) × z ∈ y  ↔⟨ inverse $ ∈filter≃ q ⟩□
   z ∈ filter q y   □
 
 minus-cong-⊆ : x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ minus _≟_ x₂ y₂
-minus-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₂ = y₂} {y₁ = y₁} {_≟_ = _≟_}
-             x₁⊆x₂ y₂⊆y₁ z =
+minus-cong-⊆ {x₁} {x₂} {y₂} {y₁} {_≟_} x₁⊆x₂ y₂⊆y₁ z =
   z ∈ minus _≟_ x₁ y₁  ↔⟨ ∈minus≃ ⟩
   z ∈ x₁ × z ∉ y₁      →⟨ Σ-map (x₁⊆x₂ _) (_∘ y₂⊆y₁ _) ⟩
   z ∈ x₂ × z ∉ y₂      ↔⟨ inverse ∈minus≃ ⟩□
@@ -841,7 +840,7 @@ private
   -- Theory", but it is based on the size function in that paper.
 
   Size : {A : Type a} → Finite-subset-of A → ℕ → Proposition a
-  Size {a = a} {A = A} = rec r
+  Size {a} {A} = rec r
     where
 
     mutual
@@ -886,7 +885,7 @@ private
 
     drop-lemma :
       Cons′ x (x ∷ y) (Cons x y H) n ≃ Cons′ x y H n
-    drop-lemma {x = x} {y = y} {H = H} {n = n} =
+    drop-lemma {x} {y} {H} {n} =
       Cons′ x (x ∷ y) (Cons x y H) n   ↔⟨⟩
       x ∈ x ∷ y × Cons′ x y H n ⊎ C n  ↔⟨ drop-⊥-right (C↔⊥ n) ⟩
       x ∈ x ∷ y × Cons′ x y H n        ↔⟨ drop-⊤-left-× (λ _ → x∈x∷y↔⊤) ⟩
@@ -912,7 +911,7 @@ private
       ∀ n →
       x ∈ y ∷ z × Cons′ y z H n ⊎ Cons″ x (y ∷ z) (Cons y z H) n →
       y ∈ x ∷ z × Cons′ x z H n ⊎ Cons″ y (x ∷ z) (Cons x z H) n
-    swap-lemma′ {x = x} {y = y} {z = z} {H = H} = λ where
+    swap-lemma′ {x} {y} {z} {H} = λ where
       n (inj₁ (x∈y∷z , inj₁ (y∈z , p))) →
         inj₁ ( ∈→∈∷ y∈z
              , inj₁
@@ -971,7 +970,7 @@ private
     swap-lemma :
       Cons′ x (y ∷ z) (Cons y z H) n ≃
       Cons′ y (x ∷ z) (Cons x z H) n
-    swap-lemma {x = x} {y = y} {z = z} {H = H} {n = n} =
+    swap-lemma {x} {y} {z} {H} {n} =
       Eq.⇔→≃
         (Cons′-propositional _ _)
         (Cons′-propositional _ _)
@@ -1034,7 +1033,7 @@ _ = refl _
     0  ≡⟨ sym n≡0 ⟩∎
     n  ∎
 
-  e .∷ʳ {y = y} x hyp = λ where
+  e .∷ʳ {y} x hyp = λ where
     m n (inj₁ (x∈y , ∣y∣≡m)) (inj₁ (x∈y′ , ∣y∣≡n)) →
       hyp m n ∣y∣≡m ∣y∣≡n
 
@@ -1062,7 +1061,7 @@ size equal? = elim-prop e
   e : Elim-prop _
   e .[]ʳ = 0 , lift (refl _)
 
-  e .∷ʳ {y = y} x (n , ∣y∣≡n) =
+  e .∷ʳ {y} x (n , ∣y∣≡n) =
     case member? equal? x y of λ x∈?y →
         if x∈?y then n else suc n
       , lemma ∣y∣≡n x∈?y
@@ -1089,7 +1088,7 @@ sizeᴱ equal? = elim-prop e
   e : Elim-prop _
   e .[]ʳ = 0 , [ lift (refl _) ]
 
-  e .∷ʳ {y = y} x (n , [ ∣y∣≡n ]) =
+  e .∷ʳ {y} x (n , [ ∣y∣≡n ]) =
     case member?ᴱ equal? x y of λ x∈?y →
         if x∈?y then n else suc n
       , [ lemma ∣y∣≡n x∈?y ]
@@ -1133,7 +1132,7 @@ Is-finite-propositional (x , p) (y , q) =
 -- A lemma characterising from-List.
 
 ∥∈∥≃∈-from-List : ∥ x BE.∈ ys ∥ ≃ (x ∈ from-List ys)
-∥∈∥≃∈-from-List {x = x} {ys = ys} =
+∥∈∥≃∈-from-List {x} {ys} =
   Eq.⇔→≃
     Trunc.truncation-is-proposition
     ∈-propositional
@@ -1191,7 +1190,7 @@ Is-finite-propositional (x , p) (y , q) =
       .Q.is-propositionʳ _ → Q./-is-set
 
   from : List A / _∼[ set ]_ → Finite-subset-of A
-  from {A = A} = Q.rec λ where
+  from {A} = Q.rec λ where
     .Q.[]ʳ → from-List
 
     .Q.[]-respects-relationʳ {x = xs} {y = ys} xs∼ys →
@@ -1222,7 +1221,7 @@ Is-finite-propositional (x , p) (y , q) =
     e : Elim-prop _
     e .[]ʳ = refl _
 
-    e .∷ʳ {y = y} x hyp =
+    e .∷ʳ {y} x hyp =
       from (to (x ∷ y))     ≡⟨⟩
       from (cons x (to y))  ≡⟨ Q.elim-prop
                                  {P = λ y → from (cons x y) ≡ x ∷ from y}
@@ -1273,7 +1272,7 @@ fresh = λ ns →
     ∀ {ms n m} →
     OK ms n →
     OK (m ∷ ms) (Nat.max (suc m) n)
-  ∷-max-suc {ms = ms} {n = n} {m = m} [ ub ] =
+  ∷-max-suc {ms} {n} {m} [ ub ] =
     [ (λ o →
          o ∈ m ∷ ms                   ↔⟨ ∈∷≃ ⟩
          o ≡ m ∥⊎∥ o ∈ ms             →⟨ Nat.≤-refl′ ∘ cong suc ∘ id Trunc.∥⊎∥-cong ub o ⟩

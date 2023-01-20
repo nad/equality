@@ -65,7 +65,7 @@ abstract
 
   left-inverse-of :
     (eq : Is-equivalence f) → ∀ x → inverse eq (f x) ≡ x
-  left-inverse-of {f = f} eq x =
+  left-inverse-of {f} eq x =
     cong (proj₁ {B = λ x′ → f x′ ≡ f x}) (
       proj₁ (eq (f x))  ≡⟨ proj₂ (eq (f x)) (x , refl (f x)) ⟩∎
       (x , refl (f x))  ∎)
@@ -87,7 +87,7 @@ abstract
   left-right-lemma :
     (eq : Is-equivalence f) →
     ∀ x → cong f (left-inverse-of eq x) ≡ right-inverse-of eq (f x)
-  left-right-lemma {f = f} eq x =
+  left-right-lemma {f} eq x =
     lemma₁ f _ _ (lemma₂ (irrelevance eq (f x) (x , refl (f x))))
     where
     lemma₁ : {x y : A} (f : A → B) (p : x ≡ y) (q : f x ≡ f y) →
@@ -109,7 +109,7 @@ abstract
              proj₂ f⁻¹y₂ ≡
              trans (cong f (sym (cong (proj₁ {B = λ x → f x ≡ y}) p)))
                    (proj₂ f⁻¹y₁)
-    lemma₂ {f = f} {y = y} =
+    lemma₂ {f} {y} =
       let pr = proj₁ {B = λ x → f x ≡ y} in
       elim {A = f ⁻¹ y}
         (λ {f⁻¹y₁ f⁻¹y₂} p →
@@ -128,7 +128,7 @@ abstract
     ∀ x →
     cong (inverse eq) (right-inverse-of eq x) ≡
     left-inverse-of eq (inverse eq x)
-  right-left-lemma {f = f} eq x =
+  right-left-lemma {f} eq x =
     let f⁻¹ = inverse eq in
     subst
       (λ x → cong f⁻¹ (right-inverse-of eq x) ≡
@@ -157,14 +157,14 @@ abstract
     (f : ∀ {x} → P x → Q x) →
     Is-equivalence {A = Σ A P} {B = Σ A Q} (Σ-map P.id f) →
     ∀ x → Is-equivalence (f {x = x})
-  drop-Σ-map-id {p = ℓp} {q = ℓq} {A = A} {P = P} {Q = Q} f eq x z =
+  drop-Σ-map-id {p = ℓp} {q = ℓq} {A} {P} {Q} f eq x z =
     H-level.respects-surjection surj 0 (eq (x , z))
     where
     map-f : Σ A P → Σ A Q
     map-f = Σ-map P.id f
 
     to-P : ∀ {x y} {p : ∃ Q} → (x , f y) ≡ p → Type (ℓp ⊔ ℓq)
-    to-P {y = y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
+    to-P {y} {p} _ = ∃ λ y′ → f y′ ≡ proj₂ p
 
     to : map-f ⁻¹ (x , z) → f ⁻¹ z
     to ((x′ , y) , eq) = elim¹ to-P (y , refl (f y)) eq
@@ -199,8 +199,7 @@ abstract
     inverse (drop-Σ-map-id f eq x) y ≡
     subst P (cong proj₁ (right-inverse-of eq (x , y)))
       (proj₂ (inverse eq (x , y)))
-  inverse-drop-Σ-map-id
-    {P = P} {Q = Q} {f = f} {x = x} {y = y} {eq = eq} =
+  inverse-drop-Σ-map-id {P} {Q} {f} {x} {y} {eq} =
 
     let lemma = elim¹
           (λ {q′} eq →

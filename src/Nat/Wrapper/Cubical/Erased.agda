@@ -111,7 +111,7 @@ module _ (o : Operations) where
     from[to+to]≡+ :
       ∀ m →
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n) ≡ m + n
-    from[to+to]≡+ {n = n} m =
+    from[to+to]≡+ {n} m =
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ sym $ to-ℕ-+ m n ⟩
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ (m + n))                     ≡⟨ _↔_.left-inverse-of Nat↔ℕ _ ⟩∎
       m + n                                                     ∎
@@ -121,7 +121,7 @@ module _ (o : Operations) where
   -- Addition is commutative.
 
   +-comm-traditional : ∀ m {n} → m + n ≡ n + m
-  +-comm-traditional m {n = n} =
+  +-comm-traditional m {n} =
     m + n                                                     ≡⟨ sym $ from[to+to]≡+ m ⟩
     _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ Nat.+-comm (_↔_.to Nat↔ℕ m) ⟩
     _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ m)  ≡⟨ from[to+to]≡+ n ⟩∎
@@ -130,7 +130,7 @@ module _ (o : Operations) where
   -- Addition is associative.
 
   +-assoc-traditional : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
-  +-assoc-traditional m {n = n} {o = o} =
+  +-assoc-traditional m {n} {o} =
     m + (n + o)                                                     ≡⟨ cong (m +_) $ sym $ from[to+to]≡+ n ⟩
 
     m + (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o))  ≡⟨ sym $ from[to+to]≡+ m ⟩

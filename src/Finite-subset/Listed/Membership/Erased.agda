@@ -62,7 +62,7 @@ x ∈ y = Erased (x M.∈ y)
 -- In erased contexts x ∈ y is equivalent to x M.∈ y.
 
 @0 ∈≃∈ : (x ∈ y) ≃ (x M.∈ y)
-∈≃∈ {x = x} {y = y} =
+∈≃∈ {x} {y} =
   x ∈ y    ↔⟨ EC.erased EC.Erased↔ ⟩□
   x M.∈ y  □
 
@@ -76,7 +76,7 @@ x ∉ y = ¬ x ∈ y
 -- Membership is propositional.
 
 ∈-propositional : Is-proposition (x ∈ y)
-∈-propositional {x = x} {y = y} =    $⟨ [ M.∈-propositional ] ⟩
+∈-propositional {x} {y} =            $⟨ [ M.∈-propositional ] ⟩
   Erased (Is-proposition (x M.∈ y))  →⟨ EC.Erased-H-level↔H-level 1 _ ⟩□
   Is-proposition (Erased (x M.∈ y))  □
 
@@ -88,7 +88,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- A lemma characterising [].
 
 ∈[]≃ : (x ∈ []) ≃ ⊥₀
-∈[]≃ {x = x} =
+∈[]≃ {x} =
   x ∈ []    ↝⟨ EC.Erased-cong M.∈[]≃ ⟩
   Erased ⊥  ↔⟨ EC.Erased-⊥↔⊥ ⟩□
   ⊥         □
@@ -98,7 +98,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- turned into non-erased lemmas with related types.
 
 ∈≃≃∈≃Erased : Erased ((x ∈ y) ≃ A) ≃ ((x ∈ y) ≃ Erased A)
-∈≃≃∈≃Erased {x = x} {y = y} {A = A} =
+∈≃≃∈≃Erased {x} {y} {A} =
   Erased ((x ∈ y) ≃ A)       ↝⟨ EC.Erased-↝↝↝ ext ⟩
   Erased (x ∈ y) ≃ Erased A  ↝⟨ ≃-cong ext (EC.Very-stable→Stable 0 Very-stable-∈) F.id ⟩□
   (x ∈ y) ≃ Erased A         □
@@ -106,7 +106,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- A lemma characterising _∷_ (in erased contexts).
 
 @0 ∈∷≃ : (x ∈ y ∷ z) ≃ (x ≡ y ∥⊎∥ x ∈ z)
-∈∷≃ {x = x} {y = y} {z = z} =
+∈∷≃ {x} {y} {z} =
   x ∈ y ∷ z                   ↝⟨ EC.Erased-cong M.∈∷≃ ⟩
   Erased (x ≡ y ∥⊎∥ x M.∈ z)  ↔⟨ EC.erased EC.Erased↔ ⟩
   x ≡ y ∥⊎∥ x M.∈ z           ↝⟨ F.id Trunc.∥⊎∥-cong inverse ∈≃∈ ⟩□
@@ -120,7 +120,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- A lemma characterising singleton (in erased contexts).
 
 @0 ∈singleton≃ : (x ∈ singleton y) ≃ ∥ x ≡ y ∥
-∈singleton≃ {x = x} {y = y} =
+∈singleton≃ {x} {y} =
   x ∈ singleton y   ↝⟨ EC.Erased-cong M.∈singleton≃ ⟩
   Erased ∥ x ≡ y ∥  ↔⟨ EC.erased EC.Erased↔ ⟩
   ∥ x ≡ y ∥         □
@@ -128,7 +128,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- Some "introduction rules" for _∈_.
 
 ∈→∈∷ : x ∈ z → x ∈ y ∷ z
-∈→∈∷ {x = x} {z = z} {y = y} =
+∈→∈∷ {x} {z} {y} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-∈)
     [ x ∈ z      →⟨ EC.map M.∈→∈∷ ⟩□
@@ -136,7 +136,7 @@ Very-stable-∈ = EC.Very-stable-Erased
     ]
 
 ∥≡∥→∈∷ : ∥ x ≡ y ∥ → x ∈ y ∷ z
-∥≡∥→∈∷ {x = x} {y = y} {z = z} =
+∥≡∥→∈∷ {x} {y} {z} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-∈)
     [ ∥ x ≡ y ∥  →⟨ [_]→ ∘ M.∥≡∥→∈∷ ⟩□
@@ -156,7 +156,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- membership of the subsets (in erased contexts).
 
 @0 ∈∪≃ : (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
-∈∪≃ {x = x} {y = y} {z = z} =
+∈∪≃ {x} {y} {z} =
   x ∈ y ∪ z                     ↝⟨ EC.Erased-cong M.∈∪≃ ⟩
   Erased (x M.∈ y ∥⊎∥ x M.∈ z)  ↔⟨ EC.erased EC.Erased↔ ⟩
   x M.∈ y ∥⊎∥ x M.∈ z           ↝⟨ inverse $ ∈≃∈ Trunc.∥⊎∥-cong ∈≃∈ ⟩□
@@ -165,7 +165,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- More "introduction rules".
 
 ∈→∈∪ˡ : x ∈ y → x ∈ y ∪ z
-∈→∈∪ˡ {x = x} {y = y} {z = z} =
+∈→∈∪ˡ {x} {y} {z} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-∈)
     [ x ∈ y      →⟨ EC.map M.∈→∈∪ˡ ⟩□
@@ -173,7 +173,7 @@ Very-stable-∈ = EC.Very-stable-Erased
     ]
 
 ∈→∈∪ʳ : ∀ y → x ∈ z → x ∈ y ∪ z
-∈→∈∪ʳ {x = x} {z = z} y =
+∈→∈∪ʳ {x} {z} y =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-∈)
     [ x ∈ z      →⟨ EC.map (M.∈→∈∪ʳ y) ⟩□
@@ -183,7 +183,7 @@ Very-stable-∈ = EC.Very-stable-Erased
 -- A lemma characterising join (in erased contexts).
 
 @0 ∈join≃ : (x ∈ join z) ≃ ∥ (∃ λ y → x ∈ y × y ∈ z) ∥
-∈join≃ {x = x} {z = z} =
+∈join≃ {x} {z} =
   x ∈ join z                              ↝⟨ EC.Erased-cong M.∈join≃ ⟩
   Erased ∥ (∃ λ y → x M.∈ y × y M.∈ z) ∥  ↔⟨ EC.erased EC.Erased↔ ⟩
   ∥ (∃ λ y → x M.∈ y × y M.∈ z) ∥         ↝⟨ (inverse $ Trunc.∥∥-cong $ ∃-cong λ _ → ∈≃∈ ×-cong ∈≃∈) ⟩□
@@ -245,7 +245,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- In erased contexts x ⊆ y is equivalent to x M.⊆ y.
 
 @0 ⊆≃⊆ : (x ⊆ y) ≃ (x M.⊆ y)
-⊆≃⊆ {x = x} {y = y} =
+⊆≃⊆ {x} {y} =
   (∀ z → z ∈ x → z ∈ y)      ↝⟨ (∀-cong ext λ _ → →-cong ext ∈≃∈ ∈≃∈) ⟩□
   (∀ z → z M.∈ x → z M.∈ y)  □
 
@@ -260,7 +260,7 @@ Very-stable-⊆ =
 -- _⊆_ is pointwise propositional.
 
 ⊆-propositional : Is-proposition (x ⊆ y)
-⊆-propositional {x = x} {y = y} =    $⟨ [ M.⊆-propositional ] ⟩
+⊆-propositional {x} {y} =            $⟨ [ M.⊆-propositional ] ⟩
   Erased (Is-proposition (x M.⊆ y))  →⟨ EC.map (H-level-cong _ 1 (inverse ⊆≃⊆)) ⟩
   Erased (Is-proposition (x ⊆ y))    →⟨ EC.Erased-H-level↔H-level 1 _ ⟩
   Is-proposition (Erased (x ⊆ y))    →⟨ H-level-cong _ 1 (EC.Very-stable→Stable {k = equivalence} 0 Very-stable-⊆) ⟩□
@@ -270,7 +270,7 @@ Very-stable-⊆ =
 -- contexts).
 
 @0 ⊆≃∪≡ : ∀ x → (x ⊆ y) ≃ (x ∪ y ≡ y)
-⊆≃∪≡ {y = y} x =
+⊆≃∪≡ {y} x =
   x ⊆ y      ↝⟨ ⊆≃⊆ ⟩
   x M.⊆ y    ↝⟨ M.⊆≃∪≡ x ⟩□
   x ∪ y ≡ y  □
@@ -278,7 +278,7 @@ Very-stable-⊆ =
 -- A form of extensionality that holds in erased contexts.
 
 @0 extensionality : (x ≡ y) ≃ (∀ z → z ∈ x ⇔ z ∈ y)
-extensionality {x = x} {y = y} =
+extensionality {x} {y} =
   x ≡ y                      ↝⟨ M.extensionality ⟩
   (∀ z → z M.∈ x ⇔ z M.∈ y)  ↝⟨ inverse (∀-cong ext λ _ → ⇔-cong ext ∈≃∈ ∈≃∈) ⟩□
   (∀ z → z ∈ x ⇔ z ∈ y)      □
@@ -286,7 +286,7 @@ extensionality {x = x} {y = y} =
 -- Another way to characterise equality (in erased contexts).
 
 @0 ≡≃⊆×⊇ : (x ≡ y) ≃ (x ⊆ y × y ⊆ x)
-≡≃⊆×⊇ {x = x} {y = y} =
+≡≃⊆×⊇ {x} {y} =
   x ≡ y              ↝⟨ M.≡≃⊆×⊇ ⟩
   x M.⊆ y × y M.⊆ x  ↝⟨ inverse $ ⊆≃⊆ ×-cong ⊆≃⊆ ⟩□
   x ⊆ y × y ⊆ x      □
@@ -299,13 +299,13 @@ extensionality {x = x} {y = y} =
 -- _⊆_ is a partial order (in erased contexts).
 
 ⊆-refl : x ⊆ x
-⊆-refl {x = x} =    $⟨ [ M.⊆-refl ] ⟩
+⊆-refl {x} =        $⟨ [ M.⊆-refl ] ⟩
   Erased (x M.⊆ x)  →⟨ EC.map (_≃_.from ⊆≃⊆) ⟩
   Erased (x ⊆ x)    →⟨ EC.Very-stable→Stable 0 Very-stable-⊆ ⟩□
   x ⊆ x             □
 
 ⊆-trans : x ⊆ y → y ⊆ z → x ⊆ z
-⊆-trans {x = x} {y = y} {z = z} = curry
+⊆-trans {x} {y} {z} = curry
   (x ⊆ y × y ⊆ z               →⟨ [_]→ ⟩
    Erased (x ⊆ y × y ⊆ z)      ↔⟨ EC.Erased-cong (⊆≃⊆ ×-cong ⊆≃⊆) ⟩
    Erased (x M.⊆ y × y M.⊆ z)  →⟨ EC.map (uncurry M.⊆-trans) ⟩
@@ -314,7 +314,7 @@ extensionality {x = x} {y = y} =
    x ⊆ z                       □)
 
 @0 ⊆-antisymmetric : x ⊆ y → y ⊆ x → x ≡ y
-⊆-antisymmetric {x = x} {y = y} = curry
+⊆-antisymmetric {x} {y} = curry
   (x ⊆ y × y ⊆ x      ↔⟨ ⊆≃⊆ ×-cong ⊆≃⊆ ⟩
    x M.⊆ y × y M.⊆ x  →⟨ uncurry M.⊆-antisymmetric ⟩□
    x ≡ y              □)
@@ -391,7 +391,7 @@ equal? = M.equal?
 
 @0 ∈map-Maybe≃ :
   (x ∈ map-Maybe f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ just x) ∥
-∈map-Maybe≃ {x = x} {f = f} {y = y} =
+∈map-Maybe≃ {x} {f} {y} =
   x ∈ map-Maybe f y                     ↝⟨ ∈≃∈ ⟩
   x M.∈ map-Maybe f y                   ↝⟨ M.∈map-Maybe≃ ⟩
   ∥ (∃ λ z → z M.∈ y × f z ≡ just x) ∥  ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ×-cong₁ λ _ → inverse ∈≃∈) ⟩□
@@ -400,7 +400,7 @@ equal? = M.equal?
 -- A lemma characterising map (in erased contexts).
 
 @0 ∈map≃ : (x ∈ map f y) ≃ ∥ (∃ λ z → z ∈ y × f z ≡ x) ∥
-∈map≃ {x = x} {f = f} {y = y} =
+∈map≃ {x} {f} {y} =
   x ∈ map f y                      ↝⟨ ∈≃∈ ⟩
   x M.∈ map f y                    ↝⟨ M.∈map≃ ⟩
   ∥ (∃ λ z → z M.∈ y × f z ≡ x) ∥  ↝⟨ Trunc.∥∥-cong (∃-cong λ _ → ×-cong₁ λ _ → inverse ∈≃∈) ⟩□
@@ -411,7 +411,7 @@ equal? = M.equal?
 ∈→∈map :
   {f : A → B} →
   x ∈ y → f x ∈ map f y
-∈→∈map {x = x} {y = y} {f = f} =
+∈→∈map {x} {y} {f} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-∈)
     [ x ∈ y            ↔⟨ ∈≃∈ ⟩
@@ -426,7 +426,7 @@ Injective→∈map≃ :
   {f : A → B} →
   Injective f →
   (f x ∈ map f y) ≃ (x ∈ y)
-Injective→∈map≃ {x = x} {y = y} {f = f} inj =
+Injective→∈map≃ {x} {y} {f} inj =
   EC.Very-stable→Stable 0
     (EC.Very-stable-↝ ext Very-stable-∈ Very-stable-∈)
     [ f x ∈ map f y    ↝⟨ ∈≃∈ ⟩
@@ -439,7 +439,7 @@ Injective→∈map≃ {x = x} {y = y} {f = f} inj =
 
 ∈filter≃ :
   ∀ p → (x ∈ filter p y) ≃ (T (p x) × x ∈ y)
-∈filter≃ {x = x} {y = y} p =
+∈filter≃ {x} {y} p =
   EC.Very-stable→Stable 0
     (EC.Very-stable-↝ ext
        Very-stable-∈
@@ -453,7 +453,7 @@ Injective→∈map≃ {x = x} {y = y} {f = f} inj =
 -- The result of filtering is a subset of the original subset.
 
 filter⊆ : ∀ p → filter p x ⊆ x
-filter⊆ {x = x} p =
+filter⊆ {x} p =
   EC.Very-stable→Stable 0
     Very-stable-⊆
     [                   $⟨ M.filter⊆ p ⟩
@@ -476,7 +476,7 @@ minus _≟_ x y =
 -- In erased contexts minus is pointwise equal to M.minus.
 
 @0 minus≡minus : ∀ x y → minus _≟_ x y ≡ M.minus _≟_ x y
-minus≡minus {_≟_ = _≟_} x y =
+minus≡minus {_≟_} x y =
   cong
     {x = λ z → if member? _≟_ z y then false else true}
     {y = λ z → if M.member?ᴱ _≟_ z y then false else true}
@@ -499,7 +499,7 @@ minus≡minus {_≟_ = _≟_} x y =
 -- A lemma characterising minus.
 
 ∈minus≃ : (x ∈ minus _≟_ y z) ≃ (x ∈ y × x ∉ z)
-∈minus≃ {x = x} {_≟_ = _≟_} {y = y} {z = z} =
+∈minus≃ {x} {_≟_} {y} {z} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-↝ ext
        Very-stable-∈
@@ -514,7 +514,7 @@ minus≡minus {_≟_ = _≟_} x y =
 -- The result of minus is a subset of the original subset.
 
 minus⊆ : ∀ y → minus _≟_ x y ⊆ x
-minus⊆ {_≟_ = _≟_} {x = x} y =
+minus⊆ {_≟_} {x} y =
   EC.Very-stable→Stable 0 Very-stable-⊆
     [                        $⟨ M.minus⊆ y ⟩
       M.minus _≟_ x y M.⊆ x  →⟨ subst (M._⊆ _) $ sym $ minus≡minus x y ⟩
@@ -543,7 +543,7 @@ minus-∪ x z = filter-∪ (λ _ → if member? _ _ z then _ else _) x
 -- A lemma relating minus, _⊆_ and _∪_.
 
 minus⊆≃ : ∀ y → (minus _≟_ x y ⊆ z) ≃ (x ⊆ y ∪ z)
-minus⊆≃ {_≟_ = _≟_} {x = x} {z = z} y =
+minus⊆≃ {_≟_} {x} {z} y =
   EC.Very-stable→Stable 0
     (EC.Very-stable-↝ ext Very-stable-⊆ Very-stable-⊆)
     [ (let _≟′_ = λ x y → Dec→Dec-Erased
@@ -570,12 +570,12 @@ delete _≟_ x y = minus _≟_ y (singleton x)
 @0 delete≡delete :
   ∀ (_≟_ : (x y : A) → Dec-Erased ∥ x ≡ y ∥) y →
   delete _≟_ x y ≡ M.delete _≟_ x y
-delete≡delete {x = x} _≟_ y = minus≡minus {_≟_ = _≟_} y (singleton x)
+delete≡delete {x} _≟_ y = minus≡minus {_≟_ = _≟_} y (singleton x)
 
 -- A lemma characterising delete.
 
 ∈delete≃ : ∀ _≟_ → (x ∈ delete _≟_ y z) ≃ (x ≢ y × x ∈ z)
-∈delete≃ {x = x} {y = y} {z = z} _≟_ =
+∈delete≃ {x} {y} {z} _≟_ =
   EC.Very-stable→Stable 0
     (EC.Very-stable-↝ ext
        Very-stable-∈
@@ -590,7 +590,7 @@ delete≡delete {x = x} _≟_ y = minus≡minus {_≟_ = _≟_} y (singleton x)
 -- A deleted element is no longer a member of the set.
 
 ∉delete : ∀ _≟_ y → x ∉ delete _≟_ x y
-∉delete {x = x} _≟_ y =
+∉delete {x} _≟_ y =
   EC.Very-stable→Stable 0 (EC.Very-stable-¬ ext)
     [ x ∈ delete _≟_ x y      →⟨ subst (_ ∈_) $ delete≡delete _≟_ y ⟩
       x ∈ M.delete _≟_ x y    ↔⟨ ∈≃∈ ⟩
@@ -626,7 +626,7 @@ delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
 -- Various operations preserve _⊆_.
 
 ∷-cong-⊆ : y ⊆ z → x ∷ y ⊆ x ∷ z
-∷-cong-⊆ {y = y} {z = z} {x = x} =
+∷-cong-⊆ {y} {z} {x} =
   EC.Very-stable→Stable 0
     (EC.Very-stable-Π ext λ _ → Very-stable-⊆)
     [ y ⊆ z            ↔⟨ ⊆≃⊆ ⟩
@@ -636,7 +636,7 @@ delete⊆≃ _≟_ = minus⊆≃ {_≟_ = _≟_} (singleton _)
     ]
 
 ∪-cong-⊆ : x₁ ⊆ x₂ → y₁ ⊆ y₂ → x₁ ∪ y₁ ⊆ x₂ ∪ y₂
-∪-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₁ = y₁} {y₂ = y₂} =
+∪-cong-⊆ {x₁} {x₂} {y₁} {y₂} =
   curry $
   EC.Very-stable→Stable 0 (EC.Very-stable-Π ext λ _ → Very-stable-⊆)
     [ x₁ ⊆ x₂ × y₁ ⊆ y₂      ↔⟨ ⊆≃⊆ ×-cong ⊆≃⊆ ⟩
@@ -649,7 +649,7 @@ filter-cong-⊆ :
   ∀ p q →
   (∀ z → T (p z) → T (q z)) →
   x ⊆ y → filter p x ⊆ filter q y
-filter-cong-⊆ {x = x} {y = y} p q p⇒q =
+filter-cong-⊆ {x} {y} p q p⇒q =
   EC.Very-stable→Stable 0 (EC.Very-stable-Π ext λ _ → Very-stable-⊆)
     [ x ⊆ y                      ↔⟨ ⊆≃⊆ ⟩
       x M.⊆ y                    →⟨ M.filter-cong-⊆ p q p⇒q ⟩
@@ -658,7 +658,7 @@ filter-cong-⊆ {x = x} {y = y} p q p⇒q =
     ]
 
 minus-cong-⊆ : x₁ ⊆ x₂ → y₂ ⊆ y₁ → minus _≟_ x₁ y₁ ⊆ minus _≟_ x₂ y₂
-minus-cong-⊆ {x₁ = x₁} {x₂ = x₂} {y₂ = y₂} {y₁ = y₁} {_≟_ = _≟_} =
+minus-cong-⊆ {x₁} {x₂} {y₂} {y₁} {_≟_} =
   curry $
   EC.Very-stable→Stable 0 (EC.Very-stable-Π ext λ _ → Very-stable-⊆)
     [ x₁ ⊆ x₂ × y₂ ⊆ y₁                        ↔⟨ ⊆≃⊆ ×-cong ⊆≃⊆ ⟩
@@ -687,7 +687,7 @@ infix 4 ∣_∣≡_
 
 ∣∣≡-propositional :
   (x : Finite-subset-of A) → Is-proposition (∣ x ∣≡ n)
-∣∣≡-propositional {n = n} x =           $⟨ [ M.∣∣≡-propositional x ] ⟩
+∣∣≡-propositional {n} x =               $⟨ [ M.∣∣≡-propositional x ] ⟩
   Erased (Is-proposition (M.∣ x ∣≡ n))  →⟨ EC.Erased-H-level↔H-level 1 _ ⟩
   Is-proposition (Erased (M.∣ x ∣≡ n))  ↔⟨⟩
   Is-proposition (∣ x ∣≡ n)             □
@@ -731,7 +731,7 @@ size equal? = elim-prop e
   e : Elim-prop _
   e .[]ʳ = 0 , [ lift (refl _) ]
 
-  e .∷ʳ {y = y} x (n , ∣y∣≡n) =
+  e .∷ʳ {y} x (n , ∣y∣≡n) =
     case member? equal? x y of λ x∈?y →
         if x∈?y then n else suc n
       , lemma ∣y∣≡n x∈?y
@@ -754,7 +754,7 @@ size equal? = elim-prop e
 -- contexts).
 
 @0 size≡size : ∀ x → size f x ≡ Σ-map id [_]→ (M.size g x)
-size≡size {f = f} {g = g} x =
+size≡size {f} {g} x =
   Σ-≡,≡→≡
     (proj₁ (size f x)    ≡⟨ ∣∣≡-functional x (proj₂ (size f x)) [ proj₂ (M.size g x) ] ⟩∎
      proj₁ (M.size g x)  ∎)
@@ -772,7 +772,7 @@ Is-finite A = Erased (M.Is-finite A)
 -- The Is-finite predicate is propositional.
 
 Is-finite-propositional : Is-proposition (Is-finite A)
-Is-finite-propositional {A = A} =          $⟨ [ M.Is-finite-propositional ] ⟩
+Is-finite-propositional {A} =              $⟨ [ M.Is-finite-propositional ] ⟩
   Erased (Is-proposition (M.Is-finite A))  →⟨ EC.Erased-H-level↔H-level 1 _ ⟩
   Is-proposition (Erased (M.Is-finite A))  ↔⟨⟩
   Is-proposition (Is-finite A)             □
@@ -788,7 +788,7 @@ Very-stable-Is-finite = EC.Very-stable-Erased
 -- A lemma characterising from-List (in erased contexts).
 
 @0 ∥∈∥≃∈-from-List : ∥ x BE.∈ ys ∥ ≃ (x ∈ from-List ys)
-∥∈∥≃∈-from-List {x = x} {ys = ys} =
+∥∈∥≃∈-from-List {x} {ys} =
   ∥ x BE.∈ ys ∥       ↝⟨ M.∥∈∥≃∈-from-List ⟩
   x M.∈ from-List ys  ↝⟨ inverse ∈≃∈ ⟩□
   x ∈ from-List ys    □
@@ -804,7 +804,7 @@ Very-stable-Is-finite = EC.Very-stable-Erased
 -- contexts).
 
 @0 ∥∈∥≃∈ : ∥ x BE.∈ ys ∥ ≃ (x ∈ _≃_.from ≃List/∼ Q.[ ys ])
-∥∈∥≃∈ {x = x} {ys = ys} =
+∥∈∥≃∈ {x} {ys} =
   ∥ x BE.∈ ys ∥                      ↝⟨ M.∥∈∥≃∈ ⟩
   x M.∈ _≃_.from M.≃List/∼ Q.[ ys ]  ↔⟨⟩
   x M.∈ _≃_.from ≃List/∼ Q.[ ys ]    ↝⟨ inverse ∈≃∈ ⟩□
@@ -842,7 +842,7 @@ fresh = λ ns →
     ∀ {ms n m} →
     OK ms n →
     OK (m ∷ ms) (Nat.max (suc m) n)
-  ∷-max-suc {ms = ms} {n = n} {m = m} [ ub ] =
+  ∷-max-suc {ms} {n} {m} [ ub ] =
     [ (λ o →
          o ∈ m ∷ ms                   ↔⟨ ∈∷≃ ⟩
          o ≡ m ∥⊎∥ o ∈ ms             →⟨ Nat.≤-refl′ ∘ cong suc ∘ id Trunc.∥⊎∥-cong ub o ⟩
@@ -905,7 +905,7 @@ fresh = λ ns →
 
 @0 fresh≡fresh :
   fresh ns ≡ Σ-map id (_∘ _≃_.to ∈≃∈) (M.fresh ns)
-fresh≡fresh {ns = ns} =
+fresh≡fresh {ns} =
   Σ-≡,≡→≡
     (lemma ns)
     (¬-propositional ext _ _)

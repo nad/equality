@@ -95,7 +95,7 @@ elim-loop = dcong-subst≡→[]≡ (refl _)
 η-elim :
   {f : (x : 𝕊¹ᴱ) → P x} →
   f ≡ elim P (f base) (dcong f loop)
-η-elim {P = P} {f = f} =
+η-elim {P} {f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ elim P (f base) (dcong f loop) x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
 
@@ -124,7 +124,7 @@ rec-loop = cong-≡↔≡ (refl _)
 -- Every function from 𝕊¹ᴱ to A can be expressed using rec.
 
 η-rec : {f : 𝕊¹ᴱ → A} → f ≡ rec (f base) (cong f loop)
-η-rec {f = f} =
+η-rec {f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ rec (f base) (cong f loop) x) loop (refl _)      ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
@@ -375,7 +375,7 @@ loop≢refl =
 
 ¬-Is-proposition-∥∥¹ᴱ :
   ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)
-¬-Is-proposition-∥∥¹ᴱ {a = a} =
+¬-Is-proposition-∥∥¹ᴱ {a} =
   Stable-¬
     [ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹ᴱ)  ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → H-level-cong _ 1 O.∥∥¹ᴱ≃∥∥¹) ⟩
       ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)   ↝⟨ C.¬-Is-proposition-∥∥¹ ⟩□
@@ -421,7 +421,7 @@ not-refl≢refl =
 
 ¬-type-of-refl-propositional :
   ∃ λ (A : Type a) → ¬ Is-proposition ((x : A) → x ≡ x)
-¬-type-of-refl-propositional {a = a} =
+¬-type-of-refl-propositional {a} =
     ↑ _ 𝕊¹ᴱ
   , Stable-¬
       [ Is-proposition ((x : ↑ _ 𝕊¹ᴱ) → x ≡ x)  ↝⟨ (H-level-cong _ 1 $

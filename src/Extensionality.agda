@@ -109,19 +109,19 @@ Function-extensionality a p =
   ({P : A → Type p} →
    (∀ x → Contractible (P x)) → Contractible ((x : A) → P x)) ⇔
   ({P : A → Type p} → Function-extensionality′ A P)
-[Π-Contractible→Contractible-Π]⇔Function-extensionality′
-  {p = p} {A = A} = record
-  { to   = to
-  ; from = λ ext cP →
-        (λ x → cP x .proj₁)
-      , (λ f → ext λ x → cP x .proj₂ (f x))
-  }
+[Π-Contractible→Contractible-Π]⇔Function-extensionality′ {p} {A} =
+  record
+    { to   = to
+    ; from = λ ext cP →
+          (λ x → cP x .proj₁)
+        , (λ f → ext λ x → cP x .proj₂ (f x))
+    }
   where
   to :
     ({P : A → Type p} →
      (∀ x → Contractible (P x)) → Contractible ((x : A) → P x)) →
     ({P : A → Type p} → Function-extensionality′ A P)
-  to closure {P = P} {f = f} {g = g} f≡g =
+  to closure {P} {f} {g} f≡g =
     f                                     ≡⟨ (sym (cong (λ c → λ x → c x .proj₁) $
                                               contractible .proj₂ λ x → f x , f≡g x)) ⟩
     (λ x → proj₁ (proj₁ contractible x))  ≡⟨ (cong (λ c → λ x → c x .proj₁) $
@@ -139,7 +139,7 @@ abstract
     ({P : A → Type p} → Function-extensionality′ A P) →
     {P : A → Type p} {f g : (x : A) → P x} →
     Is-equivalence (ext⁻¹ {f = f} {g = g})
-  ext⁻¹-is-equivalence {A = A} ext {P = P} {f = f} {g = g} =
+  ext⁻¹-is-equivalence {A} ext {P} {f} {g} =
     drop-Σ-map-id ext⁻¹ lemma₂ f
     where
     surj :
@@ -187,7 +187,7 @@ abstract
 
   lower-extensionality :
     ∀ â p̂ → Extensionality (a ⊔ â) (p ⊔ p̂) → Extensionality a p
-  lower-extensionality {a = a} {p = p} â p̂ =
+  lower-extensionality {a} {p} â p̂ =
     Extensionality (a ⊔ â) (p ⊔ p̂)           →⟨ _⇔_.to Extensionality⇔Function-extensionality ⟩
     Function-extensionality (a ⊔ â) (p ⊔ p̂)  →⟨ lemma ⟩
     Function-extensionality a p              →⟨ _⇔_.from Extensionality⇔Function-extensionality ⟩□
@@ -196,7 +196,7 @@ abstract
     lemma :
       Function-extensionality (a ⊔ â) (p ⊔ p̂) →
       Function-extensionality a p
-    lemma ext {A = A} {P = P} f≡g =
+    lemma ext {A} {P} f≡g =
       cong (λ h → lower ∘ h ∘ lift) $
       ext {A = ↑ â A} {P = ↑ p̂ ∘ P ∘ lower} (cong lift ∘ f≡g ∘ lower)
 
@@ -233,7 +233,7 @@ abstract
     {A : Type a} {P : A → Type p} {f : (x : A) → P x}
     (ext : Extensionality a p) →
     apply-ext ext (λ x → refl (f x)) ≡ refl f
-  ext-refl {f = f} ext =
+  ext-refl {f} ext =
     apply-ext ext (λ x → refl (f x))  ≡⟨ (cong (apply-ext ext) $ sym $ apply-ext ext λ _ → ext⁻¹-refl f) ⟩
     apply-ext ext (ext⁻¹ (refl f))    ≡⟨ left-inverse-of (Extensionality.extensionality ext) _ ⟩∎
     refl f                            ∎
@@ -243,7 +243,7 @@ abstract
     (ext : Extensionality a b) →
     apply-ext ext (const {B = A} x≡y) ≡
     cong const x≡y
-  ext-const {x≡y = x≡y} ext =
+  ext-const {x≡y} ext =
     apply-ext ext (const x≡y)                        ≡⟨ cong (apply-ext ext ∘ const) $ cong-id _ ⟩
     apply-ext ext (const (cong id x≡y))              ≡⟨⟩
     apply-ext ext (λ z → cong ((_$ z) ∘ const) x≡y)  ≡⟨ (cong (apply-ext ext) $ apply-ext ext λ _ → sym $ cong-∘ _ _ _) ⟩
@@ -255,7 +255,7 @@ abstract
       {f≡g : ∀ x → f x ≡ g x}
     (ext : Extensionality a p) →
     cong (_$ x) (apply-ext ext f≡g) ≡ f≡g x
-  cong-ext {x = x} {f≡g = f≡g} ext =
+  cong-ext {x} {f≡g} ext =
     cong (_$ x) (apply-ext ext f≡g)  ≡⟨⟩
     ext⁻¹ (apply-ext ext f≡g) x      ≡⟨ cong (_$ x) $ ext⁻¹-ext ext ⟩∎
     f≡g x                            ∎
@@ -265,7 +265,7 @@ abstract
     {f : A → (x : B) → P x} {x y : A} {x≡y : x ≡ y}
     (ext : Extensionality b p) →
     apply-ext ext (λ z → cong (flip f z) x≡y) ≡ cong f x≡y
-  ext-cong {f = f} {x≡y = x≡y} ext =
+  ext-cong {f} {x≡y} ext =
     apply-ext ext (λ z → cong (flip f z) x≡y)       ≡⟨ (cong (apply-ext ext) $ apply-ext ext λ _ → sym $ cong-∘ _ _ _) ⟩
     apply-ext ext (λ z → cong (_$ z) (cong f x≡y))  ≡⟨⟩
     apply-ext ext (ext⁻¹ (cong f x≡y))              ≡⟨ left-inverse-of (Extensionality.extensionality ext) _ ⟩∎
@@ -277,7 +277,7 @@ abstract
     (ext : Extensionality a pℓ) →
     subst (λ f → Q (f x)) (apply-ext ext f≡g) p ≡
     subst Q (f≡g x) p
-  subst-ext {x = x} {Q = Q} {f≡g = f≡g} {p = p} ext =
+  subst-ext {x} {Q} {f≡g} {p} ext =
     subst (λ f → Q (f x)) (apply-ext ext f≡g) p  ≡⟨ subst-∘ Q (_$ x) _ ⟩
     subst Q (cong (_$ x) (apply-ext ext f≡g)) p  ≡⟨ cong (λ eq → subst Q eq p) (cong-ext ext) ⟩∎
     subst Q (f≡g x) p                            ∎
@@ -289,7 +289,7 @@ abstract
     (ext : Extensionality a p) →
     elim (λ {f g} _ → Q (f x) (g x)) (q ∘ (_$ x)) (apply-ext ext f≡g) ≡
     elim (λ {x y} _ → Q x y) q (f≡g x)
-  elim-ext {x = x} {Q = Q} {q = q} {f≡g = f≡g} ext =
+  elim-ext {x} {Q} {q} {f≡g} ext =
     elim (λ {f g} _ → Q (f x) (g x)) (q ∘ (_$ x)) (apply-ext ext f≡g)  ≡⟨ sym $ elim-cong _ _ _ ⟩
     elim (λ {x y} _ → Q x y) q (cong (_$ x) (apply-ext ext f≡g))       ≡⟨ cong (elim (λ {x y} _ → Q x y) q) (cong-ext ext) ⟩∎
     elim (λ {x y} _ → Q x y) q (f≡g x)                                 ∎
@@ -305,7 +305,7 @@ abstract
     {f g : (x : A) → P x} {f≡g : ∀ x → f x ≡ g x} →
     (ext : Extensionality a p) →
     apply-ext ext (sym ∘ f≡g) ≡ sym (apply-ext ext f≡g)
-  ext-sym {f≡g = f≡g} ext =
+  ext-sym {f≡g} ext =
     apply-ext ext (sym ∘ f≡g)                                    ≡⟨ cong (apply-ext ext ∘ (sym ∘_)) $ sym $
                                                                     right-inverse-of (Extensionality.extensionality ext) _ ⟩
     apply-ext ext (sym ∘ ext⁻¹ (apply-ext ext f≡g))              ≡⟨⟩
@@ -320,7 +320,7 @@ abstract
     (ext : Extensionality a p) →
     apply-ext ext (λ x → trans (f≡g x) (g≡h x)) ≡
     trans (apply-ext ext f≡g) (apply-ext ext g≡h)
-  ext-trans {f≡g = f≡g} {g≡h = g≡h} ext =
+  ext-trans {f≡g} {g≡h} ext =
     (apply-ext ext λ x → trans (f≡g x) (g≡h x))                          ≡⟨ sym $ cong₂ (λ f g → apply-ext ext (λ x → trans (f x) (g x)))
                                                                               (right-inverse-of (Extensionality.extensionality ext) _)
                                                                               (right-inverse-of (Extensionality.extensionality ext) _) ⟩
@@ -346,7 +346,7 @@ abstract
     (ext₁ : Extensionality a p) (ext₂ : Extensionality a q) →
     cong (h ∘_) (apply-ext ext₁ f≡g) ≡
     apply-ext ext₂ (cong h ∘ f≡g)
-  cong-post-∘-ext {f = f} {g = g} {h = h} {f≡g = f≡g} ext₁ ext₂ =
+  cong-post-∘-ext {f} {g} {h} {f≡g} ext₁ ext₂ =
     cong (h ∘_) (apply-ext ext₁ f≡g)                                  ≡⟨ sym $ left-inverse-of (Extensionality.extensionality ext₂) _ ⟩
 
     apply-ext ext₂ (ext⁻¹ (cong (h ∘_) (apply-ext ext₁ f≡g)))         ≡⟨⟩
@@ -368,7 +368,7 @@ abstract
     (ext₁ : Extensionality a p)
     (ext₂ : Extensionality b p) →
     cong (_∘ h) (apply-ext ext₂ f≡g) ≡ apply-ext ext₁ (f≡g ∘ h)
-  cong-pre-∘-ext {f = f} {g = g} {h = h} {f≡g = f≡g} ext₁ ext₂ =
+  cong-pre-∘-ext {f} {g} {h} {f≡g} ext₁ ext₂ =
     cong (_∘ h) (apply-ext ext₂ f≡g)                           ≡⟨ sym $ left-inverse-of (Extensionality.extensionality ext₁) _ ⟩
 
     apply-ext ext₁ (ext⁻¹ (cong (_∘ h) (apply-ext ext₂ f≡g)))  ≡⟨⟩
@@ -390,7 +390,7 @@ abstract
     (ext₃ : Extensionality a c) →
     cong (λ f → f ∘_ ⦂ ((A → B) → (A → C))) (apply-ext ext₁ f≡g) ≡
     apply-ext ext₂ λ h → apply-ext ext₃ λ x → f≡g (h x)
-  cong-∘-ext {f≡g = f≡g} ext₁ ext₂ ext₃ =
+  cong-∘-ext {f≡g} ext₁ ext₂ ext₃ =
     cong (λ f → f ∘_) (apply-ext ext₁ f≡g)                   ≡⟨ sym $ left-inverse-of (Extensionality.extensionality ext₂) _ ⟩
 
     (apply-ext ext₂ λ h →

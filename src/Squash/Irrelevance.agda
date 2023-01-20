@@ -89,7 +89,7 @@ Stable A = Squash A → A
 -- if it is a stable proposition.
 
 modality : Modality ℓ
-modality {ℓ = ℓ} = λ where
+modality {ℓ} = λ where
     .Modality.◯                   → Squash
     .Modality.η x                 → [ x ]
     .Modality.Modal               → Modal
@@ -115,14 +115,14 @@ modality {ℓ = ℓ} = λ where
       (H-level-propositional ext 1)
 
   resp : A ≃ B → Modal A → Modal B
-  resp {A = A} {B = B} A≃B =
+  resp {A} {B} A≃B =
     Stable A × Is-proposition A  →⟨ →-cong-→ (_>>= λ x → [ _≃_.from A≃B x ]) (_≃_.to A≃B)
                                       ×-cong
                                     H-level-cong _ 1 A≃B ⟩□
     Stable B × Is-proposition B  □
 
   Modal→Separated : {x y : A} → Modal A → Modal (x ≡ y)
-  Modal→Separated {A = A} {x = x} {y = y} (s , prop) =
+  Modal→Separated {A} {x} {y} (s , prop) =
       (Squash (x ≡ y)        →⟨ const prop ⟩
        Is-proposition A      →⟨ +⇒≡ ⟩
        Contractible (x ≡ y)  →⟨ proj₁ ⟩□
@@ -133,8 +133,8 @@ modality {ℓ = ℓ} = λ where
     {A : Type ℓ} {P : Squash A → Type ℓ} →
     (∀ x → Modal (P x)) →
     Is-∞-extendable-along-[ (λ x → [ x ]) ] P
-  extendable                 _ zero    = _
-  extendable {A = A} {P = P} m (suc n) =
+  extendable         _ zero    = _
+  extendable {A} {P} m (suc n) =
       (λ f → (λ x → m x .proj₁ (lemma x f))
            , (λ x →
                 m [ x ] .proj₁ (lemma [ x ] f)  ≡⟨ m [ x ] .proj₂ _ _ ⟩∎

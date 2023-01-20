@@ -128,7 +128,7 @@ abstract
       subst (m ≤_) k₁≡k₂ p₁ ≡ p₂ →
       subst (λ k → suc k ≡ n) k₁≡k₂ q₁ ≡ q₂ →
       ≤-step′ p₁ q₁ ≡ ≤-step′ p₂ q₂
-    cong-≤-step′ {p₁ = p₁} {q₁} {p₂} {q₂} k₁≡k₂ p-eq q-eq =
+    cong-≤-step′ {p₁} {q₁} {p₂} {q₂} k₁≡k₂ p-eq q-eq =
       cong (λ { (k , p , q) → ≤-step′ {k = k} p q })
         (Σ-≡,≡→≡
            k₁≡k₂
@@ -141,8 +141,8 @@ abstract
     irr (≤-refl′ q₁)    (≤-step′ p₂ q₂) = ⊥-elim (lemma q₁ p₂ q₂)
     irr (≤-step′ p₁ q₁) (≤-refl′ q₂)    = ⊥-elim (lemma q₂ p₁ q₁)
 
-    irr {n = n} (≤-step′ {k = k₁} p₁ q₁)
-                (≤-step′ {k = k₂} p₂ q₂) =
+    irr {n} (≤-step′ {k = k₁} p₁ q₁)
+            (≤-step′ {k = k₂} p₂ q₂) =
       cong-≤-step′ (cancel-suc (suc k₁  ≡⟨ q₁ ⟩
                                 n       ≡⟨ sym q₂ ⟩∎
                                 suc k₂  ∎))
@@ -236,7 +236,7 @@ abstract
   ∀ {a} {A : Type a} →
   Extensionality a a →
   (x : A) → Is-proposition (∀ y → x ≡ y)
-Π≡-proposition {A = A} ext x =
+Π≡-proposition {A} ext x =
   [inhabited⇒+]⇒+ 0 λ f →
   let prop : Is-proposition A
       prop u v =
@@ -255,7 +255,7 @@ abstract
 Σ-closure′ :
   ∀ {a b} {A : Type a} {B : A → Type b} n →
   H-level′ n A → (∀ x → H-level′ n (B x)) → H-level′ n (Σ A B)
-Σ-closure′ {A = A} {B} zero (x , irrA) hB =
+Σ-closure′ {A} {B} zero (x , irrA) hB =
   ((x , proj₁ (hB x)) , λ p →
      (x       , proj₁ (hB x))          ≡⟨ elim (λ {x y} _ → _≡_ {A = Σ A B} (x , proj₁ (hB x))
                                                                             (y , proj₁ (hB y)))
@@ -263,7 +263,7 @@ abstract
                                                (irrA (proj₁ p)) ⟩
      (proj₁ p , proj₁ (hB (proj₁ p)))  ≡⟨ cong (_,_ (proj₁ p)) (proj₂ (hB (proj₁ p)) (proj₂ p)) ⟩∎
      p                                 ∎)
-Σ-closure′ {B = B} (suc n) hA hB = λ p₁ p₂ →
+Σ-closure′ {B} (suc n) hA hB = λ p₁ p₂ →
   respects-surjection′ (_↔_.surjection Σ-≡,≡↔≡) n $
     Σ-closure′ n (hA (proj₁ p₁) (proj₁ p₂))
       (λ pr₁p₁≡pr₁p₂ →
@@ -287,7 +287,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     (c : Contractible A) → Contractible (B (proj₁ c)) →
     Contractible (Σ A B)
-  Σ-closure-contractible {B = B} cA (b , irrB) = Σ-closure 0 cA cB
+  Σ-closure-contractible {B} cA (b , irrB) = Σ-closure 0 cA cB
     where
     cB : ∀ a → Contractible (B a)
     cB a =
@@ -316,7 +316,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     (∀ a → B a) →
     ∀ n → H-level n (Σ A B) → H-level n A
-  proj₁-closure {A = A} {B} inhabited = respects-surjection surj
+  proj₁-closure {A} {B} inhabited = respects-surjection surj
     where
     surj : Σ A B ↠ A
     surj = record
@@ -334,7 +334,7 @@ abstract
     ∀ {a b} {A : Type a} {B : Type b} →
     A →
     ∀ n → H-level n (A × B) → H-level n B
-  proj₂-closure {A = A} {B} inhabited = respects-surjection surj
+  proj₂-closure {A} {B} inhabited = respects-surjection surj
     where
     surj : A × B ↠ B
     surj = record
@@ -452,7 +452,7 @@ abstract
             ∀ {x y} {f : B x → W A B} {g : B y → W A B} →
             (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i)) ↠
             (sup x f ≡ sup y g)
-  W-≡,≡↠≡ {a} {A = A} {B} ext {x} {y} {f} {g} =
+  W-≡,≡↠≡ {a} {A} {B} ext {x} {y} {f} {g} =
     (∃ λ (p : x ≡ y) → ∀ i → f i ≡ g (subst B p i))        ↠⟨ Surjection.∃-cong lemma ⟩
     (∃ λ (p : x ≡ y) → subst (λ x → B x → W A B) p f ≡ g)  ↠⟨ _↔_.surjection Σ-≡,≡↔≡ ⟩
     (_≡_ {A = ∃ λ (x : A) → B x → W A B} (x , f) (y , g))  ↠⟨ ↠-≡ (_↔_.surjection (Bijection.inverse (W-unfolding {A = A} {B = B}))) ⟩□
@@ -500,7 +500,7 @@ abstract
     ∀ {a b} {A : Type a} {B : A → Type b} →
     Extensionality b (a ⊔ b) →
     ∀ n → H-level′ (1 + n) A → H-level′ (1 + n) (W A B)
-  W-closure′ {A = A} {B} ext n h = closure
+  W-closure′ {A} {B} ext n h = closure
     where
     closure : (x y : W A B) → H-level′ n (x ≡ y)
     closure (sup x f) (sup y g) =
@@ -531,7 +531,7 @@ abstract
   cojoin : ∀ {a} {A : Type a} →
            Extensionality a a →
            Contractible A → Contractible (Contractible A)
-  cojoin {A = A} ext contr = contr₃
+  cojoin {A} ext contr = contr₃
     where
     x : A
     x = proj₁ contr
@@ -677,7 +677,7 @@ abstract
   Extensionality a (p₁ ⊔ p₂) →
   (∀ x → P₁ x ↠ P₂ x) →
   ((x : A) → P₁ x) ↠ ((x : A) → P₂ x)
-∀-cong-↠ {p₁ = p₁} ext P₁↠P₂ = record
+∀-cong-↠ {p₁} ext P₁↠P₂ = record
   { logical-equivalence = equiv
   ; right-inverse-of    = right-inverse-of′
   }
@@ -702,8 +702,7 @@ abstract
     ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-proposition (Is-equivalence f)
-  Is-equivalence-propositional
-    {a = a} {b = b} {A = A} {B = B} {f = f} ext =
+  Is-equivalence-propositional {a} {b} {A} {B} {f} ext =
     [inhabited⇒+]⇒+ 0 λ eq →
     mono₁ 0 $
     respects-surjection
@@ -800,7 +799,7 @@ Is-equivalence-sometimes-contractible :
   Contractible A → Is-proposition B →
   Contractible (Is-equivalence f)
 Is-equivalence-sometimes-contractible
-  {a = a} {b = b} ext A-contr B-prop =
+  {a} {b} ext A-contr B-prop =
   Σ-closure 0 (Π-closure ext-b-a 0 λ _ → A-contr)              λ _ →
   Σ-closure 0 (Π-closure ext-b-b 0 λ _ → +⇒≡ B-prop)   λ _ →
   Σ-closure 0 (Π-closure ext-a-a 0 λ _ → ⇒≡ 0 A-contr) λ _ →
@@ -827,7 +826,7 @@ Extensionality-propositional :
   ∀ {a p} →
   Extensionality (lsuc (a ⊔ p)) (a ⊔ lsuc p) →
   Is-proposition (Extensionality a p)
-Extensionality-propositional {a = a} {p = p} ext =
+Extensionality-propositional {a} {p} ext =
   respects-surjection surj 1 $
   implicit-Π-closure ext₁ 1 λ _ →
   implicit-Π-closure ext₂ 1 λ _ →
@@ -868,7 +867,7 @@ abstract
     ∀ {a b} {A : Type a} {B : Type b} {f : A → B} →
     Extensionality (a ⊔ b) (a ⊔ b) →
     Is-proposition (CP.Is-equivalence f)
-  Is-equivalence-CP-propositional {a = a} ext =
+  Is-equivalence-CP-propositional {a} ext =
     Π-closure (lower-extensionality a lzero ext) 1 λ _ →
     Contractible-propositional ext
 
@@ -880,7 +879,7 @@ abstract
     Extensionality (a ⊔ b) (a ⊔ b) →
     Contractible A → Is-proposition B →
     Contractible (CP.Is-equivalence f)
-  Is-equivalence-CP-sometimes-contractible {a = a} ext A-contr B-prop =
+  Is-equivalence-CP-sometimes-contractible {a} ext A-contr B-prop =
     Π-closure (lower-extensionality a lzero ext) 0 λ _ →
     cojoin ext (Σ-closure 0 A-contr (λ _ → +⇒≡ B-prop))
 
@@ -1038,7 +1037,7 @@ abstract
     ∀ {a} {A : Type a} →
     Extensionality a lzero →
     Is-proposition A → Is-proposition (Dec A)
-  Dec-closure-propositional {A = A} ext p = λ where
+  Dec-closure-propositional {A} ext p = λ where
     (yes  a) (yes  a′) → cong yes $ p a a′
     (yes  a) (no  ¬a)  → ⊥-elim (¬a a)
     (no  ¬a) (yes  a)  → ⊥-elim (¬a a)

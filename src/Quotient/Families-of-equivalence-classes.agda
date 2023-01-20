@@ -75,7 +75,7 @@ strong-equivalence-with-⇔⇒equivalence :
   ∀ {a r} {A : Type a} {R : A → A → Type r} →
   Strong-equivalence-with logical-equivalence R →
   Is-equivalence-relation R
-strong-equivalence-with-⇔⇒equivalence {R = R} strong-equivalence =
+strong-equivalence-with-⇔⇒equivalence {R} strong-equivalence =
   record
     { reflexive = λ {x} →
                    $⟨ refl (R x) ⟩
@@ -115,7 +115,7 @@ propositional-equivalence⇒strong-equivalence :
   (∀ x y → Is-proposition (R x y)) →
   Strong-equivalence R
 propositional-equivalence⇒strong-equivalence
-  {a} {r} {R = R} ext univ R-equiv R-prop {x = x} {y = y} =
+  {a} {r} {R} ext univ R-equiv R-prop {x} {y} =
 
   Eq.↔⇒≃ (record
     { surjection = record
@@ -156,7 +156,7 @@ equality-strong-equivalence :
   Extensionality a (lsuc a) →
   Univalence a →
   Strong-equivalence (_≡_ {A = A})
-equality-strong-equivalence ext univ {x = x} {y = y} =
+equality-strong-equivalence ext univ {x} {y} =
   x ≡ y                      ↝⟨ inverse $ Π≡≃≡-↔-≡ _ _ (lower-extensionality lzero _ ext) ⟩
   (∀ z → (z ≡ x) ≃ (z ≡ y))  ↝⟨ (∀-cong (lower-extensionality lzero _ ext) λ _ → Eq.↔⇒≃ $
                                  Eq.≃-preserves-bijections (lower-extensionality lzero _ ext)
@@ -304,7 +304,7 @@ strong-equivalence-with-closed-under-on :
   Strong-equivalence-with k R →
   Strong-equivalence-with k (R on _≃_.to B≃A)
 strong-equivalence-with-closed-under-on
-  {a = a} {b} {R = R} ext B≃A strong-equivalence {x} {y} =
+  {a} {b} {R} ext B≃A strong-equivalence {x} {y} =
 
   R (f x) (f y)                                  ↝⟨ strong-equivalence ⟩
   R (f x) ≡ R (f y)                              ↔⟨⟩
@@ -449,7 +449,7 @@ A / R = ∃ λ (P : A → Type _) → P is-equivalence-class-of R
   Extensionality (lsuc (lsuc a)) (lsuc a) →
   Univalence a →
   A / _≡_ ↔ A
-/≡↔ {A = A} ext univ =
+/≡↔ {A} ext univ =
   (∃ λ P → ∥ (∃ λ x → (x ≡_) ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → ∥∥↔ lzero ext irr) ⟩
   (∃ λ P → ∃ λ x → (x ≡_) ≡ P)            ↝⟨ ∃-comm ⟩
   (∃ λ x → ∃ λ P → (x ≡_) ≡ P)            ↝⟨ drop-⊤-right (λ _ → _⇔_.to contractible⇔↔⊤ $ other-singleton-contractible _) ⟩□
@@ -469,7 +469,7 @@ A / R = ∃ λ (P : A → Type _) → P is-equivalence-class-of R
   lemma :
     {x y : A} (p : (x ≡_) ≡ (y ≡_)) →
     cong _≡_ (subst (_$ x) p (refl x)) ≡ sym p
-  lemma {x = x} p =
+  lemma {x} p =
     cong _≡_ (subst (_$ x) p (refl x))                            ≡⟨ cong (λ p → cong _≡_ (subst (_$ x) p (refl x))) $ sym $
                                                                        _≃_.right-inverse-of se _ ⟩
     cong _≡_ (subst (_$ x) (_≃_.to se (_≃_.from se p)) (refl x))  ≡⟨ D.elim (λ p → cong _≡_ (subst (_$ _) (_≃_.to se p) (refl _)) ≡
@@ -699,7 +699,7 @@ module _ {a} {A : Type a} {R : A → A → Type a} where
     (A / R → B)
       ↝[ ⌊ k ⌋-sym ]
     ∃ λ (f : A → B) → ∀ x y → R x y → f x ≡ f y
-  /→set↝relation-respecting {k} ext strong-equivalence {B = B} B-set =
+  /→set↝relation-respecting {k} ext strong-equivalence {B} B-set =
 
     ((∃ λ P → ∥ (∃ λ x → R x ≡ P) ∥ 1 _) → B)             ↔⟨ currying ⟩
 

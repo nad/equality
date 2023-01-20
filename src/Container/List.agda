@@ -54,7 +54,7 @@ length = proj₁
 -- There is a split surjection from ⟦ List ⟧ A to P.List A.
 
 List↠List : ⟦ List ⟧ A ↠ P.List A
-List↠List {A = A} = record
+List↠List {A} = record
   { logical-equivalence = record
     { to   = uncurry to
     ; from = from
@@ -78,7 +78,7 @@ _ : length (_↠_.from List↠List xs) ≡ L.length xs
 _ = refl _
 
 length-List↠List : L.length (_↠_.to List↠List xs) ≡ length xs
-length-List↠List {xs = xs} =
+length-List↠List {xs} =
   L.length (_↠_.to List↠List xs)                     ≡⟨⟩
   length (_↠_.from List↠List (_↠_.to List↠List xs))  ≡⟨ uncurry lemma xs ⟩∎
   length xs                                          ∎
@@ -94,7 +94,7 @@ length-List↠List {xs = xs} =
 List↔List :
   Extensionality lzero a →
   {A : Type a} → ⟦ List ⟧ A ↔ P.List A
-List↔List ext {A = A} = record
+List↔List ext {A} = record
   { surjection      = List↠List
   ; left-inverse-of = uncurry from∘to
   }
@@ -122,7 +122,7 @@ List↔List ext {A = A} = record
 Any↔Any-to :
   (P : A → Type p) (xs : ⟦ List ⟧ A) →
   Any P xs ↔ BE.Any P (_↠_.to List↠List xs)
-Any↔Any-to {A = A} P = uncurry Any↔Any-to′
+Any↔Any-to {A} P = uncurry Any↔Any-to′
   where
   Any↔Any-to′ : (n : ℕ) (lkup : Fin n → A) →
                 Any {C = List} P (n , lkup) ↔
@@ -152,7 +152,7 @@ Any-from↔Any P (P._∷_ x xs) =
 ≈-⇔-to-≈-to :
   xs ∼[ ⌊ k ⌋-iso ] ys ⇔
   _↠_.to List↠List xs BE.∼[ ⌊ k ⌋-iso ] _↠_.to List↠List ys
-≈-⇔-to-≈-to {xs = xs} {ys = ys} = record
+≈-⇔-to-≈-to {xs} {ys} = record
   { to   = λ xs≈ys z →
              z BE.∈ (_↠_.to List↠List xs)  ↔⟨ inverse $ Any↔Any-to _ xs ⟩
              z ∈ xs                        ↔⟨ xs≈ys z ⟩
@@ -168,7 +168,7 @@ Any-from↔Any P (P._∷_ x xs) =
 ≈-⇔-from-≈-from :
   xs BE.∼[ ⌊ k ⌋-iso ] ys ⇔
   _↠_.from List↠List xs ∼[ ⌊ k ⌋-iso ] _↠_.from List↠List ys
-≈-⇔-from-≈-from {xs = xs} {ys = ys} = record
+≈-⇔-from-≈-from {xs} {ys} = record
   { to   = λ xs≈ys z →
              z ∈ (_↠_.from List↠List xs)  ↔⟨ Any-from↔Any _ xs ⟩
              z BE.∈ xs                    ↔⟨ xs≈ys z ⟩
@@ -185,7 +185,7 @@ Any-from↔Any P (P._∷_ x xs) =
   {A : Type a} {xs ys : P.List A} →
   xs BE.≈-bag ys ↝[ a ∣ a ]
   _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys
-≈-≃-from-≈-from {xs = xs} {ys = ys} =
+≈-≃-from-≈-from {xs} {ys} =
   generalise-ext? ≈-⇔-from-≈-from λ ext →
       (λ xs≈ys → apply-ext ext λ z →
          Eq.lift-equality ext $ apply-ext ext λ z∈xs →
@@ -295,7 +295,7 @@ Any-∷ _ = record
 -- paramorphism.)
 
 fold : B → (A → ⟦ List ⟧ A → B → B) → ⟦ List ⟧ A → B
-fold {B = B} {A = A} nl cns = uncurry fold′
+fold {B} {A} nl cns = uncurry fold′
   where
   fold′ : (n : ℕ) → (Fin n → A) → B
   fold′ zero    lkup = nl
@@ -314,7 +314,7 @@ fold-lemma :
   P [] nl →
   (∀ x xs b → P xs b → P (x ∷ xs) (cns x xs b)) →
   ∀ xs → P xs (fold nl cns xs)
-fold-lemma {A = A} {nl = nl} {cns = cns} P resp P-nl P-cns =
+fold-lemma {A} {nl} {cns} P resp P-nl P-cns =
   uncurry fold′-lemma
   where
   fold′-lemma : ∀ n (lkup : Fin n → A) →
@@ -384,7 +384,7 @@ Any-++ P xs ys = fold-lemma
 ≈≃≈′ :
   {A : Type a} {xs ys : P.List A} →
   xs BE.≈-bag ys ↝[ a ∣ a ] xs BE.≈-bag′ ys
-≈≃≈′ {xs = xs} {ys = ys} {k = k} ext =
+≈≃≈′ {xs} {ys} {k} ext =
   xs BE.≈-bag ys                                         ↝⟨ ≈-≃-from-≈-from ext ⟩
 
   _↠_.from List↠List xs ≈-bag _↠_.from List↠List ys      ↝⟨ ≈↔≈′ (_↠_.from List↠List xs) (_↠_.from List↠List ys) ext ⟩
@@ -407,7 +407,7 @@ Any-++ P xs ys = fold-lemma
   {A : Type a} {xs : ⟦ List ⟧ A} →
   Extensionality a a →
   (∃ λ (ys : ⟦ List ⟧ A) → xs ≈-bag ys) ≃ Fin (length xs !)
-∃≈≃Fin! {A = A} {xs = xs@(m , f)} ext =
+∃≈≃Fin! {A} {xs = xs@(m , f)} ext =
   (∃ λ ys → xs ≈-bag ys)                      ↝⟨ ∃≈≃∃≃ ext List ⟩
 
   (∃ λ (n : ℕ) → Fin m ≃ Fin n)               ↔⟨ (∃-cong λ _ → inverse $ drop-⊤-right λ hyp →
@@ -431,7 +431,7 @@ Any-++ P xs ys = fold-lemma
   {A : Type a} {xs : P.List A} →
   Extensionality a a →
   (∃ λ (ys : P.List A) → xs BE.≈-bag ys) ≃ Fin (L.length xs !)
-∃-List-≈≃Fin! {A = A} {xs = xs} ext =
+∃-List-≈≃Fin! {A} {xs} ext =
   (∃ λ (ys : P.List A) → xs BE.≈-bag ys)                    ↝⟨ Σ-cong (inverse $ List↔List ext′) (λ _ → ≈-≃-from-≈-from ext) ⟩
   (∃ λ (ys : ⟦ List ⟧ A) → _↠_.from List↠List xs ≈-bag ys)  ↝⟨ ∃≈≃Fin! ext ⟩□
   Fin (L.length xs !)                                       □

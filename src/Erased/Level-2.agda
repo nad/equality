@@ -75,7 +75,7 @@ module []-cong₂-⊔
     Erased-≃ᴱ↔≃ᴱ :
       {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
       Erased (A ≃ᴱ B) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]ᴱ (Erased A ≃ᴱ Erased B)
-    Erased-≃ᴱ↔≃ᴱ {A = A} {B = B} ext =
+    Erased-≃ᴱ↔≃ᴱ {A} {B} ext =
       Erased (A ≃ᴱ B)                                                   ↔⟨ Erased-cong-≃ EEq.≃ᴱ-as-Σ ⟩
       Erased (∃ λ (f : A → B) → Is-equivalenceᴱ f)                      ↔⟨ Erased-Σ↔Σ ⟩
       (∃ λ (f : Erased (A → B)) → Erased (Is-equivalenceᴱ (erased f)))  ↝⟨ (Σ-cong Erased-Π↔Π-Erased λ _ →
@@ -93,21 +93,21 @@ module []-cong₂-⊔
 
   Erased-↝↝↝ {k = logical-equivalence} _ = from-isomorphism Erased-⇔↔⇔
 
-  Erased-↝↝↝ {k = injection} {A = A} {B = B} ext =
+  Erased-↝↝↝ {k = injection} {A} {B} ext =
     Erased (A ↣ B)                                              ↔⟨ Erased-cong-↔ ↣↔∃-Injective ⟩
     Erased (∃ λ (f : A → B) → Injective f)                      ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (f : Erased (A → B)) → Erased (Injective (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ → Erased-Injective↔Injective ext) ⟩
     (∃ λ (f : Erased A → Erased B) → Injective f)               ↔⟨ inverse ↣↔∃-Injective ⟩□
     Erased A ↣ Erased B                                         □
 
-  Erased-↝↝↝ {k = embedding} {A = A} {B = B} ext =
+  Erased-↝↝↝ {k = embedding} {A} {B} ext =
     Erased (Embedding A B)                                         ↔⟨ Erased-cong-↔ Emb.Embedding-as-Σ ⟩
     Erased (∃ λ (f : A → B) → Is-embedding f)                      ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (f : Erased (A → B)) → Erased (Is-embedding (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ → Erased-Is-embedding↔Is-embedding ext) ⟩
     (∃ λ (f : Erased A → Erased B) → Is-embedding f)               ↔⟨ inverse Emb.Embedding-as-Σ ⟩□
     Embedding (Erased A) (Erased B)                                □
 
-  Erased-↝↝↝ {k = surjection} {A = A} {B = B} {k = k′} ext =
+  Erased-↝↝↝ {k = surjection} {A} {B} {k = k′} ext =
     Erased (A ↠ B)                                                     ↔⟨ Erased-cong-↔ ↠↔∃-Split-surjective ⟩
     Erased (∃ λ (f : A → B) → Split-surjective f)                      ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (f : Erased (A → B)) → Erased (Split-surjective (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ →
@@ -116,7 +116,7 @@ module []-cong₂-⊔
     (∃ λ (f : Erased A → Erased B) → Split-surjective f)               ↔⟨ inverse ↠↔∃-Split-surjective ⟩□
     Erased A ↠ Erased B                                                □
 
-  Erased-↝↝↝ {k = bijection} {A = A} {B = B} ext =
+  Erased-↝↝↝ {k = bijection} {A} {B} ext =
     Erased (A ↔ B)                                                      ↔⟨ Erased-cong-↔ Bijection.↔-as-Σ ⟩
     Erased (∃ λ (f : A → B) → Has-quasi-inverse f)                      ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (f : Erased (A → B)) → Erased (Has-quasi-inverse (erased f)))  ↝⟨ (Σ-cong Erased-Π↔Π-Erased λ _ →
@@ -124,7 +124,7 @@ module []-cong₂-⊔
     (∃ λ (f : Erased A → Erased B) → Has-quasi-inverse f)               ↔⟨ inverse Bijection.↔-as-Σ ⟩□
     Erased A ↔ Erased B                                                 □
 
-  Erased-↝↝↝ {k = equivalence} {A = A} {B = B} ext =
+  Erased-↝↝↝ {k = equivalence} {A} {B} ext =
     Erased (A ≃ B)                                                   ↔⟨ Erased-cong-↔ Eq.≃-as-Σ ⟩
     Erased (∃ λ (f : A → B) → Is-equivalence f)                      ↔⟨ Erased-Σ↔Σ ⟩
     (∃ λ (f : Erased (A → B)) → Erased (Is-equivalence (erased f)))  ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ _ → Erased-Is-equivalence↔Is-equivalence ext) ⟩
@@ -159,7 +159,7 @@ module []-cong₂-⊔
       Erased (Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂)) →
       @0 (∀ {x y} → _≃ᴱ_.to (f x) y ≡ _≃ᴱ_.to (g x) y) →
       f ≡ g
-    to≡to→≡ {A = A} {B = B} {C = C} {f = f} {g = g} [ ext ] eq =  $⟨ [ (λ _ _ → eq) ] ⟩
+    to≡to→≡ {A} {B} {C} {f} {g} [ ext ] eq =                      $⟨ [ (λ _ _ → eq) ] ⟩
       Erased (∀ x y → _≃ᴱ_.to (f x) y ≡ _≃ᴱ_.to (g x) y)          ↝⟨ Erased-cong-≃ (∀-cong ext λ _ → EEq.to≡to≃≡ ext) ⟩
       Erased (∀ x → f x ≡ g x)                                    ↝⟨ Erased-cong-≃ (Eq.extensionality-isomorphism ext) ⟩
       Erased (f ≡ g)                                              ↝⟨ Erased-cong-≃ (inverse $ Eq.≃-≡ lemma₂) ⟩

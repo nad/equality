@@ -32,7 +32,7 @@ record _↔_ {f t} (From : Type f) (To : Type t) : Type (f ⊔ t) where
     left-inverse-of : ∀ x → from (to x) ≡ x
 
   injective : Injective to
-  injective {x = x} {y = y} to-x≡to-y =
+  injective {x} {y} to-x≡to-y =
     x            ≡⟨ sym (left-inverse-of x) ⟩
     from (to x)  ≡⟨ cong from to-x≡to-y ⟩
     from (to y)  ≡⟨ left-inverse-of y ⟩∎
@@ -79,7 +79,7 @@ record _↔_ {f t} (From : Type f) (To : Type t) : Type (f ⊔ t) where
 Has-quasi-inverse :
   ∀ {a b} {A : Type a} {B : Type b} →
   (A → B) → Type (a ⊔ b)
-Has-quasi-inverse {A = A} {B = B} to =
+Has-quasi-inverse {A} {B} to =
   ∃ λ (from : B → A) →
     (∀ x → to (from x) ≡ x) ×
     (∀ x → from (to x) ≡ x)
@@ -255,7 +255,7 @@ private
 -- A lifted set is isomorphic to the underlying one.
 
 ↑↔ : ∀ {a b} {A : Type a} → ↑ b A ↔ A
-↑↔ {b = b} {A} = record
+↑↔ {b} {A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = lower
@@ -272,7 +272,7 @@ private
           (∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
              subst B p (proj₂ p₁) ≡ proj₂ p₂) ↔
           (p₁ ≡ p₂)
-Σ-≡,≡↔≡ {A = A} {B} {p₁} {p₂} = record
+Σ-≡,≡↔≡ {A} {B} {p₁} {p₂} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -344,7 +344,7 @@ private
 
 ≡↔inj₁≡inj₁ : ∀ {a b} {A : Type a} {B : Type b} {x y : A} →
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₁ x) (inj₁ y)
-≡↔inj₁≡inj₁ {A = A} {B} {x} {y} = record
+≡↔inj₁≡inj₁ {A} {B} {x} {y} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -389,7 +389,7 @@ private
 
 ≡↔inj₂≡inj₂ : ∀ {a b} {A : Type a} {B : Type b} {x y : B} →
               (x ≡ y) ↔ _≡_ {A = A ⊎ B} (inj₂ x) (inj₂ y)
-≡↔inj₂≡inj₂ {A = A} {B} {x} {y} = record
+≡↔inj₂≡inj₂ {A} {B} {x} {y} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -436,10 +436,10 @@ private
 
 Equality-⊎ : ∀ {a b} {A : Type a} {B : Type b} →
              A ⊎ B → A ⊎ B → Type (a ⊔ b)
-Equality-⊎ {b = b} (inj₁ x) (inj₁ y) = ↑ b (x ≡ y)
-Equality-⊎         (inj₁ x) (inj₂ y) = ⊥
-Equality-⊎         (inj₂ x) (inj₁ y) = ⊥
-Equality-⊎ {a = a} (inj₂ x) (inj₂ y) = ↑ a (x ≡ y)
+Equality-⊎ {b} (inj₁ x) (inj₁ y) = ↑ b (x ≡ y)
+Equality-⊎     (inj₁ x) (inj₂ y) = ⊥
+Equality-⊎     (inj₂ x) (inj₁ y) = ⊥
+Equality-⊎ {a} (inj₂ x) (inj₂ y) = ↑ a (x ≡ y)
 
 ≡↔⊎ : ∀ {a b} {A : Type a} {B : Type b} {x y : A ⊎ B} →
       x ≡ y ↔ Equality-⊎ x y
@@ -517,7 +517,7 @@ implicit-Πᴱ↔Πᴱ = record
 implicit-Πᴱ↔Πᴱ′ :
   ∀ {a b} {@0 A : Type a} {B : @0 A → Type b} →
   ({@0 x : A} → B x) ↔ ((@0 x : A) → B x)
-implicit-Πᴱ↔Πᴱ′ {A = A} {B = B} = record
+implicit-Πᴱ↔Πᴱ′ {A} {B} = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ f x → f {x}
@@ -605,7 +605,7 @@ abstract
     ∀ {x y z p q} →
     trans (_↔_.to (iso x y) p) (_↔_.to (iso y z) q) ≡
     _↔_.to (iso x z) (trans p q)
-  trans-to-to≡to-trans {f = f} iso iso-refl {x} {y} {z} {p} {q} =
+  trans-to-to≡to-trans {f} iso iso-refl {x} {y} {z} {p} {q} =
     trans (_↔_.to (iso x y) p) (_↔_.to (iso y z) q)               ≡⟨ elim₁ (λ {x} p → trans p (_↔_.to (iso y z) q) ≡
                                                                                       _↔_.to (iso x z) (trans (_↔_.from (iso x y) p) q)) (
         trans (refl y) (_↔_.to (iso y z) q)                              ≡⟨ trans-reflˡ _ ⟩

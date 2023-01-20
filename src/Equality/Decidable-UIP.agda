@@ -49,7 +49,7 @@ abstract
   left-inverse :
     ∀ {a} {A : Type a} (f : (x y : A) → x ≡ y → x ≡ y) →
     ∀ {x y} → ∃ λ g → g Left-inverse-of f x y
-  left-inverse {A = A} f {x} {y} =
+  left-inverse {A} f {x} {y} =
     (λ x≡y →
        x  ≡⟨ x≡y ⟩
        y  ≡⟨ sym (f y y (refl y)) ⟩∎
@@ -118,7 +118,7 @@ abstract
   cong-preserves-Constant :
     ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {x y : A} →
     Constant f → Constant (cong {x = x} {y = y} f)
-  cong-preserves-Constant {f = f} {x = x} {y = y} c p q =
+  cong-preserves-Constant {f} {x} {y} c p q =
     cong f p                     ≡⟨ lemma p ⟩
     trans (sym (c x x)) (c x y)  ≡⟨ sym (lemma q) ⟩∎
     cong f q                     ∎
@@ -142,7 +142,7 @@ abstract
     ∀ {a b} {A : Type a} {B : Type b} {f : A → B} {x} {x≡x : x ≡ x} →
     Constant f →
     cong f x≡x ≡ refl (f x)
-  cong-constant {f = f} {x} {x≡x} c =
+  cong-constant {f} {x} {x≡x} c =
     cong f x≡x       ≡⟨ cong-preserves-Constant c _ _ ⟩
     cong f (refl x)  ≡⟨ cong-refl _ ⟩∎
     refl (f x)       ∎

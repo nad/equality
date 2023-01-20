@@ -175,14 +175,14 @@ Any {ls = _ ∷ _} p P As = P (Head As) ⊎ Any p P (Tail As)
 infix 4 _∈_
 
 _∈_ : Type a → Type-list ls → Type (∈-level a ls)
-_∈_ {a = a} A As = Any a (A ≃_) As
+_∈_ {a} A As = Any a (A ≃_) As
 
 -- A ∈⇔ As means that A is a member of As up to logical equivalence.
 
 infix 4 _∈⇔_
 
 _∈⇔_ : Type a → Type-list ls → Type (∈-level a ls)
-_∈⇔_ {a = a} A As = Any a (A ⇔_) As
+_∈⇔_ {a} A As = Any a (A ⇔_) As
 
 -- The head of a list of types is a member of the list.
 
@@ -203,16 +203,16 @@ Last∈ {ls = _ ∷ _} = inj₂ Last∈
 
 Delete-levels :
   {As : Type-list ls} → A ∈⇔ As → List Level
-Delete-levels {ls = _ ∷ ls} {As = As} (inj₁ _) = ls
-Delete-levels {ls = a ∷ ls} {As = As} (inj₂ p) = a ∷ Delete-levels p
+Delete-levels {ls = _ ∷ ls} {As} (inj₁ _) = ls
+Delete-levels {ls = a ∷ ls} {As} (inj₂ p) = a ∷ Delete-levels p
 
 -- Removes the element at the given position from the list.
 
 Delete :
   {A : Type a} {As : Type-list ls}
   (A∈As : A ∈⇔ As) → Type-list (Delete-levels A∈As)
-Delete {ls = _ ∷ _} {As = As} (inj₁ _) = Tail As
-Delete {ls = _ ∷ _} {As = As} (inj₂ p) = Cons (Head As) (Delete p)
+Delete {ls = _ ∷ _} {As} (inj₁ _) = Tail As
+Delete {ls = _ ∷ _} {As} (inj₂ p) = Cons (Head As) (Delete p)
 
 -- If A∈As has type A ∈⇔ As and B is a member of Delete A∈As, then B
 -- is a member of As.
@@ -223,7 +223,7 @@ Delete∈→∈ :
   Any b (B ↝[ k ]_) (Delete A∈As) → Any b (B ↝[ k ]_) As
 Delete∈→∈ {ls = _ ∷ _} (inj₁ _) = inj₂
 
-Delete∈→∈ {ls = _ ∷ _} {B = B} {As = As} (inj₂ p) (inj₁ q) = inj₁
+Delete∈→∈ {ls = _ ∷ _} {B} {As} (inj₂ p) (inj₁ q) = inj₁
   (B                                 ↝⟨ q ⟩
    Head (Cons (Head As) (Delete p))  ↔⟨ Head-Cons (Delete-levels p) ⟩□
    Head As                           □)
@@ -456,7 +456,7 @@ logically-equivalent (implies , last→first) A∈ B∈ =
     ∀ {A : Type a} {B : Type b}
       ls (As : Type-list ls) (A∈ : A ∈⇔ As) (B∈ : B ∈⇔ As) →
     A∈ ≤ B∈ → Implies As → A → B
-  forward {A = A} {B = B} = λ where
+  forward {A} {B} = λ where
     (_ ∷ _) As (inj₁ A⇔) (inj₁ B⇔) _ _ →
       A        →⟨ _⇔_.to A⇔ ⟩
       Head As  →⟨ _⇔_.from B⇔ ⟩□
@@ -473,7 +473,7 @@ logically-equivalent (implies , last→first) A∈ B∈ =
     ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈⇔ As) →
     Implies As →
     Head As → A
-  first-implies {A = A} = λ where
+  first-implies {A} = λ where
     _ As (inj₁ A⇔Head-As) _ →
       Head As  →⟨ _⇔_.from A⇔Head-As ⟩□
       A        □
@@ -486,7 +486,7 @@ logically-equivalent (implies , last→first) A∈ B∈ =
     ∀ ls (As : Type-list (a ∷ ls)) (A∈ : A ∈⇔ As) →
     Implies As →
     A → Last As
-  implies-last {A = A} = λ where
+  implies-last {A} = λ where
     [] B (inj₁ A⇔B) _ →
       A  →⟨ _⇔_.to A⇔B ⟩□
       B  □
@@ -502,11 +502,11 @@ logically-equivalent (implies , last→first) A∈ B∈ =
     ∀ {A : Type a} {B : Type b}
       ls (As : Type-list ls) (A∈ : A ∈⇔ As) (B∈ : B ∈⇔ As) →
     Implies As → Last-implies-first As → A → B
-  around {A = A} {B = B} (_ ∷ []) C (inj₁ A⇔C) (inj₁ B⇔C) _ _ =
+  around {A} {B} (_ ∷ []) C (inj₁ A⇔C) (inj₁ B⇔C) _ _ =
     A  →⟨ _⇔_.to A⇔C ⟩
     C  →⟨ _⇔_.from B⇔C ⟩□
     B  □
-  around {A = A} {B = B} (_ ∷ _ ∷ _) As A∈ B∈ implies last→first =
+  around {A} {B} (_ ∷ _ ∷ _) As A∈ B∈ implies last→first =
     A        →⟨ implies-last _ _ A∈ implies ⟩
     Last As  →⟨ last→first ⟩
     Head As  →⟨ first-implies _ _ B∈ implies ⟩□
@@ -537,8 +537,7 @@ Logically-equivalent→⇔→∈⇔→∈⇔ :
   {Bs : Type-list ls} →
   Logically-equivalent Bs →
   A ⇔ B → B ∈⇔ Bs → A ∈⇔ Bs
-Logically-equivalent→⇔→∈⇔→∈⇔
-  {ls = _ ∷ _} {A = A} {B = B} {Bs = Bs} eq A⇔B B∈Bs =
+Logically-equivalent→⇔→∈⇔→∈⇔ {ls = _ ∷ _} {A} {B} {Bs} eq A⇔B B∈Bs =
   Any-map
     (λ C Last-Bs⇔C →
        A        ↝⟨ A⇔B ⟩
@@ -567,16 +566,15 @@ Logically-equivalent-Delete A∈As eq =
     Implies (Cons A Bs) →
     Last (Cons A (Delete B∈Bs)) → Last (Cons A Bs)
   last-implies-last
-    {ls = _ ∷ []} {A = A} {B = B} {Bs = C} (inj₁ B⇔C) A→C =
+    {ls = _ ∷ []} {A} {B} {Bs = C} (inj₁ B⇔C) A→C =
     A  →⟨ A→C ⟩□
     C  □
   last-implies-last
-    {ls = _ ∷ _ ∷ _} {A = A} {B = B} {Bs = C , Bs} (inj₁ B⇔C) _ =
+    {ls = _ ∷ _ ∷ _} {A} {B} {Bs = C , Bs} (inj₁ B⇔C) _ =
     Last Bs  ↔⟨⟩
     Last Bs  □
   last-implies-last
-    {ls = _ ∷ _ ∷ _} {A = A} {B = B} {Bs = C , Bs}
-    (inj₂ B∈Bs) (_ , implies) =
+    {ls = _ ∷ _ ∷ _} {A} {B} {Bs = C , Bs} (inj₂ B∈Bs) (_ , implies) =
     Last (Cons C (Delete B∈Bs))  →⟨ last-implies-last B∈Bs implies ⟩□
     Last Bs                      □
 
@@ -586,17 +584,17 @@ Logically-equivalent-Delete A∈As eq =
     Logically-equivalent As →
     Last-implies-first (Delete A∈As)
   last-implies-first
-    {ls = _ ∷ []} {A = A} {As = B} (inj₁ A⇔B) _ =
+    {ls = _ ∷ []} {A} {As = B} (inj₁ A⇔B) _ =
     _
   last-implies-first
-    {ls = _ ∷ _ ∷ _} {A = A} {As = B , As} (inj₁ A⇔B)
+    {ls = _ ∷ _ ∷ _} {A} {As = B , As} (inj₁ A⇔B)
     (implies , last-implies-first) =
     [Last→Head]→Last-implies-first
       (Last As  →⟨ last-implies-first ⟩
        B        →⟨ Implies-Head implies ⟩□
        Head As  □)
   last-implies-first
-    {ls = _ ∷ _ ∷ _} {A = A} {As = B , As} (inj₂ A∈As)
+    {ls = _ ∷ _ ∷ _} {A} {As = B , As} (inj₂ A∈As)
     (implies , last-implies-first) =
     [Last→Head]→Last-implies-first
       (Last (Cons B (Delete A∈As))  →⟨ last-implies-last A∈As implies ⟩
@@ -626,38 +624,37 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
     Logically-equivalent Cs →
     Last-implies-first (Append Bs (Delete A∈Cs))
   last-implies-first
-    {ls₁ = _ ∷ []} {ls₂ = _ ∷ []} {A = A} {Bs = B} {Cs = C}
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ []} {A} {Bs = B} {Cs = C}
     (inj₁ A⇔B) (inj₁ A⇔C) _ _ =
     _
   last-implies-first
-    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ _} {A = A} {Bs = B} {Cs = C , Cs}
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ _} {A} {Bs = B} {Cs = C , Cs}
     (inj₁ A⇔B) A∈C,Cs@(inj₁ _) _ eq₂ =
     Last Cs  →⟨ _⇔_.to (logically-equivalent eq₂ Last∈ A∈C,Cs) ⟩
     A        →⟨ _⇔_.to A⇔B ⟩□
     B        □
   last-implies-first
-    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = Cs}
+    {ls₁ = _ ∷ []} {ls₂ = _ ∷ _ ∷ ls₂} {A} {Bs = B} {Cs}
     (inj₁ A⇔B) A∈Cs@(inj₂ _) _ eq₂ =
     Last (Delete A∈Cs)  →⟨ _⇔_.to (logically-equivalent eq₂ (Delete∈→∈ A∈Cs Last∈) A∈Cs) ⟩
     A                   →⟨ _⇔_.to A⇔B ⟩□
     B                   □
   last-implies-first
-    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ []} {A = A} {Bs = B , Bs} {Cs = C}
+    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ []} {A} {Bs = B , Bs} {Cs = C}
     _ (inj₁ A⇔C) (_ , last-implies-first₁) _ =
     Last (Append Bs tt)  ↔⟨ Last-Append-[] ls₁ ⟩
     Last Bs              →⟨ last-implies-first₁ ⟩□
     B                    □
   last-implies-first
     {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ _ ∷ _}
-    {A = A} {Bs = B , Bs} {Cs = C , Cs}
+    {A} {Bs = B , Bs} {Cs = C , Cs}
     A∈B,Bs A∈C,Cs@(inj₁ _) eq₁ eq₂ =
     Last (Append Bs Cs)  ↔⟨ Last-Append-∷ ls₁ ⟩
     Last Cs              →⟨ _⇔_.to (logically-equivalent eq₂ Last∈ A∈C,Cs) ⟩
     A                    →⟨ _⇔_.to (logically-equivalent eq₁ A∈B,Bs Head∈) ⟩□
     B                    □
   last-implies-first
-    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ ls₂@(_ ∷ _)}
-    {A = A} {Bs = B , Bs} {Cs = Cs}
+    {ls₁ = _ ∷ _ ∷ ls₁} {ls₂ = _ ∷ ls₂@(_ ∷ _)} {A} {Bs = B , Bs} {Cs}
     A∈B,Bs A∈Cs@(inj₂ _) eq₁ eq₂ =
     Last (Append Bs (Delete A∈Cs))  ↔⟨ Last-Append-∷ (_ ∷ ls₁) {As = B , _} ⟩
     Last (Delete A∈Cs)              →⟨ _⇔_.to (logically-equivalent eq₂ (Delete∈→∈ A∈Cs Last∈) A∈Cs) ⟩
@@ -671,10 +668,10 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
     Logically-equivalent Cs →
     Implies (Append Bs (Delete A∈Cs))
   implies-∷
-    {ls₁ = []} {ls₂ = _ ∷ []} {A = A} {Bs = B} {Cs = C}
+    {ls₁ = []} {ls₂ = _ ∷ []} {A} {Bs = B} {Cs = C}
     A⇔B (inj₁ A⇔C) _ _ = _
   implies-∷
-    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = C , Cs}
+    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A} {Bs = B} {Cs = C , Cs}
     A⇔B A∈@(inj₁ A⇔C) _ eq₂@(implies₂ , _) =
     Implies-Cons
       (B        →⟨ _⇔_.from A⇔B ⟩
@@ -682,7 +679,7 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
        Head Cs  □)
       (Implies-Tail implies₂)
   implies-∷
-    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A = A} {Bs = B} {Cs = C , Cs}
+    {ls₁ = []} {ls₂ = _ ∷ _ ∷ ls₂} {A} {Bs = B} {Cs = C , Cs}
     A⇔B A∈@(inj₂ A∈Cs) _ eq₂@(implies₂ , _) =
     Implies-Cons
       (B                            →⟨ _⇔_.from A⇔B ⟩
@@ -691,7 +688,7 @@ Logically-equivalent-Append A∈Bs A∈Cs eq₁ eq₂ =
        Head (Cons C (Delete A∈Cs))  □)
       (Implies-Delete A∈ implies₂)
   implies-∷
-    {ls₁ = _ ∷ ls₁} {ls₂ = _ ∷ ls₂} {A = A} {Bs = B , Bs} {Cs = Cs}
+    {ls₁ = _ ∷ ls₁} {ls₂ = _ ∷ ls₂} {A} {Bs = B , Bs} {Cs}
     A⇔Last-Bs A∈Cs implies₁ eq₂ =
     Implies-Cons
       (B                                                       →⟨ Implies-Head implies₁ ⟩
@@ -723,7 +720,7 @@ Logically-equivalent-Quantified :
    (∀ x → P x → Q x) → F P → F Q) →
   (∀ x → Logically-equivalent (Ps x)) →
   Logically-equivalent (Quantified F Ps)
-Logically-equivalent-Quantified {A = A} {F = F} cong eq =
+Logically-equivalent-Quantified {A} {F} cong eq =
     implies (λ x → eq x .proj₁)
   , last-implies-first (λ x → eq x .proj₂)
   where
@@ -731,12 +728,12 @@ Logically-equivalent-Quantified {A = A} {F = F} cong eq =
     {Ps : A → Type-list ls} →
     (∀ x → Implies (Ps x)) →
     Implies (Quantified F Ps)
-  implies {ls = []}                       = _
-  implies {ls = _ ∷ []}                   = _
-  implies {ls = _ ∷ _ ∷ []} {Ps = Ps} imp =
+  implies {ls = []}                  = _
+  implies {ls = _ ∷ []}              = _
+  implies {ls = _ ∷ _ ∷ []} {Ps} imp =
     F (λ x → Ps x .proj₁)  →⟨ cong imp ⟩□
     F (λ x → Ps x .proj₂)  □
-  implies {ls = _ ∷ _ ∷ _ ∷ _} {Ps = Ps} imp =
+  implies {ls = _ ∷ _ ∷ _ ∷ _} {Ps} imp =
       (F (λ x → Ps x .proj₁)         →⟨ cong (λ x → imp x .proj₁) ⟩□
        F (λ x → Ps x .proj₂ .proj₁)  □)
     , implies (λ x → imp x .proj₂)
@@ -745,7 +742,7 @@ Logically-equivalent-Quantified {A = A} {F = F} cong eq =
     ∀ ls {Ps : A → Type-list (p ∷ ls)} {Q : A → Type q} →
     (∀ x → Last (Ps x) → Q x) →
     Last (Quantified F Ps) → F Q
-  last-implies-first′ [] {Ps = P} {Q = Q} imp =
+  last-implies-first′ [] {Ps = P} {Q} imp =
     F P  →⟨ cong imp ⟩□
     F Q  □
   last-implies-first′ (_ ∷ ls) imp =
@@ -755,9 +752,9 @@ Logically-equivalent-Quantified {A = A} {F = F} cong eq =
     {Ps : A → Type-list ls} →
     (∀ x → Last-implies-first (Ps x)) →
     Last-implies-first (Quantified F Ps)
-  last-implies-first {ls = []}                       = _
-  last-implies-first {ls = _ ∷ []}                   = _
-  last-implies-first {ls = _ ∷ _ ∷ ls} {Ps = Ps} imp =
+  last-implies-first {ls = []}                  = _
+  last-implies-first {ls = _ ∷ []}              = _
+  last-implies-first {ls = _ ∷ _ ∷ ls} {Ps} imp =
     Last (Quantified F (λ x → Ps x .proj₂))  →⟨ last-implies-first′ ls imp ⟩□
     F (λ x → Ps x .proj₁)                    □
 
@@ -834,7 +831,7 @@ Equivalent-Forall :
   Extensionality a (Max ls) →
   (∀ x → Equivalent (F x)) →
   Equivalent (Forall F)
-Equivalent-Forall {a = a} =
+Equivalent-Forall {a} =
   Equivalent-Quantified
     (Extensionality a)
     (lower-extensionality lzero)
@@ -848,7 +845,7 @@ Equivalent-Implicit-forall :
   Extensionality a (Max ls) →
   (∀ x → Equivalent (F x)) →
   Equivalent (Implicit-forall F)
-Equivalent-Implicit-forall {a = a} =
+Equivalent-Implicit-forall {a} =
   Equivalent-Quantified
     (Extensionality a)
     (lower-extensionality lzero)

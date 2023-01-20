@@ -118,7 +118,7 @@ adjunction→monad :
   ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
     {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄} →
   Adjunction C D → Monad C
-adjunction→monad {C = C} {D = D} (F , G , η , ε , εFFη≡1 , GεηG≡1) =
+adjunction→monad {C} {D} (F , G , η , ε , εFFη≡1 , GεηG≡1) =
     G ∙⇨ F
   , η
   , GεF
@@ -143,7 +143,7 @@ adjunction→monad {C = C} {D = D} (F , G , η , ε , εFFη≡1 , GεηG≡1) =
         ∀ {X Y} {f : C.Hom X Y} →
         ((G ∙⇨ F) ⊙ f) C.∙ (G ⊙ transformation ε) ≡
         (G ⊙ transformation ε) C.∙ (((G ∙⇨ F) ∙⇨ (G ∙⇨ F)) ⊙ f)
-      nat {f = f} =
+      nat {f} =
         ((G ∙⇨ F) ⊙ f) C.∙ (G ⊙ transformation ε)                ≡⟨⟩
         (G ⊙ F ⊙ f) C.∙ (G ⊙ transformation ε)                   ≡⟨ sym (⊙-∙ G) ⟩
         G ⊙ ((F ⊙ f) D.∙ transformation ε)                       ≡⟨ cong (G ⊙_) (natural ε) ⟩

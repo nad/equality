@@ -42,7 +42,7 @@ private
 -- The function _-Null_ can be expressed using _-Local_.
 
 Null≃Local : P -Null B ≃ (λ x (_ : P x) → tt) -Local B
-Null≃Local {P = P} {B = B} =
+Null≃Local {P} {B} =
   P -Null B                                                ↔⟨⟩
   (∀ x → Is-equivalence (const ⦂ (B → P x → B)))           ↝⟨ (∀-cong I.ext λ _ →
                                                                Is-equivalence≃Is-equivalence-∘ʳ
@@ -53,7 +53,7 @@ Null≃Local {P = P} {B = B} =
 -- Nullification.
 
 Nullification : {A : Type a} → (A → Type a) → Type a → Type a
-Nullification {A = A} P =
+Nullification {A} P =
   Localisation′ {A = A ⊎ A} {P = P.[ P , Susp ∘ P ]} {Q = λ _ → ⊤} _
 
 private abstract
@@ -67,7 +67,7 @@ private abstract
       (trans (cong (flip (ext x) _) $ ⟨ext⟩ g≡h)
          (ext≡ {x = x} {y = y} {g = h})) ≡
     g≡h y
-  sym-ext≡-ext≡ {x = x} {g = g} {h = h} {y = y} {g≡h = g≡h} =
+  sym-ext≡-ext≡ {x} {g} {h} {y} {g≡h} =
     trans
       (sym (ext≡ {x = x} {y = y} {g = g}))
       (trans (cong (flip (ext x) _) $ ⟨ext⟩ g≡h)
@@ -100,7 +100,7 @@ private abstract
 Nullification≃Localisation :
   Nullification P B ≃
   Localisation {P = P} {Q = λ _ → ⊤} _ B
-Nullification≃Localisation {P = P} {B = B} =
+Nullification≃Localisation {P} {B} =
 
   -- The proof is quite repetitive: to and from are rather similar, as
   -- are the two round-trip proofs. Perhaps it would make sense to
@@ -120,11 +120,11 @@ Nullification≃Localisation {P = P} {B = B} =
   to′ .extʳ {x = inj₂ x} f _ =
     ext (inj₂ x) (f ∘ _≃_.to PO.Susp≃Susp) _
 
-  to′ .ext≡ʳ {x = inj₁ x} {y = y} f =
+  to′ .ext≡ʳ {x = inj₁ x} {y} f =
     ext (inj₁ x) (f ∘ lower) _  ≡⟨ ext≡ {x = inj₁ x} {y = lift y} {g = f ∘ lower} ⟩∎
     f y                         ∎
 
-  to′ .ext≡ʳ {x = inj₂ x} {y = y} f =
+  to′ .ext≡ʳ {x = inj₂ x} {y} f =
     ext (inj₂ x) (f ∘ _≃_.to PO.Susp≃Susp) _           ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.from PO.Susp≃Susp y} {g = f ∘ _≃_.to PO.Susp≃Susp} ⟩
     f (_≃_.to PO.Susp≃Susp (_≃_.from PO.Susp≃Susp y))  ≡⟨ cong f $ _≃_.right-inverse-of PO.Susp≃Susp y ⟩∎
     f y                                                ∎
@@ -139,11 +139,11 @@ Nullification≃Localisation {P = P} {B = B} =
   from′ .extʳ {x = inj₂ x} f _ =
     ext (inj₂ x) (f ∘ _≃_.from PO.Susp≃Susp) _
 
-  from′ .ext≡ʳ {x = inj₁ x} {y = y} f =
+  from′ .ext≡ʳ {x = inj₁ x} {y} f =
     ext (inj₁ x) (f ∘ lift) _  ≡⟨ ext≡ {x = inj₁ x} {y = lower y} {g = f ∘ lift} ⟩∎
     f y                        ∎
 
-  from′ .ext≡ʳ {x = inj₂ x} {y = y} f =
+  from′ .ext≡ʳ {x = inj₂ x} {y} f =
     ext (inj₂ x) (f ∘ _≃_.from PO.Susp≃Susp) _         ≡⟨ ext≡ {x = inj₂ x} {y = _≃_.to PO.Susp≃Susp y} {g = f ∘ _≃_.from PO.Susp≃Susp} ⟩
     f (_≃_.from PO.Susp≃Susp (_≃_.to PO.Susp≃Susp y))  ≡⟨ cong f $ _≃_.left-inverse-of PO.Susp≃Susp y ⟩∎
     f y                                                ∎
@@ -194,7 +194,7 @@ Nullification≃Localisation {P = P} {B = B} =
 
       ext (inj₂ x) f _                                                 ∎
 
-    to-from′ .ext≡ʳ {x = inj₁ x} {g = f} {y = y} hyp =
+    to-from′ .ext≡ʳ {x = inj₁ x} {g = f} {y} hyp =
       subst (λ x → to (from x) ≡ x)
         (ext≡ {x = inj₁ x} {y = y} {g = f})
         (cong (flip (ext _) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
@@ -220,7 +220,7 @@ Nullification≃Localisation {P = P} {B = B} =
 
       hyp y                                                    ∎
 
-    to-from′ .ext≡ʳ {x = inj₂ x} {g = f} {y = y} hyp =
+    to-from′ .ext≡ʳ {x = inj₂ x} {g = f} {y} hyp =
       subst (λ x → to (from x) ≡ x)
         (ext≡ {x = inj₂ x} {y = y} {g = f})
         (trans
@@ -410,7 +410,7 @@ Nullification≃Localisation {P = P} {B = B} =
 
       ext (inj₂ x) f _                                                 ∎
 
-    from-to′ .ext≡ʳ {x = inj₁ x} {g = f} {y = y} hyp =
+    from-to′ .ext≡ʳ {x = inj₁ x} {g = f} {y} hyp =
       subst (λ x → from (to x) ≡ x)
         (ext≡ {x = inj₁ x} {y = y} {g = f})
         (cong (flip (ext _) _) $ ⟨ext⟩ hyp)                    ≡⟨ subst-in-terms-of-trans-and-cong ⟩
@@ -436,7 +436,7 @@ Nullification≃Localisation {P = P} {B = B} =
 
       hyp y                                                    ∎
 
-    from-to′ .ext≡ʳ {x = inj₂ x} {g = f} {y = y} hyp =
+    from-to′ .ext≡ʳ {x = inj₂ x} {g = f} {y} hyp =
       subst (λ x → from (to x) ≡ x)
         (ext≡ {x = inj₂ x} {y = y} {g = f})
         (trans
@@ -617,7 +617,7 @@ Nullification≃Localisation {P = P} {B = B} =
 Null→Is-equivalence-∘[] :
   P -Null B →
   Is-equivalence (λ (f : Nullification P A → B) → f ∘ [_])
-Null→Is-equivalence-∘[] {P = P} {B = B} {A = A} =
+Null→Is-equivalence-∘[] {P} {B} {A} =
   P -Null B                                                         ↔⟨ Null≃Local ⟩
 
   (λ x (_ : P x) → tt) -Local B                                     →⟨ Local→Is-equivalence-[] ⟩
@@ -651,9 +651,9 @@ private
     body : Rec _ _ _
     body .[]ʳ = [_] ∘ B₁→B₂
 
-    body .extʳ {x = x} f _ = ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _
+    body .extʳ {x} f _ = ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _
 
-    body .ext≡ʳ {x = x} {y = y} f =
+    body .ext≡ʳ {x} {y} f =
       ext (A₁→A₂ x) (f ∘ _↠_.to (P₂↠P₁ x)) _       ≡⟨ ext≡ ⟩
       f (_↠_.to (P₂↠P₁ x) (_↠_.from (P₂↠P₁ x) y))  ≡⟨ cong f $ _↠_.right-inverse-of (P₂↠P₁ x) _ ⟩∎
       f y                                          ∎
@@ -716,7 +716,7 @@ private abstract
             (cong (flip (ext _) _) $ ⟨ext⟩ hyp))
          (ext≡ {x = x} {y = y} {g = f})) ≡
     hyp y
-  sym-ext≡-ext≡′ {x = x} {y = y} {f = f} g hyp =
+  sym-ext≡-ext≡′ {x} {y} {f} g hyp =
     elim₁
       (λ {h} eq →
          trans
@@ -788,9 +788,9 @@ private
       -- The proof to′ is a variant of to″ that is partly blocked.
 
       to′ : Block "to" → Rec _ _ _
-      to′ _ .[]ʳ                   = to″ .[]ʳ
-      to′ _ .extʳ {x = x}          = to″ .extʳ {x = x}
-      to′ ⊠ .ext≡ʳ {x = x} {y = y} = to″ .ext≡ʳ {x = x} {y = y}
+      to′ _ .[]ʳ           = to″ .[]ʳ
+      to′ _ .extʳ {x}      = to″ .extʳ {x = x}
+      to′ ⊠ .ext≡ʳ {x} {y} = to″ .ext≡ʳ {x = x} {y = y}
 
       to :
         Block "to" →
@@ -809,9 +809,9 @@ private
       -- The proof from′ is a variant of from″ that is partly blocked.
 
       from′ : Block "from" → Rec _ _ _
-      from′ _ .[]ʳ                   = from″ .[]ʳ
-      from′ _ .extʳ {x = x}          = from″ .extʳ {x = x}
-      from′ ⊠ .ext≡ʳ {x = x} {y = y} = from″ .ext≡ʳ {x = x} {y = y}
+      from′ _ .[]ʳ           = from″ .[]ʳ
+      from′ _ .extʳ {x}      = from″ .extʳ {x = x}
+      from′ ⊠ .ext≡ʳ {x} {y} = from″ .ext≡ʳ {x = x} {y = y}
 
       from :
         Block "from" →

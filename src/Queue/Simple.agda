@@ -92,7 +92,7 @@ from-List xs = ⟨ xs , [] ⟩[ -[] ]
 -- The function from-List is a right inverse of to-List.
 
 to-List-from-List : to-List (from-List xs) ≡ xs
-to-List-from-List {xs = xs} =
+to-List-from-List {xs} =
   xs ++ []  ≡⟨ ++-right-identity _ ⟩∎
   xs        ∎
 
@@ -101,7 +101,7 @@ to-List-from-List {xs = xs} =
 
 ¬-from-List-to-List :
   A → ¬ ((q : Queue A) → from-List (to-List q) ≡ q)
-¬-from-List-to-List {A = A} x hyp = not-equal equal
+¬-from-List-to-List {A} x hyp = not-equal equal
   where
   counter-example : Queue A
   counter-example = ⟨ x ∷ [] , x ∷ [] ⟩
@@ -149,8 +149,8 @@ enqueue x ⟨ []            , rear ⟩ = ⟨ x ∷ [] , rear     ⟩
 enqueue x ⟨ front@(_ ∷ _) , rear ⟩ = ⟨ front  , x ∷ rear ⟩
 
 to-List-enqueue : ∀ q → to-List (enqueue x q) ≡ to-List q ++ x ∷ []
-to-List-enqueue         ⟨ []            , []   ⟩ = refl _
-to-List-enqueue {x = x} ⟨ front@(_ ∷ _) , rear ⟩ =
+to-List-enqueue     ⟨ []            , []   ⟩ = refl _
+to-List-enqueue {x} ⟨ front@(_ ∷ _) , rear ⟩ =
   front ++ reverse (x ∷ rear)        ≡⟨ cong (front ++_) $ reverse-∷ rear ⟩
   front ++ reverse rear ++ x ∷ []    ≡⟨ ++-associative front _ _ ⟩∎
   (front ++ reverse rear) ++ x ∷ []  ∎
@@ -198,7 +198,7 @@ map f ⟨ front , rear ⟩[ inv ] =
   ⟨ L.map f front , L.map f rear ⟩[ map-map inv ]
 
 to-List-map : ∀ q → to-List (map f q) ≡ L.map f (to-List q)
-to-List-map {f = f} ⟨ front , rear ⟩ =
+to-List-map {f} ⟨ front , rear ⟩ =
   L.map f front ++ reverse (L.map f rear)  ≡⟨ cong (L.map f front ++_) $ sym $ map-reverse rear ⟩
   L.map f front ++ L.map f (reverse rear)  ≡⟨ sym $ map-++ _ front _ ⟩∎
   L.map f (front ++ reverse rear)          ∎

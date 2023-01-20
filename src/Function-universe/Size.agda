@@ -55,7 +55,7 @@ implicit-Π-size-≃ = Eq.↔→≃
 
 implicit-Π-size-≃-Π-size :
   ({i : S} → P i) ≃ ((i : S) → P i)
-implicit-Π-size-≃-Π-size {P = P} =
+implicit-Π-size-≃-Π-size {P} =
   (∀ {i} → P i)         ↔⟨ implicit-Π-size-≃ ⟩
   (∀ {i} → P (size i))  ↔⟨ B.implicit-Π↔Π ⟩
   (∀ i → P (size i))    ↔⟨ inverse Π-size-≃ ⟩□
@@ -69,7 +69,7 @@ implicit-Π-size-≃-Π-size {P = P} =
   Extensionality? k lzero (p ⊔ q) →
   (∀ i → P i ↝[ k ] Q i) →
   (∀ i → P i) ↝[ k ] (∀ i → Q i)
-∀-size-cong {P = P} {Q = Q} ext P↝Q =
+∀-size-cong {P} {Q} ext P↝Q =
   (∀ i → P i)         ↔⟨ Π-size-≃ ⟩
   (∀ i → P (size i))  ↝⟨ ∀-cong ext (λ i → P↝Q (size i)) ⟩
   (∀ i → Q (size i))  ↔⟨ inverse Π-size-≃ ⟩□
@@ -83,7 +83,7 @@ implicit-∀-size-cong :
   Extensionality? k lzero (p ⊔ q) →
   (∀ {i} → P (size i) ↝[ k ] Q (size i)) →
   (∀ {i} → P i) ↝[ k ] (∀ {i} → Q i)
-implicit-∀-size-cong {P = P} {Q = Q} ext P↝Q =
+implicit-∀-size-cong {P} {Q} ext P↝Q =
   (∀ {i} → P i)         ↔⟨ implicit-Π-size-≃ ⟩
   (∀ {i} → P (size i))  ↝⟨ implicit-∀-cong ext P↝Q ⟩
   (∀ {i} → Q (size i))  ↔⟨ inverse implicit-Π-size-≃ ⟩□

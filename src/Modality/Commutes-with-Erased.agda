@@ -71,7 +71,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
   -- If A is k-stable, then Erased A is k-stable.
 
   Stable-Erased : @0 Stable-[ k ] A → Stable-[ k ] (Erased A)
-  Stable-Erased {A = A} s =
+  Stable-Erased {A} s =
     ◯ (Erased A)  ↔⟨ ◯-Erased≃Erased-◯ ⟩
     Erased (◯ A)  ↝⟨ EC.Erased-cong s ⟩□
     Erased A      □
@@ -98,7 +98,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
     {A : Type a} {f : A → B} {y : B} →
     @0 Left-exact-η-cong →
     ◯ (f ⁻¹ᴱ y) ≃ ◯ (η ∘ f ⁻¹ᴱ η y)
-  ◯⁻¹ᴱ≃◯∘⁻¹ᴱ {A = A} {f = f} {y = y} lex =
+  ◯⁻¹ᴱ≃◯∘⁻¹ᴱ {A} {f} {y} lex =
     ◯ (∃ λ (x : A) → Erased (f x ≡ y))        ↔⟨ inverse ◯Σ◯≃◯Σ ⟩
     ◯ (∃ λ (x : A) → ◯ (Erased (f x ≡ y)))    ↝⟨ (◯-cong-≃ $ ∃-cong λ _ → ◯-Erased≃Erased-◯) ⟩
     ◯ (∃ λ (x : A) → Erased (◯ (f x ≡ y)))    ↔⟨ (◯-cong-≃ $ ∃-cong (λ _ → EC.Erased-cong (Lex.◯≡≃η≡η lex))) ⟩□
@@ -200,7 +200,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
         Extensionality? k a a →
         Modal A → @0 Separated B →
         Stable-[ k ] (ECP.Is-equivalenceᴱ f)
-      Modal→Stable-Is-equivalenceᴱ-CP {f = f} ext m s =
+      Modal→Stable-Is-equivalenceᴱ-CP {f} ext m s =
         Valid-domain₁.Stable-Π vB ext λ y →
         let m′ : Modal (f ⁻¹ᴱ y)
             m′ = Modal-⁻¹ᴱ m s in
@@ -218,7 +218,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
         Extensionality? k a a →
         Modal A → @0 Separated B →
         Stable-[ k ] (Is-equivalenceᴱ f)
-      Modal→Stable-Is-equivalenceᴱ {k = k} {f = f} ext m s =
+      Modal→Stable-Is-equivalenceᴱ {k} {f} ext m s =
         generalise-ext?′
           (Stable→Stable-⇔ $ MBC.Modal→Stable-Is-equivalenceᴱ m s)
           (λ ext → Modal→Stable $ Modal-Is-equivalenceᴱ ext m s)
@@ -306,7 +306,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
       Connected-→ᴱ≃◯-Is-equivalenceᴱ-CP :
         {f : A → B} →
         ◯ -Connected-→ᴱ f ↝[ a ∣ a ] ◯ (ECP.Is-equivalenceᴱ f)
-      Connected-→ᴱ≃◯-Is-equivalenceᴱ-CP {f = f} ext =
+      Connected-→ᴱ≃◯-Is-equivalenceᴱ-CP {f} ext =
         ◯ -Connected-→ᴱ f                    ↔⟨⟩
         (∀ y → Contractibleᴱ (◯ (f ⁻¹ᴱ y)))  ↝⟨ (∀-cong ext λ _ → inverse-ext? (◯-Contractibleᴱ≃Contractibleᴱ-◯ v⁻¹ᴱ lex) ext) ⟩
         (∀ y → ◯ (Contractibleᴱ (f ⁻¹ᴱ y)))  ↝⟨ Valid-domain₁.Π◯≃◯Π vB ext ⟩
@@ -328,7 +328,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
           {f : A → B} →
           ◯ (ECP.Is-equivalenceᴱ f) ↝[ a ∣ a ]
           ECP.Is-equivalenceᴱ (◯-map f)
-        ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP {f = f} ext =
+        ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP {f} ext =
           ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))          ↝⟨ inverse-ext? Connected-→ᴱ≃◯-Is-equivalenceᴱ-CP ext ⟩
           (∀ y → Contractibleᴱ (◯ (f ⁻¹ᴱ y)))        ↝⟨ (∀-cong ext λ _ → BC.Contractibleᴱ-cong ext $ ◯⁻¹ᴱ≃◯∘⁻¹ᴱ lex) ⟩
           (∀ y → Contractibleᴱ (◯ (η ∘ f ⁻¹ᴱ η y)))  ↝⟨ (∀-cong ext λ _ → BC.Contractibleᴱ-cong ext $ ◯∘⁻¹ᴱ≃◯-map-⁻¹ᴱ commutes-with-Σ) ⟩
@@ -347,7 +347,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
           ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ :
             {f : A → B} →
             ◯ (Is-equivalenceᴱ f) ⇔ Is-equivalenceᴱ (◯-map f)
-          ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ {f = f} =
+          ◯-Is-equivalenceᴱ⇔Is-equivalenceᴱ {f} =
             ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-⇔ EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
             ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP _ ⟩
             (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩□
@@ -361,7 +361,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
             {f : A → B} →
             @0 Extensionality a a →
             ◯ (Is-equivalenceᴱ f) ≃ᴱ Is-equivalenceᴱ (◯-map f)
-          ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ {f = f} ext =
+          ◯-Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ {f} ext =
             ◯ (Is-equivalenceᴱ f)                  ↝⟨ ◯-cong-≃ᴱ (EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) ⟩
             ◯ (∀ y → Contractibleᴱ (f ⁻¹ᴱ y))      ↝⟨ ◯-Is-equivalenceᴱ-CP≃Is-equivalenceᴱ-CP E.[ ext ] ⟩
             (∀ y → Contractibleᴱ (◯-map f ⁻¹ᴱ y))  ↝⟨ inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext ⟩□
@@ -375,7 +375,7 @@ module []-cong (ax : []-cong-axiomatisation a) where
             {f : A → B} →
             Extensionality a a →
             ◯ (Is-equivalenceᴱ f) ≃ Is-equivalenceᴱ (◯-map f)
-          ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′ {f = f} ext =
+          ◯-Is-equivalenceᴱ≃Is-equivalenceᴱ′ {f} ext =
             ◯ (Is-equivalenceᴱ f)                                       ↔⟨⟩
 
             ◯ (∃ λ (f⁻¹ : B → A) → Erased (HA.Proofs f f⁻¹))            ↝⟨ inverse ◯Σ◯≃◯Σ ⟩

@@ -517,7 +517,7 @@ private
         -- The empty list is not equal to any non-empty list.
 
         []≢∷ : []′ ≢ b ∷ n ⟨ inv ⟩′
-        []≢∷ {b = b} {n = n} =
+        []≢∷ {b} {n} =
           [] ≡ b ∷ n          ↝⟨ cong to-List ⟩
           [] ≡ b ∷ to-List n  ↝⟨ List.[]≢∷ ⟩□
           ⊥                   □

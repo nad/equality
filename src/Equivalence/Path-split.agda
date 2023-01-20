@@ -75,7 +75,7 @@ private
 
   Path-split⇔Is-equivalence :
     Path-split (2 + n) f ⇔ Is-equivalence f
-  Path-split⇔Is-equivalence {f = f} = record
+  Path-split⇔Is-equivalence {f} = record
     { to   = λ (s , p) →
                let inv    = proj₁ ∘ s
                    is-inv = proj₂ ∘ s
@@ -98,9 +98,7 @@ Split-surjective-contractible-for-equivalences :
   Extensionality b (a ⊔ b) →
   Is-equivalence f →
   Contractible (Split-surjective f)
-Split-surjective-contractible-for-equivalences
-  {A = A} {B = B} {f = f} ext eq =
-
+Split-surjective-contractible-for-equivalences {A} {B} {f} ext eq =
   propositional⇒inhabited⇒contractible
     (Π-closure ext 1 λ y →
      let surj : (∃ λ x → x ≡ _≃_.from A≃B y) ↠ (∃ λ x → f x ≡ y)
@@ -130,7 +128,7 @@ Path-split-contractible-for-equivalences {n = zero} _ _ =
   ⊤-contractible
 
 Path-split-contractible-for-equivalences
-  {a = a} {b = b} {n = suc n} {A = A} {B = B} {f = f} ext eq =
+  {a} {b} {n = suc n} {A} {B} {f} ext eq =
 
   ×-closure 0
     (Split-surjective-contractible-for-equivalences
@@ -205,17 +203,13 @@ Path-split-cong :
   (A≃C : A ≃ C) (B≃D : B ≃ D) →
   (∀ x → g (_≃_.to A≃C x) ≡ _≃_.to B≃D (f x)) →
   ∀ n → Path-split n f ↝[ k ] Path-split n g
-Path-split-cong
-  {a = a} {b = b} {c = c} {d = d} {k = k} {f = f} {g = g}
-  ext A≃C B≃D hyp = λ where
-
+Path-split-cong {a} {b} {c} {d} {k} {f} {g} ext A≃C B≃D hyp = λ where
   zero →
     ↑ _ ⊤  ↔⟨ B.↑↔ ⟩
     ⊤      ↔⟨ inverse B.↑↔ ⟩□
     ↑ _ ⊤  □
 
   (suc n) →
-
     (Split-surjective f                   ↔⟨⟩
 
      (∀ y → ∃ λ x → f x ≡ y)              ↝⟨ (Π-cong (lower-extensionality? k (a ⊔ c) lzero ext) B≃D λ y →
@@ -299,8 +293,7 @@ Path-split-2≃Split-surjective×Split-surjective-∆ :
   Path-split 2 f
     ↝[ a ⊔ b ∣ a ⊔ b ]
   (Split-surjective f × Split-surjective (∆ f))
-Path-split-2≃Split-surjective×Split-surjective-∆
-  {a = a} {b = b} {f = f} {k = k} ext =
+Path-split-2≃Split-surjective×Split-surjective-∆ {a} {b} {f} {k} ext =
   Path-split 2 f                                ↔⟨⟩
 
   Split-surjective f ×
@@ -406,7 +399,7 @@ Is-extendable-along≃Path-split :
   ∀ n →
   Is-[ n ]-extendable-along-[ f ] P ≃
   Path-split n (λ (g : ∀ x → P x) → g ∘ f)
-Is-extendable-along≃Path-split {a = a} {b = b} {p = p} {f = f} ext =
+Is-extendable-along≃Path-split {a} {b} {p} {f} ext =
   λ where
     zero    → Eq.id
     (suc n) →
@@ -473,7 +466,7 @@ Is-∞-extendable-along≃Is-equivalence :
   Extensionality (a ⊔ b ⊔ p) (a ⊔ b ⊔ p) →
   Is-∞-extendable-along-[ f ] P ≃
   Is-equivalence (λ (g : ∀ x → P x) → g ∘ f)
-Is-∞-extendable-along≃Is-equivalence {P = P} {f = f} ext =
+Is-∞-extendable-along≃Is-equivalence {P} {f} ext =
   Is-∞-extendable-along-[ f ] P  ↝⟨ Is-∞-extendable-along≃Path-split-∞ ext ⟩
   Path-split-∞ (_∘ f)            ↝⟨ Path-split-∞↔Is-equivalence ext ⟩□
   Is-equivalence (_∘ f)          □
@@ -489,7 +482,7 @@ Is-∞-extendable-along≃Is-equivalence-const :
   Extensionality (a ⊔ b) (a ⊔ b) →
   Is-∞-extendable-along-[ (λ (_ : A) → lift tt) ] (λ (_ : ↑ a ⊤) → B) ≃
   Is-equivalence (const ⦂ (B → A → B))
-Is-∞-extendable-along≃Is-equivalence-const {a = a} {A = A} {B = B} ext =
+Is-∞-extendable-along≃Is-equivalence-const {a} {A} {B} ext =
   Is-∞-extendable-along-[ (λ _ → lift tt) ] (λ (_ : ↑ a ⊤) → B)  ↝⟨ Is-∞-extendable-along≃Is-equivalence ext ⟩
 
   Is-equivalence (_∘ (λ _ → lift tt) ⦂ ((↑ a ⊤ → B) → (A → B)))  ↝⟨ inverse $
@@ -509,7 +502,7 @@ Is-extendable-along-contractible-for-equivalences _ _ zero =
   ↑-closure 0 ⊤-contractible
 
 Is-extendable-along-contractible-for-equivalences
-  {a = a} {b = b} {p = p} {f = f} {P = P} ext eq (suc n) =
+  {a} {b} {p} {f} {P} ext eq (suc n) =
 
   ×-closure 0
     (Π-closure (lower-extensionality b lzero ext) 0 λ g →
@@ -573,8 +566,8 @@ Is-∞-extendable-along-const-tt-[ A ] B =
   Is-[ n ]-extendable-along-[ (λ (_ : A) → lift tt) ]
     (λ (_ : ↑ a ⊤) → B) ↝[ k ]
   Is-[ n ]-extendable-along-const-tt-[ A ] B
-≃Is-extendable-along-const-tt                 _   zero    = F.id
-≃Is-extendable-along-const-tt {a = a} {k = k} ext (suc n) =
+≃Is-extendable-along-const-tt         _   zero    = F.id
+≃Is-extendable-along-const-tt {a} {k} ext (suc n) =
   (∀-cong ext λ _ →
    Σ-cong (Eq.↔→≃ (_$ lift tt) const refl refl) λ _ →
    F.id)
@@ -591,7 +584,7 @@ Is-∞-extendable-along-const-tt-[ A ] B =
   Is-∞-extendable-along-[ (λ (_ : A) → lift tt) ] (λ (_ : ↑ a ⊤) → B)
     ↝[ k ]
   Is-∞-extendable-along-const-tt-[ A ] B
-≃Is-∞-extendable-along-const-tt {k = k} ext =
+≃Is-∞-extendable-along-const-tt {k} ext =
   ∀-cong (lower-extensionality? k _ lzero ext) λ n →
   ≃Is-extendable-along-const-tt ext n
 
@@ -613,7 +606,7 @@ Is-extendable-along-const-tt-cong _ _ _ _ zero =
   ⊤      ↔⟨ inverse B.↑↔ ⟩□
   ↑ _ ⊤  □
 Is-extendable-along-const-tt-cong
-  {a = a} {b = b} {c = c} {k = k} ext A≃B A→≃B→ hyp (suc n) =
+  {a} {b} {c} {k} ext A≃B A→≃B→ hyp (suc n) =
 
   (Π-cong ext A→≃B→ λ g →
    ∃-cong λ x →
@@ -634,7 +627,7 @@ Is-∞-extendable-along-const-tt-cong :
    _≃_.to A→≃B→ f (_≃_.to A≃B x) ≡ f x) →
   Is-∞-extendable-along-const-tt-[ A ] C ↝[ k ]
   Is-∞-extendable-along-const-tt-[ B ] C
-Is-∞-extendable-along-const-tt-cong {k = k} ext A≃B A→≃B→ hyp =
+Is-∞-extendable-along-const-tt-cong {k} ext A≃B A→≃B→ hyp =
   ∀-cong (lower-extensionality? k _ lzero ext) λ n →
   Is-extendable-along-const-tt-cong ext A≃B A→≃B→ hyp n
 
@@ -663,7 +656,7 @@ Null-propositional :
   {A : Type a} {P : A → Type p} {B : Type b} →
   Extensionality (a ⊔ p ⊔ b) (p ⊔ b) →
   Is-proposition (P -Null B)
-Null-propositional {a = a} {p = p} {b = b} ext =
+Null-propositional {a} {p} {b} ext =
   Π-closure (lower-extensionality (p ⊔ b) lzero ext) 1 λ _ →
   Is-equivalence-propositional (lower-extensionality a lzero ext)
 
@@ -677,9 +670,7 @@ Null-cong :
   {P : A → Type p} {Q : A → Type q} →
   Extensionality (a ⊔ b ⊔ c ⊔ p ⊔ q) (b ⊔ c ⊔ p ⊔ q) →
   (∀ x → P x ≃ Q x) → B ≃ C → P -Null B ≃ Q -Null C
-Null-cong
-  {a = a} {b = b} {c = c} {p = p} {q = q}
-  {B = B} {C = C} {P = P} {Q = Q} ext P≃Q B≃C =
+Null-cong {a} {b} {c} {p} {q} {B} {C} {P} {Q} ext P≃Q B≃C =
   P -Null B                                                             ↔⟨⟩
 
   (∀ x → Is-equivalence (const ⦂ (B → P x → B)))                        ↝⟨ (∀-cong ext′ λ x →
@@ -725,7 +716,7 @@ Null-cong
   (∀ x → Is-∞-extendable-along-[ (λ (_ : P x) → lift tt) ]
            (λ (_ : ↑ p ⊤) → B)) ≃
   P -Null B
-Π-Is-∞-extendable-along≃Null {a = a} {p = p} {b = b} ext =
+Π-Is-∞-extendable-along≃Null {a} {p} {b} ext =
   ∀-cong (lower-extensionality (b ⊔ p) lzero ext) λ _ →
   Is-∞-extendable-along≃Is-equivalence-const
     (lower-extensionality a lzero ext)
@@ -781,7 +772,7 @@ Null-⊤ _ =
 Null-⊥≃¬¬ :
   {A : Type a} {P : A → Type p} →
   P -Null ⊥ {ℓ = ℓ} ↝[ a ⊔ p ⊔ ℓ ∣ p ⊔ ℓ ] (∀ x → ¬ ¬ P x)
-Null-⊥≃¬¬ {a = a} {p = p} {ℓ = ℓ} {P = P} =
+Null-⊥≃¬¬ {a} {p} {ℓ} {P} =
   generalise-ext?-prop
     (record
        { to = λ eq x →
@@ -822,7 +813,7 @@ Null-⊥≃¬¬ {a = a} {p = p} {ℓ = ℓ} {P = P} =
   ((λ (_ : A) → ⊥ {ℓ = ℓ}) -Null B)
     ↝[ a ⊔ b ⊔ ℓ ∣ b ⊔ ℓ ]
   Contractible B
-⊥-Null≃Contractible {a = a} {ℓ = ℓ} {B = B} ext inh =
+⊥-Null≃Contractible {a} {ℓ} {B} ext inh =
   generalise-ext?-prop
     (record
        { to   =
@@ -850,7 +841,7 @@ Null-⊥≃¬¬ {a = a} {p = p} {ℓ = ℓ} {P = P} =
 
 Bool-Null→Is-proposition :
   A → (λ (_ : A) → Bool) -Null B → Is-proposition B
-Bool-Null→Is-proposition {B = B} inh null x y =
+Bool-Null→Is-proposition {B} inh null x y =
   x                                       ≡⟨⟩
   xy true                                 ≡⟨ cong (_$ true) $ sym $ _≃_.right-inverse-of equiv _ ⟩
   _≃_.to equiv (_≃_.from equiv xy) true   ≡⟨⟩
@@ -894,7 +885,7 @@ Bool-Null≃Is-proposition :
   Extensionality lzero b →
   A →
   ((λ (_ : A) → Bool) -Null B) ↝[ a ⊔ b ∣ b ] Is-proposition B
-Bool-Null≃Is-proposition {a = a} ext inh =
+Bool-Null≃Is-proposition {a} ext inh =
   generalise-ext?-prop
     (record
        { to   = Bool-Null→Is-proposition inh
@@ -914,7 +905,7 @@ private
     Extensionality b lzero →
     Is-equivalence (const ⦂ (Bool → B → Bool)) →
     ¬ ¬ B
-  Is-equivalence-const→¬¬ {B = B} ext =
+  Is-equivalence-const→¬¬ {B} ext =
     curry
       (Is-equivalence (const ⦂ (Bool → B → Bool)) × ¬ B  →⟨ Σ-map Eq.⟨ _ ,_⟩ (Eq.↔⇒≃ ∘ inverse ∘ B.⊥↔uninhabited) ⟩
        Bool ≃ (B → Bool) × B ≃ ⊥                         →⟨ (λ (≃B→ , B≃) → →-cong ext B≃ F.id F.∘ ≃B→) ⟩
@@ -931,7 +922,7 @@ private
     Decidable-equality B →
     Is-proposition B
   Is-equivalence-const→Decidable-equality→Is-proposition
-    {B = B} eq _≟_ x y = x≡y
+    {B} eq _≟_ x y = x≡y
     where
     lemma :
       (f g : B → Bool) → f ≢ g →

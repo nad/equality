@@ -45,7 +45,7 @@ private
 -- Chains (indexed).
 
 Chain : Type i → ∀ ℓ → Type (i ⊔ lsuc ℓ)
-Chain {i = i} I ℓ =
+Chain {i} I ℓ =
   ∃ λ (P : ℕ → I → Type ℓ) → ∀ n → P (suc n) ⇾ P n
 
 -- Limits of chains.
@@ -66,7 +66,7 @@ universal-property-Π :
   (∃ λ (f : ∀ n (a : A) → P n (g a)) →
      ∀ n a → down n (g a) (f (suc n) a) ≡ f n a)
 
-universal-property-Π {g = g} X@(P , down) =
+universal-property-Π {g} X@(P , down) =
   (∀ a → Limit X (g a))                           ↔⟨⟩
 
   (∀ a → ∃ λ (f : ∀ n → P n (g a)) →
@@ -89,7 +89,7 @@ universal-property :
   (∃ λ (f : ∀ n → P ⇾ Q n) →
      ∀ n i x → down n i (f (suc n) i x) ≡ f n i x)
 
-universal-property {P = P} X@(Q , down) ext =
+universal-property {P} X@(Q , down) ext =
   (P ⇾ Limit X)                                     ↔⟨⟩
 
   (∀ i → P i → Limit X i)                           ↝⟨ (∀-cong ext λ _ → from-equivalence $ universal-property-Π X) ⟩
@@ -122,7 +122,7 @@ universal-property-≃ :
 
   (P ⇾ Limit X) ≃ Cone P X
 
-universal-property-≃ {i = i} {p = p} {ℓ = ℓ} {P = P} ext X@(Q , down) =
+universal-property-≃ {i} {p} {ℓ} {P} ext X@(Q , down) =
   P ⇾ Limit X                                       ↝⟨ universal-property X (lower-extensionality p i ext) ⟩
 
   (∃ λ (f : ∀ n → P ⇾ Q n) →
@@ -150,7 +150,7 @@ shift = Σ-map (_∘ suc) (_∘ suc)
 Limit-shift :
   ∀ (X : Chain I ℓ) {i} →
   Limit (shift X) i ↝[ lzero ∣ ℓ ] Limit X i
-Limit-shift {ℓ = ℓ} X@(P , down) {i = i} ext =
+Limit-shift {ℓ} X@(P , down) {i} ext =
   Limit (shift X) i                                ↔⟨⟩
 
   (∃ λ (p : ∀ n → P (suc n) i) →
@@ -406,7 +406,7 @@ Container-chain C = Σ-map (⟦ C ⟧ ∘_) (map C ∘_)
   (C : Container₂ I O s p) (X : Chain I ℓ) {o : O} →
 
   ⟦ C ⟧ (Limit X) o ≃ Limit (Container-chain C X) o
-⟦⟧-Limit≃ {p = p} {s = s} {ℓ = ℓ} ext C X@(Q , down) {o = o} =
+⟦⟧-Limit≃ {p} {s} {ℓ} ext C X@(Q , down) {o} =
 
   ⟦ C ⟧ (Limit X) o                                            ↔⟨⟩
 
@@ -497,7 +497,7 @@ M-fixpoint :
   Extensionality p (i ⊔ s ⊔ p) →
   {C : Container I s p} {i : I} →
   ⟦ C ⟧ (M C) i ≃ M C i
-M-fixpoint ⊠ ext {C = C} {i = i} =
+M-fixpoint ⊠ ext {C} {i} =
   ⟦ C ⟧ (M C) i                            ↔⟨⟩
   ⟦ C ⟧ (Limit (M-chain C)) i              ↝⟨ ⟦⟧-Limit≃ ext C (M-chain C) ⟩
   Limit (Container-chain C (M-chain C)) i  ↔⟨⟩
@@ -536,7 +536,7 @@ in-M≡ :
   ( ℕ-case _ (λ n → s , λ p → proj₁ (f p) n)
   , ℕ-case (refl _) (λ n → cong (s ,_) $ ext′ λ p → proj₂ (f p) n)
   )
-in-M≡ {i = i} {p = p} {s = sℓ} ⊠ ext {C = C} x@(s , f) =
+in-M≡ {i} {p} {s = sℓ} ⊠ ext {C} x@(s , f) =
   ( ℕ-case _ (λ n → s , λ p → proj₁ (f p) n)
   , ℕ-case (refl _)
       (λ n → Σ-≡,≡→≡
@@ -654,8 +654,8 @@ private
   Eq g = ∀ n → down n ∘⇾ g (suc n) ≡ g n
 
   steps₂ : {g : ∀ n → P ⇾ Up-to C n} → Eq g → Eq (steps₁ g)
-  steps₂         p zero    = refl _
-  steps₂ {g = g} p (suc n) =
+  steps₂     p zero    = refl _
+  steps₂ {g} p (suc n) =
     down (suc n) ∘⇾ steps₁ g (suc (suc n))  ≡⟨⟩
     step (down n ∘⇾ g (suc n))              ≡⟨ cong step (p n) ⟩∎
     step (g n)                              ∎
@@ -742,7 +742,7 @@ private
   steps₁-fixpoint≃ :
     {g : ∀ n → P ⇾ Up-to C n} →
     (g ≡ steps₁ g) ≃ (∀ n → g (suc n) ≡ step (g n))
-  steps₁-fixpoint≃ {g = g} =
+  steps₁-fixpoint≃ {g} =
     g ≡ steps₁ g                                             ↝⟨ inverse $ Eq.extensionality-isomorphism ext₀ ⟩
 
     (∀ n → g n ≡ steps₁ g n)                                 ↝⟨ Πℕ≃ ext₀ ⟩
@@ -775,7 +775,7 @@ private
     {p : Eq (cl₁← g₀)} →
     subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p n ≡
     trans (p n) (steps₁-fixpoint n)
-  steps₁-fixpoint-lemma {n = n} {p = p} =
+  steps₁-fixpoint-lemma {n} {p} =
     subst Eq (_≃_.from steps₁-fixpoint≃ (λ _ → refl _)) p n    ≡⟨⟩
 
     subst Eq (ext₀′ (ℕ-case _ (λ _ → refl _))) p n             ≡⟨ cong (λ eq → subst Eq eq p n) $
@@ -1083,7 +1083,7 @@ H-level-M :
   {I : Type i} {C : Container I s p} {i : I} →
   (∀ i → H-level n (Shape C i)) →
   H-level n (M C i)
-H-level-M {p = p} {i = iℓ} {n = m} ext {C = C} hyp =
+H-level-M {p} {i = iℓ} {n = m} ext {C} hyp =
   Σ-closure m
     (Π-closure ext′ m
      H-level-Up-to) λ _ →
@@ -1114,8 +1114,7 @@ H-level-final-coalgebra′ :
   (((X , _) , _) : Final-coalgebra′ C) →
   (∀ i → H-level n (Shape C i)) →
   H-level n (X i)
-H-level-final-coalgebra′
-  {i = iℓ} {s = s} {n = n} ext {C = C} {i = i} F@((X , _) , _) =
+H-level-final-coalgebra′ {i = iℓ} {s} {n} ext {C} {i} F@((X , _) , _) =
   block λ b →
 
   (∀ i → H-level n (Shape C i))  ↝⟨ H-level-M ext′ ⟩

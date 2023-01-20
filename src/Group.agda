@@ -181,8 +181,8 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 -- _↝[ k ]ᴳ_ is reflexive.
 
 ↝ᴳ-refl : G ↝[ k ]ᴳ G
-↝ᴳ-refl                 .related         = F.id
-↝ᴳ-refl {G = G} {k = k} .homomorphic x y =
+↝ᴳ-refl         .related         = F.id
+↝ᴳ-refl {G} {k} .homomorphic x y =
   to-implication {k = k} F.id (x ∘ y)  ≡⟨ cong (_$ _) $ to-implication-id k ⟩
 
   x ∘ y                                ≡⟨ sym $ cong₂ (λ f g → f _ ∘ g _)
@@ -196,8 +196,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 -- _↝[ k ]ᴳ_ is transitive.
 
 ↝ᴳ-trans : G₁ ↝[ k ]ᴳ G₂ → G₂ ↝[ k ]ᴳ G₃ → G₁ ↝[ k ]ᴳ G₃
-↝ᴳ-trans {G₁ = G₁} {k = k} {G₂ = G₂} {G₃ = G₃}
-  G₁↝G₂ G₂↝G₃ = λ where
+↝ᴳ-trans {G₁} {k} {G₂} {G₃} G₁↝G₂ G₂↝G₃ = λ where
     .related         → G₂↝G₃ .related F.∘ G₁↝G₂ .related
     .homomorphic x y →
       to-implication (G₂↝G₃ .related F.∘ G₁↝G₂ .related) (x G₁.∘ y)  ≡⟨ cong (_$ _) $ to-implication-∘ k ⟩
@@ -219,7 +218,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 -- _≃ᴳ_ is symmetric.
 
 ≃ᴳ-sym : G₁ ≃ᴳ G₂ → G₂ ≃ᴳ G₁
-≃ᴳ-sym {G₁ = G₁} {G₂ = G₂} G₁≃G₂ = λ where
+≃ᴳ-sym {G₁} {G₂} G₁≃G₂ = λ where
     .related         → inverse (G₁≃G₂ .related)
     .homomorphic x y → _≃_.injective (G₁≃G₂ .related)
       (to G₁≃G₂ (_≃_.from (G₁≃G₂ .related) (x G₂.∘ y))                   ≡⟨ _≃_.right-inverse-of (G₁≃G₂ .related) _ ⟩
@@ -241,7 +240,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 →ᴳ-id :
   (G₁↝G₂ : G₁ ↝[ k ]ᴳ G₂) →
   to G₁↝G₂ (Group.id G₁) ≡ Group.id G₂
-→ᴳ-id {G₁ = G₁} {G₂ = G₂} G₁↝G₂ =
+→ᴳ-id {G₁} {G₂} G₁↝G₂ =
   G₂.idempotent⇒≡id
     (to G₁↝G₂ G₁.id G₂.∘ to G₁↝G₂ G₁.id  ≡⟨ sym $ G₁↝G₂ .homomorphic _ _ ⟩
      to G₁↝G₂ (G₁.id G₁.∘ G₁.id)         ≡⟨ cong (to G₁↝G₂) $ G₁.left-identity _ ⟩∎
@@ -256,7 +255,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
 →ᴳ-⁻¹ :
   ∀ (G₁↝G₂ : G₁ ↝[ k ]ᴳ G₂) x →
   to G₁↝G₂ (Group._⁻¹ G₁ x) ≡ Group._⁻¹ G₂ (to G₁↝G₂ x)
-→ᴳ-⁻¹ {G₁ = G₁} {G₂ = G₂} G₁↝G₂ x = G₂.⁻¹∘≡id→≡
+→ᴳ-⁻¹ {G₁} {G₂} G₁↝G₂ x = G₂.⁻¹∘≡id→≡
   (to G₁↝G₂ x G₂.⁻¹ G₂.⁻¹ G₂.∘ to G₁↝G₂ (x G₁.⁻¹)  ≡⟨ cong (G₂._∘ to G₁↝G₂ (x G₁.⁻¹)) $ G₂.involutive _ ⟩
    to G₁↝G₂ x G₂.∘ to G₁↝G₂ (x G₁.⁻¹)              ≡⟨ sym $ G₁↝G₂ .homomorphic _ _ ⟩
    to G₁↝G₂ (x G₁.∘ x G₁.⁻¹)                       ≡⟨ cong (to G₁↝G₂) (G₁.right-inverse _) ⟩
@@ -272,7 +271,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
   ∀ (G₁↝G₂ : G₁ ↝[ k ]ᴳ G₂) x i →
   to G₁↝G₂ (Group._^_ G₁ x i) ≡
   Group._^_ G₂ (to G₁↝G₂ x) i
-→ᴳ-^ {G₁ = G₁} {G₂ = G₂} G₁↝G₂ x = lemma₂
+→ᴳ-^ {G₁} {G₂} G₁↝G₂ x = lemma₂
   where
   module G₁ = Group G₁
   module G₂ = Group G₂
@@ -281,7 +280,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
   lemma₁ zero =
     to G₁↝G₂ G₁.id  ≡⟨ →ᴳ-id G₁↝G₂ ⟩∎
     G₂.id    ∎
-  lemma₁ {y = y} (suc n) =
+  lemma₁ {y} (suc n) =
     to G₁↝G₂ (y G₁.∘ y G₁.^+ n)           ≡⟨ G₁↝G₂ .homomorphic _ _ ⟩
     to G₁↝G₂ y G₂.∘ to G₁↝G₂ (y G₁.^+ n)  ≡⟨ cong (_ G₂.∘_) $ lemma₁ n ⟩∎
     to G₁↝G₂ y G₂.∘ to G₁↝G₂ y G₂.^+ n    ∎
@@ -303,7 +302,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
       module G₂ = Group G₂
   in
   (G₁ ≡ G₂) ≃ ((G₁.Carrier , G₁._∘_) ≡ (G₂.Carrier , G₂._∘_))
-≡≃,∘≡,∘ {g = g} {G₁ = G₁} {G₂ = G₂} ext =
+≡≃,∘≡,∘ {g} {G₁} {G₂} ext =
   G₁ ≡ G₂                                                    ↝⟨ inverse $ Eq.≃-≡ Group≃ ⟩
 
   ((G₁.Carrier , G₁._∘_) , _) ≡ ((G₂.Carrier , G₂._∘_) , _)  ↔⟨ (inverse $
@@ -376,7 +375,7 @@ _≃ᴳ_ = _↝[ equivalence ]ᴳ_
   Extensionality g g →
   Univalence g →
   (G₁ ≃ᴳ G₂) ≃ (G₁ ≡ G₂)
-≃ᴳ≃≡ {G₁ = G₁} {G₂ = G₂} ext univ =
+≃ᴳ≃≡ {G₁} {G₂} ext univ =
   G₁ ≃ᴳ G₂                                                              ↝⟨ Homomorphic-as-Σ ⟩
 
   (∃ λ (eq : G₁.Carrier ≃ G₂.Carrier) →
@@ -440,7 +439,7 @@ Abelian G =
 -- one is abelian.
 
 ≃ᴳ→Abelian→Abelian : G₁ ≃ᴳ G₂ → Abelian G₁ → Abelian G₂
-≃ᴳ→Abelian→Abelian {G₁ = G₁} {G₂ = G₂} G₁≃G₂ ∘-comm x y =
+≃ᴳ→Abelian→Abelian {G₁} {G₂} G₁≃G₂ ∘-comm x y =
   _≃_.injective (G₂≃G₁ .related)
     (to G₂≃G₁ (x G₂.∘ y)         ≡⟨ G₂≃G₁ .homomorphic _ _ ⟩
      to G₂≃G₁ x G₁.∘ to G₂≃G₁ y  ≡⟨ ∘-comm _ _ ⟩
@@ -486,8 +485,7 @@ G₁ × G₂ = λ where
 ↝-× :
   G₁ ↝[ k ]ᴳ G₂ → G₁′ ↝[ k ]ᴳ G₂′ →
   (G₁ × G₁′) ↝[ k ]ᴳ (G₂ × G₂′)
-↝-× {G₁ = G₁} {k = k} {G₂ = G₂} {G₁′ = G₁′} {G₂′ = G₂′}
-  G₁↝G₂ G₁′↝G₂′ = λ where
+↝-× {G₁} {k} {G₂} {G₁′} {G₂′} G₁↝G₂ G₁′↝G₂′ = λ where
   .related →
     G₁↝G₂ .related ×-cong G₁′↝G₂′ .related
   .homomorphic x@(x₁ , x₂) y@(y₁ , y₂) →
@@ -527,8 +525,8 @@ G₁ × G₂ = λ where
   module G₁₂ = Group (G₁ × G₂)
 
   +-helper : ∀ n → (x , y) G₁₂.^+ n ≡ (x G₁.^+ n , y G₂.^+ n)
-  +-helper                 zero    = refl _
-  +-helper {x = x} {y = y} (suc n) =
+  +-helper         zero    = refl _
+  +-helper {x} {y} (suc n) =
     (x , y) G₁₂.∘ (x , y) G₁₂.^+ n         ≡⟨ cong (_ G₁₂.∘_) $ +-helper n ⟩
     (x , y) G₁₂.∘ (x G₁.^+ n , y G₂.^+ n)  ≡⟨⟩
     (x G₁.∘ x G₁.^+ n , y G₂.∘ y G₂.^+ n)  ∎

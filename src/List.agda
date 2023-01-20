@@ -239,8 +239,8 @@ concat-++ (xs ∷ xss) yss =
 foldr-++ :
   {c : A → B → B} {n : B} →
   ∀ xs → foldr c n (xs ++ ys) ≡ foldr c (foldr c n ys) xs
-foldr-++                           []       = refl _
-foldr-++ {ys = ys} {c = c} {n = n} (x ∷ xs) =
+foldr-++              []       = refl _
+foldr-++ {ys} {c} {n} (x ∷ xs) =
   foldr c n (x ∷ xs ++ ys)         ≡⟨⟩
   c x (foldr c n (xs ++ ys))       ≡⟨ cong (c x) (foldr-++ xs) ⟩
   c x (foldr c (foldr c n ys) xs)  ≡⟨⟩
@@ -272,7 +272,7 @@ index∘map :
   ∀ xs {i} →
   index (map f xs) i ≡
   f (index xs (subst Fin (length∘map f xs) i))
-index∘map {f = f} (x ∷ xs) {i} =
+index∘map {f} (x ∷ xs) {i} =
   index (f x ∷ map f xs) i                                  ≡⟨ lemma i ⟩
   f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p i))          ≡⟨⟩
   f (index (x ∷ xs) (subst (Fin ∘ suc) p i))                ≡⟨ cong (f ∘ index (_ ∷ xs)) (subst-∘ Fin suc _) ⟩
@@ -307,8 +307,8 @@ length-++ (_ ∷ xs) = cong suc (length-++ xs)
 -- The sum function is homomorphic with respect to _++_/_+_.
 
 sum-++ : ∀ ms → sum (ms ++ ns) ≡ sum ms + sum ns
-sum-++           []       = refl _
-sum-++ {ns = ns} (m ∷ ms) =
+sum-++      []       = refl _
+sum-++ {ns} (m ∷ ms) =
   sum (m ∷ ms ++ ns)     ≡⟨⟩
   m + sum (ms ++ ns)     ≡⟨ cong (m +_) $ sum-++ ms ⟩
   m + (sum ms + sum ns)  ≡⟨ +-assoc m ⟩
@@ -324,24 +324,24 @@ sum-++ {ns = ns} (m ∷ ms) =
     ∀ xs →
     foldl (flip _∷_) ys xs ++ zs ≡
     foldl (flip _∷_) (ys ++ zs) xs
-  lemma                     []       = refl _
-  lemma {ys = ys} {zs = zs} (x ∷ xs) =
+  lemma           []       = refl _
+  lemma {ys} {zs} (x ∷ xs) =
     foldl (flip _∷_) ys (x ∷ xs) ++ zs    ≡⟨⟩
     foldl (flip _∷_) (x ∷ ys) xs ++ zs    ≡⟨ lemma xs ⟩
     foldl (flip _∷_) (x ∷ ys ++ zs) xs    ≡⟨⟩
     foldl (flip _∷_) (ys ++ zs) (x ∷ xs)  ∎
 
 reverse-∷ : ∀ xs → reverse (x ∷ xs) ≡ reverse xs ++ x ∷ []
-reverse-∷ {x = x} xs =
+reverse-∷ {x} xs =
   reverse (x ∷ xs)              ≡⟨⟩
   foldl (flip _∷_) (x ∷ []) xs  ≡⟨ sym $ ++-reverse xs ⟩∎
   reverse xs ++ x ∷ []          ∎
 
 reverse-++ : ∀ xs → reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
-reverse-++ {ys = ys} [] =
+reverse-++ {ys} [] =
   reverse ys        ≡⟨ sym $ ++-right-identity _ ⟩∎
   reverse ys ++ []  ∎
-reverse-++ {ys = ys} (x ∷ xs) =
+reverse-++ {ys} (x ∷ xs) =
   reverse (x ∷ xs ++ ys)                ≡⟨ reverse-∷ (xs ++ _) ⟩
   reverse (xs ++ ys) ++ x ∷ []          ≡⟨ cong (_++ _) $ reverse-++ xs ⟩
   (reverse ys ++ reverse xs) ++ x ∷ []  ≡⟨ sym $ ++-associative (reverse ys) _ _ ⟩
@@ -358,8 +358,8 @@ reverse-reverse (x ∷ xs) =
   x ∷ xs                                    ∎
 
 map-reverse : ∀ xs → map f (reverse xs) ≡ reverse (map f xs)
-map-reverse         []       = refl _
-map-reverse {f = f} (x ∷ xs) =
+map-reverse     []       = refl _
+map-reverse {f} (x ∷ xs) =
   map f (reverse (x ∷ xs))        ≡⟨ cong (map f) $ reverse-∷ xs ⟩
   map f (reverse xs ++ x ∷ [])    ≡⟨ map-++ _ (reverse xs) _ ⟩
   map f (reverse xs) ++ f x ∷ []  ≡⟨ cong (_++ _) $ map-reverse xs ⟩
@@ -370,8 +370,8 @@ map-reverse {f = f} (x ∷ xs) =
 foldr-reverse :
   {c : A → B → B} {n : B} →
   ∀ xs → foldr c n (reverse xs) ≡ foldl (flip c) n xs
-foldr-reverse                 []       = refl _
-foldr-reverse {c = c} {n = n} (x ∷ xs) =
+foldr-reverse         []       = refl _
+foldr-reverse {c} {n} (x ∷ xs) =
   foldr c n (reverse (x ∷ xs))      ≡⟨ cong (foldr c n) (reverse-++ {ys = xs} (x ∷ [])) ⟩
   foldr c n (reverse xs ++ x ∷ [])  ≡⟨ foldr-++ (reverse xs) ⟩
   foldr c (c x n) (reverse xs)      ≡⟨ foldr-reverse xs ⟩
@@ -381,7 +381,7 @@ foldr-reverse {c = c} {n = n} (x ∷ xs) =
 foldl-reverse :
   {c : B → A → B} {n : B} →
   ∀ xs → foldl c n (reverse xs) ≡ foldr (flip c) n xs
-foldl-reverse {c = c} {n = n} xs =
+foldl-reverse {c} {n} xs =
   foldl c n (reverse xs)                   ≡⟨ sym (foldr-reverse (reverse xs)) ⟩
   foldr (flip c) n (reverse (reverse xs))  ≡⟨ cong (foldr (flip c) n) (reverse-reverse xs) ⟩∎
   foldr (flip c) n xs                      ∎
@@ -417,8 +417,8 @@ filter∘map p f (x ∷ xs) with p (f x)
 -- The length of replicate n x is n.
 
 length-replicate : ∀ n → length (replicate n x) ≡ n
-length-replicate         zero    = refl _
-length-replicate {x = x} (suc n) =
+length-replicate     zero    = refl _
+length-replicate {x} (suc n) =
   length (replicate (suc n) x)  ≡⟨⟩
   suc (length (replicate n x))  ≡⟨ cong suc $ length-replicate n ⟩∎
   suc n                         ∎
@@ -426,8 +426,8 @@ length-replicate {x = x} (suc n) =
 -- The sum of replicate m n is m * n.
 
 sum-replicate : ∀ m → sum (replicate m n) ≡ m * n
-sum-replicate         zero    = refl _
-sum-replicate {n = n} (suc m) =
+sum-replicate     zero    = refl _
+sum-replicate {n} (suc m) =
   sum (replicate (suc m) n)  ≡⟨⟩
   n + sum (replicate m n)    ≡⟨ cong (n +_) $ sum-replicate m ⟩
   n + m * n                  ≡⟨⟩
@@ -464,7 +464,7 @@ sum-nats-< (suc (suc n)) =
 -- Empty lists are not equal to non-empty lists.
 
 []≢++∷ : ∀ xs → [] ≢ xs ++ y ∷ ys
-[]≢++∷ {y = y} {ys = ys} xs =
+[]≢++∷ {y} {ys} xs =
   [] ≡ xs ++ y ∷ ys  ↝⟨ sym ∘ proj₂ ∘ ++≡[]→≡[]×≡[] xs ∘ sym ⟩
   [] ≡ y ∷ ys        ↝⟨ List.[]≢∷ ⟩□
   ⊥                  □
@@ -531,20 +531,20 @@ List↔Maybe[×List] = record
   ⊤                  □
 
 []≡∷↔⊥ : [] ≡ x ∷ xs ↔ ⊥ {ℓ = ℓ}
-[]≡∷↔⊥ {x = x} {xs = xs} =
+[]≡∷↔⊥ {x} {xs} =
   [] ≡ x ∷ xs              ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
   nothing ≡ just (x , xs)  ↝⟨ Bijection.≡↔⊎ ⟩
   ⊥                        ↝⟨ ⊥↔⊥ ⟩□
   ⊥                        □
 
 ∷≡[]↔⊥ : x ∷ xs ≡ [] ↔ ⊥ {ℓ = ℓ}
-∷≡[]↔⊥ {x = x} {xs = xs} =
+∷≡[]↔⊥ {x} {xs} =
   x ∷ xs ≡ []  ↝⟨ ≡-comm ⟩
   [] ≡ x ∷ xs  ↝⟨ []≡∷↔⊥ ⟩□
   ⊥            □
 
 ∷≡∷↔≡×≡ : x ∷ xs ≡ y ∷ ys ↔ x ≡ y × xs ≡ ys
-∷≡∷↔≡×≡ {x = x} {xs = xs} {y = y} {ys = ys} =
+∷≡∷↔≡×≡ {x} {xs} {y} {ys} =
   with-other-inverse
     (x ∷ xs ≡ y ∷ ys                ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ List↔Maybe[×List]) ⟩
      just (x , xs) ≡ just (y , ys)  ↝⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
@@ -597,24 +597,24 @@ List↔Maybe[×List] = record
 -- H-levels greater than or equal to two are closed under List.
 
 H-level-List : ∀ n → H-level (2 + n) A → H-level (2 + n) (List A)
-H-level-List n _ {([])} {([])} =
+H-level-List n _ {x = []} {y = []} =
                              $⟨ ⊤-contractible ⟩
   Contractible ⊤             ↝⟨ H-level-cong _ 0 (inverse []≡[]↔⊤) ⟩
   Contractible ([] ≡ [])     ↝⟨ H-level.mono (zero≤ (1 + n)) ⟩□
   H-level (1 + n) ([] ≡ [])  □
 
-H-level-List n h {([])} {y ∷ ys} =
+H-level-List n h {x = []} {y = y ∷ ys} =
                                  $⟨ ⊥-propositional ⟩
   Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse []≡∷↔⊥) ⟩
   Is-proposition ([] ≡ y ∷ ys)   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
   H-level (1 + n) ([] ≡ y ∷ ys)  □
 
-H-level-List n h {x ∷ xs} {([])} =
+H-level-List n h {x = x ∷ xs} {y = []} =
                                  $⟨ ⊥-propositional ⟩
   Is-proposition ⊥₀              ↝⟨ H-level-cong _ 1 (inverse ∷≡[]↔⊥) ⟩
   Is-proposition (x ∷ xs ≡ [])   ↝⟨ H-level.mono (suc≤suc (zero≤ n)) ⟩□
   H-level (1 + n) (x ∷ xs ≡ [])  □
 
-H-level-List n h {x ∷ xs} {y ∷ ys} =
+H-level-List n h {x = x ∷ xs} {y = y ∷ ys} =
   H-level-cong _ (1 + n) (inverse ∷≡∷↔≡×≡)
     (×-closure (1 + n) h (H-level-List n h))

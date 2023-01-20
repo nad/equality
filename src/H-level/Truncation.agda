@@ -69,7 +69,7 @@ spoke r x = _↔_.from ≡↔≡ (spokeᴾ r x)
 -- The truncation operator produces types of the right h-level.
 
 truncation-has-correct-h-level : ∀ n → H-level (1 + n) ∥ A ∥[1+ n ]
-truncation-has-correct-h-level {A = A} n =
+truncation-has-correct-h-level {A} n =
   _↔_.from +↔∀contractible𝕊→ᴮ c
   where
   c : ∀ x → Contractible ((𝕊 n , north) PT.→ᴮ (∥ A ∥[1+ n ] , x))
@@ -124,7 +124,7 @@ record Elimᴾ {A : Type a} (P : ∥ A ∥[1+ n ] → Type p) :
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → ∀ x → P x
-elimᴾ {P = P} e = helper
+elimᴾ {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -226,7 +226,7 @@ record Elim {A : Type a} (P : ∥ A ∥[1+ n ] → Type p) :
 open Elim public
 
 elim : Elim {n = n} {A = A} P → ∀ x → P x
-elim {n = n} {A = A} {P = P} e = elim′ e′
+elim {n} {A} {P} e = elim′ e′
   where
   module _ (r : 𝕊 n → ∥ A ∥[1+ n ]) (p : ∀ x → P (r x)) where
 
@@ -281,7 +281,7 @@ uniqueness′ :
   (∀ x → H-level (2 + n) (P x)) →
   ((x : A) → f ∣ x ∣ ≡ g ∣ x ∣) →
   ((x : ∥ A ∥[1+ n ]) → f x ≡ g x)
-uniqueness′ {n = n} P-h f≡g = elim λ where
+uniqueness′ {n} P-h f≡g = elim λ where
   .∣∣ʳ        → f≡g
   .h-levelʳ _ → +⇒≡ {n = suc n} (P-h _)
 
@@ -332,7 +332,7 @@ universal-property h = record
 ∥∥-map-∘ :
   (x : ∥ A ∥[1+ n ]) →
   ∥∥-map (f ∘ g) x ≡ ∥∥-map f (∥∥-map g x)
-∥∥-map-∘ {f = f} {g = g} = uniqueness
+∥∥-map-∘ {f} {g} = uniqueness
   (truncation-has-correct-h-level _)
   (λ x → ∣ f (g x) ∣  ∎)
 
@@ -351,7 +351,7 @@ universal-property h = record
 -- ∥ A ∥[1+ n ].
 
 +⇔∥∥↔ : H-level (1 + n) A ⇔ (∥ A ∥[1+ n ] ↔ A)
-+⇔∥∥↔ {n = n} {A = A} = record
++⇔∥∥↔ {n} {A} = record
   { to = λ h → record
     { surjection = record
       { logical-equivalence = record
@@ -383,7 +383,7 @@ universal-property h = record
   {A : Type a} {x y : A} →
   Univalence a →
   ∥ x ≡ y ∥[1+ n ] ≃ _≡_ {A = ∥ A ∥[1+ suc n ]} ∣ x ∣ ∣ y ∣
-∥≡∥≃∣∣≡∣∣ {n = n} {A = A} univ = Eq.↔→≃
+∥≡∥≃∣∣≡∣∣ {n} {A} univ = Eq.↔→≃
   (decode ∣ _ ∣ ∣ _ ∣)
   (encode ∣ _ ∣ ∣ _ ∣)
   (decode-encode _)
@@ -481,7 +481,7 @@ _ = refl _
 -- This result is similar to Theorem 7.3.8 from the HoTT book.
 
 ∥∥×∥∥≃∥×∥ : (∥ A ∥[1+ n ] × ∥ B ∥[1+ n ]) ≃ ∥ A × B ∥[1+ n ]
-∥∥×∥∥≃∥×∥ {n = n} = Eq.↔→≃
+∥∥×∥∥≃∥×∥ {n} = Eq.↔→≃
   (uncurry $ rec λ where
      .h-levelʳ → Π-closure ext _ λ _ →
                  truncation-has-correct-h-level _
@@ -558,7 +558,7 @@ flatten-≤ m≤n = record
 -- Nested truncations can be flattened.
 
 flatten : ∥ ∥ A ∥[1+ m ] ∥[1+ n ] ↔ ∥ A ∥[1+ min m n ]
-flatten {A = A} {m = m} {n = n} = case Nat.total m n of λ where
+flatten {A} {m} {n} = case Nat.total m n of λ where
   (inj₁ m≤n) → ∥ ∥ A ∥[1+ m ] ∥[1+ n ]  ↝⟨ flatten-≤ m≤n ⟩
                ∥ A ∥[1+ m ]             ↝⟨ ≡⇒↝ _ $ cong ∥ A ∥[1+_] $ sym $ _⇔_.to Nat.≤⇔min≡ m≤n ⟩□
                ∥ A ∥[1+ min m n ]       □
@@ -592,7 +592,7 @@ flatten {A = A} {m = m} {n = n} = case Nat.total m n of λ where
 infixl 5 _>>=′_
 
 _>>=′_ : ∥ A ∥[1+ n ] → (A → ∥ B ∥[1+ n ]) → ∥ B ∥[1+ n ]
-_>>=′_ {A = A} {n = n} {B = B} = curry (
+_>>=′_ {A} {n} {B} = curry (
   ∥ A ∥[1+ n ] × (A → ∥ B ∥[1+ n ])  ↝⟨ uncurry (flip ∥∥-map) ⟩
   ∥ ∥ B ∥[1+ n ] ∥[1+ n ]            ↔⟨ flatten-≤ Nat.≤-refl ⟩□
   ∥ B ∥[1+ n ]                       □)
@@ -629,7 +629,7 @@ instance
 -- The truncation operator preserves bijections.
 
 ∥∥-cong : A ↔[ k ] B → ∥ A ∥[1+ n ] ↔[ k ] ∥ B ∥[1+ n ]
-∥∥-cong {n = n} A↝B = from-bijection (record
+∥∥-cong {n} A↝B = from-bijection (record
   { surjection = record
     { logical-equivalence = record
       { to   = ∥∥-map (_↔_.to   A↔B)
@@ -657,7 +657,7 @@ instance
 -- ∥ A ∥[1+_] is downwards closed.
 
 downwards-closed : m ≤ n → ∥ A ∥[1+ n ] → ∥ A ∥[1+ m ]
-downwards-closed {m = m} {n = n} {A = A} m≤n =
+downwards-closed {m} {n} {A} m≤n =
   ∥ A ∥[1+ n ]             ↝⟨ ∥∥-map ∣_∣ ⟩
   ∥ ∥ A ∥[1+ m ] ∥[1+ n ]  ↔⟨ flatten-≤ m≤n ⟩□
   ∥ A ∥[1+ m ]             □
@@ -671,7 +671,7 @@ downwards-closed {m = m} {n = n} {A = A} m≤n =
 -- Rijke, Shulman and Spitters.
 
 ∥∥[1+_]-modality : ℕ → Modality ℓ
-∥∥[1+_]-modality {ℓ = ℓ} n = λ where
+∥∥[1+_]-modality {ℓ} n = λ where
     .◯                   → ∥_∥[1+ n ]
     .η                   → ∣_∣
     .Modal               → H-level (1 + n)
@@ -686,7 +686,7 @@ downwards-closed {m = m} {n = n} {A = A} m≤n =
     {A : Type ℓ} {P : ∥ A ∥[1+ n ] → Type ℓ} →
     (∀ x → H-level (1 + n) (P x)) →
     Is-∞-extendable-along-[ ∣_∣ ] P
-  extendable {A = A} {P = P} =
+  extendable {A} {P} =
     (∀ x → H-level (1 + n) (P x))                                →⟨ (λ h →
                                                                        _≃_.is-equivalence $
                                                                        Eq.↔→≃
@@ -707,7 +707,7 @@ downwards-closed {m = m} {n = n} {A = A} m≤n =
 -- Rijke, Shulman and Spitters.
 
 ∥∥[1+_]-accessible : ∀ n → Accessible (∥∥[1+_]-modality {ℓ = ℓ} n)
-∥∥[1+_]-accessible {ℓ = ℓ} n =
+∥∥[1+_]-accessible {ℓ} n =
     ↑ ℓ ⊤
   , (λ _ → ↑ ℓ (𝕊 n))
   , (λ A →

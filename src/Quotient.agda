@@ -104,7 +104,7 @@ record Elimᴾ′ {A : Type a} {R : A → A → Type r} (P : A / R → Type p) :
 open Elimᴾ′ public
 
 elimᴾ′ : Elimᴾ′ P → (x : A / R) → P x
-elimᴾ′ {A = A} {R = R} {P = P} e = helper
+elimᴾ′ {A} {R} {P} e = helper
   where
   module E′ = Elimᴾ′ e
 
@@ -143,7 +143,7 @@ private
   -- One can define elimᴾ′ using elimᴾ.
 
   elimᴾ′₂ : Elimᴾ′ P → (x : A / R) → P x
-  elimᴾ′₂ {P = P} e = elimᴾ λ where
+  elimᴾ′₂ {P} e = elimᴾ λ where
       .[]ʳ                           → E′.[]ʳ
       .[]-respects-relationʳ         → E′.[]-respects-relationʳ
       .is-setʳ x {x = y} {y = z} p q →                                 $⟨ E′.is-setʳ p q ⟩
@@ -280,7 +280,7 @@ rec-prop r = elim-prop λ where
 -- equivalent to quotients with regular higher constructors.
 
 @0 /ᴱ≃/ : A /ᴱ R ≃ A / R
-/ᴱ≃/ {A = A} {R = R} = Eq.↔⇒≃ (record
+/ᴱ≃/ {A} {R} = Eq.↔⇒≃ (record
   { surjection = record
     { logical-equivalence = record
       { to   = /ᴱ→/
@@ -328,10 +328,10 @@ _/-map-∥∥_ :
   (A₁→A₂ : A₁ → A₂) →
   (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
   A₁ / R₁ → A₂ / R₂
-_/-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec λ where
-  .[]ʳ                                   → [_] ∘ A₁→A₂
-  .is-setʳ                               → /-is-set
-  .[]-respects-relationʳ {x = x} {y = y} →
+_/-map-∥∥_ {R₁} {R₂} A₁→A₂ R₁→R₂ = rec λ where
+  .[]ʳ                           → [_] ∘ A₁→A₂
+  .is-setʳ                       → /-is-set
+  .[]-respects-relationʳ {x} {y} →
      R₁ x y                      ↝⟨ ∣_∣ ⟩
      ∥ R₁ x y ∥                  ↝⟨ R₁→R₂ _ _ ⟩
      ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥  ↝⟨ TruncP.rec /-is-set []-respects-relation ⟩□
@@ -366,7 +366,7 @@ _/-cong-∥∥-↠_ :
   (A₁↠A₂ : A₁ ↠ A₂) →
   (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
   A₁ / R₁ ↠ A₂ / R₂
-_/-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = record
+_/-cong-∥∥-↠_ {R₁} {R₂} A₁↠A₂ R₁⇔R₂ = record
   { logical-equivalence = /-cong-∥∥-⇔
       (_↠_.logical-equivalence A₁↠A₂)
       (λ x y → _⇔_.to (R₁⇔R₂ x y))
@@ -398,7 +398,7 @@ _/-cong-∥∥_ :
      ∥ R₁ x y ∥ ⇔
      ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
   A₁ / R₁ ↔[ k ] A₂ / R₂
-_/-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
+_/-cong-∥∥_ {k} {R₁} {R₂} A₁↔A₂′ R₁⇔R₂ =
   from-bijection (record
     { surjection = from-isomorphism A₁↔A₂ /-cong-∥∥-↠ λ x y →
         ∥ R₁ x y ∥                                                  ↝⟨ R₁⇔R₂ x y ⟩
@@ -432,7 +432,7 @@ _/-cong_ A₁↔A₂ R₁⇔R₂ =
 -- equivalent to quotienting by the relation itself.
 
 /-∥∥≃/ : A / (λ x y → ∥ R x y ∥) ≃ A / R
-/-∥∥≃/ {R = R} = F.id /-cong-∥∥ λ x y →
+/-∥∥≃/ {R} = F.id /-cong-∥∥ λ x y →
   ∥ ∥ R x y ∥ ∥  ↔⟨ TruncP.flatten ⟩□
   ∥ R x y ∥      □
 
@@ -450,8 +450,7 @@ related≃[equal] :
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
-related≃[equal] {A = A} {r = r} {R = R}
-                prop-ext R-equiv R-prop {x = x} {y = y} =
+related≃[equal] {A} {r} {R} prop-ext R-equiv R-prop {x} {y} =
   _↠_.from (Eq.≃↠⇔ R-prop /-is-set)
     (record
       { to   = []-respects-relation
@@ -486,7 +485,7 @@ related≃[equal] {A = A} {r = r} {R = R}
   Propositional-extensionality r →
   Is-equivalence-relation R →
   ∀ {x y} → ∥ R x y ∥ ≃ _≡_ {A = A / R} [ x ] [ y ]
-∥related∥≃[equal] {A = A} {R = R} prop-ext R-equiv {x = x} {y = y} =
+∥related∥≃[equal] {A} {R} prop-ext R-equiv {x} {y} =
   ∥ R x y ∥                                    ↝⟨ related≃[equal]
                                                     prop-ext
                                                     (TruncP.∥∥-preserves-Is-equivalence-relation R-equiv)
@@ -518,7 +517,7 @@ related≃[equal] {A = A} {r = r} {R = R}
 -- using the propositional truncation.
 
 /trivial↔∥∥ : (∀ x y → R x y) → A / R ↔ ∥ A ∥
-/trivial↔∥∥ {A = A} {R = R} trivial = record
+/trivial↔∥∥ {A} {R} trivial = record
   { surjection = record
     { logical-equivalence = record
       { from = TruncP.rec /-prop [_]
@@ -551,7 +550,7 @@ related≃[equal] {A = A} {r = r} {R = R}
 constant-function↔∥inhabited∥⇒inhabited :
   Is-set B →
   (∃ λ (f : A → B) → Constant f) ↔ (∥ A ∥ → B)
-constant-function↔∥inhabited∥⇒inhabited {B = B} {A = A} B-set =
+constant-function↔∥inhabited∥⇒inhabited {B} {A} B-set =
   (∃ λ (f : A → B) → Constant f)  ↝⟨ record
                                        { surjection = record
                                          { logical-equivalence = record
@@ -618,7 +617,7 @@ Very-stable-≡-/ :
   (∀ x y → Is-proposition (R x y)) →
   (∀ x y → Stable (R x y)) →
   Very-stable-≡ (A / R)
-Very-stable-≡-/ {A = A} {R = R} prop-ext equiv prop s =
+Very-stable-≡-/ {A} {R} prop-ext equiv prop s =
   elim-prop λ where
     .[]ʳ x → elim-prop λ where
        .[]ʳ y →                       $⟨ s _ _ ⟩
@@ -638,10 +637,10 @@ private
   infix 5 _/′_
 
   _/′_ : (A : Type a) → (A → A → Type a) → Type (lsuc a)
-  _/′_ {a = a} A R = ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
+  _/′_ {a} A R = ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
 
   /↔/′ : A Quotient./ R ↔ A /′ R
-  /↔/′ {A = A} {R = R} =
+  /↔/′ {A} {R} =
     A Quotient./ R                                            ↔⟨⟩
     (∃ λ (P : A → Type _) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 _)  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
     (∃ λ (P : A → Type _) → ∥ (∃ λ x → R x ≡ P) ∥)            ↔⟨⟩
@@ -691,7 +690,7 @@ private
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   A / R ↔ ∃ λ (P : A → Type a) → ∥ (∃ λ x → R x ≡ P) ∥
-/↔ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop = record
+/↔ {a} {A} {R} univ univ₀ R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -709,8 +708,8 @@ private
 
   to : A / R → A /′ R
   to = rec λ where
-    .[]ʳ                                   → [_]′
-    .[]-respects-relationʳ {x = x} {y = y} →
+    .[]ʳ                           → [_]′
+    .[]-respects-relationʳ {x} {y} →
       R x y                            ↝⟨ _≃_.to (Quotient.related↝[equal] ext R-is-strong-equivalence) ⟩
       Quotient.[ x ] ≡ Quotient.[ y ]  ↝⟨ cong (_↔_.to /↔/′) ⟩□
       [ x ]′ ≡ [ y ]′                  □
@@ -756,7 +755,7 @@ private
   Is-equivalence-relation R →
   (R-prop : ∀ {x y} → Is-proposition (R x y)) →
   A Quotient./ R ↔ A / R
-/↔/ {a = a} {A = A} {R = R} univ univ₀ R-equiv R-prop =
+/↔/ {a} {A} {R} univ univ₀ R-equiv R-prop =
   A Quotient./ R                                                   ↔⟨⟩
   (∃ λ (P : A → Type a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
   (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ univ univ₀ R-equiv R-prop ⟩□
@@ -810,7 +809,7 @@ private
 -- "Quotienting the Delay Monad by Weak Bisimilarity".
 
 Maybe/-comm : Maybe A / Maybeᴾ R ↔ Maybe (A / R)
-Maybe/-comm {A = A} {R = R} =
+Maybe/-comm {A} {R} =
   Maybe A / Maybeᴾ R   ↝⟨ ⊎/-comm ⟩
   ⊤ / Trivial ⊎ A / R  ↝⟨ /trivial↔∥∥ _ ⊎-cong F.id ⟩
   ∥ ⊤ ∥ ⊎ A / R        ↝⟨ TruncP.∥∥↔ (mono₁ 0 ⊤-contractible) ⊎-cong F.id ⟩□
@@ -839,7 +838,7 @@ Maybe/-comm-[] =
   (∀ {x} → R₁ x x) →
   (∀ {x} → R₂ x x) →
   (A₁ × A₂) / (R₁ ×ᴾ R₂) ≃ (A₁ / R₁ × A₂ / R₂)
-×/-comm {R₁ = R₁} {R₂ = R₂} R₁-refl R₂-refl = Eq.↔→≃
+×/-comm {R₁} {R₂} R₁-refl R₂-refl = Eq.↔→≃
   (rec λ where
      .is-setʳ → ×-closure 2 /-is-set /-is-set
 
@@ -884,14 +883,14 @@ Maybe/-comm-[] =
   {P : A / R → Type p} →
   (∀ {x} → Is-proposition (P x)) →
   Σ (A / R) P ↔ Σ A (P ∘ [_]) / (R on proj₁)
-Σ/-comm {A = A} {R = R} {P = P} P-prop = record
+Σ/-comm {A} {R} {P} P-prop = record
   { surjection = record
     { logical-equivalence = record
       { to =
           uncurry $
           elim λ where
             .[]ʳ → curry [_]
-            .[]-respects-relationʳ {x = x} {y = y} r → ⟨ext⟩ λ P[y] →
+            .[]-respects-relationʳ {x} {y} r → ⟨ext⟩ λ P[y] →
               subst (λ x → P x → Σ A (P ∘ [_]) / (R on proj₁))
                     ([]-respects-relation r)
                     (curry [_] x) P[y]                               ≡⟨ subst-→-domain P {f = curry [_] _} ([]-respects-relation r) ⟩
@@ -929,7 +928,7 @@ Erased/-comm :
   @0 Is-set A →
   @0 (∀ {x y} → R x y → x ≡ y) →
   Erased A / Erasedᴾ R ≃ Erased (A / R)
-Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
+Erased/-comm {A} {R} set R→≡ = Eq.↔→≃
   (rec λ where
      .is-setʳ                         → E.H-level-Erased 2 /-is-set
      .[]ʳ                             → E.map [_]
@@ -979,7 +978,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
   Is-equivalence-relation R →
   (∀ {x y} → Is-proposition (R x y)) →
   (ℕ → A) / (ℕ →ᴾ R) ↔ (ℕ → A / R)
-ℕ→/-comm {A = A} {R = R} cc prop-ext R-equiv R-prop = record
+ℕ→/-comm {A} {R} cc prop-ext R-equiv R-prop = record
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
@@ -1094,8 +1093,8 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
   p′ : P (_↠_.to surj (_↠_.from surj x))
   p′ = elim
     (λ where
-       .[]ʳ                                     → p-[]
-       .[]-respects-relationʳ {x = x} {y = y} r →
+       .[]ʳ                             → p-[]
+       .[]-respects-relationʳ {x} {y} r →
          subst (P ∘ _↠_.to surj) ([]-respects-relation r) (p-[] x)       ≡⟨ subst-∘ P (_↠_.to surj) ([]-respects-relation r) ⟩
          subst P (cong (_↠_.to surj) ([]-respects-relation r)) (p-[] x)  ≡⟨ ok r ⟩∎
          p-[] y                                                          ∎
@@ -1115,7 +1114,7 @@ Erased/-comm {A = A} {R = R} set R→≡ = Eq.↔→≃
   (P-set : ∀ x → Is-set (P x)) x →
   _↠_.from surj (_↠_.to surj [ x ]) ≡ [ x ] →
   ↠-eliminator surj P p-[] ok P-set (_↠_.to surj [ x ]) ≡ p-[] x
-↠-eliminator-[] {R = R} surj P p-[] ok P-set x hyp =
+↠-eliminator-[] {R} surj P p-[] ok P-set x hyp =
   subst P (_↠_.right-inverse-of surj (_↠_.to surj [ x ]))
     (elim e (_↠_.from surj (_↠_.to surj [ x ])))                        ≡⟨ cong (λ p → subst P p (elim e _)) $
                                                                            H.respects-surjection surj 2 /-is-set

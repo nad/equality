@@ -64,7 +64,7 @@ Univalence ℓ = {A B : Type ℓ} → Univalence′ A B
       Extensionality ℓ ℓ →
       Is-set A →
       (A ≡ B) ≃ (A ↔ B)
-≡≃↔ {A = A} {B} univ ext A-set =
+≡≃↔ {A} {B} univ ext A-set =
   (A ≡ B)  ↝⟨ ≡≃≃ univ ⟩
   (A ≃ B)  ↔⟨ inverse $ Eq.↔↔≃ ext A-set ⟩□
   (A ↔ B)  □
@@ -206,8 +206,7 @@ flip-subst-is-equivalence↔∃-is-contractible :
   (∀ y → Is-equivalence (flip (subst {y = y} P) p))
     ↝[ a ⊔ pℓ ∣ a ⊔ pℓ ]
   Contractible (∃ P)
-flip-subst-is-equivalence↔∃-is-contractible
-  {pℓ = pℓ} {P = P} {x = x} {p = p} =
+flip-subst-is-equivalence↔∃-is-contractible {pℓ} {P} {x} {p} =
   generalise-ext?-prop
     lemma
     (λ ext → Π-closure (lower-extensionality pℓ lzero ext) 1 λ _ →
@@ -267,7 +266,7 @@ flip-subst-is-equivalence↔∃-is-contractible
 ∘-sym-preserves-equivalences :
   ∀ {a b} {A : Type a} {B : Type b} {x y : A} {f : x ≡ y → B} →
   Is-equivalence f ↝[ a ⊔ b ∣ a ⊔ b ] Is-equivalence (f ∘ sym)
-∘-sym-preserves-equivalences {A = A} {B} =
+∘-sym-preserves-equivalences {A} {B} =
   Is-equivalence≃Is-equivalence-∘ʳ
     (_≃_.is-equivalence $ Eq.↔⇒≃ ≡-comm)
 
@@ -286,7 +285,7 @@ Other-univalence ℓ =
 Univalence↔Other-univalence :
   ∀ {ℓ} →
   Univalence ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ] Other-univalence ℓ
-Univalence↔Other-univalence {ℓ = ℓ} ext =
+Univalence↔Other-univalence {ℓ} ext =
   Univalence ℓ                                                          ↝⟨ implicit-∀-cong ext $ implicit-∀-cong ext $
                                                                            from-equivalence Univalence′≃Is-equivalence-≡⇒≃ ⟩
   ({A B : Type ℓ} → Is-equivalence (≡⇒≃ {A = A} {B = B}))               ↔⟨ Bijection.implicit-Π↔Π ⟩
@@ -341,7 +340,7 @@ abstract
   ≡⇒→-≃⇒≡ : ∀ k {ℓ} {A B : Type ℓ} {eq : A ≃ B}
             (univ : Univalence′ A B) →
             to-implication (≡⇒↝ k (≃⇒≡ univ eq)) ≡ _≃_.to eq
-  ≡⇒→-≃⇒≡ k {eq = eq} univ =
+  ≡⇒→-≃⇒≡ k {eq} univ =
     to-implication (≡⇒↝ k (≃⇒≡ univ eq))  ≡⟨ to-implication-≡⇒↝ k _ ⟩
     ≡⇒↝ implication (≃⇒≡ univ eq)         ≡⟨ sym $ to-implication-≡⇒↝ equivalence _ ⟩
     ≡⇒→ (≃⇒≡ univ eq)                     ≡⟨ cong _≃_.to (_≃_.right-inverse-of (≡≃≃ univ) _) ⟩∎
@@ -357,7 +356,7 @@ Univalence′≃Univalence′-CP :
   ∀ {ℓ} {A B : Type ℓ} →
   Extensionality (lsuc ℓ) (lsuc ℓ) →
   Univalence′ A B ≃ CP.Univalence′ A B
-Univalence′≃Univalence′-CP {ℓ = ℓ} {A = A} {B = B} ext =
+Univalence′≃Univalence′-CP {ℓ} {A} {B} ext =
   Univalence′ A B                         ↝⟨ Univalence′≃Is-equivalence-≡⇒≃ ⟩
 
   Is-equivalence ≡⇒≃                      ↝⟨ Is-equivalence-cong ext $
@@ -394,7 +393,7 @@ Univalence≃Univalence-CP :
   ∀ {ℓ} →
   Extensionality (lsuc ℓ) (lsuc ℓ) →
   Univalence ℓ ≃ CP.Univalence ℓ
-Univalence≃Univalence-CP {ℓ = ℓ} ext =
+Univalence≃Univalence-CP {ℓ} ext =
   implicit-∀-cong ext $ implicit-∀-cong ext $
   Univalence′≃Univalence′-CP ext
 
@@ -481,7 +480,7 @@ abstract
     cast-preserves-injections :
       {A : Type} (f : A → ℕ ≃ ℕ) →
       Injective f → Injective (cast ∘ f)
-    cast-preserves-injections f inj {x = x} {y = y} cast-f-x≡cast-f-y =
+    cast-preserves-injections f inj {x} {y} cast-f-x≡cast-f-y =
       inj (f x               ≡⟨ sym $ _≃_.right-inverse-of (≡≃≃ univ) (f x) ⟩
            ≡⇒≃ (cast (f x))  ≡⟨ cong ≡⇒≃ cast-f-x≡cast-f-y ⟩
            ≡⇒≃ (cast (f y))  ≡⟨ _≃_.right-inverse-of (≡≃≃ univ) (f y) ⟩∎
@@ -571,7 +570,7 @@ abstract
     ∀ {ℓ c} {A B : Type ℓ} {C : Type c} →
     Univalence′ B A → (A≃B : A ≃ B) →
     Is-equivalence (λ (g : B → C) → g ∘ _≃_.to A≃B)
-  precomposition-is-equivalence {ℓ} {c} {C = C} univ A≃B =
+  precomposition-is-equivalence {ℓ} {c} {C} univ A≃B =
     resp-is-equivalence P resp refl univ (Eq.inverse A≃B)
     where
     P : Type ℓ → Type (ℓ ⊔ c)
@@ -603,7 +602,7 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
 -- The set of such pairs is isomorphic to the underlying type.
 
 -²/≡↔- : ∀ {a} {A : Type a} → (A ²/≡) ↔ A
--²/≡↔- {A = A} =
+-²/≡↔- {A} =
   (∃ λ (x : A) → ∃ λ (y : A) → x ≡ y)  ↝⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _)) ⟩
   A × ⊤                                ↝⟨ ×-right-identity ⟩□
   A                                    □
@@ -617,7 +616,7 @@ abstract
     ∀ {a b} {A : Type a} {B : Type b} →
     Univalence′ (B ²/≡) B →
     {f g : A → B} → (∀ x → f x ≡ g x) → f ≡ g
-  extensionality {A = A} {B} univ {f} {g} f≡g =
+  extensionality {A} {B} univ {f} {g} f≡g =
     f          ≡⟨ refl f ⟩
     f′ ∘ pair  ≡⟨ cong (λ (h : B ²/≡ → B) → h ∘ pair) f′≡g′ ⟩
     g′ ∘ pair  ≡⟨ refl g ⟩∎
@@ -646,7 +645,7 @@ abstract
     ∀ {a} {A : Type a} {B : A → Type b} →
     (∀ x → Univalence′ (↑ b ⊤) (B x)) →
     (∀ x → Contractible (B x)) → Contractible ((x : A) → B x)
-  Π-closure-contractible {b} univ₁ {A = A} {B} univ₂ contr =
+  Π-closure-contractible {b} univ₁ {A} {B} univ₂ contr =
     subst Contractible A→⊤≡[x:A]→Bx →⊤-contractible
     where
     const-⊤≡B : const (↑ b ⊤) ≡ B
@@ -718,7 +717,7 @@ Pow↔Fam : ∀ ℓ {a} {A : Type a} →
           Extensionality a (lsuc (a ⊔ ℓ)) →
           Univalence (a ⊔ ℓ) →
           Pow ℓ A ↔ Fam ℓ A
-Pow↔Fam ℓ {A = A} ext univ = record
+Pow↔Fam ℓ {A} ext univ = record
   { surjection = record
     { logical-equivalence = Pow⇔Fam ℓ
     ; right-inverse-of    = λ { (I , f) →
@@ -782,7 +781,7 @@ abstract
   Univalence′-propositional :
     ∀ {ℓ} → Extensionality (lsuc ℓ) (lsuc ℓ) →
     {A B : Type ℓ} → Is-proposition (Univalence′ A B)
-  Univalence′-propositional ext {A = A} {B = B} =          $⟨ Is-equivalence-propositional ext ⟩
+  Univalence′-propositional ext {A} {B} =                  $⟨ Is-equivalence-propositional ext ⟩
     Is-proposition (Is-equivalence (≡⇒≃ {A = A} {B = B}))  ↝⟨ H-level-cong _ 1 (inverse Univalence′≃Is-equivalence-≡⇒≃) ⦂ (_ → _) ⟩□
     Is-proposition (Univalence′ A B)                       □
 
@@ -995,7 +994,7 @@ abstract
     (A₁≃A₂ : A₁ ≃ A₂) (B₁≃B₂ : B₁ ≃ B₂) →
     ≃⇒≡ univ (→-cong ext A₁≃A₂ B₁≃B₂) ≡
       cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂) (≃⇒≡ univ B₁≃B₂)
-  ≃⇒≡-→-cong {A₂ = A₂} {B₁} ext univ A₁≃A₂ B₁≃B₂ =
+  ≃⇒≡-→-cong {A₂} {B₁} ext univ A₁≃A₂ B₁≃B₂ =
     ≃⇒≡ univ (→-cong ext A₁≃A₂ B₁≃B₂)                        ≡⟨ cong (≃⇒≡ univ) (Eq.lift-equality ext lemma) ⟩
 
     ≃⇒≡ univ (≡⇒≃ (cong₂ (λ A B → A → B) (≃⇒≡ univ A₁≃A₂)
@@ -1040,7 +1039,7 @@ abstract
     (P-cong : ∀ {A B} → A ≃ B → P A ≃ P B) →
     (∀ {A} (p : P A) → _≃_.to (P-cong Eq.id) p ≡ p) →
     cong P (≃⇒≡ univ₁ A≃B) ≡ ≃⇒≡ univ₂ (P-cong A≃B)
-  cong-≃⇒≡ {A≃B = A≃B} ext univ₁ univ₂ P P-cong P-cong-id =
+  cong-≃⇒≡ {A≃B} ext univ₁ univ₂ P P-cong P-cong-id =
     cong P (≃⇒≡ univ₁ A≃B)                    ≡⟨ sym $ _≃_.left-inverse-of (≡≃≃ univ₂) _ ⟩
     ≃⇒≡ univ₂ (≡⇒≃ (cong P (≃⇒≡ univ₁ A≃B)))  ≡⟨ cong (≃⇒≡ univ₂) $ Eq.lift-equality ext lemma ⟩∎
     ≃⇒≡ univ₂ (P-cong A≃B)                    ∎
@@ -1200,7 +1199,7 @@ singleton-with-≃-↔-⊤ :
   Extensionality (a ⊔ b) (a ⊔ b) →
   Univalence (a ⊔ b) →
   (∃ λ (A : Type (a ⊔ b)) → A ≃ B) ↔ ⊤
-singleton-with-≃-↔-⊤ {a} {B = B} ext univ =
+singleton-with-≃-↔-⊤ {a} {B} ext univ =
   (∃ λ A → A ≃ B)      ↝⟨ inverse (∃-cong λ _ → Eq.≃-preserves-bijections ext F.id Bijection.↑↔) ⟩
   (∃ λ A → A ≃ ↑ a B)  ↔⟨ inverse (∃-cong λ _ → ≡≃≃ univ) ⟩
   (∃ λ A → A ≡ ↑ a B)  ↝⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
@@ -1211,7 +1210,7 @@ other-singleton-with-≃-↔-⊤ :
   Extensionality (a ⊔ b) (a ⊔ b) →
   Univalence (a ⊔ b) →
   (∃ λ (B : Type (a ⊔ b)) → A ≃ B) ↔ ⊤
-other-singleton-with-≃-↔-⊤ {b = b} {A} ext univ =
+other-singleton-with-≃-↔-⊤ {b} {A} ext univ =
   (∃ λ B → A ≃ B)  ↝⟨ (∃-cong λ _ → Eq.inverse-isomorphism ext) ⟩
   (∃ λ B → B ≃ A)  ↝⟨ singleton-with-≃-↔-⊤ {a = b} ext univ ⟩□
   ⊤                □
@@ -1223,7 +1222,7 @@ singleton-with-Π-≃-≃-⊤ :
   Extensionality a (lsuc q) →
   Univalence q →
   (∃ λ (P : A → Type q) → ∀ x → P x ≃ Q x) ≃ ⊤
-singleton-with-Π-≃-≃-⊤ {a = a} {q = q} {A = A} {Q = Q} ext univ =
+singleton-with-Π-≃-≃-⊤ {a} {q} {A} {Q} ext univ =
   (∃ λ (P : A → Type q) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
   (∃ λ (P : A → Type q) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
   (∃ λ (P : A → Type q) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (singleton-contractible _) ⟩□
@@ -1234,7 +1233,7 @@ other-singleton-with-Π-≃-≃-⊤ :
   Extensionality a (lsuc p) →
   Univalence p →
   (∃ λ (Q : A → Type p) → ∀ x → P x ≃ Q x) ≃ ⊤
-other-singleton-with-Π-≃-≃-⊤ {a = a} {p = p} {A = A} {P = P} ext univ =
+other-singleton-with-Π-≃-≃-⊤ {a} {p} {A} {P} ext univ =
   (∃ λ (Q : A → Type p) → ∀ x → P x ≃ Q x)  ↝⟨ (inverse $ ∃-cong λ _ → ∀-cong ext λ _ → ≡≃≃ univ) ⟩
   (∃ λ (Q : A → Type p) → ∀ x → P x ≡ Q x)  ↝⟨ (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩
   (∃ λ (Q : A → Type p) → P ≡ Q)            ↔⟨ _⇔_.to contractible⇔↔⊤ (other-singleton-contractible _) ⟩□
@@ -1262,7 +1261,7 @@ H-level-H-level-≡ :
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level n A₁ → H-level n A₂ → H-level n (A₁ ≡ A₂)
-H-level-H-level-≡ {A₁ = A₁} {A₂} ext univ n = curry (
+H-level-H-level-≡ {A₁} {A₂} ext univ n = curry (
   H-level n A₁ × H-level n A₂  ↝⟨ uncurry (Eq.h-level-closure ext n) ⟩
   H-level n (A₁ ≃ A₂)          ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) n ⟩
   H-level n (A₁ ≡ A₂)          □)
@@ -1276,7 +1275,7 @@ H-level-H-level-≡ˡ :
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₁ → H-level (1 + n) (A₁ ≡ A₂)
-H-level-H-level-≡ˡ {A₁ = A₁} {A₂} ext univ n =
+H-level-H-level-≡ˡ {A₁} {A₂} ext univ n =
   H-level (1 + n) A₁         ↝⟨ Eq.left-closure ext n ⟩
   H-level (1 + n) (A₁ ≃ A₂)  ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) (1 + n) ⟩
   H-level (1 + n) (A₁ ≡ A₂)  □
@@ -1286,7 +1285,7 @@ H-level-H-level-≡ʳ :
   Extensionality a a →
   Univalence′ A₁ A₂ →
   ∀ n → H-level (1 + n) A₂ → H-level (1 + n) (A₁ ≡ A₂)
-H-level-H-level-≡ʳ {A₁ = A₁} {A₂} ext univ n =
+H-level-H-level-≡ʳ {A₁} {A₂} ext univ n =
   H-level (1 + n) A₂         ↝⟨ Eq.right-closure ext n ⟩
   H-level (1 + n) (A₁ ≃ A₂)  ↝⟨ H-level.respects-surjection (_≃_.surjection $ inverse $ ≡≃≃ univ) (1 + n) ⟩
   H-level (1 + n) (A₁ ≡ A₂)  □
@@ -1465,7 +1464,7 @@ Contractible-∃-Contractible ext prop-ext =
       Univalence′ A B →
       Is-proposition A → Is-proposition B →
       (A ≡ B) ↠ (A ⇔ B)
-≡↠⇔ {A = A} {B} univ A-prop B-prop =
+≡↠⇔ {A} {B} univ A-prop B-prop =
   A ≡ B  ↔⟨ ≡≃≃ univ ⟩
   A ≃ B  ↝⟨ Eq.≃↠⇔ A-prop B-prop ⟩□
   A ⇔ B  □
@@ -1478,7 +1477,7 @@ Contractible-∃-Contractible ext prop-ext =
       Univalence′ A B →
       Is-proposition A → Is-proposition B →
       (A ⇔ B) ↔ (A ≡ B)
-⇔↔≡ {A = A} {B} ext univ A-prop B-prop =
+⇔↔≡ {A} {B} ext univ A-prop B-prop =
   A ⇔ B  ↝⟨ Eq.⇔↔≃ ext A-prop B-prop ⟩
   A ≃ B  ↔⟨ inverse $ ≡≃≃ univ ⟩□
   A ≡ B  □
@@ -1489,7 +1488,7 @@ Contractible-∃-Contractible ext prop-ext =
        Extensionality ℓ ℓ →
        Univalence′ (proj₁ A) (proj₁ B) →
        (proj₁ A ⇔ proj₁ B) ↔ (A ≡ B)
-⇔↔≡′ {A = A} {B} ext univ =
+⇔↔≡′ {A} {B} ext univ =
   proj₁ A ⇔ proj₁ B  ↝⟨ ⇔↔≡ ext univ (proj₂ A) (proj₂ B) ⟩
   proj₁ A ≡ proj₁ B  ↝⟨ ignore-propositional-component (H-level-propositional ext 1) ⟩□
   A ≡ B              □

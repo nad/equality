@@ -92,7 +92,7 @@ module Is-queue⁺ ⦃ is-queue : ∀ {ℓ} → Is-queue Q P ℓ ⦄ where
   empty = dequeue⁻¹ nothing
 
   to-List-empty : to-List p empty ≡ ([] ⦂ List A)
-  to-List-empty {p = p} =
+  to-List-empty {p} =
     to-List p empty                                                       ≡⟨⟩
     to-List p (dequeue⁻¹ nothing)                                         ≡⟨ to-List-dequeue⁻¹ ⟩
     _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List p)) nothing)  ≡⟨⟩
@@ -104,7 +104,7 @@ module Is-queue⁺ ⦃ is-queue : ∀ {ℓ} → Is-queue Q P ℓ ⦄ where
   cons x q = dequeue⁻¹ (just (x , q))
 
   to-List-cons : to-List p (cons x q) ≡ x ∷ to-List p q
-  to-List-cons {p = p} {x = x} {q = q} =
+  to-List-cons {p} {x} {q} =
     to-List p (cons x q)                                ≡⟨⟩
 
     to-List p (dequeue⁻¹ (just (x , q)))                ≡⟨ to-List-dequeue⁻¹ ⟩
@@ -193,14 +193,14 @@ module Is-queue-with-unique-representations⁺
   ≡-for-lists↔≡ :
     {A : Type a} {p : P A} {q₁ q₂ : Q A} →
     to-List p q₁ ≡ to-List p q₂ ↔ q₁ ≡ q₂
-  ≡-for-lists↔≡ {p = p} {q₁ = q₁} {q₂ = q₂} =
+  ≡-for-lists↔≡ {p} {q₁} {q₂} =
     to-List p q₁ ≡ to-List p q₂  ↔⟨ Eq.≃-≡ $ Eq.↔⇒≃ $ Queue↔List _ ⟩□
     q₁ ≡ q₂                      □
 
   -- A variant of Queue↔List.
 
   Maybe[×Queue]↔List : P A → Maybe (A × Q A) ↔ List A
-  Maybe[×Queue]↔List {A = A} p =
+  Maybe[×Queue]↔List {A} p =
     Maybe (A × Q A)     ↝⟨ F.id ⊎-cong F.id ×-cong Queue↔List p ⟩
     Maybe (A × List A)  ↝⟨ inverse List↔Maybe[×List] ⟩□
     List A              □
@@ -208,7 +208,7 @@ module Is-queue-with-unique-representations⁺
   -- The function dequeue p is an inverse of dequeue⁻¹.
 
   Queue↔Maybe[×Queue] : P A → Q A ↔ Maybe (A × Q A)
-  Queue↔Maybe[×Queue] {A = A} p =
+  Queue↔Maybe[×Queue] {A} p =
     Bijection.with-other-function
       (Bijection.with-other-inverse
          (Q A              ↝⟨ Queue↔List p ⟩
@@ -244,7 +244,7 @@ module Is-queue-with-unique-representations⁺
   from-List≡foldl-enqueue-empty :
     {A : Type a} {xs : List A} →
     P A → from-List xs ≡ foldl (flip enqueue) empty xs
-  from-List≡foldl-enqueue-empty {A = A} {xs = xs} p =
+  from-List≡foldl-enqueue-empty {A} {xs} p =
     _↔_.to ≡-for-lists↔≡ (
       to-List p (from-List xs)                   ≡⟨ to-List-from-List ⟩
       xs                                         ≡⟨⟩
@@ -270,7 +270,7 @@ module Is-queue-with-unique-representations⁺
   to-List-foldl-enqueue-empty :
     {A : Type a} {p : P A} (xs : List A) →
     to-List p (foldl (flip enqueue) empty xs) ≡ xs
-  to-List-foldl-enqueue-empty {p = p} xs =
+  to-List-foldl-enqueue-empty {p} xs =
     to-List p (foldl (flip enqueue) empty xs)  ≡⟨ cong (to-List p) $ sym $ from-List≡foldl-enqueue-empty p ⟩
     to-List p (from-List xs)                   ≡⟨ to-List-from-List ⟩∎
     xs                                         ∎

@@ -75,7 +75,7 @@ Zero-modal-≡ = For-iterated-equality 1 Zero-modal
 -- Rijke, Shulman and Spitters.
 
 Zero-modality : Modality ℓ
-Zero-modality {ℓ = ℓ} = λ where
+Zero-modality {ℓ} = λ where
     .◯                   → Zero
     .η                   → return
     .Modal               → Zero-modal
@@ -104,7 +104,7 @@ Zero-modality {ℓ = ℓ} = λ where
 -- Rijke, Shulman and Spitters.
 
 Zero-topological : Topological (Zero-modality {ℓ = ℓ})
-Zero-topological {ℓ = ℓ} =
+Zero-topological {ℓ} =
     ( ↑ ℓ ⊤
     , (λ _ → ⊥)
     , (λ _ → record { to = to; from = from })
@@ -124,7 +124,7 @@ Zero-topological {ℓ = ℓ} =
   from :
     (↑ ℓ ⊤ → Is-∞-extendable-along-[ η ] (λ _ → A)) →
     Zero-modal A
-  from {A = A} ext =
+  from {A} ext =
       inh
     , (λ x →
          ext _ 2 .proj₂ (const inh) (const x) .proj₁ ⊥-elim .proj₁ _)
@@ -135,7 +135,7 @@ Zero-topological {ℓ = ℓ} =
 -- The zero modality is very modal.
 
 Zero-very-modal : Very-modal (Zero-modality {ℓ = ℓ})
-Zero-very-modal {ℓ = ℓ} {A = A} =
+Zero-very-modal {ℓ} {A} =
                          $⟨ _ ⟩
   ↑ ℓ ⊤                  →⟨ id ⟩□
   Zero (Contractible A)  □
@@ -149,7 +149,7 @@ Zero-very-modal {ℓ = ℓ} {A = A} =
 -- Compare with Erased.Stability.[]-cong₁.Erased-empty-modal.
 
 Zero-not-empty-modal : ¬ Empty-modal (Zero-modality {ℓ = ℓ})
-Zero-not-empty-modal {ℓ = ℓ} =
+Zero-not-empty-modal {ℓ} =
   Zero-modal ⊥    ↔⟨⟩
   Contractible ⊥  →⟨ ⊥-elim ∘ proj₁ ⟩□
   ⊥               □
@@ -159,7 +159,7 @@ Zero-not-empty-modal {ℓ = ℓ} =
 -- Compare with Erased.Stability.[]-cong₁.Erased-W-modal.
 
 Zero-not-W-modal : ¬ W-modal (Zero-modality {ℓ = ℓ})
-Zero-not-W-modal {ℓ = ℓ} =
+Zero-not-W-modal {ℓ} =
   W-modal Zero-modality      →⟨ W-modal→Empty-modal ⟩
   Empty-modal Zero-modality  →⟨ Zero-not-empty-modal ⟩□
   ⊥                          □
@@ -171,7 +171,7 @@ Zero-not-W-modal {ℓ = ℓ} =
 ¬-Zero-accessibility-modal-for :
   {_<_ : A → A → Type ℓ} →
   ¬ Modality.Accessibility-modal-for Zero-modality _<_
-¬-Zero-accessibility-modal-for {ℓ = ℓ} {_<_ = _<_} =
+¬-Zero-accessibility-modal-for {ℓ} {_<_} =
   Accessibility-modal-for _<_           →⟨ Stable-Acc-[]◯ ⟩
   Stable (A.Acc _[ _<_ ]◯_ (lift tt))   →⟨ Stable-respects-⇔ record
                                              { to   = λ acc → A.Acc-map _ acc
@@ -249,7 +249,7 @@ Zero-not-W-modal {ℓ = ℓ} =
 
 ¬[Decidable-equality→Zero-stable-≡] :
   ¬ ({A : Type a} → Decidable-equality A → Zero-stable-≡ A)
-¬[Decidable-equality→Zero-stable-≡] {a = a} hyp =
+¬[Decidable-equality→Zero-stable-≡] {a} hyp =
                                                             $⟨ ↑.Dec._≟_ Bool._≟_ ⟩
   Decidable-equality (↑ a Bool)                             ↝⟨ (λ dec → hyp dec _ _) ⟩
   (Zero (lift true ≡ lift false) → lift true ≡ lift false)  ↝⟨ _$ _ ⟩
@@ -264,7 +264,7 @@ Zero-not-W-modal {ℓ = ℓ} =
 
 ¬[Decidable-equality→Zero-modal-≡] :
   ¬ ({A : Type a} → Decidable-equality A → Zero-modal-≡ A)
-¬[Decidable-equality→Zero-modal-≡] {a = a} =
+¬[Decidable-equality→Zero-modal-≡] {a} =
   ({A : Type a} →
    Decidable-equality A → Zero-modal-≡ A)   ↝⟨ (implicit-∀-cong _ $ ∀-cong _ λ _ → ∀-cong _ λ _ → ∀-cong _ λ _ →
                                                 Zero-modal→Zero-stable) ⟩

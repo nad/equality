@@ -118,9 +118,9 @@ Index _    = Extended
 -- Any.
 
 Any : ∀ {k l u} → (A → Type) → (⟦ k ⟧ l u → Type)
-Any {(list)}         = AnyL
-Any {(ordered-list)} = λ P → AnyL P ∘ to-list
-Any {(search-tree)}  = AnyT
+Any {k = list}         = AnyL
+Any {k = ordered-list} = λ P → AnyL P ∘ to-list
+Any {k = search-tree}  = AnyT
 
 -- Membership.
 
@@ -146,7 +146,7 @@ singleton x (l≤x , x≤u) = leaf l≤x -[ x ]- leaf x≤u
 
 Any-singleton : ∀ (P : A → Type) {l u x} (l≤x≤u : l ≤[ x ]≤ u) →
                 Any P (singleton x l≤x≤u) ↔ P x
-Any-singleton P {x = x} l≤x≤u =
+Any-singleton P {x} l≤x≤u =
   Any P (singleton x l≤x≤u)  ↔⟨⟩
   ⊥ ⊎ P x ⊎ ⊥                ↔⟨ ⊎-left-identity ⟩
   P x ⊎ ⊥                    ↔⟨ ⊎-right-identity ⟩

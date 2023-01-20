@@ -190,7 +190,7 @@ module _
       -- constructed term.
 
       ⟨by⟩-tactic : ∀ {a} {A : Type a} → A → Term → TC Term
-      ⟨by⟩-tactic {A = A} t goal = do
+      ⟨by⟩-tactic {A} t goal = do
         -- To avoid wasted work the first block below, which can block
         -- the tactic, is run before the second one.
 
@@ -330,7 +330,7 @@ module _
       -- The constructed term is returned.
 
       by-tactic : ∀ {a} {A : Type a} → A → Term → TC Term
-      by-tactic {A = A} t goal = do
+      by-tactic {A} t goal = do
         A ← quoteTC A
         t ← quoteTC t
         _ , t ← apply-to-metas A t

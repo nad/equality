@@ -88,7 +88,7 @@ cong-post-∘⇾-ext :
   (ext₄ : Extensionality p q) →
   cong (h ∘⇾″_) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)) ≡
   apply-ext ext₁ (apply-ext ext₃ ∘ (λ i x → cong (h i x)) ∘⇾″ f≡g)
-cong-post-∘⇾-ext {h = h} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ =
+cong-post-∘⇾-ext {h} {f≡g} ext₁ ext₂ ext₃ ext₄ =
   cong ((λ {i} → (λ {x} → h i x) ∘_) ∘_)
     (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g))                               ≡⟨ cong-post-∘-ext ext₂ ext₁ ⟩
 
@@ -113,7 +113,7 @@ cong-pre-∘⇾-ext :
   (ext₄ : Extensionality q r) →
   cong (_∘⇾′ h) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g)) ≡
   apply-ext ext₁ (apply-ext ext₃ ∘ f≡g ∘⇾′ h)
-cong-pre-∘⇾-ext {h = h} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ =
+cong-pre-∘⇾-ext {h} {f≡g} ext₁ ext₂ ext₃ ext₄ =
   cong (λ f i → f i ∘ h i) (apply-ext ext₂ (apply-ext ext₄ ∘ f≡g))  ≡⟨ sym $ ext-cong ext₁ ⟩
 
   (apply-ext ext₁ λ i →
@@ -196,7 +196,7 @@ map-∘ _ _ = refl _
   (C : Container₂ I O s p) →
   (∀ i → P₁ i ↝[ k ] P₂ i) →
   (∀ o → ⟦ C ⟧ P₁ o ↝[ k ] ⟦ C ⟧ P₂ o)
-⟦⟧-cong {P₁ = P₁} {P₂ = P₂} ext C P₁↝P₂ o =
+⟦⟧-cong {P₁} {P₂} ext C P₁↝P₂ o =
   (∃ λ (s : Shape C o) → (p : Position C s) → P₁ (index C p))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → P₁↝P₂ _) ⟩□
   (∃ λ (s : Shape C o) → (p : Position C s) → P₂ (index C p))  □
 
@@ -216,7 +216,7 @@ _ = refl _
 Shape≃⟦⟧⊤ :
   (C : Container₂ I O s p) →
   Shape C o ≃ ⟦ C ⟧ (λ _ → ⊤) o
-Shape≃⟦⟧⊤ {o = o} C =
+Shape≃⟦⟧⊤ {o} C =
   Shape C o                                 ↔⟨ inverse $ drop-⊤-right (λ _ → →-right-zero) ⟩□
   (∃ λ (s : Shape C o) → Position C s → ⊤)  □
 
@@ -234,7 +234,7 @@ cong-map-ext :
   cong (map C) (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g)) ≡
   (apply-ext ext₃ λ _ → apply-ext ext₄ λ (s , h) →
    cong (s ,_) $ apply-ext ext₅ (f≡g _ ∘ h))
-cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ =
+cong-map-ext {C} {P} {f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ =
   cong (λ f _ (s , h) → s , λ p → f (index C p) (h p))
     (apply-ext ext₁ (apply-ext ext₂ ∘ f≡g))             ≡⟨ sym $ ext-cong ext₃ ⟩
 
@@ -295,7 +295,7 @@ cong-map-ext {C = C} {P = P} {f≡g = f≡g} ext₁ ext₂ ext₃ ext₄ ext₅ 
 lift-positions :
   {I : Type i} →
   Container₂ I O s p → Container₂ I O s (i ⊔ p)
-lift-positions {i = i} C = λ where
+lift-positions {i} C = λ where
   .Shape          → C .Shape
   .Position s     → ↑ i (C .Position s)
   .index (lift p) → C .index p
@@ -307,7 +307,7 @@ lift-positions {i = i} C = λ where
   {I : Type i}
   (C : Container₂ I O s p) (P : I → Type ℓ) →
   ⟦ C ⟧ P o ≃ ⟦ lift-positions C ⟧ P o
-⟦⟧≃⟦lift-positions⟧ {o = o} C P =
+⟦⟧≃⟦lift-positions⟧ {o} C P =
   ∃-cong λ s →
 
   ((      p  :      Position C s)  → P (index C p))  ↝⟨ Eq.↔→≃ (_∘ lower) (_∘ lift) refl refl ⟩□

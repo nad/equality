@@ -88,7 +88,7 @@ from-list (x ∷ xs) = x , from-list xs
 -- ∃ (Vec A) is isomorphic to List A.
 
 ∃Vec↔List : ∃ (Vec A) ↔ List A
-∃Vec↔List {A = A} = record
+∃Vec↔List {A} = record
   { surjection = record
     { logical-equivalence = record
       { to   = to-list ∘ proj₂

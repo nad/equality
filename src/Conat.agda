@@ -122,7 +122,7 @@ mutual
 -- ⌜_⌝ maps equal numbers to bisimilar numbers.
 
 ⌜⌝-cong : ∀ {i m n} → m ≡ n → [ i ] ⌜ m ⌝ ∼ ⌜ n ⌝
-⌜⌝-cong {m = m} {n} m≡n =
+⌜⌝-cong {m} {n} m≡n =
   ⌜ m ⌝  ≡⟨ cong ⌜_⌝ m≡n ⟩∼
   ⌜ n ⌝  ∎∼
 
@@ -253,7 +253,7 @@ infixl 6 _∸-cong_
 _∸-cong_ :
   ∀ {i m₁ m₂ n₁ n₂} →
   [ ∞ ] m₁ ∼ m₂ → n₁ ≡ n₂ → [ i ] m₁ ∸ n₁ ∼ m₂ ∸ n₂
-_∸-cong_ {m₁ = m₁} {m₂} {(zero)} {n₂} p eq =
+_∸-cong_ {m₁} {m₂} {n₁ = zero} {n₂} p eq =
   m₁         ∼⟨ p ⟩
   m₂         ≡⟨⟩∼
   m₂ ∸ zero  ≡⟨ cong (_ ∸_) eq ⟩∼
@@ -312,17 +312,17 @@ suc m * suc n = suc λ { .force → n .force + m .force * suc n }
 -- An unfolding lemma for multiplication.
 
 suc*∼+* : ∀ {m n i} → [ i ] suc m * n ∼ n + m .force * n
-suc*∼+* {m} {(zero)} =
+suc*∼+* {m} {n = zero} =
   zero             ∼⟨ symmetric-∼ *-right-zero ⟩
   m .force * zero  ∎∼
-suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }
+suc*∼+* {m} {n = suc n} = suc λ { .force → reflexive-∼ _ }
 
 -- Multiplication distributes over addition.
 
 *-+-distribˡ : ∀ m {n o i} → [ i ] m * (n + o) ∼ m * n + m * o
-*-+-distribˡ zero                 = reflexive-∼ _
-*-+-distribˡ (suc m) {(zero)} {o} = reflexive-∼ _
-*-+-distribˡ (suc m) {suc n}  {o} = suc λ { .force →
+*-+-distribˡ zero                    = reflexive-∼ _
+*-+-distribˡ (suc m) {n = zero}  {o} = reflexive-∼ _
+*-+-distribˡ (suc m) {n = suc n} {o} = suc λ { .force →
   n .force + o + m .force * (suc n + o)               ∼⟨ (_ ∎∼) +-cong *-+-distribˡ (m .force) ⟩
   n .force + o + (m .force * suc n + m .force * o)    ∼⟨ symmetric-∼ (+-assoc (n .force)) ⟩
   n .force + (o + (m .force * suc n + m .force * o))  ∼⟨ (n .force ∎∼) +-cong +-assoc o ⟩
@@ -333,11 +333,11 @@ suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }
   n .force + m .force * suc n + suc m * o             ∎∼ }
 
 *-+-distribʳ : ∀ m {n o i} → [ i ] (m + n) * o ∼ m * o + n * o
-*-+-distribʳ zero                 = reflexive-∼ _
-*-+-distribʳ (suc m) {n} {(zero)} =
+*-+-distribʳ zero                   = reflexive-∼ _
+*-+-distribʳ (suc m) {n} {o = zero} =
   zero      ∼⟨ symmetric-∼ *-right-zero ⟩
   n * zero  ∎∼
-*-+-distribʳ (suc m) {n} {suc o} = suc λ { .force →
+*-+-distribʳ (suc m) {n} {o = suc o} = suc λ { .force →
   o .force + (m .force + n) * suc o          ∼⟨ (_ ∎∼) +-cong *-+-distribʳ (m .force) ⟩
   o .force + (m .force * suc o + n * suc o)  ∼⟨ +-assoc (o .force) ⟩
   o .force + m .force * suc o + n * suc o    ∎∼ }
@@ -345,10 +345,10 @@ suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }
 -- Multiplication is associative.
 
 *-assoc : ∀ m {n o i} → [ i ] m * (n * o) ∼ (m * n) * o
-*-assoc zero                      = reflexive-∼ _
-*-assoc (suc m) {(zero)}          = reflexive-∼ _
-*-assoc (suc m) {suc n}  {(zero)} = reflexive-∼ _
-*-assoc (suc m) {suc n}  {suc o}  = suc λ { .force →
+*-assoc zero                            = reflexive-∼ _
+*-assoc (suc m) {n = zero}              = reflexive-∼ _
+*-assoc (suc m) {n = suc n} {o = zero}  = reflexive-∼ _
+*-assoc (suc m) {n = suc n} {o = suc o} = suc λ { .force →
   o .force + n .force * suc o + m .force * (suc n * suc o)    ∼⟨ symmetric-∼ (+-assoc (o .force)) ⟩
   o .force + (n .force * suc o + m .force * (suc n * suc o))  ∼⟨ (o .force ∎∼) +-cong ((_ ∎∼) +-cong *-assoc (m .force)) ⟩
   o .force + (n .force * suc o + (m .force * suc n) * suc o)  ∼⟨ (o .force ∎∼) +-cong symmetric-∼ (*-+-distribʳ (n .force)) ⟩
@@ -360,8 +360,8 @@ suc*∼+* {m} {suc n} = suc λ { .force → reflexive-∼ _ }
 *-comm zero {n} =
   zero      ∼⟨ symmetric-∼ *-right-zero ⟩
   n * zero  ∎∼
-*-comm (suc m) {(zero)} = reflexive-∼ _
-*-comm (suc m) {suc n}  = suc λ { .force →
+*-comm (suc m) {n = zero}  = reflexive-∼ _
+*-comm (suc m) {n = suc n} = suc λ { .force →
   n .force + m .force * suc n                  ∼⟨ (_ ∎∼) +-cong *-comm (m .force) ⟩
   n .force + suc n * m .force                  ∼⟨ (n .force ∎∼) +-cong suc*∼+* ⟩
   n .force + (m .force + n .force * m .force)  ∼⟨ +-assoc (n .force) ⟩
@@ -547,20 +547,20 @@ cancel-pred-≤ :
   [ i ] ⌜ 1 ⌝ ≤ n →
   [ i ] pred m ≤′ pred n →
   [ i ] m ≤ n
-cancel-pred-≤ {(zero)} (suc _) = λ _ → zero
-cancel-pred-≤ {suc _}  (suc _) = suc
+cancel-pred-≤ {m = zero}  (suc _) = λ _ → zero
+cancel-pred-≤ {m = suc _} (suc _) = suc
 
 cancel-∸-suc-≤ :
   ∀ {m n o i} →
   [ ∞ ] ⌜ o ⌝′ < n →
   [ i ] m ∸ suc o ≤′ n ∸ suc o →
   [ i ] m ∸ o ≤ n ∸ o
-cancel-∸-suc-≤ {(zero)} {n} {o} _ _ =
+cancel-∸-suc-≤ {m = zero} {n} {o} _ _ =
   zero ∸ o  ∼⟨ ∸-left-zero-zero o ⟩≤
   zero      ≤⟨ zero ⟩∎
   n ∸ o     ∎≤
-cancel-∸-suc-≤ {suc _} {_}     {(zero)} (suc _)   = suc
-cancel-∸-suc-≤ {suc m} {suc n} {suc o}  (suc o<n) =
+cancel-∸-suc-≤ {m = suc _} {n = _}     {o = zero}  (suc _)   = suc
+cancel-∸-suc-≤ {m = suc m} {n = suc n} {o = suc o} (suc o<n) =
   cancel-∸-suc-≤ (force o<n)
 
 -- The successor of a number is greater than or equal to the number.
@@ -570,15 +570,15 @@ cancel-∸-suc-≤ {suc m} {suc n} {suc o}  (suc o<n) =
   where
   helper : ∀ {i} m {n} → m ≡ force n → [ i ] m ≤ suc n
   helper zero    _    = zero
-  helper (suc m) 1+m≡ = suc λ { .force {j = j} →
+  helper (suc m) 1+m≡ = suc λ { .force {j} →
                           subst ([ j ] _ ≤_) 1+m≡ ≤suc }
 
 -- If a number is less than or equal to another, then it is also less
 -- than or equal to the other's successor.
 
 ≤-step : ∀ {m n i} → [ i ] m ≤′ force n → [ i ] m ≤ suc n
-≤-step {(zero)}     _ = zero
-≤-step {suc m}  {n} p = suc λ { .force →
+≤-step {m = zero}      _ = zero
+≤-step {m = suc m} {n} p = suc λ { .force →
   force m  ≤⟨ ≤suc ⟩
   suc m    ≤⟨ force p ⟩∎
   force n  ∎≤ }
@@ -604,20 +604,20 @@ m≤m+n {m} {n} =
 -- A form of associativity for _∸_.
 
 ∸-∸-assoc : ∀ {m} n {k i} → [ i ] (m ∸ n) ∸ k ∼ m ∸ (n Prelude.+ k)
-∸-∸-assoc          zero             = _ ∎∼
-∸-∸-assoc {(zero)} (suc _) {(zero)} = _ ∎∼
-∸-∸-assoc {(zero)} (suc _) {suc _}  = _ ∎∼
-∸-∸-assoc {suc _}  (suc n)          = ∸-∸-assoc n
+∸-∸-assoc             zero                = _ ∎∼
+∸-∸-assoc {m = zero}  (suc _) {k = zero}  = _ ∎∼
+∸-∸-assoc {m = zero}  (suc _) {k = suc _} = _ ∎∼
+∸-∸-assoc {m = suc _} (suc n)             = ∸-∸-assoc n
 
 -- A limited form of associativity for _+_ and _∸_.
 
 +-∸-assoc : ∀ {m n k i} →
             [ ∞ ] ⌜ k ⌝ ≤ n → [ i ] (m + n) ∸ k ∼ m + (n ∸ k)
-+-∸-assoc {m} {n} {(zero)} zero =
++-∸-assoc {m} {n} {k = zero} zero =
   m + n ∸ 0    ≡⟨⟩∼
   m + n        ≡⟨⟩∼
   m + (n ∸ 0)  ∎∼
-+-∸-assoc {m} {suc n} {suc k} (suc k≤n) =
++-∸-assoc {m} {n = suc n} {k = suc k} (suc k≤n) =
   m + suc n ∸ suc k            ∼⟨ symmetric-∼ (1++∼+suc m) ∸-cong refl (suc k) ⟩
   ⌜ 1 ⌝ + m + force n ∸ suc k  ≡⟨⟩∼
   m + force n ∸ k              ∼⟨ +-∸-assoc (force k≤n) ⟩
@@ -629,10 +629,10 @@ m≤m+n {m} {n} =
 -- number that you started with.
 
 ∸+≡ : ∀ {m n i} → [ i ] ⌜ n ⌝ ≤ m → [ i ] (m ∸ n) + ⌜ n ⌝ ∼ m
-∸+≡ {m} {(zero)} zero =
+∸+≡ {m} {n = zero} zero =
   m + zero  ∼⟨ +-right-identity _ ⟩∎
   m         ∎∼
-∸+≡ {.suc m} {suc n} (suc p) =
+∸+≡ {m = .suc m} {n = suc n} (suc p) =
   force m ∸ n + ⌜ suc n ⌝        ∼⟨ symmetric-∼ (1++∼+suc _) ⟩
   ⌜ 1 ⌝ + (force m ∸ n) + ⌜ n ⌝  ∼⟨ symmetric-∼ (+-assoc ⌜ 1 ⌝) ⟩
   ⌜ 1 ⌝ + (force m ∸ n + ⌜ n ⌝)  ∼⟨ (suc λ { .force → ∸+≡ (force p) }) ⟩
@@ -659,9 +659,9 @@ m≤m+n {m} {n} =
 -- less than or equal to the one you started with.
 
 ∸≤ : ∀ {m} n {i} → [ i ] m ∸ n ≤ m
-∸≤          zero    = _ ∎≤
-∸≤ {(zero)} (suc _) = _ ∎≤
-∸≤ {suc m}  (suc n) = ≤-step λ { .force → ∸≤ n }
+∸≤             zero    = _ ∎≤
+∸≤ {m = zero}  (suc _) = _ ∎≤
+∸≤ {m = suc m} (suc n) = ≤-step λ { .force → ∸≤ n }
 
 -- Lemmas relating the ordering relation, subtraction and the
 -- successor function.
@@ -709,18 +709,18 @@ m≤m+n {m} {n} =
 -- ⌜_⌝ is monotone.
 
 ⌜⌝-mono : ∀ {m n i} → m ≤ n → [ i ] ⌜ m ⌝ ≤ ⌜ n ⌝
-⌜⌝-mono {(zero)}          m≤n = zero
-⌜⌝-mono {suc _}  {(zero)} m≤n = ⊥-elim (Nat.≮0 _ m≤n)
-⌜⌝-mono {suc _}  {suc _}  m≤n =
+⌜⌝-mono {m = zero}              m≤n = zero
+⌜⌝-mono {m = suc _} {n = zero}  m≤n = ⊥-elim (Nat.≮0 _ m≤n)
+⌜⌝-mono {m = suc _} {n = suc _} m≤n =
   suc λ { .force → ⌜⌝-mono (Nat.suc≤suc⁻¹ m≤n) }
 
 -- If two natural numbers are related by [ ∞ ]_≤_, then they are also
 -- related by _≤_.
 
 ⌜⌝-mono⁻¹ : ∀ {m n} → [ ∞ ] ⌜ m ⌝ ≤ ⌜ n ⌝ → m ≤ n
-⌜⌝-mono⁻¹ {(zero)}          zero      = Nat.zero≤ _
-⌜⌝-mono⁻¹ {suc _}  {(zero)} ()
-⌜⌝-mono⁻¹ {suc _}  {suc _}  (suc m≤n) =
+⌜⌝-mono⁻¹ {m = zero}              zero      = Nat.zero≤ _
+⌜⌝-mono⁻¹ {m = suc _} {n = zero}  ()
+⌜⌝-mono⁻¹ {m = suc _} {n = suc _} (suc m≤n) =
   Nat.suc≤suc (⌜⌝-mono⁻¹ (force m≤n))
 
 -- The pred function is monotone.
@@ -735,7 +735,7 @@ infixl 6 _+-mono_
 
 _+-mono_ : ∀ {i m₁ m₂ n₁ n₂} →
            [ i ] m₁ ≤ m₂ → [ i ] n₁ ≤ n₂ → [ i ] m₁ + n₁ ≤ m₂ + n₂
-_+-mono_ {m₁ = m₁} {m₂} {n₁} {n₂} zero q =
+_+-mono_ {m₁} {m₂} {n₁} {n₂} zero q =
   zero + n₁  ≡⟨⟩≤
   n₁         ≤⟨ q ⟩
   n₂         ≤⟨ m≤n+m ⟩∎
@@ -749,15 +749,19 @@ infixl 6 _∸-mono_
 
 _∸-mono_ : ∀ {m₁ m₂ n₁ n₂ i} →
            [ ∞ ] m₁ ≤ m₂ → n₂ ≤ n₁ → [ i ] m₁ ∸ n₁ ≤ m₂ ∸ n₂
-_∸-mono_              {n₁ = zero}   {(zero)} p  _ = p
-_∸-mono_              {n₁ = zero}   {suc _}  _  q = ⊥-elim (Nat.≮0 _ q)
-_∸-mono_ {(zero)}     {n₁ = suc n₁}          _  _ = zero
-_∸-mono_ {suc _}  {(zero)} {suc _}           () _
-_∸-mono_ {suc m₁} {suc m₂} {suc n₁} {(zero)} p  _ = force m₁ ∸ n₁  ≤⟨ ∸≤ n₁ ⟩
-                                                    force m₁       ≤⟨ ≤suc ⟩
-                                                    suc m₁         ≤⟨ p ⟩∎
-                                                    suc m₂         ∎≤
-_∸-mono_ {suc _}  {suc _}  {suc _}  {suc _}  p  q =
+_∸-mono_ {n₁ = zero} {n₂ = zero} p _ =
+  p
+_∸-mono_ {n₁ = zero} {n₂ = suc _} _ q =
+  ⊥-elim (Nat.≮0 _ q)
+_∸-mono_ {m₁ = zero} {n₁ = suc n₁} _ _ =
+  zero
+_∸-mono_ {m₁ = suc _} {m₂ = zero} {n₁ = suc _} () _
+_∸-mono_ {m₁ = suc m₁} {m₂ = suc m₂} {n₁ = suc n₁} {n₂ = zero} p _ =
+  force m₁ ∸ n₁  ≤⟨ ∸≤ n₁ ⟩
+  force m₁       ≤⟨ ≤suc ⟩
+  suc m₁         ≤⟨ p ⟩∎
+  suc m₂         ∎≤
+_∸-mono_ {m₁ = suc _} {m₂ = suc _} {n₁ = suc _} {n₂ = suc _} p q =
   force (cancel-suc-≤ p) ∸-mono Nat.suc≤suc⁻¹ q
 
 -- Multiplication is monotone.
@@ -852,8 +856,8 @@ Infinite-infinity = uncurry λ n →
 -- Infinite numbers are bisimilar to infinity.
 
 Infinite→∼infinity : ∀ {n i} → Infinite n → [ i ] n ∼ infinity
-Infinite→∼infinity {(zero)} inf = ⊥-elim (inf (_ , zero))
-Infinite→∼infinity {suc n}  inf =
+Infinite→∼infinity {n = zero}  inf = ⊥-elim (inf (_ , zero))
+Infinite→∼infinity {n = suc n} inf =
   suc λ { .force → Infinite→∼infinity (inf ∘ Σ-map suc suc′) }
   where
   suc′ : ∀ {m} → [ ∞ ] force n ∼ ⌜ m ⌝ → [ ∞ ] suc n ∼ ⌜ suc m ⌝
@@ -863,9 +867,9 @@ Infinite→∼infinity {suc n}  inf =
 -- finite.
 
 ≤⌜⌝→Finite : ∀ {m n} → [ ∞ ] m ≤ ⌜ n ⌝ → Finite m
-≤⌜⌝→Finite {.zero}  {(zero)} zero      = zero , zero
-≤⌜⌝→Finite {.zero}  {suc n}  zero      = zero , zero
-≤⌜⌝→Finite {.suc m} {suc n}  (suc m≤n) =
+≤⌜⌝→Finite {m = .zero}  {n = zero}  zero      = zero , zero
+≤⌜⌝→Finite {m = .zero}  {n = suc n} zero      = zero , zero
+≤⌜⌝→Finite {m = .suc m} {n = suc n} (suc m≤n) =
   Σ-map suc (λ (hyp : [ _ ] _ ∼ _) → suc λ { .force → hyp })
     (≤⌜⌝→Finite (force m≤n))
 
@@ -881,15 +885,15 @@ Infinite→∼infinity {suc n}  inf =
 infixl 6 _⁺+_
 
 _⁺+_ : ∀ {m i} → [ i ] ⌜ 1 ⌝ ≤ m → Conat′ i → Conat i
-_⁺+_ {(zero)} () _
-_⁺+_ {suc m}  _  n = suc λ { .force → force m + force n }
+_⁺+_ {m = zero}  () _
+_⁺+_ {m = suc m} _  n = suc λ { .force → force m + force n }
 
 -- The definition of _⁺+_ is correct.
 
 ⁺+∼+ : ∀ {m i} (1≤m : [ ∞ ] ⌜ 1 ⌝ ≤ m) n →
        [ i ] 1≤m ⁺+ n ∼ m + force n
-⁺+∼+ {(zero)} () _
-⁺+∼+ {suc _}  _  _ = suc λ { .force → _ ∎∼ }
+⁺+∼+ {m = zero}  () _
+⁺+∼+ {m = suc _} _  _ = suc λ { .force → _ ∎∼ }
 
 -- _⁺+_ preserves bisimilarity.
 
@@ -900,9 +904,9 @@ _⁺+_ {suc m}  _  n = suc λ { .force → force m + force n }
   [ i ] m₁ ∼ m₂ →
   [ i ] force n₁ ∼′ force n₂ →
   [ i ] 1≤m₁ ⁺+ n₁ ∼ 1≤m₂ ⁺+ n₂
-⁺+-cong {(zero)}          () _  _           _
-⁺+-cong {suc _}  {(zero)} _  () _           _
-⁺+-cong {suc _}  {suc _}  _  _  (suc m₁∼m₂) n₁∼n₂ =
+⁺+-cong {m₁ = zero}               () _  _           _
+⁺+-cong {m₁ = suc _} {m₂ = zero}  _  () _           _
+⁺+-cong {m₁ = suc _} {m₂ = suc _} _  _  (suc m₁∼m₂) n₁∼n₂ =
   suc λ { .force → force m₁∼m₂ +-cong force n₁∼n₂ }
 
 -- _⁺+_ is monotone.
@@ -914,9 +918,9 @@ _⁺+_ {suc m}  _  n = suc λ { .force → force m + force n }
   [ i ] m₁ ≤ m₂ →
   [ i ] force n₁ ≤′ force n₂ →
   [ i ] 1≤m₁ ⁺+ n₁ ≤ 1≤m₂ ⁺+ n₂
-⁺+-mono {(zero)}          () _  _           _
-⁺+-mono {suc _}  {(zero)} _  () _           _
-⁺+-mono {suc _}  {suc _}  _  _  (suc m₁∼m₂) n₁∼n₂ =
+⁺+-mono {m₁ = zero}               () _  _           _
+⁺+-mono {m₁ = suc _} {m₂ = zero}  _  () _           _
+⁺+-mono {m₁ = suc _} {m₂ = suc _} _  _  (suc m₁∼m₂) n₁∼n₂ =
   suc λ { .force → force m₁∼m₂ +-mono force n₁∼n₂ }
 
 -- Variants of _+-cong_ that can be used when one or more of the
@@ -929,9 +933,9 @@ _⁺+_ {suc m}  _  n = suc λ { .force → force m + force n }
   [ i ] m₁ ∼ m₂ →
   [ i ] n₁ ∼′ n₂ →
   [ i ] m₁ + n₁ ∼ m₂ + n₂
-1≤+-cong {(zero)}          () _           _
-1≤+-cong {suc _}  {(zero)} _  ()          _
-1≤+-cong {suc _}  {suc _}  _  (suc m₁∼m₂) n₁∼n₂ =
+1≤+-cong {m₁ = zero}               () _           _
+1≤+-cong {m₁ = suc _} {m₂ = zero}  _  ()          _
+1≤+-cong {m₁ = suc _} {m₂ = suc _} _  (suc m₁∼m₂) n₁∼n₂ =
   suc λ { .force → force m₁∼m₂ +-cong force n₁∼n₂ }
 
 +1≤-cong :
@@ -968,9 +972,9 @@ _⁺+_ {suc m}  _  n = suc λ { .force → force m + force n }
   [ i ] m₁ ≤ m₂ →
   [ i ] n₁ ≤′ n₂ →
   [ i ] m₁ + n₁ ≤ m₂ + n₂
-1≤+-mono {(zero)}          () _           _
-1≤+-mono {suc _}  {(zero)} _  ()          _
-1≤+-mono {suc _}  {suc _}  _  (suc m₁≤m₂) n₁≤n₂ =
+1≤+-mono {m₁ = zero}               () _           _
+1≤+-mono {m₁ = suc _} {m₂ = zero}  _  ()          _
+1≤+-mono {m₁ = suc _} {m₂ = suc _} _  (suc m₁≤m₂) n₁≤n₂ =
   suc λ { .force → force m₁≤m₂ +-mono force n₁≤n₂ }
 
 +1≤-mono :

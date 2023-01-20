@@ -83,7 +83,7 @@ Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 -- (with erased equality proofs) to n.
 
 Nat-[]↔Σℕ : {@0 n : ℕ} → Nat-[ n ] ↔ ∃ λ m → Erased (m ≡ n)
-Nat-[]↔Σℕ {n = n} =
+Nat-[]↔Σℕ {n} =
   (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))  ↝⟨ (Σ-cong Nat′↔ℕ λ _ → F.id) ⟩□
   (∃ λ m → Erased (m ≡ n))                □
 
@@ -138,7 +138,7 @@ unary-[] :
   (f′ : Nat′ → Nat′) →
   @0 (∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
   Nat-[ n ] → Nat-[ f n ]
-unary-[] {n = n} {f = f} f′ hyp (n′ , p) =
+unary-[] {n} {f} f′ hyp (n′ , p) =
     f′ n′
   , [ to-ℕ (f′ n′)  ≡⟨ hyp _ ⟩
       f (to-ℕ n′)   ≡⟨ cong f (erased p) ⟩∎
@@ -157,7 +157,7 @@ n-ary-[] :
   Nat-[ f (Vec.map erased ms) ]
 n-ary-[] N.zero _ f′ hyp _ =
   nullary-[] (f′ _) (hyp _)
-n-ary-[] (N.suc n) {ms = ms} f f′ hyp ((m′ , p) , ms′) =
+n-ary-[] (N.suc n) {ms} f f′ hyp ((m′ , p) , ms′) =
   n-ary-[]
     n
     (f ∘ (erased (Vec.head ms) ,_))
@@ -300,7 +300,7 @@ module Operations-for-Nat-[] (o : Operations) where
     {@0 m n : ℕ} →
     Nat-[ m ] → Nat-[ n ] →
     Dec (Erased (m ≡ n))
-  _≟_ {m = m} {n = n} (m′ , [ m≡m′ ]) (n′ , [ n≡n′ ]) =
+  _≟_ {m} {n} (m′ , [ m≡m′ ]) (n′ , [ n≡n′ ]) =
     Dec-map
       (Erased-cong-⇔ (
          to-ℕ m′ ≡ to-ℕ n′  ↝⟨ ≡⇒↝ _ (cong₂ _≡_ m≡m′ n≡n′) ⟩□
@@ -321,7 +321,7 @@ module Operations-for-Nat-[] (o : Operations) where
     Nat-[ n ] →
     ∃ λ (bs : List Bool) →
       Erased (foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0 bs ≡ n)
-  to-bits {n = n} (n′ , [ n′≡n ]) =
+  to-bits {n} (n′ , [ n′≡n ]) =
       O.to-bits n′
     , [ foldl (λ n b → (if b then 1 else 0) N.+ 2 N.* n) 0
           (O.to-bits n′)                                    ≡⟨ sym $ O.to-ℕ-from-bits _ ⟩
@@ -365,7 +365,7 @@ private
 nullary-correct :
   (@0 hyp : to-ℕ n′ ≡ n) →
   Nat→ℕ (nullary n n′ hyp) ≡ n
-nullary-correct {n′ = n′} {n = n} hyp =
+nullary-correct {n′} {n} hyp =
   Stable-≡-ℕ _ _
      [ Nat→ℕ (nullary n n′ hyp)  ≡⟨ ≡⌊⌋ (nullary n n′ hyp) ⟩
        ⌊ nullary n n′ hyp ⌋      ≡⟨⟩
@@ -394,7 +394,7 @@ private
 unary-correct :
   (f : ℕ → ℕ) (@0 hyp : ∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
   ∀ n → Nat→ℕ (unary f f′ hyp n) ≡ f (Nat→ℕ n)
-unary-correct {f′ = f′} f hyp n =
+unary-correct {f′} f hyp n =
   Stable-≡-ℕ _ _
     [ Nat→ℕ (unary f f′ hyp n)  ≡⟨ ≡⌊⌋ (unary f f′ hyp n) ⟩
       ⌊ unary f f′ hyp n ⌋      ≡⟨⟩
@@ -425,7 +425,7 @@ n-ary-correct :
   (@0 hyp : ∀ ms → to-ℕ (f′ ms) ≡ f (Vec.map to-ℕ ms)) →
   ∀ ms →
   Nat→ℕ (n-ary n f f′ hyp ms) ≡ f (Vec.map (Nat→ℕ) ms)
-n-ary-correct n f {f′ = f′} hyp ms =
+n-ary-correct n f {f′} hyp ms =
   Stable-≡-ℕ _ _
     [ Nat→ℕ (n-ary n f f′ hyp ms)                   ≡⟨ ≡⌊⌋ (n-ary n f f′ hyp ms) ⟩
       ⌊ n-ary n f f′ hyp ms ⌋                       ≡⟨⟩
@@ -606,7 +606,7 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
   -- Nat-[ n ] is a proposition.
 
   Nat-[]-propositional : {@0 n : ℕ} → Is-proposition Nat-[ n ]
-  Nat-[]-propositional {n = n} =                                      $⟨ Very-stable-≡-ℕ ⟩
+  Nat-[]-propositional {n} =                                          $⟨ Very-stable-≡-ℕ ⟩
     Very-stable-≡ ℕ                                                   ↝⟨ Very-stable-congⁿ _ 1 (inverse Nat′↔ℕ) ⟩
     Very-stable-≡ Nat′                                                ↝⟨ Very-stable→Very-stableᴱ 1 ⟩
     Very-stableᴱ-≡ Nat′                                               ↝⟨ erased-singleton-with-erased-center-propositional ⟩
@@ -621,7 +621,7 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
   ≡-for-indices↔≡ :
     {m n : Nat} →
     Erased (⌊ m ⌋ ≡ ⌊ n ⌋) ↔ m ≡ n
-  ≡-for-indices↔≡ {m = m} {n = n} =
+  ≡-for-indices↔≡ {m} {n} =
     Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
     proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Nat-[]-propositional ⟩□
     m ≡ n                   □

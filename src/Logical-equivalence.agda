@@ -158,7 +158,7 @@ implicit-∀-cong P⇔Q = record
 -- _⇔_ preserves logical equivalences.
 
 ⇔-cong : A ⇔ B → C ⇔ D → (A ⇔ C) ⇔ (B ⇔ D)
-⇔-cong {A = A} {B = B} {C = C} {D = D} A⇔B C⇔D = record
+⇔-cong {A} {B} {C} {D} A⇔B C⇔D = record
   { to   = λ A⇔C →
              B  ⇔⟨ inverse A⇔B ⟩
              A  ⇔⟨ A⇔C ⟩

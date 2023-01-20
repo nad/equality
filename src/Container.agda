@@ -255,7 +255,7 @@ Position′ _ Any = Any (λ (_ : ⊤) → ⊤)
 Position-Any : ∀ {c} {C : Container c} (s : Shape C) →
                Position C s ↔
                Position′ ⟦ C ⟧ Any (_↔_.to (Shape-⟦⟧ C) s)
-Position-Any {C = C} s =
+Position-Any {C} s =
   Position C s      ↔⟨ inverse ×-right-identity ⟩
   Position C s × ⊤  □
 
@@ -294,7 +294,7 @@ infix 4 _≈[_]′_
 
 _≈[_]′_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
           ⟦ C ⟧ A → Isomorphism-kind → ⟦ D ⟧ A → Type _
-_≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
+_≈[_]′_ {C} {D} (s , f) k (s′ , f′) =
   ∃ λ (P↔P : Position C s ↔[ k ] Position D s′) →
       (∀ p → f p ≡ f′ (to-implication P↔P p))
 
@@ -320,7 +320,7 @@ _≈[_]′_ {C = C} {D} (s , f) k (s′ , f′) =
 
 ∈-index : ∀ {a c} {A : Type a} {C : Container c} {z}
           (xs : ⟦ C ⟧ A) → z ∈ xs ↔ ∃ λ p → z ≡ index xs p
-∈-index {z = z} xs = z ∈ xs □
+∈-index {z} xs = z ∈ xs □
 
 -- The index which points to the element (not used below).
 
@@ -334,7 +334,7 @@ index-of xs = proj₁ ∘ to-implication (∈-index xs)
 Position-shape :
   ∀ {a c} {A : Type a} {C : Container c} (xs : ⟦ C ⟧ A) →
   (∃ λ z → z ∈ xs) ↔ Position C (shape xs)
-Position-shape {C = C} (s , f) =
+Position-shape {C} (s , f) =
   (∃ λ z → ∃ λ p → z ≡ f p)  ↔⟨ ∃-comm ⟩
   (∃ λ p → ∃ λ z → z ≡ f p)  ↔⟨⟩
   (∃ λ p → Singleton (f p))  ↔⟨ ∃-cong (λ _ → _⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
@@ -347,7 +347,7 @@ Position-shape-cong :
   ∀ {k a c d} {A : Type a} {C : Container c} {D : Container d}
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
   xs ∼[ k ] ys → Position C (shape xs) ↝[ k ] Position D (shape ys)
-Position-shape-cong {C = C} {D} xs ys xs∼ys =
+Position-shape-cong {C} {D} xs ys xs∼ys =
   Position C (shape xs)  ↔⟨ inverse $ Position-shape xs ⟩
   ∃ (λ z → z ∈ xs)       ↝⟨ ∃-cong xs∼ys ⟩
   ∃ (λ z → z ∈ ys)       ↔⟨ Position-shape ys ⟩
@@ -425,7 +425,7 @@ Position-shape-cong-relates {k = surjection} xs ys xs≈ys p =
   ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
   (xs : ⟦ C ⟧ A) (ys : ⟦ D ⟧ A) →
   xs ≈-bag ys ↝[ a ⊔ c ⊔ d ∣ a ⊔ c ⊔ d ] xs ≈[ bag ]′ ys
-≈↔≈′ {a = a} {c = c} {d = d} {C = C} {D = D} xs ys =
+≈↔≈′ {a} {c} {d} {C} {D} xs ys =
   generalise-ext? equiv λ ext →
       (λ (⟨ f , f-eq ⟩ , related) →
          let
@@ -491,7 +491,7 @@ Position-shape-cong-relates {k = surjection} xs ys xs≈ys p =
   (D : Container d) {t : Shape D} →
   (∃ λ (g : Position D t → A) → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A)) ≃
   (Position C (shape xs) ≃ Position D t)
-∃≈≃≃ {a = a} {c = c} {d = d} {A = A} ext C {xs = xs@(s , f)} D {t = t} =
+∃≈≃≃ {a} {c} {d} {A} ext C {xs = xs@(s , f)} D {t} =
   (∃ λ g → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A))                       ↝⟨ (∃-cong λ _ → ≈↔≈′ {D = D} xs _ ext) ⟩
 
   (∃ λ g → xs ≈[ bag ]′ (t , g ⦂ ⟦ D ⟧ A))                   ↔⟨⟩
@@ -517,7 +517,7 @@ Position-shape-cong-relates {k = surjection} xs ys xs≈ys p =
   (C : Container c) {xs : ⟦ C ⟧ A} →
   (∃ λ (ys : ⟦ D ⟧ A) → xs ≈-bag ys) ≃
   (∃ λ (s : Shape D) → Position C (shape xs) ≃ Position D s)
-∃≈≃∃≃ {A = A} {D = D} ext C {xs = xs} =
+∃≈≃∃≃ {A} {D} ext C {xs} =
   (∃ λ ys → xs ≈-bag ys)                                      ↔⟨ inverse Σ-assoc ⟩
   (∃ λ t → ∃ λ g → xs ≈-bag (t , g ⦂ ⟦ D ⟧ A))                ↝⟨ (∃-cong λ _ → ∃≈≃≃ ext C D) ⟩□
   (∃ λ (t : Shape D) → Position C (shape xs) ≃ Position D t)  □
@@ -532,7 +532,7 @@ infix 4 _∼[_∣_]″_
 
 _∼[_∣_]″_ : ∀ {a c d} {A : Type a} {C : Container c} {D : Container d} →
             ⟦ C ⟧ A → Kind → ∀ ℓ → ⟦ D ⟧ A → Type (lsuc (a ⊔ ℓ) ⊔ c ⊔ d)
-_∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
+_∼[_∣_]″_ {a} {A} xs k ℓ ys =
   (P : A → Type (a ⊔ ℓ)) → Any P xs ↝[ k ] Any P ys
 
 -- This definition is logically equivalent to _∼[_]_ (for each
@@ -583,7 +583,7 @@ _∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
   (R : A → A → Type r) →
   (∀ x → R x x) →
   (∀ x → ⟦ C ⟧₂ R x x)
-⟦⟧₂-reflexive {C = C} R r (xs , f) =
+⟦⟧₂-reflexive {C} R r (xs , f) =
     refl _
   , λ p →                                           $⟨ r _ ⟩
       R (f p) (f p)                                 ↝⟨ subst (R _ ∘ f) (sym $ subst-refl _ _) ⟩□
@@ -596,7 +596,7 @@ _∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
   (R : A → A → Type r) →
   (∀ {x y} → R x y → R y x) →
   (∀ {x y} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y x)
-⟦⟧₂-symmetric {C = C} R r {_ , f} {_ , g} (eq , h) =
+⟦⟧₂-symmetric {C} R r {_ , f} {_ , g} (eq , h) =
     sym eq
   , λ p →                                                            $⟨ h (subst (Position C) (sym eq) p) ⟩
       R (f (subst (Position C) (sym eq) p))
@@ -613,8 +613,7 @@ _∼[_∣_]″_ {a = a} {A = A} xs k ℓ ys =
   (R : A → A → Type r) →
   (∀ {x y z} → R x y → R y z → R x z) →
   (∀ {x y z} → ⟦ C ⟧₂ R x y → ⟦ C ⟧₂ R y z → ⟦ C ⟧₂ R x z)
-⟦⟧₂-transitive {C = C}
-               R r {_ , f} {_ , g} {_ , h} (eq₁ , f₁) (eq₂ , f₂) =
+⟦⟧₂-transitive {C} R r {_ , f} {_ , g} {_ , h} (eq₁ , f₁) (eq₂ , f₂) =
     trans eq₁ eq₂
   , λ p →                                                             $⟨ f₂ _ ⟩
       R (g (subst (Position C) eq₁ p))

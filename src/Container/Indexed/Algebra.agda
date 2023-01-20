@@ -38,7 +38,7 @@ private
 -- The type of algebras for a (singly indexed) container.
 
 Algebra : {I : Type i} → Container I s p → Type (lsuc (i ⊔ s ⊔ p))
-Algebra {i = i} {s = s} {p = p} {I = I} C =
+Algebra {i} {s} {p} {I} C =
   ∃ λ (P : I → Type (i ⊔ s ⊔ p)) → ⟦ C ⟧ P ⇾ P
 
 -- Algebra morphisms.
@@ -202,8 +202,8 @@ Initial′→Initial≃Initial :
   ((X , _) (Y , _) : Initial-algebra′ C) →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Initial X ↝[ lsuc (i ⊔ s ⊔ p) ∣ i ⊔ s ⊔ p ] Initial Y
-Initial′→Initial≃Initial {i = i} {s = s} {p = p} {C = C}
-  ((X₁ , in₁) , initial₁) ((X₂ , in₂) , initial₂) ext {k = k} ext′ =
+Initial′→Initial≃Initial {i} {s} {p} {C}
+  ((X₁ , in₁) , initial₁) ((X₂ , in₂) , initial₂) ext {k} ext′ =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
     (lower-extensionality? k _ lzero ext′)
@@ -270,7 +270,7 @@ Initial-algebra-propositional :
   Extensionality (lsuc (i ⊔ s ⊔ p)) (lsuc (i ⊔ s ⊔ p)) →
   Univalence (i ⊔ s ⊔ p) →
   Is-proposition (Initial-algebra C)
-Initial-algebra-propositional {I = I} {C = C}
+Initial-algebra-propositional {I} {C}
   ext univ F₁@((P₁ , in₁) , _) F₂@(X₂@(P₂ , in₂) , _) =
   block λ b →
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
@@ -285,7 +285,7 @@ Initial-algebra-propositional {I = I} {C = C}
     ∀ b x →
     ((_≃_.to ∘ lemma₀ b) ∘⇾ in₁) i (map C (_≃_.from ∘ lemma₀ b) i x) ≡
     in₂ i x
-  lemma₀-lemma {i = i} ⊠ x =
+  lemma₀-lemma {i} ⊠ x =
     ((_≃_.to ∘ lemma₀ ⊠) ∘⇾ in₁) i (map C (_≃_.from ∘ lemma₀ ⊠) i x)  ≡⟨ cong (λ f → f _ (map C (_≃_.from ∘ lemma₀ ⊠) i x)) $
                                                                          in-related F₁ F₂ ⟩
     (in₂ ∘⇾ map C (_≃_.to ∘ lemma₀ ⊠))
@@ -423,7 +423,7 @@ W-algebra C = W C , λ _ → in-W
 -- "Fold" functions for W.
 
 fold : ((P , _) : Algebra C) → W C ⇾ P
-fold {C = C} X@(_ , f) _ (in-W (s , g)) =
+fold {C} X@(_ , f) _ (in-W (s , g)) =
   f _ (s , λ p → fold X (index C p) (g p))
 
 -- "Fold" morphisms for W.
@@ -437,7 +437,7 @@ W-initial :
   {I : Type i} {C : Container I s p} →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Initial (W-algebra C)
-W-initial {i = i} {s = s} {p = p} {C = C} ext X@(P , f) =
+W-initial {i} {s} {p} {C} ext X@(P , f) =
   fold⇨ X , unique
   where
   ext₁ : Extensionality p (i ⊔ s ⊔ p)
@@ -528,7 +528,7 @@ Algebra≃Algebra-lift-positions :
   {I : Type i} {C : Container I s p} →
   Extensionality? ⌊ k ⌋-sym (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Algebra C ↝[ ⌊ k ⌋-sym ] Algebra (lift-positions C)
-Algebra≃Algebra-lift-positions {s = s} {p = p} {k = k} {C = C} ext =
+Algebra≃Algebra-lift-positions {s} {p} {k} {C} ext =
   (∃ λ P → ⟦                C ⟧ P ⇾ P)  ↝⟨ (∃-cong λ P →
                                             ∀-cong (lower-extensionality? ⌊ k ⌋-sym (s ⊔ p) lzero ext) λ _ →
                                             →-cong₁ ext $
@@ -545,7 +545,7 @@ Algebra≃Algebra-lift-positions {s = s} {p = p} {k = k} {C = C} ext =
   (X ⇨ Y) ≃
   (_≃_.to (Algebra≃Algebra-lift-positions ext) X ⇨
    _≃_.to (Algebra≃Algebra-lift-positions ext) Y)
-⇨≃⇨-lift-positions {s = s} {p = p} {C = C} ext (P , f) (Q , g) =
+⇨≃⇨-lift-positions {s} {p} {C} ext (P , f) (Q , g) =
   (∃ λ (h : P ⇾ Q) → h ∘⇾ f ≡ g ∘⇾ map _ h)      ↝⟨ (∃-cong λ _ → inverse $
                                                      Eq.≃-≡ $
                                                      ∀-cong (lower-extensionality (s ⊔ p) lzero ext) λ _ →
@@ -624,7 +624,7 @@ Initial-algebra′≃Initial-algebra′-lift-positions ext =
 W≃W-lift-positions :
   ∀ {I : Type iℓ} {C : Container I s p} {i} →
   W C i ↝[ iℓ ⊔ p ∣ iℓ ⊔ s ⊔ p ] W (lift-positions C) i
-W≃W-lift-positions {iℓ = iℓ} {s = s} {p = p} {C = C} =
+W≃W-lift-positions {iℓ} {s} {p} {C} =
   generalise-ext?
     (record { to = to; from = from })
     (λ ext →
@@ -658,7 +658,7 @@ W≃W-lift-positions {iℓ = iℓ} {s = s} {p = p} {C = C} =
   Univalence (i ⊔ s ⊔ p) →
   _⇔_.to (Algebra≃Algebra-lift-positions _) (W-algebra C) ≡
   W-algebra (lift-positions C)
-≡W-algebra-lift-positions {i = i} {s = s} {p = p} {C = C} ext univ =
+≡W-algebra-lift-positions {i} {s} {p} {C} ext univ =
   Σ-≡,≡→≡
     (apply-ext ext′ lemma)
     (apply-ext (lower-extensionality (s ⊔ p) _ ext) λ i →

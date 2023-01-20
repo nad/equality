@@ -60,8 +60,8 @@ xs ⊆ ys = All (_∈ ys) xs
 -- If All P xs holds and x is an element of xs, then P x holds.
 
 index : All P xs → x ∈ xs → P x
-index {P = P} {xs = _ ∷ _} (p , _)  (inj₁ eq) = subst P (sym eq) p
-index         {xs = _ ∷ _} (_ , ps) (inj₂ q)  = index ps q
+index {P} {xs = _ ∷ _} (p , _)  (inj₁ eq) = subst P (sym eq) p
+index     {xs = _ ∷ _} (_ , ps) (inj₂ q)  = index ps q
 
 -- If P holds for every element of xs, then All P xs holds.
 
@@ -123,23 +123,23 @@ All-∷ : All P (x ∷ xs) ↔ P x × All P xs
 All-∷ = F.id
 
 All-++ : All P (xs ++ ys) ↔ All P xs × All P ys
-All-++ {P = P} {xs = []} {ys = ys} =
+All-++ {P} {xs = []} {ys} =
   All P ys             ↝⟨ inverse $ drop-⊤-left-× (λ _ → All-[] P) ⟩□
   All P [] × All P ys  □
-All-++ {P = P} {xs = x ∷ xs} {ys = ys} =
+All-++ {P} {xs = x ∷ xs} {ys} =
   P x × All P (xs ++ ys)       ↝⟨ F.id ×-cong All-++ ⟩
   P x × All P xs × All P ys    ↝⟨ ×-assoc ⟩□
   (P x × All P xs) × All P ys  □
 
 All-map : All P (L.map f xs) ↔ All (P ∘ f) xs
-All-map                 {xs = []}     = F.id
-All-map {P = P} {f = f} {xs = x ∷ xs} =
+All-map         {xs = []}     = F.id
+All-map {P} {f} {xs = x ∷ xs} =
   P (f x) × All P (L.map f xs)  ↝⟨ (∃-cong λ _ → All-map) ⟩□
   P (f x) × All (P ∘ f) xs      □
 
 All-concat : All P (L.concat xs) ↔ All (All P) xs
-All-concat         {xs = []}       = F.id
-All-concat {P = P} {xs = xs ∷ xss} =
+All-concat     {xs = []}       = F.id
+All-concat {P} {xs = xs ∷ xss} =
   All P (xs ++ L.concat xss)       ↝⟨ All-++ ⟩
   All P xs × All P (L.concat xss)  ↝⟨ (∃-cong λ _ → All-concat) ⟩□
   All P xs × All (All P) xss       □
@@ -147,20 +147,20 @@ All-concat {P = P} {xs = xs ∷ xss} =
 All->>= :
   {A : Type ℓ} {f : A → List B} {xs : List A} →
   All P (xs >>= f) ↔ All (All P ∘ f) xs
-All->>= {P = P} {f = f} {xs = xs} =
+All->>= {P} {f} {xs} =
   All P (L.concat (L.map f xs))  ↝⟨ All-concat ⟩
   All (All P) (L.map f xs)       ↝⟨ All-map ⟩□
   All (All P ∘ f) xs             □
 
 All-const : All (const A) xs ↔ Vec A (L.length xs)
-All-const         {xs = []}     = F.id
-All-const {A = A} {xs = x ∷ xs} =
+All-const     {xs = []}     = F.id
+All-const {A} {xs = x ∷ xs} =
   A × All (const A) xs     ↝⟨ (∃-cong λ _ → All-const) ⟩□
   A × Vec A (L.length xs)  □
 
 All-const-replicate : All (const A) (L.replicate n tt) ↔ Vec A n
-All-const-replicate         {n = zero}  = F.id
-All-const-replicate {A = A} {n = suc n} =
+All-const-replicate     {n = zero}  = F.id
+All-const-replicate {A} {n = suc n} =
   A × All (const A) (L.replicate n tt)  ↝⟨ (∃-cong λ _ → All-const-replicate) ⟩□
   A × Vec A n                           □
 
@@ -168,14 +168,14 @@ All-Σ :
   {A : Type a} {P : A → Type p} {Q : ∃ P → Type q} {xs : List A} →
   All (λ x → Σ (P x) (curry Q x)) xs ↔
   ∃ λ (ps : All P xs) → All Q (_↔_.to ∃-All↔List-∃ (xs , ps))
-All-Σ {P = P} {Q = Q} {xs = []} =
+All-Σ {P} {Q} {xs = []} =
   All (λ x → Σ (P x) (curry Q x)) []                             ↔⟨⟩
   ↑ _ ⊤                                                          ↝⟨ Bijection.↑↔ ⟩
   ⊤                                                              ↝⟨ inverse Bijection.↑↔ ⟩
   ↑ _ ⊤                                                          ↝⟨ inverse (drop-⊤-right λ _ → Bijection.↑↔) ⟩
   ↑ _ ⊤ × ↑ _ ⊤                                                  ↔⟨⟩
   (∃ λ (ps : All P []) → All Q (_↔_.to ∃-All↔List-∃ ([] , ps)))  □
-All-Σ {P = P} {Q = Q} {xs = x ∷ xs} =
+All-Σ {P} {Q} {xs = x ∷ xs} =
   All (λ x → Σ (P x) (curry Q x)) (x ∷ xs)                            ↔⟨⟩
 
   Σ (P x) (curry Q x) × All (λ x → Σ (P x) (curry Q x)) xs            ↝⟨ ∃-cong (λ _ → All-Σ) ⟩
@@ -198,14 +198,14 @@ Vec-Σ :
   {A : Type a} {P : A → Type p} →
   Vec (Σ A P) n ↔
   ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
-Vec-Σ {n = zero} {A = A} {P = P} =
+Vec-Σ {n = zero} {A} {P} =
   Vec (Σ A P) zero                                  ↔⟨⟩
   ↑ _ ⊤                                             ↝⟨ Bijection.↑↔ ⟩
   ⊤                                                 ↝⟨ inverse Bijection.↑↔ ⟩
   ↑ _ ⊤                                             ↝⟨ inverse (drop-⊤-right λ _ → Bijection.↑↔) ⟩
   ↑ _ ⊤ × ↑ _ ⊤                                     ↔⟨⟩
   (∃ λ (xs : Vec A zero) → All P (Vec.to-list xs))  □
-Vec-Σ {n = suc n} {A = A} {P = P} =
+Vec-Σ {n = suc n} {A} {P} =
   Vec (Σ A P) (suc n)                                                ↔⟨⟩
 
   Σ A P × Vec (Σ A P) n                                              ↝⟨ ∃-cong (λ _ → Vec-Σ) ⟩
@@ -229,7 +229,7 @@ private
     {A : Type a} {P : A → Type p} →
     Vec (Σ A P) n ↔
     ∃ λ (xs : Vec A n) → All P (Vec.to-list xs)
-  Vec-Σ′ {n = n} {A = A} {P = P} =
+  Vec-Σ′ {n} {A} {P} =
     Vec (Σ A P) n                                           ↝⟨ inverse All-const-replicate ⟩
 
     All (const (Σ A P)) (L.replicate n tt)                  ↝⟨ All-Σ ⟩
@@ -253,7 +253,7 @@ private
 -- List commutes with Σ in a certain way.
 
 List-Σ : List (Σ A P) ≃ Σ (List A) (All P)
-List-Σ {A = A} {P = P} =
+List-Σ {A} {P} =
   Eq.↔→≃ to (uncurry from) (uncurry to-from) from-to
   where
   to : List (Σ A P) → Σ (List A) (All P)
@@ -287,7 +287,7 @@ Listᴾ-List-Σ :
   Listᴾ (R on proj₁) xs ys
 Listᴾ-List-Σ {xs = []} {ys = []} =
   ↑ _ ⊤  □
-Listᴾ-List-Σ {R = R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
+Listᴾ-List-Σ {R} {xs = (x , _) ∷ xs} {ys = (y , _) ∷ ys} =
   R x y × Listᴾ R (_≃_.to List-Σ xs .proj₁) (_≃_.to List-Σ ys .proj₁)  ↝⟨ (∃-cong λ _ → Listᴾ-List-Σ) ⟩□
   R x y × Listᴾ (R on proj₁) xs ys                                     □
 Listᴾ-List-Σ {xs = []} {ys = _ ∷ _} =
@@ -305,7 +305,7 @@ private
   -- A lemma used below.
 
   subst-sym-refl : {p : P x} → subst P (sym (refl x)) p ≡ p
-  subst-sym-refl {P = P} {x = x} {p = p} =
+  subst-sym-refl {P} {x} {p} =
     subst P ⟨ sym (refl x) ⟩ p  ≡⟨ ⟨by⟩ sym-refl ⟩
     ⟨ subst P (refl x) p ⟩      ≡⟨ ⟨by⟩ subst-refl ⟩∎
     p                           ∎
@@ -315,8 +315,8 @@ private
 tabulate∘index :
   ∀ {xs} (ps : All P xs) →
   tabulate (index ps) ≡ ps
-tabulate∘index         {xs = []}    _        = refl _
-tabulate∘index {P = P} {xs = _ ∷ _} (p , ps) = cong₂ _,_
+tabulate∘index     {xs = []}    _        = refl _
+tabulate∘index {P} {xs = _ ∷ _} (p , ps) = cong₂ _,_
   (subst P (sym (refl _)) p  ≡⟨ subst-sym-refl ⟩∎
    p                         ∎)
   (tabulate (index ps)  ≡⟨ tabulate∘index ps ⟩∎
@@ -325,8 +325,8 @@ tabulate∘index {P = P} {xs = _ ∷ _} (p , ps) = cong₂ _,_
 index∘tabulate :
   ∀ {xs} (f : ∀ {x} → x ∈ xs → P x) (×∈xs : x ∈ xs) →
   index (tabulate f) ×∈xs ≡ f ×∈xs
-index∘tabulate         {xs = _ ∷ _} f (inj₂ p)  = index∘tabulate _ p
-index∘tabulate {P = P} {xs = _ ∷ _} f (inj₁ eq) = elim₁
+index∘tabulate     {xs = _ ∷ _} f (inj₂ p)  = index∘tabulate _ p
+index∘tabulate {P} {xs = _ ∷ _} f (inj₁ eq) = elim₁
   (λ eq → subst P (sym eq) (f (inj₁ (refl _))) ≡ f (inj₁ eq))
   subst-sym-refl
   eq
@@ -347,7 +347,7 @@ extensionality :
   ∀ {xs} {ps qs : All P xs} →
   (∀ {x} (x∈xs : x ∈ xs) → index ps x∈xs ≡ index qs x∈xs) →
   ps ≡ qs
-extensionality {ps = ps} {qs} ps≡qs =
+extensionality {ps} {qs} ps≡qs =
   ps                   ≡⟨ sym $ tabulate∘index _ ⟩
   tabulate (index ps)  ≡⟨ tabulate-cong ps≡qs ⟩
   tabulate (index qs)  ≡⟨ tabulate∘index _ ⟩∎
@@ -372,7 +372,7 @@ All↔All :
   ∀ {k} {A : Type a} {P : A → Type p} {xs : List A} →
   Extensionality? k a (a ⊔ p) →
   All P xs ↝[ k ] A.All P xs
-All↔All {a = a} =
+All↔All {a} =
   generalise-ext?
     All⇔All
     (λ ext →
@@ -418,7 +418,7 @@ H-level-All n h (x ∷ xs) =
 ⊆↔∼[subset] :
   {A : Type a} {xs ys : List A} →
   xs ⊆ ys ↝[ a ∣ a ] xs ∼[ subset ] ys
-⊆↔∼[subset] {xs = xs} {ys = ys} ext =
+⊆↔∼[subset] {xs} {ys} ext =
   xs ⊆ ys            ↝⟨ All↔All ext ⟩
   xs A.⊆ ys          ↔⟨ A.⊆↔∼[subset] ⟩
   xs ∼[ subset ] ys  □
@@ -440,7 +440,7 @@ All-cong₁ {xs = []} P↝Q =
   ↑ _ ⊤  ↔⟨ Bijection.↑↔ ⟩
   ⊤      ↔⟨ inverse Bijection.↑↔ ⟩□
   ↑ _ ⊤  □
-All-cong₁ {P = P} {Q = Q} {xs = x ∷ xs} P↝Q =
+All-cong₁ {P} {Q} {xs = x ∷ xs} P↝Q =
   P x × All P xs  ↝⟨ P↝Q _ ×-cong All-cong₁ P↝Q ⟩□
   Q x × All Q xs  □
 
@@ -461,7 +461,7 @@ All-cong-→ :
   (∀ x → P x → Q x) →
   ys ∼[ implication ] xs →
   All P xs → All Q ys
-All-cong-→ {P = P} {Q = Q} {ys = ys} {xs = xs} P→Q ys∼xs =
+All-cong-→ {P} {Q} {ys} {xs} P→Q ys∼xs =
   All P xs    ↝⟨ _↠_.from All↠All ⟩
   A.All P xs  ↝⟨ A.All-cong-→ P→Q ys∼xs ⟩
   A.All Q ys  ↝⟨ _↠_.to All↠All ⟩□
@@ -473,8 +473,7 @@ All-cong :
   (∀ x → P x ↝[ ⌊ k ⌋-sym ] Q x) →
   xs ∼[ ⌊ k ⌋-sym ] ys →
   All P xs ↝[ ⌊ k ⌋-sym ] All Q ys
-All-cong {a = a} {p = p} {q = q} {k} {P = P} {Q} {xs} {ys}
-         ext P↝Q xs∼ys =
+All-cong {a} {p} {q} {k} {P} {Q} {xs} {ys} ext P↝Q xs∼ys =
   All P xs    ↝⟨ All↔All (lower-extensionality? ⌊ k ⌋-sym a q ext) ⟩
   A.All P xs  ↝⟨ A.All-cong ext P↝Q xs∼ys ⟩
   A.All Q ys  ↝⟨ inverse-ext? All↔All (lower-extensionality? ⌊ k ⌋-sym a p ext) ⟩□
@@ -488,7 +487,7 @@ index∘index :
 index∘index {xs = _ ∷ _} {x∈xs = inj₂ _} (_ , ⊆ys) =
   index∘index ⊆ys
 
-index∘index {P = P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
+index∘index {P} {xs = _ ∷ _} {ys} {ps} {inj₁ eq} (∈ys , _) = elim₁
   (λ eq → index ps (subst (_∈ ys) (sym eq) ∈ys) ≡
           subst P (sym eq) (index ps ∈ys))
   (index ps ⟨ subst (_∈ ys) (sym (refl _)) ∈ys ⟩  ≡⟨ ⟨by⟩ subst-sym-refl ⟩
@@ -504,7 +503,7 @@ index-map₁ :
   index (map₁ f ps) q ≡ f (index ps q)
 index-map₁ (_ ∷ xs) {q = inj₂ q} = index-map₁ xs
 
-index-map₁ {Q = Q} {P = P} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
+index-map₁ {Q} {P} (_ ∷ _) {f} {p , _} {q = inj₁ eq} = elim₁
   (λ eq → subst Q (sym eq) (f p) ≡
           f (subst P (sym eq) p))
   (subst Q (sym (refl _)) (f p)  ≡⟨ subst-sym-refl ⟩
@@ -577,7 +576,7 @@ mutual
   map₂′-inj₂ :
     ∀ {xs} {p : P x} {ps : All P xs} →
     map₂′ inj₂ (p , ps) ≡ ps
-  map₂′-inj₂ {p = p} {ps} =
+  map₂′-inj₂ {p} {ps} =
     map₂′ inj₂ (p , ps)  ≡⟨ map₂′-inj₂-∘ ⟩
     map₂′ id ps          ≡⟨ map₂′-id ⟩∎
     ps                   ∎
@@ -585,14 +584,14 @@ mutual
 map₂′-⊎-map-id :
   ∀ {xs ys} {f : ys ⊆′ xs} {p : P x} {ps : All P xs} →
   map₂′ (⊎-map id f) (p , ps) ≡ (p , map₂′ f ps)
-map₂′-⊎-map-id {f = f} {p} {ps} = cong₂ _,_ subst-sym-refl
+map₂′-⊎-map-id {f} {p} {ps} = cong₂ _,_ subst-sym-refl
   (map₂′ (inj₂ ∘ f) (p , ps)  ≡⟨ map₂′-inj₂-∘ ⟩∎
    map₂′ f ps                 ∎)
 
 map₂′-⊎-map-id-inj₂ :
   ∀ {xs} {p : P x} {q : P y} {ps : All P xs} →
   map₂′ (⊎-map id inj₂) (p , q , ps) ≡ (p , ps)
-map₂′-⊎-map-id-inj₂ {p = p} {q} {ps} =
+map₂′-⊎-map-id-inj₂ {p} {q} {ps} =
   map₂′ (⊎-map id inj₂) (p , q , ps)  ≡⟨ map₂′-⊎-map-id ⟩
   (p , map₂′ inj₂ (q , ps))           ≡⟨ cong (_ ,_) map₂′-inj₂ ⟩
   (p , ps)                            ∎
@@ -604,7 +603,7 @@ map₂′-++-cong :
   append (map₂′ f ps) (map₂′ g qs)
 map₂′-++-cong [] {ys₁ = []} _ = refl _
 
-map₂′-++-cong [] {xs₂} {_ ∷ _} {ps = ps} {qs} f {g} = cong₂ _,_
+map₂′-++-cong [] {xs₂} {_ ∷ _} {ps} {qs} f {g} = cong₂ _,_
 
   (index (append ps qs) (++-cong (λ _ → f) (λ _ → g) _ (inj₁ (refl _)))  ≡⟨⟩
 
@@ -616,7 +615,7 @@ map₂′-++-cong [] {xs₂} {_ ∷ _} {ps = ps} {qs} f {g} = cong₂ _,_
   (map₂′ (++-cong (λ _ → f) (λ _ → g ∘ inj₂) _) (append ps qs)  ≡⟨ map₂′-++-cong _ f ⟩∎
    append (map₂′ f ps) (map₂′ (g ∘ inj₂) qs)                    ∎)
 
-map₂′-++-cong (_ ∷ _) {ps = ps} {qs} f {g} = cong₂ _,_
+map₂′-++-cong (_ ∷ _) {ps} {qs} f {g} = cong₂ _,_
 
   (index (append ps qs) (++-cong (λ _ → f) (λ _ → g) _ (inj₁ (refl _)))  ≡⟨⟩
 

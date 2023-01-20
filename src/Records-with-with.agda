@@ -117,7 +117,7 @@ Proj ∅              ℓ ()
 Proj (Sig , ℓ′ ∶ A) ℓ ℓ∈ with ℓ ≟ ℓ′
 ... | yes _ = A
 ... | no  _ = Proj Sig ℓ ℓ∈
-Proj (_,_≔_ Sig ℓ′ {A = A} a) ℓ ℓ∈ with ℓ ≟ ℓ′
+Proj (_,_≔_ Sig ℓ′ {A} a) ℓ ℓ∈ with ℓ ≟ ℓ′
 ... | yes _ = A
 ... | no  _ = Proj Sig ℓ ℓ∈
 
@@ -277,7 +277,7 @@ mutual
   Record↔Recʳ :
     ∀ {s} {Sig : Signature s} →
     Record Sig ↔ Recʳ Sig
-  Record↔Recʳ {Sig = Sig} =
+  Record↔Recʳ {Sig} =
     Record Sig      ↝⟨ Record↔Record-fun ⟩
     Record-fun Sig  ↝⟨ Record-fun↔Recʳ Sig ⟩□
     Recʳ Sig        □

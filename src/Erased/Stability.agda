@@ -65,7 +65,7 @@ private
 
 Very-stable→Is-embedding-[] :
   Very-stable A → Is-embedding [ A ∣_]→
-Very-stable→Is-embedding-[] {A = A} s x y =
+Very-stable→Is-embedding-[] {A} s x y =
   _≃_.is-equivalence ≡≃[]≡[]
   where
   A≃Erased-A : A ≃ Erased A
@@ -78,7 +78,7 @@ Very-stable→Is-embedding-[] {A = A} s x y =
 
 Very-stable→Split-surjective-[] :
   Very-stable A → Split-surjective [ A ∣_]→
-Very-stable→Split-surjective-[] {A = A} =
+Very-stable→Split-surjective-[] {A} =
   Very-stable A          ↔⟨⟩
   Is-equivalence [_]→    ↝⟨ (λ hyp → _↠_.split-surjective $ _≃_.surjection $ Eq.⟨ _ , hyp ⟩) ⟩
   Split-surjective [_]→  □
@@ -124,7 +124,7 @@ Very-stable→Stable :
   ∀ n →
   For-iterated-equality n Very-stable A →
   For-iterated-equality n Stable-[ k ] A
-Very-stable→Stable {k = k} n =
+Very-stable→Stable {k} n =
   For-iterated-equality-cong₁ _ n λ {A} →
     Very-stable A             ↝⟨ Eq.⟨ _ ,_⟩ ⟩
     A ≃ Erased A              ↝⟨ inverse ⟩
@@ -151,7 +151,7 @@ _ = refl _
 Very-stable→Stable-[]≡id :
   (s : Very-stable A) →
   Very-stable→Stable₀ s [ x ] ≡ x
-Very-stable→Stable-[]≡id {x = x} s =
+Very-stable→Stable-[]≡id {x} s =
   Very-stable→Stable₀ s [ x ]      ≡⟨⟩
   Eq._≃₀_.from Eq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃_.left-inverse-of Eq.⟨ _ , s ⟩ x ⟩∎
   x                                ∎
@@ -184,7 +184,7 @@ Very-stableᴱ→Stable-≃ᴱ :
   ∀ n →
   For-iterated-equality n Very-stableᴱ A →
   For-iterated-equality n Stable-[ equivalenceᴱ ] A
-Very-stableᴱ→Stable-≃ᴱ {A = A} n =
+Very-stableᴱ→Stable-≃ᴱ {A} n =
   For-iterated-equality-cong₁ᴱ-→ n λ {A} →
     Very-stableᴱ A             →⟨ EEq.⟨ _ ,_⟩₀ ⟩
     A ≃ᴱ Erased A              →⟨ EEq.inverse ⟩
@@ -198,7 +198,7 @@ Very-stableᴱ→Stable :
   ∀ n →
   For-iterated-equality n Very-stableᴱ A →
   For-iterated-equality n Stable A
-Very-stableᴱ→Stable {A = A} n =
+Very-stableᴱ→Stable {A} n =
   For-iterated-equality n Very-stableᴱ A             →⟨ Very-stableᴱ→Stable-≃ᴱ n ⟩
   For-iterated-equality n Stable-[ equivalenceᴱ ] A  →⟨ For-iterated-equality-cong₁ᴱ-→ n _≃ᴱ_.to ⟩□
   For-iterated-equality n Stable A                   □
@@ -209,7 +209,7 @@ Very-stableᴱ→Stable {A = A} n =
 @0 Very-stableᴱ→Stable-[]≡id :
   (s : Very-stableᴱ A) →
   Very-stableᴱ→Stable 0 s [ x ] ≡ x
-Very-stableᴱ→Stable-[]≡id {x = x} s =
+Very-stableᴱ→Stable-[]≡id {x} s =
   Very-stableᴱ→Stable 0 s [ x ]  ≡⟨⟩
   _≃ᴱ_.from EEq.⟨ _ , s ⟩ [ x ]  ≡⟨ _≃ᴱ_.left-inverse-of EEq.⟨ _ , s ⟩ x ⟩∎
   x                              ∎
@@ -256,7 +256,7 @@ Very-stable-Erased =
 
 Erased-Very-stable :
   {@0 A : Type a} → Erased (Very-stable A)
-Erased-Very-stable {A = A} =
+Erased-Very-stable {A} =
   [ _≃_.is-equivalence (    $⟨ Erased↔ ⟩
       Erased (Erased A ↔ A) ↝⟨ erased ⟩
       Erased A ↔ A          ↝⟨ Eq.↔⇒≃ ∘ inverse ⟩□
@@ -282,7 +282,7 @@ Very-stableᴱ-Very-stableᴱ→Very-stableᴱ :
   {@0 A : Type a} →
   Very-stableᴱ (Very-stableᴱ A) →
   Very-stableᴱ A
-Very-stableᴱ-Very-stableᴱ→Very-stableᴱ {A = A} s =
+Very-stableᴱ-Very-stableᴱ→Very-stableᴱ {A} s =
                            $⟨ Erased-Very-stable ⟩
   Erased (Very-stable A)   →⟨ map (Very-stable→Very-stableᴱ 0) ⟩
   Erased (Very-stableᴱ A)  →⟨ Very-stableᴱ→Stable 0 s ⟩□
@@ -292,7 +292,7 @@ Very-stableᴱ-Very-stableᴱ→Very-stableᴱ {A = A} s =
 
 ¬-Very-stable→Is-proposition :
   ¬ ({A : Type a} → Very-stable A → Is-proposition A)
-¬-Very-stable→Is-proposition {a = a} hyp =
+¬-Very-stable→Is-proposition {a} hyp =
   not-proposition (hyp very-stable)
   where
   very-stable : Very-stable (Erased (↑ a Bool))
@@ -343,7 +343,7 @@ Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 -- me).
 
 ¬¬-Very-stable : {@0 A : Type ℓ} → ¬¬ Very-stable A
-¬¬-Very-stable {A = A} =  $⟨ Erased-Very-stable ⟩
+¬¬-Very-stable {A} =      $⟨ Erased-Very-stable ⟩
   Erased (Very-stable A)  →⟨ wrap ∘ Erased→¬¬ ⟩□
   ¬¬ Very-stable A        □
 
@@ -378,7 +378,7 @@ private
   H-level-suc→For-iterated-equality-Is-proposition :
     H-level (1 + n) A →
     For-iterated-equality n Is-proposition A
-  H-level-suc→For-iterated-equality-Is-proposition {n = n} {A = A} =
+  H-level-suc→For-iterated-equality-Is-proposition {n} {A} =
     H-level (1 + n) A                         ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
     H-level′ (1 + n) A                        ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
     For-iterated-equality n (H-level′ 1) A    ↝⟨ For-iterated-equality-cong₁ _ n $
@@ -391,7 +391,7 @@ private
 Stable-proposition→Very-stableᴱ :
   {@0 A : Type a} →
   Stable A → @0 Is-proposition A → Very-stableᴱ A
-Stable-proposition→Very-stableᴱ {A = A} s prop =
+Stable-proposition→Very-stableᴱ {A} s prop =
   _≃ᴱ_.is-equivalence $
   EEq.⇔→≃ᴱ
     prop
@@ -409,7 +409,7 @@ Stable→H-level-suc→Very-stableᴱ :
   For-iterated-equality n Stable A →
   @0 H-level (1 + n) A →
   For-iterated-equality n Very-stableᴱ A
-Stable→H-level-suc→Very-stableᴱ {A = A} n s h =                $⟨ s ,′ [ H-level-suc→For-iterated-equality-Is-proposition h ] ⟩
+Stable→H-level-suc→Very-stableᴱ {A} n s h =                    $⟨ s ,′ [ H-level-suc→For-iterated-equality-Is-proposition h ] ⟩
   For-iterated-equality n Stable A ×
   Erased (For-iterated-equality n Is-proposition A)            →⟨ Σ-map id $
                                                                   For-iterated-equality-commutesᴱ-→ (λ A → Erased A) n (λ ([ f ]) x → [ f x ]) ⟩
@@ -429,7 +429,7 @@ H-level→Very-stableᴱ :
   ∀ n →
   For-iterated-equality n Contractibleᴱ A →
   For-iterated-equality n Very-stableᴱ A
-H-level→Very-stableᴱ {A = A} n =
+H-level→Very-stableᴱ {A} n =
   For-iterated-equality n Contractibleᴱ A  →⟨ For-iterated-equality-cong₁ᴱ-→ n Contractibleᴱ→Very-stableᴱ ⟩□
   For-iterated-equality n Very-stableᴱ A   □
   where
@@ -465,7 +465,7 @@ Stable-≃ᴱ-cong :
   {A : Type ℓ₁} {B : Type ℓ₂} →
   @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
   A ≃ᴱ B → Stable-[ equivalenceᴱ ] A ≃ᴱ Stable-[ equivalenceᴱ ] B
-Stable-≃ᴱ-cong {A = A} {B = B} ext A≃B =
+Stable-≃ᴱ-cong {A} {B} ext A≃B =
   Stable-[ equivalenceᴱ ] A  ↔⟨⟩
   Erased A ≃ᴱ A              ↝⟨ EEq.≃ᴱ-cong ext (Erased-cong-≃ᴱ A≃B) A≃B ⟩
   Erased B ≃ᴱ B              ↔⟨⟩
@@ -487,7 +487,7 @@ Injective→Stable-≡→Stable-≡ f inj s x y =
 →→Is-equivalence→Very-stableᴱ→Very-stableᴱ :
   {@0 A : Type a} {@0 B : Type b}
   (f : A → B) → @0 Is-equivalence f → Very-stableᴱ A → Very-stableᴱ B
-→→Is-equivalence→Very-stableᴱ→Very-stableᴱ {A = A} {B = B} f eq s =
+→→Is-equivalence→Very-stableᴱ→Very-stableᴱ {A} {B} f eq s =
   _≃ᴱ_.is-equivalence $
   EEq.↔→≃ᴱ
     [_]→
@@ -521,7 +521,7 @@ Very-stableᴱ-cong :
   {@0 A : Type a} {@0 B : Type b} →
   @0 Extensionality (a ⊔ b) (a ⊔ b) →
   A ≃ᴱ B → Very-stableᴱ A ≃ᴱ Very-stableᴱ B
-Very-stableᴱ-cong {a = a} {b = b} ext A≃ᴱB =
+Very-stableᴱ-cong {a} {b} ext A≃ᴱB =
   EEq.⇔→≃ᴱ
     (Very-stableᴱ-propositional (lower-extensionality b b ext))
     (Very-stableᴱ-propositional (lower-extensionality a a ext))
@@ -575,7 +575,7 @@ Stable-[]-Π :
   {A : Type a} {P : A → Type p} →
   Extensionality? k a p →
   (∀ x → Stable-[ k ] (P x)) → Stable-[ k ] ((x : A) → P x)
-Stable-[]-Π {P = P} ext s =
+Stable-[]-Π {P} ext s =
   Erased (∀ x → P x)    ↔⟨ Erased-Π↔Π ⟩
   (∀ x → Erased (P x))  ↝⟨ ∀-cong ext s ⟩□
   (∀ x → P x)           □
@@ -597,7 +597,7 @@ Very-stableᴱ-Π :
   @0 Extensionality a p →
   (∀ x → Very-stableᴱ (P x)) →
   Very-stableᴱ ((x : A) → P x)
-Very-stableᴱ-Π {P = P} ext s =
+Very-stableᴱ-Π {P} ext s =
   _≃ᴱ_.is-equivalence
     ((∀ x → P x)           EEq.≃ᴱ⟨ (EEq.∀-cong-≃ᴱ ext λ x → EEq.⟨ _ , s x ⟩₀) ⟩
      (∀ x → Erased (P x))  EEq.≃ᴱ⟨ EEq.inverse Erased-Π≃ᴱΠ ⟩□
@@ -625,7 +625,7 @@ Very-stableᴱ-Πⁿ ext n =
   Extensionality? ⌊ k ⌋-sym a p →
   (∀ (@0 x) → Stable-[ ⌊ k ⌋-sym ] (P x)) →
   ((x : Erased A) → P (erased x)) ↝[ ⌊ k ⌋-sym ] ((x : A) → P x)
-Π-Erased≃Π {a = a} {p = p} {A = A} {P = P} = lemma₂
+Π-Erased≃Π {a} {p} {A} {P} = lemma₂
   where
   lemma₁ lemma₂ :
     Extensionality? ⌊ k ⌋-sym a p →
@@ -680,7 +680,7 @@ Very-stable-Stable-Σ :
   Very-stable A →
   (∀ x → Stable-[ k ] (P x)) →
   Stable-[ k ] (Σ A P)
-Very-stable-Stable-Σ {A = A} {P = P} s s′ =
+Very-stable-Stable-Σ {A} {P} s s′ =
   Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra Eq.⟨ _ , s ⟩ s′ ⟩□
   Σ A P                                       □
@@ -693,7 +693,7 @@ Stable-Σ :
   (∀ x → [ s x ] ≡ x) →
   (∀ x → Stable (P x)) →
   Stable (Σ A P)
-Stable-Σ {A = A} {P = P} s₁ hyp s₂ =
+Stable-Σ {A} {P} s₁ hyp s₂ =
   Erased (Σ A P)                              ↔⟨ Erased-Σ↔Σ ⟩
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↝⟨ Σ-cong-contra-→ surj s₂ ⟩□
   Σ A P                                       □
@@ -715,7 +715,7 @@ Very-stable-Σ :
   Very-stable A →
   (∀ x → Very-stable (P x)) →
   Very-stable (Σ A P)
-Very-stable-Σ {A = A} {P = P} s s′ = _≃_.is-equivalence (
+Very-stable-Σ {A} {P} s s′ = _≃_.is-equivalence (
   Σ A P                                       ↝⟨ Σ-cong Eq.⟨ _ , s ⟩ (λ x → Eq.⟨ _ , s′ x ⟩) ⟩
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
   Erased (Σ A P)                              □)
@@ -730,7 +730,7 @@ Stable-× s s′ [ x , y ] = s [ x ] , s′ [ y ]
 -- Stable-[ k ] is closed under _×_.
 
 Stable-[]-× : Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A × B)
-Stable-[]-× {A = A} {B = B} s s′ =
+Stable-[]-× {A} {B} s s′ =
   Erased (A × B)       ↔⟨ Erased-Σ↔Σ ⟩
   Erased A × Erased B  ↝⟨ s ×-cong s′ ⟩□
   A × B                □
@@ -746,7 +746,7 @@ Very-stable-× s s′ = _≃_.is-equivalence $
 Very-stableᴱ-× :
   {@0 A : Type a} {@0 B : Type b} →
   Very-stableᴱ A → Very-stableᴱ B → Very-stableᴱ (A × B)
-Very-stableᴱ-× {A = A} {B = B} s s′ =
+Very-stableᴱ-× {A} {B} s s′ =
   _≃ᴱ_.is-equivalence
     (A × B                EEq.≃ᴱ⟨ EEq.⟨ _ , s ⟩₀ EEq.×-cong-≃ᴱ EEq.⟨ _ , s′ ⟩₀ ⟩
      Erased A × Erased B  EEq.↔⟨ inverse Erased-Σ↔Σ ⟩□
@@ -768,7 +768,7 @@ Very-stableᴱ-×ⁿ n =
 -- Stable is closed under _⇔_.
 
 Stable-⇔ : Stable A → Stable B → Stable (A ⇔ B)
-Stable-⇔ {A = A} {B = B} s s′ =
+Stable-⇔ {A} {B} s s′ =
                                    $⟨ (Stable-Π λ _ → s′) , (Stable-Π λ _ → s) ⟩
   Stable (A → B) × Stable (B → A)  →⟨ uncurry Stable-[]-× ⟩
   Stable ((A → B) × (B → A))       →⟨ Stable-map-⇔ (from-bijection $ inverse ⇔↔→×→) ⟩□
@@ -777,7 +777,7 @@ Stable-⇔ {A = A} {B = B} s s′ =
 -- Stable-[ k ] is closed under ↑ ℓ.
 
 Stable-↑ : Stable-[ k ] A → Stable-[ k ] (↑ ℓ A)
-Stable-↑ {A = A} s =
+Stable-↑ {A} s =
   Erased (↑ _ A)  ↔⟨ Erased-↑↔↑ ⟩
   ↑ _ (Erased A)  ↝⟨ ↑-cong s ⟩□
   ↑ _ A           □
@@ -793,7 +793,7 @@ Very-stable-↑ s = _≃_.is-equivalence $
 Very-stableᴱ-↑ :
   {@0 A : Type a} →
   Very-stableᴱ A → Very-stableᴱ (↑ ℓ A)
-Very-stableᴱ-↑ {A = A} s =
+Very-stableᴱ-↑ {A} s =
   _≃ᴱ_.is-equivalence
     (↑ _ A           EEq.≃ᴱ⟨ EEq.↑-cong-≃ᴱ EEq.⟨ _ , s ⟩₀ ⟩
      ↑ _ (Erased A)  EEq.↔⟨ inverse Erased-↑↔↑ ⟩□
@@ -836,7 +836,7 @@ Very-stable-¬ :
   {A : Type a} →
   Extensionality a lzero →
   Very-stable (¬ A)
-Very-stable-¬ {A = A} ext =
+Very-stable-¬ {A} ext =
   Very-stable-Π ext λ _ →
   Very-stable-⊥
 
@@ -883,7 +883,7 @@ Stable-H-level′ :
   ∀ n →
   For-iterated-equality (1 + n) Stable A →
   Stable (H-level′ (1 + n) A)
-Stable-H-level′ {A = A} n =
+Stable-H-level′ {A} n =
   For-iterated-equality (1 + n) Stable A           ↝⟨ inverse-ext? (λ ext → For-iterated-equality-For-iterated-equality n 1 ext) _ ⟩
   For-iterated-equality n Stable-≡ A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
   For-iterated-equality n (Stable ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable n Stable-Π ⟩
@@ -905,7 +905,7 @@ Stable-H-level :
   ∀ n →
   For-iterated-equality (1 + n) Stable A →
   Stable (H-level (1 + n) A)
-Stable-H-level {A = A} n =
+Stable-H-level {A} n =
   For-iterated-equality (1 + n) Stable A  ↝⟨ Stable-H-level′ n ⟩
   Stable (H-level′ (1 + n) A)             ↝⟨ Stable-map-⇔ (inverse-ext? H-level↔H-level′ _) ⟩□
   Stable (H-level (1 + n) A)              □
@@ -1098,7 +1098,7 @@ Erased-is-accessible-and-topological a =
   Extensionality (lsuc a) a →
   Erased-is-accessible-and-topological′ a ≃
   Erased-is-accessible-and-topological a
-≃Erased-is-accessible-and-topological {a = a} ext =
+≃Erased-is-accessible-and-topological {a} ext =
   ∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
   ∀-cong ext λ _ →
   ⇔-cong (lower-extensionality _ lzero ext) Eq.id $
@@ -1121,7 +1121,7 @@ Erased-is-accessible-and-topologicalᴱ a =
 
 @0 erased-is-accessible-and-topological-in-erased-contexts′ :
   Erased-is-accessible-and-topological′ a
-erased-is-accessible-and-topological-in-erased-contexts′ {a = a} =
+erased-is-accessible-and-topological-in-erased-contexts′ {a} =
     ↑ a ⊤
   , (λ _ → ↑ a ⊤)
   , (λ _ → H-level.mono₁ 0 (↑-closure 0 ⊤-contractible))
@@ -1136,7 +1136,7 @@ erased-is-accessible-and-topological-in-erased-contexts′ {a = a} =
 @0 erased-is-accessible-and-topological-in-erased-contexts :
   Extensionality a a →
   Erased-is-accessible-and-topological a
-erased-is-accessible-and-topological-in-erased-contexts {a = a} ext =
+erased-is-accessible-and-topological-in-erased-contexts {a} ext =
     ↑ a ⊤
   , (λ _ → ↑ a ⊤)
   , (λ _ → H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
@@ -1155,7 +1155,7 @@ erased-is-accessible-and-topological :
   Excluded-middle a →
   Extensionality a a →
   Erased-is-accessible-and-topological a
-erased-is-accessible-and-topological {a = a} em ext =               $⟨ (λ _ →
+erased-is-accessible-and-topological {a} em ext =                   $⟨ (λ _ →
                                                                           [ erased-is-accessible-and-topological-in-erased-contexts
                                                                               ext .proj₂ .proj₂ .proj₂ _ ]) ⟩
   ((A : Type a) →
@@ -1187,7 +1187,7 @@ Very-stable≃Very-stable-Null :
   {A : Type a} →
   Extensionality a a →
   Very-stable A ↝[ lsuc a ∣ a ] (λ (A : Type a) → Very-stable A) -Null A
-Very-stable≃Very-stable-Null {A = A} ext =
+Very-stable≃Very-stable-Null {A} ext =
   generalise-ext?-prop
     (record { to = to; from = from })
     (λ _ → Very-stable-propositional ext)
@@ -1250,7 +1250,7 @@ Very-stableᴱ≃Very-stableᴱ-Nullᴱ :
   {A : Type a} →
   @0 Extensionality (lsuc a) a →
   Very-stableᴱ A ≃ᴱ (λ (A : Type a) → Very-stableᴱ A) -Nullᴱ A
-Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A = A} ext =
+Very-stableᴱ≃Very-stableᴱ-Nullᴱ {A} ext =
   EEq.⇔→≃ᴱ
     (Very-stableᴱ-propositional ext′)
     (Π-closure ext 1 λ _ →
@@ -1332,7 +1332,7 @@ inspectᴱ x = x , [ refl x ]
 Σ-Erased-Erased-singleton⇔ :
   {A : Type ℓ} →
   (∃ λ (x : Erased A) → Erased-singleton (erased x)) ⇔ A
-Σ-Erased-Erased-singleton⇔ {A = A} =
+Σ-Erased-Erased-singleton⇔ {A} =
   (∃ λ (x : Erased A) → ∃ λ y → Erased (y ≡ erased x))  ↔⟨ ∃-comm ⟩
   (∃ λ y → ∃ λ (x : Erased A) → Erased (y ≡ erased x))  ↔⟨ (∃-cong λ _ → inverse Erased-Σ↔Σ) ⟩
   (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong-⇔ (from-isomorphism $ _⇔_.to contractible⇔↔⊤ $
@@ -1351,7 +1351,7 @@ erased-singleton-contractible :
   {x : A} →
   Very-stable-≡ A →
   Contractible (Erased-singleton x)
-erased-singleton-contractible {x = x} s =
+erased-singleton-contractible {x} s =
                                      $⟨ singleton-contractible x ⟩
   Contractible (Singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
   Contractible (Erased-singleton x)  □
@@ -1363,7 +1363,7 @@ erased-other-singleton-contractible :
   {x : A} →
   Very-stable-≡ A →
   Contractible (Erased-other-singleton x)
-erased-other-singleton-contractible {x = x} s =
+erased-other-singleton-contractible {x} s =
                                            $⟨ other-singleton-contractible x ⟩
   Contractible (Other-singleton x)         ↝⟨ H-level-cong _ 0 (∃-cong λ _ → Eq.⟨ _ , s _ _ ⟩) ⦂ (_ → _) ⟩□
   Contractible (Erased-other-singleton x)  □
@@ -1373,7 +1373,7 @@ erased-other-singleton-contractible {x = x} s =
 Contractibleᴱ-Erased-singleton :
   {@0 A : Type a} {x : A} →
   Contractibleᴱ (Erased-singleton x)
-Contractibleᴱ-Erased-singleton {x = x} =
+Contractibleᴱ-Erased-singleton {x} =
     (x , [ proj₂₀ (proj₁₀ contr) .erased ])
   , [ proj₂ contr ]
   where
@@ -1387,7 +1387,7 @@ Contractibleᴱ-Erased-singleton {x = x} =
 Contractibleᴱ-Erased-other-singleton :
   {@0 A : Type a} {x : A} →
   Contractibleᴱ (Erased-other-singleton x)
-Contractibleᴱ-Erased-other-singleton {x = x} =
+Contractibleᴱ-Erased-other-singleton {x} =
     (x , [ proj₂ (proj₁ contr) .erased ])
   , [ proj₂ contr ]
   where
@@ -1435,7 +1435,7 @@ module []-cong₂
     {A : Type ℓ₁} {B : Type ℓ₂} →
     Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     A ≃ B → Stable-[ equivalence ] A ↝[ k ] Stable-[ equivalence ] B
-  Stable-≃-cong {A = A} {B = B} ext A≃B =
+  Stable-≃-cong {A} {B} ext A≃B =
     Stable-[ equivalence ] A  ↔⟨⟩
     Erased A ≃ A              ↝⟨ generalise-ext?
                                    (Eq.≃-preserves-⇔ (Erased-cong-≃ A≃B) A≃B)
@@ -1455,7 +1455,7 @@ module []-cong₂
       {B : Type b} →
       []-cong-axiomatisation b →
       A ↠ B → Very-stable A → Very-stable B
-    Very-stable-map-↠′ {A = A} {B = B} ax A↠B s =
+    Very-stable-map-↠′ {A} {B} ax A↠B s =
       _≃_.is-equivalence $
       Eq.↔→≃
         _
@@ -1572,7 +1572,7 @@ module []-cong₂-⊔₁
   Stable-[]-map :
     {A : Type ℓ₂} {B : Type ℓ₁} →
     A ↝[ k ] B → @0 B ↝[ k ] A → Stable-[ k ] A → Stable-[ k ] B
-  Stable-[]-map {A = A} {B = B} A↝B B↝A s =
+  Stable-[]-map {A} {B} A↝B B↝A s =
     Erased B  ↝⟨ Erased-cong B↝A ⟩
     Erased A  ↝⟨ s ⟩
     A         ↝⟨ A↝B ⟩□
@@ -1602,7 +1602,7 @@ module []-cong₂-⊔₁
     {A : Type ℓ₁} {B : Type ℓ₂} →
     Extensionality? ⌊ k ⌋-sym (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     A ↝[ ⌊ k ⌋-sym ] B → Stable A ↝[ ⌊ k ⌋-sym ] Stable B
-  Stable-cong {k = k} {A = A} {B = B} ext A↝B =
+  Stable-cong {k} {A} {B} ext A↝B =
     Stable A        ↔⟨⟩
     (Erased A → A)  ↝⟨ →-cong ext (Erased-cong A↝B) A↝B ⟩
     (Erased B → B)  ↔⟨⟩
@@ -1616,8 +1616,7 @@ module []-cong₂-⊔₁
   Stable-Erased↝Erased :
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
     Stable (Erased A ↝[ k ] Erased B)
-  Stable-Erased↝Erased {k = k} {A = A} {B = B} =
-                                       $⟨ Very-stable-Erased ⟩
+  Stable-Erased↝Erased {k} {A} {B} =   $⟨ Very-stable-Erased ⟩
     Very-stable (Erased (A ↝[ k ] B))  ↝⟨ Very-stable→Stable 0 ⟩
     Stable (Erased (A ↝[ k ] B))       ↝⟨ Stable-map-⇔ (Erased-↝↝↝ _) ⟩□
     Stable (Erased A ↝[ k ] Erased B)  □
@@ -1675,7 +1674,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n Stable A → H-level (1 + n) A →
     For-iterated-equality n Very-stable A
-  Stable→H-level-suc→Very-stable {A = A} n = curry (
+  Stable→H-level-suc→Very-stable {A} n = curry (
     For-iterated-equality n Stable A × H-level (1 + n) A           ↝⟨ (∃-cong λ _ → H-level-suc→For-iterated-equality-Is-proposition) ⟩
 
     For-iterated-equality n Stable A ×
@@ -1702,7 +1701,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   H-level→Very-stable :
     {A : Type ℓ} →
     ∀ n → H-level n A → For-iterated-equality n Very-stable A
-  H-level→Very-stable {A = A} n =
+  H-level→Very-stable {A} n =
     H-level n A                            ↝⟨ _⇔_.to H-level⇔H-level′ ⟩
     H-level′ n A                           ↝⟨ For-iterated-equality-cong₁ _ n Contractible→Very-stable ⟩□
     For-iterated-equality n Very-stable A  □
@@ -1747,7 +1746,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       ∀ n →
       For-iterated-equality (1 + n) Very-stable A ↝[ ℓ ∣ ℓ ]
       For-iterated-equality n (λ A → Is-embedding [ A ∣_]→) A
-    Very-stable-≡↔Is-embedding-[]→ {A = A} n ext =
+    Very-stable-≡↔Is-embedding-[]→ {A} n ext =
       For-iterated-equality (1 + n) Very-stable A              ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) ext ⟩
       For-iterated-equality n Very-stable-≡ A                  ↝⟨ For-iterated-equality-cong₁ ext n (Very-stable-≡↔Is-embedding-[] ext) ⟩□
       For-iterated-equality n (λ A → Is-embedding [ A ∣_]→) A  □
@@ -1797,7 +1796,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Very-stableᴱ A →
     (∀ x → Very-stableᴱ (P x)) →
     Very-stableᴱ (Σ A P)
-  Very-stableᴱ-Σ {A = A} {P = P} s s′ = _≃ᴱ_.is-equivalence (
+  Very-stableᴱ-Σ {A} {P} s s′ = _≃ᴱ_.is-equivalence (
     Σ A P                                       EEq.≃ᴱ⟨ EEq.[]-cong₁.Σ-cong-≃ᴱ-Erased ax EEq.⟨ _ , s ⟩₀ (λ x → EEq.⟨ _ , s′ x ⟩₀) ⟩
     Σ (Erased A) (λ x → Erased (P (erased x)))  EEq.↔⟨ inverse Erased-Σ↔Σ ⟩□
     Erased (Σ A P)                              □)
@@ -1826,13 +1825,13 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n       Very-stable A →
     For-iterated-equality (1 + n) Very-stable A
-  Very-stable→Very-stable-≡ {A = A} n =
+  Very-stable→Very-stable-≡ {A} n =
     For-iterated-equality n Very-stable A        ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
     For-iterated-equality n Very-stable-≡ A      ↝⟨ For-iterated-equality-For-iterated-equality n 1 _ ⟩□
     For-iterated-equality (1 + n) Very-stable A  □
     where
     lemma : ∀ {A} → Very-stable A → Very-stable-≡ A
-    lemma {A = A} =
+    lemma {A} =
       Very-stable A          ↝⟨ Very-stable→Is-embedding-[] ⟩
       Is-embedding [ A ∣_]→  ↝⟨ inverse-ext? Very-stable-≡↔Is-embedding-[] _ ⟩□
       Very-stable-≡ A        □
@@ -1866,8 +1865,8 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ m →
     For-iterated-equality n Very-stable A →
     For-iterated-equality (m + n) Very-stable A
-  Very-stable→Very-stable⁺         zero    = id
-  Very-stable→Very-stable⁺ {n = n} (suc m) =
+  Very-stable→Very-stable⁺     zero    = id
+  Very-stable→Very-stable⁺ {n} (suc m) =
     Very-stable→Very-stable-≡ (m + n) ∘
     Very-stable→Very-stable⁺ m
 
@@ -1891,7 +1890,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     Stable-[ k ] (H-level′ (1 + n) A)
-  Stable-[]-H-level′ {k = k} {A = A} ext n =
+  Stable-[]-H-level′ {k} {A} ext n =
     For-iterated-equality (1 + n) Stable-[ k ] A           ↝⟨ inverse-ext? (For-iterated-equality-For-iterated-equality n 1) _ ⟩
     For-iterated-equality n Stable-≡-[ k ] A               ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
     For-iterated-equality n (Stable-[ k ] ∘ H-level′ 1) A  ↝⟨ For-iterated-equality-commutes-← _ Stable-[ k ] n (Stable-[]-Π ext) ⟩
@@ -1915,7 +1914,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality (1 + n) Stable-[ k ] A →
     Stable-[ k ] (H-level (1 + n) A)
-  Stable-[]-H-level {k = k} {A = A} ext n =
+  Stable-[]-H-level {k} {A} ext n =
     For-iterated-equality (1 + n) Stable-[ k ] A  ↝⟨ Stable-[]-H-level′ ext n ⟩
     Stable-[ k ] (H-level′ (1 + n) A)             ↝⟨ Stable-[]-map-↝ (inverse-ext? H-level↔H-level′) ext ⟩□
     Stable-[ k ] (H-level (1 + n) A)              □
@@ -1929,7 +1928,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n Very-stable A →
     Very-stable (H-level′ n A)
-  Very-stable-H-level′ {A = A} ext n =
+  Very-stable-H-level′ {A} ext n =
     For-iterated-equality n Very-stable A                   ↝⟨ For-iterated-equality-cong₁ _ n lemma ⟩
     For-iterated-equality n (Very-stable ∘ Contractible) A  ↝⟨ For-iterated-equality-commutes-← _ Very-stable n (Very-stable-Π ext) ⟩□
     Very-stable (H-level′ n A)                              □
@@ -1950,7 +1949,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n Very-stableᴱ A →
     Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)
-  Very-stableᴱ-H-levelᴱ {A = A} ext n =
+  Very-stableᴱ-H-levelᴱ {A} ext n =
     For-iterated-equality n Very-stableᴱ A                    →⟨ For-iterated-equality-cong₁ᴱ-→ n lemma ⟩
     For-iterated-equality n (Very-stableᴱ ∘ Contractibleᴱ) A  →⟨ For-iterated-equality-commutesᴱ-← Very-stableᴱ n (Very-stableᴱ-Π ext) ⟩□
     Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)    □
@@ -1970,7 +1969,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n Very-stable A →
     Very-stable (H-level n A)
-  Very-stable-H-level {A = A} ext n =
+  Very-stable-H-level {A} ext n =
     For-iterated-equality n Very-stable A  ↝⟨ Very-stable-H-level′ ext n ⟩
     Very-stable (H-level′ n A)             ↝⟨ Very-stable-cong _ (inverse $ H-level↔H-level′ ext) ⟩□
     Very-stable (H-level n A)              □
@@ -2200,7 +2199,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Σ-Erased-Erased-singleton↔ :
     {A : Type ℓ} →
     (∃ λ (x : Erased A) → Erased-singleton (erased x)) ↔ A
-  Σ-Erased-Erased-singleton↔ {A = A} =
+  Σ-Erased-Erased-singleton↔ {A} =
     (∃ λ (x : Erased A) → ∃ λ y → Erased (y ≡ erased x))  ↝⟨ ∃-comm ⟩
     (∃ λ y → ∃ λ (x : Erased A) → Erased (y ≡ erased x))  ↝⟨ (∃-cong λ _ → inverse Erased-Σ↔Σ) ⟩
     (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ →
@@ -2224,7 +2223,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {A : Type ℓ} {x : A} →
     Very-stableᴱ-≡ A →
     Contractible (Erased-singleton x)
-  Very-stableᴱ-≡→Contractible-Erased-singleton {x = x} s =
+  Very-stableᴱ-≡→Contractible-Erased-singleton {x} s =
       (x , [ refl x ])
     , λ (y , [ y≡x ]) →
         Σ-≡,≡→≡
@@ -2252,7 +2251,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {A : Type ℓ} {@0 x : A} →
     Very-stableᴱ-≡ A →
     Is-proposition (Erased-singleton x)
-  erased-singleton-with-erased-center-propositional {x = x} s =
+  erased-singleton-with-erased-center-propositional {x} s =
                                                    $⟨ [ erased-singleton-contractible (λ _ _ → erased Erased-Very-stable) ] ⟩
     Erased (Contractible (Erased-singleton x))     ↝⟨ map (mono₁ 0) ⟩
     Erased (Is-proposition (Erased-singleton x))   ↝⟨ (Stable-H-level 0 $
@@ -2270,7 +2269,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {A : Type ℓ} {@0 x : A} →
     Very-stable A →
     Contractible (Erased-singleton x)
-  erased-singleton-with-erased-center-contractible {x = x} s =
+  erased-singleton-with-erased-center-contractible {x} s =
                                        $⟨ [ (x , [ refl _ ]) ] ⟩
     Erased (Erased-singleton x)        ↝⟨ Very-stable→Stable 0 (Very-stable-Σ s λ _ → Very-stable-Erased) ⟩
     Erased-singleton x                 ↝⟨ propositional⇒inhabited⇒contractible $
@@ -2325,8 +2324,7 @@ module []-cong₂-⊔₂
     {A : Type ℓ₁} {B : Type ℓ₂} →
     Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Stable-[ k ] A → Stable-[ k ] B → Stable-[ k ] (A ⇔ B)
-  Stable-[]-⇔ {k = k} {A = A} {B = B} ext s s′ =
-                                                 $⟨ (Stable-[]-Π (lower-extensionality? k ℓ₂ ℓ₁ ext) λ _ → s′)
+  Stable-[]-⇔ {k} {A} {B} ext s s′ =             $⟨ (Stable-[]-Π (lower-extensionality? k ℓ₂ ℓ₁ ext) λ _ → s′)
                                                   , (Stable-[]-Π (lower-extensionality? k ℓ₁ ℓ₂ ext) λ _ → s) ⟩
     Stable-[ k ] (A → B) × Stable-[ k ] (B → A)  →⟨ uncurry Stable-[]-× ⟩
     Stable-[ k ] ((A → B) × (B → A))             →⟨ []-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax (inverse ⇔↔→×→) ⟩□
@@ -2341,7 +2339,7 @@ module []-cong₂-⊔₂
     {A : Type ℓ₁} {B : Type ℓ₂} →
     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Very-stable A → Very-stable B → Very-stable (A ↝[ k ] B)
-  Very-stable-↝ {k = k} {A = A} {B = B} ext sA sB = lemma k
+  Very-stable-↝ {k} {A} {B} ext sA sB = lemma k
     where
     ext₁₁ : Extensionality ℓ₁ ℓ₁
     ext₁₁ = lower-extensionality ℓ₂ ℓ₂ ext
@@ -2435,7 +2433,7 @@ module []-cong₂-⊔₂
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
     Extensionality? k (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Very-stable (Erased A ↝[ k ] Erased B)
-  Very-stable-Erased↝Erased {k = k} {A = A} {B = B} ext =
+  Very-stable-Erased↝Erased {k} {A} {B} ext =
                                             $⟨ Very-stable-Erased ⟩
     Very-stable (Erased (A ↝[ k ] B))       ↝⟨ []-cong₂.Very-stable-cong ax ax _ (from-isomorphism $ E₂.[]-cong₂-⊔.Erased-↝↔↝ ax₁ ax₂ ax ext)
                                                  ⦂ (_ → _) ⟩□
@@ -2451,7 +2449,7 @@ module []-cong₂-⊔₂
     {A : Type ℓ₁} {P : A → Type ℓ₂} →
     Very-stable A →
     Very-stable (Σ A P) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ] (∀ x → Very-stable (P x))
-  Very-stable-Σ↔Π {A = A} {P = P} s =
+  Very-stable-Σ↔Π {A} {P} s =
     generalise-ext?-prop
       (record
          { from = Very-stable-Σ s
@@ -2478,7 +2476,7 @@ module []-cong₂-⊔₂
     Very-stableᴱ A →
     Very-stableᴱ-≡ A →
     Very-stableᴱ (Σ A P) ≃ᴱ (∀ x → Very-stableᴱ (P x))
-  Very-stableᴱ-Σ≃ᴱΠ {A = A} {P = P} ext s s-≡ =
+  Very-stableᴱ-Σ≃ᴱΠ {A} {P} ext s s-≡ =
     EEq.⇔→≃ᴱ
       (Very-stableᴱ-propositional ext)
       (Π-closure (lower-extensionality ℓ₂ ℓ₁ ext) 1 λ _ →
@@ -2548,7 +2546,7 @@ module []-cong₂-⊔₂
     ∀ n →
     (∀ x → For-iterated-equality n Stable-[ k ] (P x)) →
     For-iterated-equality n Stable-[ k ] ((x : A) → P x)
-  Stable-Πⁿ {k = k} ext n =
+  Stable-Πⁿ {k} ext n =
     For-iterated-equality-Π
       ext
       n
@@ -2578,7 +2576,7 @@ module []-cong₂-⊔₂
     For-iterated-equality n Very-stable A →
     (∀ x → For-iterated-equality n Stable-[ k ] (P x)) →
     For-iterated-equality n Stable-[ k ] (Σ A P)
-  Very-stable-Stable-Σⁿ {k = k} n =
+  Very-stable-Stable-Σⁿ {k} n =
     For-iterated-equality-Σ
       n
       ([]-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax)
@@ -2592,7 +2590,7 @@ module []-cong₂-⊔₂
     (∀ eq → [ s eq ] ≡ eq) →
     (∀ eq → Stable (subst P eq (proj₂ p) ≡ proj₂ q)) →
     Stable (p ≡ q)
-  Stable-≡-Σ {P = P} {p = p} {q = q} s₁ hyp s₂ =  $⟨ Stable-Σ s₁ hyp s₂ ⟩
+  Stable-≡-Σ {P} {p} {q} s₁ hyp s₂ =              $⟨ Stable-Σ s₁ hyp s₂ ⟩
 
     Stable (∃ λ (eq : proj₁ p ≡ proj₁ q) →
                 subst P eq (proj₂ p) ≡ proj₂ q)   ↝⟨ []-cong₂-⊔₁.Stable-[]-map-↔ ax ax ax Bijection.Σ-≡,≡↔≡ ⟩□
@@ -2790,7 +2788,7 @@ private
 
   []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation :
     []-cong-axiomatisation ℓ ⇔ Stable-≡-Erased-axiomatisation ℓ
-  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation {ℓ = ℓ} = record
+  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation {ℓ} = record
     { to   = λ ax →
                let open []-cong₁ ax
                    s : {@0 A : Type ℓ} → Very-stable-≡ (Erased A)
@@ -2815,7 +2813,7 @@ private
 Stable-≡-Erased-axiomatisation-propositional :
   Extensionality (lsuc ℓ) ℓ →
   Is-proposition (Stable-≡-Erased-axiomatisation ℓ)
-Stable-≡-Erased-axiomatisation-propositional {ℓ = ℓ} ext =
+Stable-≡-Erased-axiomatisation-propositional {ℓ} ext =
   [inhabited⇒contractible]⇒propositional λ ax →
   let ax′ = _⇔_.from
               []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation
@@ -2882,7 +2880,7 @@ Stable-≡-Erased-axiomatisation-propositional {ℓ = ℓ} ext =
 []-cong-axiomatisation≃Stable-≡-Erased-axiomatisation :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
   Stable-≡-Erased-axiomatisation ℓ
-[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation {ℓ = ℓ} =
+[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation {ℓ} =
   generalise-ext?-prop
     []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation
     []-cong-axiomatisation-propositional
@@ -2898,7 +2896,7 @@ private
 
   []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′ :
     []-cong-axiomatisation ℓ ⇔ Stable-≡-Erased-axiomatisation′ ℓ
-  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′ {ℓ = ℓ} = record
+  []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′ {ℓ} = record
     { to   = []-cong-axiomatisation ℓ           →⟨ _⇔_.to []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation ⟩
              Stable-≡-Erased-axiomatisation ℓ   →⟨ Σ-map (λ f → f) (λ f → f) ⟩□
              Stable-≡-Erased-axiomatisation′ ℓ  □
@@ -2917,7 +2915,7 @@ private
 Stable-≡-Erased-axiomatisation′-propositional :
   Extensionality (lsuc ℓ) ℓ →
   Is-proposition (Stable-≡-Erased-axiomatisation′ ℓ)
-Stable-≡-Erased-axiomatisation′-propositional {ℓ = ℓ} ext =
+Stable-≡-Erased-axiomatisation′-propositional {ℓ} ext =
   [inhabited⇒contractible]⇒propositional λ ax →
   let ax′ = _⇔_.from
               []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′
@@ -2984,7 +2982,7 @@ Stable-≡-Erased-axiomatisation′-propositional {ℓ = ℓ} ext =
 []-cong-axiomatisation≃Stable-≡-Erased-axiomatisation′ :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
   Stable-≡-Erased-axiomatisation′ ℓ
-[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation′ {ℓ = ℓ} =
+[]-cong-axiomatisation≃Stable-≡-Erased-axiomatisation′ {ℓ} =
   generalise-ext?-prop
     []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′
     []-cong-axiomatisation-propositional
@@ -3019,7 +3017,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation :
   Stable-≡-Erased-axiomatisation′ ℓ ↝[ lsuc ℓ ∣ ℓ ]
   Very-stable-≡-Erased-axiomatisation ℓ
 Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
-  {ℓ = ℓ} =
+  {ℓ} =
   generalise-ext?-prop
     (record { to = to; from = from })
     Stable-≡-Erased-axiomatisation′-propositional
@@ -3050,7 +3048,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 []-cong-axiomatisation≃Very-stable-≡-Erased-axiomatisation :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
   Very-stable-≡-Erased-axiomatisation ℓ
-[]-cong-axiomatisation≃Very-stable-≡-Erased-axiomatisation {ℓ = ℓ} =
+[]-cong-axiomatisation≃Very-stable-≡-Erased-axiomatisation {ℓ} =
   generalise-ext?-prop
     ([]-cong-axiomatisation ℓ               ↝⟨ []-cong-axiomatisation⇔Stable-≡-Erased-axiomatisation′ ⟩
      Stable-≡-Erased-axiomatisation′ ℓ      ↝⟨ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation _ ⟩□
@@ -3118,7 +3116,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
   2-extendable-along-[]→-Erased-axiomatisation ℓ
 []-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation
-  {ℓ = ℓ} =
+  {ℓ} =
   generalise-ext?-prop
     {B = 2-extendable-along-[]→-Erased-axiomatisation ℓ}
     (record
@@ -3142,7 +3140,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
     Stable-≡-Erased-[refl] :
       {A : Type ℓ} {x : Erased A} →
       Stable-≡-Erased x x [ refl x ] ≡ refl x
-    Stable-≡-Erased-[refl] {x = x} =
+    Stable-≡-Erased-[refl] {x} =
       ext .proj₂ (λ _ → x) (λ _ → x) .proj₁ id .proj₂ (refl x)
 
 -- The type []-cong-axiomatisation ℓ is equivalent to
@@ -3151,7 +3149,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 []-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
   2-extendable-along-[]→-axiomatisation ℓ
-[]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation {ℓ = ℓ} =
+[]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation {ℓ} =
   generalise-ext?-prop
     {B = 2-extendable-along-[]→-axiomatisation ℓ}
     (record
@@ -3222,7 +3220,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 []-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
   ∞-extendable-along-[]→-axiomatisation ℓ
-[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation {ℓ = ℓ} =
+[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation {ℓ} =
   generalise-ext?-prop
     {B = ∞-extendable-along-[]→-axiomatisation ℓ}
     (record
@@ -3244,7 +3242,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
   ∞-extendable-along-[]→-Erased-axiomatisation ℓ
 []-cong-axiomatisation≃∞-extendable-along-[]→-Erased-axiomatisation
-  {ℓ = ℓ} =
+  {ℓ} =
   generalise-ext?-prop
     {B = ∞-extendable-along-[]→-Erased-axiomatisation ℓ}
     (record
@@ -3267,7 +3265,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 []-cong-axiomatisation′-propositional :
   Extensionality (lsuc a) a →
   Is-proposition ([]-cong-axiomatisation′ a)
-[]-cong-axiomatisation′-propositional {a = a} ext =
+[]-cong-axiomatisation′-propositional {a} ext =
   [inhabited⇒contractible]⇒propositional λ ax →
   let ax′ = []-cong-axiomatisation′→[]-cong-axiomatisation ax
 
@@ -3363,7 +3361,7 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 []-cong-axiomatisation≃[]-cong-axiomatisation′ :
   []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
   []-cong-axiomatisation′ ℓ
-[]-cong-axiomatisation≃[]-cong-axiomatisation′ {ℓ = ℓ} =
+[]-cong-axiomatisation≃[]-cong-axiomatisation′ {ℓ} =
   generalise-ext?-prop
     (record
        { from = []-cong-axiomatisation′→[]-cong-axiomatisation

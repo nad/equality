@@ -41,7 +41,7 @@ private
 -- The type of algebras for a (singly indexed) container.
 
 Algebra : {I : Type i} → Container I s p → Type (lsuc (i ⊔ s ⊔ p))
-Algebra {i = i} {s = s} {p = p} {I = I} C =
+Algebra {i} {s} {p} {I} C =
   ∃ λ (P : I → Type (i ⊔ s ⊔ p)) → ⟦ C ⟧ P ⇾ P
 
 -- Algebra morphisms.
@@ -204,8 +204,8 @@ Initial′→Initial≃Initial :
   ((X , _) (Y , _) : Initial-algebra′ C) →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Initial X ↝[ lsuc (i ⊔ s ⊔ p) ∣ i ⊔ s ⊔ p ] Initial Y
-Initial′→Initial≃Initial {i = i} {s = s} {p = p} {C = C}
-  ((X₁ , in₁) , initial₁) ((X₂ , in₂) , initial₂) ext {k = k} ext′ =
+Initial′→Initial≃Initial {i} {s} {p} {C}
+  ((X₁ , in₁) , initial₁) ((X₂ , in₂) , initial₂) ext {k} ext′ =
   ∀-cong ext′ λ Y@(_ , f) →
   H-level-cong
     (lower-extensionality? k _ lzero ext′)
@@ -272,7 +272,7 @@ Initial-algebra-propositional :
   Extensionality (lsuc (i ⊔ s ⊔ p)) (lsuc (i ⊔ s ⊔ p)) →
   Univalence (i ⊔ s ⊔ p) →
   Is-proposition (Initial-algebra C)
-Initial-algebra-propositional {I = I} {C = C@(S ◁ P)}
+Initial-algebra-propositional {I} {C = C@(S ◁ P)}
   ext univ F₁@((P₁ , in₁) , _) F₂@(X₂@(P₂ , in₂) , _) =
   block λ b →
   Σ-≡,≡→≡ (Σ-≡,≡→≡ (lemma₁ b) (lemma₂ b))
@@ -287,7 +287,7 @@ Initial-algebra-propositional {I = I} {C = C@(S ◁ P)}
     ∀ b x →
     ((_≃_.to ∘ lemma₀ b) ∘⇾ in₁) i (map C (_≃_.from ∘ lemma₀ b) i x) ≡
     in₂ i x
-  lemma₀-lemma {i = i} ⊠ x =
+  lemma₀-lemma {i} ⊠ x =
     ((_≃_.to ∘ lemma₀ ⊠) ∘⇾ in₁) i (map C (_≃_.from ∘ lemma₀ ⊠) i x)  ≡⟨ cong (λ f → f _ (map C (_≃_.from ∘ lemma₀ ⊠) i x)) $
                                                                          in-related F₁ F₂ ⟩
     (in₂ ∘⇾ map C (_≃_.to ∘ lemma₀ ⊠))
@@ -442,7 +442,7 @@ W-initial :
   {I : Type i} {C : Container I s p} →
   Extensionality (i ⊔ s ⊔ p) (i ⊔ s ⊔ p) →
   Initial (W-algebra C)
-W-initial {i = i} {s = s} {p = p} {C = C} ext X@(P , f) =
+W-initial {i} {s} {p} {C} ext X@(P , f) =
   fold⇨ X , unique
   where
   ext₁ : Extensionality p (i ⊔ s ⊔ p)
@@ -529,7 +529,7 @@ Algebra≃Algebra :
   ∀ p {I : Type i} (C : Container I s (i ⊔ p)) →
   Algebra C ↝[ i ⊔ s ⊔ p ∣ i ⊔ s ⊔ p ]
   A.Algebra (_⇔_.to (Container⇔Container p) C)
-Algebra≃Algebra {s = s} p C {k = k} ext =
+Algebra≃Algebra {s} p C {k} ext =
   (∃ λ P → ⟦ C ⟧ P ⇾ P)                                   ↝⟨ (∃-cong λ _ →
                                                               ∀-cong (lower-extensionality? k (s ⊔ p) lzero ext) λ _ →
                                                               →-cong₁ ext $ inverse $
@@ -544,7 +544,7 @@ Algebra≃Algebra {s = s} p C {k = k} ext =
   (X Y : Algebra C) →
   (X ⇨ Y) ≃
   (Algebra≃Algebra p C _ X A.⇨ Algebra≃Algebra p C _ Y)
-⇨≃⇨ {s = s} p C ext (P , f) (Q , g) =
+⇨≃⇨ {s} p C ext (P , f) (Q , g) =
   (∃ λ (h : P ⇾ Q) → h ∘⇾ f ≡ g ∘⇾ map _ h)   ↝⟨ (∃-cong λ h → inverse $ Eq.≃-≡ $
                                                   ∀-cong (lower-extensionality (s ⊔ p) lzero ext) λ _ →
                                                   →-cong₁ ext $ inverse $
@@ -622,7 +622,7 @@ W≃W :
   ∀ p {I : Type iℓ} {C : Container I s (iℓ ⊔ p)} {i} →
   W C i ↝[ iℓ ⊔ p ∣ iℓ ⊔ s ⊔ p ]
   A.W (_⇔_.to (Container⇔Container p) C) i
-W≃W {iℓ = iℓ} {s = s} p {C = C} =
+W≃W {iℓ} {s} p {C} =
   generalise-ext?
     (record { to = to; from = from })
     (λ ext → to-from ext , from-to ext)
@@ -656,7 +656,7 @@ W-algebra≡W-algebra :
   Univalence (iℓ ⊔ s ⊔ p) →
   Algebra≃Algebra p C _ (W-algebra C) ≡
   A.W-algebra (_⇔_.to (Container⇔Container p) C)
-W-algebra≡W-algebra {s = s} p {C = C} ext univ =
+W-algebra≡W-algebra {s} p {C} ext univ =
   Σ-≡,≡→≡
     (apply-ext ext₁ λ _ → ≃⇒≡ univ $ W≃W p ext₂)
     (apply-ext (lower-extensionality (s ⊔ p) _ ext) λ i →

@@ -64,10 +64,10 @@ data K[_]1 (G : Group g) : Type g where
 -- Variants of the higher constructors.
 
 loop : Group.Carrier G → base ≡ base
-loop {G = G} = _↔_.from ≡↔≡ ⊚ loopᴾ {G = G}
+loop {G} = _↔_.from ≡↔≡ ⊚ loopᴾ {G = G}
 
 loop-id : loop {G = G} (Group.id G) ≡ refl base
-loop-id {G = G} =
+loop-id {G} =
   loop id              ≡⟨ _≃_.from (Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡))) (_↔_.from ≡↔≡ loop-idᴾ) ⟩
   _↔_.from ≡↔≡ P.refl  ≡⟨ from-≡↔≡-refl ⟩∎
   refl base            ∎
@@ -75,7 +75,7 @@ loop-id {G = G} =
   open Group G
 
 loop-∘ : loop {G = G} (Group._∘_ G x y) ≡ trans (loop x) (loop y)
-loop-∘ {G = G} {x = x} {y = y} =
+loop-∘ {G} {x} {y} =
   loop (Group._∘_ G x y)                      ≡⟨ _≃_.from (Eq.≃-≡ (Eq.↔⇒≃ (inverse ≡↔≡))) (_↔_.from ≡↔≡ loop-∘ᴾ) ⟩
   _↔_.from ≡↔≡ (P.trans (loopᴾ x) (loopᴾ y))  ≡⟨ sym trans≡trans ⟩∎
   trans (loop x) (loop y)                     ∎
@@ -109,7 +109,7 @@ record Elimᴾ {G : Group g} (P : K[ G ]1 → Type p) : Type (g ⊔ p) where
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : K[ G ]1) → P x
-elimᴾ {G = G} {P = P} e = helper
+elimᴾ {G} {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -140,12 +140,12 @@ record Recᴾ (G : Group g) (A : Type a) : Type (g ⊔ a) where
 open Recᴾ public
 
 recᴾ : Recᴾ G A → K[ G ]1 → A
-recᴾ {G = G} {A = A} r = elimᴾ λ where
-    .is-groupoidʳ _          → R.is-groupoidʳ
-    .baseʳ                   → R.baseʳ
-    .loopʳ                   → R.loopʳ
-    .loop-idʳ                → R.loop-idʳ
-    .loop-∘ʳ {x = x} {y = y} →
+recᴾ {G} {A} r = elimᴾ λ where
+    .is-groupoidʳ _  → R.is-groupoidʳ
+    .baseʳ           → R.baseʳ
+    .loopʳ           → R.loopʳ
+    .loop-idʳ        → R.loop-idʳ
+    .loop-∘ʳ {x} {y} →
       R.loopʳ (x ∘ y)                                             P.≡⟨ R.loop-∘ʳ ⟩
 
       P.trans (R.loopʳ x) (R.loopʳ y)                             P.≡⟨ P.sym $ P.htrans-const (loopᴾ {G = G} x) (loopᴾ y) (R.loopʳ x) ⟩∎
@@ -174,7 +174,7 @@ record Rec (G : Group g) (A : Type a) : Type (g ⊔ a) where
 open Rec public
 
 rec : Rec G A → K[ G ]1 → A
-rec {G = G} {A = A} r = recᴾ λ where
+rec {G} {A} r = recᴾ λ where
     .is-groupoidʳ → _↔_.to (H-level↔H-level 3) R.is-groupoidʳ
     .baseʳ        → R.baseʳ
     .loopʳ        → _↔_.to ≡↔≡ ⊚ R.loopʳ
@@ -182,7 +182,7 @@ rec {G = G} {A = A} r = recᴾ λ where
       _↔_.to ≡↔≡ (R.loopʳ id)    P.≡⟨ P.cong (_↔_.to ≡↔≡) $ _↔_.to ≡↔≡ R.loop-idʳ ⟩
       _↔_.to ≡↔≡ (refl R.baseʳ)  P.≡⟨ _↔_.to ≡↔≡ to-≡↔≡-refl ⟩∎
       P.refl                     ∎
-    .loop-∘ʳ {x = x} {y = y} →
+    .loop-∘ʳ {x} {y} →
       _↔_.to ≡↔≡ (R.loopʳ (x ∘ y))                                 P.≡⟨ P.cong (_↔_.to ≡↔≡) $ _↔_.to ≡↔≡ R.loop-∘ʳ ⟩
 
       _↔_.to ≡↔≡ (trans (R.loopʳ x) (R.loopʳ y))                   P.≡⟨ _↔_.to ≡↔≡ $ sym $ cong₂ (λ p q → _↔_.to ≡↔≡ (trans p q))
@@ -332,7 +332,7 @@ universal-property-Π-setᴾ :
   (∀ x → P.Is-set (P x)) →
   ((x : K[ G ]1) → P x) ≃
   (∃ λ (x : P base) → ∀ g → P.[ (λ i → P (loopᴾ g i)) ] x ≡ x)
-universal-property-Π-setᴾ {G = G} {P = P} P-set =
+universal-property-Π-setᴾ {G} {P} P-set =
   _↔_.from ≃↔≃ $
   PEq.↔→≃
     (λ f → f base , P.hcong f ⊚ loopᴾ)
@@ -355,7 +355,7 @@ universal-property-Π-set :
   (∀ x → Is-set (P x)) →
   ((x : K[ G ]1) → P x) ≃
   (∃ λ (x : P base) → ∀ g → subst P (loop g) x ≡ x)
-universal-property-Π-set {G = G} {P = P} P-set =
+universal-property-Π-set {G} {P} P-set =
   ((x : K[ G ]1) → P x)                                         ↝⟨ universal-property-Π-setᴾ (_↔_.to (H-level↔H-level 2) ⊚ P-set) ⟩
   (∃ λ (x : P base) → ∀ g → P.[ (λ i → P (loopᴾ g i)) ] x ≡ x)  ↔⟨ (∃-cong λ _ → ∀-cong ext λ _ → inverse subst≡↔[]≡) ⟩□
   (∃ λ (x : P base) → ∀ g → subst P (loop g) x ≡ x)             □
@@ -365,7 +365,7 @@ universal-property-Π-set {G = G} {P = P} P-set =
 universal-property-set :
   Is-set A →
   (K[ G ]1 → A) ≃ (∃ λ (x : A) → Group.Carrier G → x ≡ x)
-universal-property-set {A = A} {G = G} A-set =
+universal-property-set {A} {G} A-set =
   (K[ G ]1 → A)                      ↝⟨ universal-property-Π-setᴾ (λ _ → _↔_.to (H-level↔H-level 2) A-set) ⟩
   (∃ λ (x : A) → Carrier → x P.≡ x)  ↔⟨ (∃-cong λ _ → ∀-cong ext λ _ → inverse ≡↔≡) ⟩□
   (∃ λ (x : A) → Carrier → x ≡ x)    □
@@ -381,7 +381,7 @@ universal-property-set {A = A} {G = G} A-set =
 -- Sattler.
 
 map : G₁ →ᴳ G₂ → K[ G₁ ]1 → K[ G₂ ]1
-map {G₁ = G₁} {G₂ = G₂} h = rec λ where
+map {G₁} {G₂} h = rec λ where
     .is-groupoidʳ → is-groupoid
     .baseʳ        → base
     .loopʳ x      → loop (to x)
@@ -389,7 +389,7 @@ map {G₁ = G₁} {G₂ = G₂} h = rec λ where
       loop (to G₁.id)  ≡⟨ cong loop (→ᴳ-id h) ⟩
       loop G₂.id       ≡⟨ loop-id ⟩∎
       refl _           ∎
-    .loop-∘ʳ {x = x} {y = y} →
+    .loop-∘ʳ {x} {y} →
       loop (to (x G₁.∘ y))               ≡⟨ cong loop (h .homomorphic x y) ⟩
       loop (to x G₂.∘ to y)              ≡⟨ loop-∘ ⟩∎
       trans (loop (to x)) (loop (to y))  ∎
@@ -464,7 +464,7 @@ Fundamental-group′[K1]≃ᴳ :
   Univalence g →
   (s : Is-set (proj₁ (Ω (K[ G ]1 , base)))) →
   Fundamental-group′ (K[ G ]1 , base) s ≃ᴳ G
-Fundamental-group′[K1]≃ᴳ {g = g} {G = G} univ _ = λ where
+Fundamental-group′[K1]≃ᴳ {g} {G} univ _ = λ where
     .related     → equiv
     .homomorphic → hom
   where
@@ -509,7 +509,7 @@ Fundamental-group′[K1]≃ᴳ {g = g} {G = G} univ _ = λ where
       Σ-≡,≡→≡ (refl _) (subst-refl _ _)  ≡⟨ Σ-≡,≡→≡-refl-subst-refl ⟩∎
 
       refl _                             ∎
-    .loop-∘ʳ {x = x} {y = y} →
+    .loop-∘ʳ {x} {y} →
       Σ-≡,≡→≡ (≃⇒≡ univ (to-≃ (x ∘ y))) _                        ≡⟨ _≃_.from (Eq.≃-≡ $ Eq.↔⇒≃ B.Σ-≡,≡↔≡) $
                                                                     Σ-≡,≡→≡
                                                                       (
@@ -528,7 +528,7 @@ Fundamental-group′[K1]≃ᴳ {g = g} {G = G} univ _ = λ where
 
   ≡⇒≃-cong-Code-loop :
     ≡⇒≃ (cong (proj₁ ⊚ Code) (loop x)) ≡ to-≃ x
-  ≡⇒≃-cong-Code-loop {x = x} =
+  ≡⇒≃-cong-Code-loop {x} =
     ≡⇒≃ (cong (proj₁ ⊚ Code) (loop x))         ≡⟨ cong ≡⇒≃ $ sym $ cong-∘ proj₁ Code (loop x) ⟩
 
     ≡⇒≃ (cong proj₁ (cong Code (loop x)))      ≡⟨ cong (≡⇒≃ ⊚ cong proj₁) rec-loop ⟩
@@ -543,14 +543,14 @@ Fundamental-group′[K1]≃ᴳ {g = g} {G = G} univ _ = λ where
 
   subst-Code-loop :
     subst (proj₁ ⊚ Code) (loop x) ≡ _∘ x
-  subst-Code-loop {x = x} = ⟨ext⟩ λ y →
+  subst-Code-loop {x} = ⟨ext⟩ λ y →
     subst (proj₁ ⊚ Code) (loop x) y                ≡⟨ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
     _≃_.to (≡⇒≃ (cong (proj₁ ⊚ Code) (loop x))) y  ≡⟨ cong (λ eq → _≃_.to eq y) ≡⇒≃-cong-Code-loop ⟩∎
     _≃_.to (to-≃ x) y                              ∎
 
   subst-Code-sym-loop :
     subst (proj₁ ⊚ Code) (sym (loop x)) ≡ _∘ x ⁻¹
-  subst-Code-sym-loop {x = x} = ⟨ext⟩ λ y →
+  subst-Code-sym-loop {x} = ⟨ext⟩ λ y →
     subst (proj₁ ⊚ Code) (sym (loop x)) y            ≡⟨ subst-in-terms-of-inverse∘≡⇒↝ equivalence _ _ _ ⟩
     _≃_.from (≡⇒≃ (cong (proj₁ ⊚ Code) (loop x))) y  ≡⟨ cong (λ eq → _≃_.from eq y) ≡⇒≃-cong-Code-loop ⟩∎
     _≃_.from (to-≃ x) y                              ∎
@@ -655,7 +655,7 @@ Fundamental-group[K1]≃ᴳ univ =
 
 Abelian→Abelian-Fundamental-group′ :
   Abelian G → Abelian (Fundamental-group′ (K[ G ]1 , base) is-groupoid)
-Abelian→Abelian-Fundamental-group′ {G = G} abelian =
+Abelian→Abelian-Fundamental-group′ {G} abelian =
   flip $ EG.Transitivity-commutative.commutative base _∙_ ∙-base base-∙
   where
   open Group G
@@ -725,7 +725,7 @@ K[Fundamental-group′]1↣ᴮ :
   Univalence p →
   H-level 3 (proj₁ P) →
   (K[ Fundamental-group′ P s ]1 , base) ↝[ embedding ]ᴮ P
-K[Fundamental-group′]1↣ᴮ {P = P@(A , a)} {s = s} univ g =
+K[Fundamental-group′]1↣ᴮ {P = P@(A , a)} {s} univ g =
   record { to = to; is-embedding = emb } , refl _
   where
   to : K[ Fundamental-group′ P s ]1 → A
@@ -775,7 +775,7 @@ K[Fundamental-group′]1≃ᴮ :
   H-level 3 (proj₁ P) →
   Connected P →
   (K[ Fundamental-group′ P s ]1 , base) ≃ᴮ P
-K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s = s} univ g conn =
+K[Fundamental-group′]1≃ᴮ {P = P@(A , a)} {s} univ g conn =
     Eq.⟨ Embedding.to (proj₁ f)
        , _≃_.to TP.surjective×embedding≃equivalence
            (surj , Embedding.is-embedding (proj₁ f)) ⟩
@@ -804,7 +804,7 @@ Fundamental-group′[K1≃K1]≃ᴳ :
   Univalence g →
   Abelian G →
   Fundamental-group′ ((K[ G ]1 ≃ K[ G ]1) , Eq.id) s ≃ᴳ G
-Fundamental-group′[K1≃K1]≃ᴳ {G = G} univ abelian = λ where
+Fundamental-group′[K1≃K1]≃ᴳ {G} univ abelian = λ where
     .related →
       _≡_ {A = K[ G ]1 ≃ K[ G ]1} Eq.id Eq.id  ↝⟨ inverse $ ≃-to-≡≃≡ ext ext ⟩
       ((x : K[ G ]1) → x ≡ x)                  ↝⟨ Eq.↔→≃ to from to-from from-to ⟩□

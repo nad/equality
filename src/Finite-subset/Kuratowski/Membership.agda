@@ -60,7 +60,7 @@ x ∈ y = x LM.∈ _≃_.from Listed≃Kuratowski y
 -- If x is a member of y, then x is a member of y ∪ z.
 
 ∈→∈∪ˡ : ∀ y z → x ∈ y → x ∈ y ∪ z
-∈→∈∪ˡ {x = x} y z =
+∈→∈∪ˡ {x} y z =
   x ∈ y                                                                 ↔⟨⟩
   x LM.∈ _≃_.from Listed≃Kuratowski y                                   ↝⟨ LM.∈→∈∪ˡ ⟩
   x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
@@ -70,7 +70,7 @@ x ∈ y = x LM.∈ _≃_.from Listed≃Kuratowski y
 -- If x is a member of z, then x is a member of y ∪ z.
 
 ∈→∈∪ʳ : ∀ y z → x ∈ z → x ∈ y ∪ z
-∈→∈∪ʳ {x = x} y z =
+∈→∈∪ʳ {x} y z =
   x ∈ z                                                                 ↔⟨⟩
   x LM.∈ _≃_.from Listed≃Kuratowski z                                   ↝⟨ LM.∈→∈∪ʳ (_≃_.from Listed≃Kuratowski y) ⟩
   x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↔⟨⟩
@@ -80,7 +80,7 @@ x ∈ y = x LM.∈ _≃_.from Listed≃Kuratowski y
 -- membership of the subsets.
 
 ∈∪≃ : ∀ y z → (x ∈ y ∪ z) ≃ (x ∈ y ∥⊎∥ x ∈ z)
-∈∪≃ {x = x} y z =
+∈∪≃ {x} y z =
   x ∈ y ∪ z                                                             ↔⟨⟩
 
   x LM.∈ _≃_.from Listed≃Kuratowski y L.∪ _≃_.from Listed≃Kuratowski z  ↝⟨ LM.∈∪≃ ⟩
@@ -106,7 +106,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 -- The subset property can be expressed using _∪_ and _≡_.
 
 ⊆≃∪≡ : (x ⊆ y) ≃ (x ∪ y ≡ y)
-⊆≃∪≡ {x = x} {y = y} =
+⊆≃∪≡ {x} {y} =
   x ⊆ y                                                              ↝⟨ LM.⊆≃∪≡ (_≃_.from Listed≃Kuratowski x) ⟩
 
   _≃_.from Listed≃Kuratowski x L.∪ _≃_.from Listed≃Kuratowski y ≡
@@ -120,7 +120,7 @@ x ⊆ y = ∀ z → z ∈ x → z ∈ y
 
 extensionality :
   (x ≡ y) ≃ (∀ z → z ∈ x ⇔ z ∈ y)
-extensionality {x = x} {y = y} =
+extensionality {x} {y} =
   x ≡ y                                                        ↝⟨ inverse $ Eq.≃-≡ (inverse Listed≃Kuratowski) ⟩
   _≃_.from Listed≃Kuratowski x ≡ _≃_.from Listed≃Kuratowski y  ↝⟨ LM.extensionality ⟩□
   (∀ z → z ∈ x ⇔ z ∈ y)                                        □

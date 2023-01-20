@@ -52,7 +52,7 @@ Acc-propositional :
   {A : Type a} {_<_ : A → A → Type r} {x : A} →
   Extensionality (a ⊔ r) (a ⊔ r) →
   Is-proposition (Acc _<_ x)
-Acc-propositional {a = a} {r = r} ext (acc f) (acc g) =
+Acc-propositional {a} {r} ext (acc f) (acc g) =
   cong acc $
   apply-ext (lower-extensionality r lzero ext) λ y →
   apply-ext (lower-extensionality a lzero ext) λ y<x →
@@ -64,7 +64,7 @@ Well-founded-propositional :
   {A : Type a} {_<_ : A → A → Type r} →
   Extensionality (a ⊔ r) (a ⊔ r) →
   Is-proposition (Well-founded _<_)
-Well-founded-propositional {r = r} ext =
+Well-founded-propositional {r} ext =
   Π-closure (lower-extensionality r lzero ext) 1 λ _ →
   Acc-propositional ext
 
@@ -157,7 +157,7 @@ Acc-on :
   {@0 A : Type a} {@0 B : Type b} {f : A → B}
   {@0 _<_ : B → B → Type r} {@0 x : A} →
   Acc _<_ (f x) → Acc (_<_ on f) x
-Acc-on {f = f} (acc g) = acc λ y fy<fx → Acc-on (g (f y) fy<fx)
+Acc-on {f} (acc g) = acc λ y fy<fx → Acc-on (g (f y) fy<fx)
 
 -- If _<_ is well-founded, then _<_ on f is well-founded.
 
@@ -165,7 +165,7 @@ Well-founded-on :
   {@0 A : Type a} {@0 B : Type b} {f : A → B}
   {@0 _<_ : B → B → Type r} →
   Well-founded _<_ → Well-founded (_<_ on f)
-Well-founded-on {f = f} wf x = Acc-on (wf (f x))
+Well-founded-on {f} wf x = Acc-on (wf (f x))
 
 -- If x is accessible with respect to _<_, then x is also accessible
 -- with respect to the transitive closure of _<_.
@@ -173,7 +173,7 @@ Well-founded-on {f = f} wf x = Acc-on (wf (f x))
 Acc-⋆ :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
   Acc _<_ x → Acc _[ _<_ ]⋆_ x
-Acc-⋆ {_<_ = _<_} {x = x} (acc f) = acc helper
+Acc-⋆ {_<_} {x} (acc f) = acc helper
   where
   helper : ∀ y → y [ _<_ ]⋆ x → Acc _[ _<_ ]⋆_ y
   helper y [ y<x ]      = Acc-⋆ (f y y<x)
@@ -196,7 +196,7 @@ Acc-↑ :
   ∀ {A : Type a} {_<_ : A → A → Type r} {x} →
   Acc _<_ x ↝[ a ⊔ ℓ ⊔ r ∣ a ⊔ ℓ ⊔ r ]
   Acc (λ x y → ↑ ℓ (x < y)) x
-Acc-↑ {a = a} {r = r} {ℓ = ℓ} {_<_ = _<_} =
+Acc-↑ {a} {r} {ℓ} {_<_} =
   generalise-ext?
     (record { to = to; from = from })
     (λ ext → to-from ext , from-to ext)
@@ -229,7 +229,7 @@ Well-founded-↑ :
   ∀ {A : Type a} {_<_ : A → A → Type r} →
   Well-founded _<_ ↝[ a ⊔ ℓ ⊔ r ∣ a ⊔ ℓ ⊔ r ]
   Well-founded (λ x y → ↑ ℓ (x < y))
-Well-founded-↑ {r = r} {ℓ = ℓ} {_<_ = _<_} {k = k} ext =
+Well-founded-↑ {r} {ℓ} {_<_} {k} ext =
   (∀ x → Acc _<_ x)                    ↝⟨ (∀-cong (lower-extensionality? k (ℓ ⊔ r) lzero ext) λ _ → Acc-↑ ext) ⟩□
   (∀ x → Acc (λ x y → ↑ ℓ (x < y)) x)  □
 
@@ -255,7 +255,7 @@ Well-founded-↑ {r = r} {ℓ = ℓ} {_<_ = _<_} {k = k} ext =
 Cycle→¬-Well-founded :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} →
   Cycle _<_ → ¬ Well-founded _<_
-Cycle→¬-Well-founded {_<_ = _<_} (x , x<⋆x) =
+Cycle→¬-Well-founded {_<_} (x , x<⋆x) =
                              $⟨ x<⋆x ⟩
   x [ _<_ ]⋆ x               →⟨ <→¬-Well-founded ⟩
   ¬ Well-founded _[ _<_ ]⋆_  →⟨ _∘ (λ wf → Well-founded-⋆ wf) ⟩□

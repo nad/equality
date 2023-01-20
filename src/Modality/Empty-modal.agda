@@ -70,7 +70,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
   -- ◯ commutes with ¬_ (assuming extensionality).
 
   ◯¬≃¬ : ◯ (¬ A) ↝[ a ∣ lzero ] ¬ ◯ A
-  ◯¬≃¬ {A = A} = generalise-ext?
+  ◯¬≃¬ {A} = generalise-ext?
     (record
        { to = λ f x →   $⟨ _≃_.from ◯× (f , x) ⟩
            ◯ (¬ A × A)  →⟨ ◯-map (_↔_.to ⊥↔⊥ ∘ uncurry _$_) ⟩
@@ -89,7 +89,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
   -- ◯ can be dropped under ¬_ (assuming extensionality).
 
   ¬◯≃¬ : ¬ ◯ A ↝[ a ∣ lzero ] ¬ A
-  ¬◯≃¬ {A = A} =
+  ¬◯≃¬ {A} =
     generalise-ext?-prop
       (record
          { to   = _∘ η
@@ -114,7 +114,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
   Stable-¬ :
     Extensionality? k a lzero →
     Stable-[ k ] (¬ A)
-  Stable-¬ {A = A} ext =
+  Stable-¬ {A} ext =
     ◯ (¬ A)  ↝⟨ ◯¬≃¬ ext ⟩
     ¬ (◯ A)  ↝⟨ ¬◯≃¬ ext ⟩□
     ¬ A      □
@@ -124,7 +124,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
   Modal-¬ :
     Extensionality a lzero →
     Modal (¬ A)
-  Modal-¬ {A = A} ext =
+  Modal-¬ {A} ext =
     Is-equivalence-η→Modal $
     _≃_.is-equivalence $
     Eq.with-other-function
@@ -150,8 +150,8 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
   -- stable.
 
   Dec→Stable : Dec A → Stable A
-  Dec→Stable         (yes x)    = λ _ → x
-  Dec→Stable {A = A} (no empty) =
+  Dec→Stable     (yes x)    = λ _ → x
+  Dec→Stable {A} (no empty) =
     ◯ A    →⟨ ◯→¬¬ ⟩
     ¬ ¬ A  →⟨ _$ empty ⟩
     ⊥      →⟨ ⊥-elim ⟩□
@@ -283,7 +283,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
       -- Every type is modal (assuming function extensionality).
 
       modal : Extensionality a a → Modal A
-      modal {A = A} ext =
+      modal {A} ext =
                      $⟨ very-modal ⟩
         ◯ (Modal A)  →⟨ Modal→Stable $
                         Is-proposition→Modal $
@@ -378,22 +378,22 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
         module IM = Modality Identity-modality
 
         ◯≃ : ◯ A ≃ A
-        ◯≃ {A = A} = proj₁ (◯≃id ext) A
+        ◯≃ {A} = proj₁ (◯≃id ext) A
 
         ◯≃-η≡ : _≃_.to ◯≃ (η x) ≡ x
-        ◯≃-η≡ {x = x} =
+        ◯≃-η≡ {x} =
           _≃_.to ◯≃ (η x)            ≡⟨ cong (λ f → _≃_.to ◯≃ (f x)) $ sym $ proj₂ (◯≃id ext) _ ⟩
           _≃_.to ◯≃ (_≃_.from ◯≃ x)  ≡⟨ _≃_.right-inverse-of ◯≃ _ ⟩∎
           x                          ∎
 
         η-◯≃≡ : η (_≃_.to ◯≃ x) ≡ x
-        η-◯≃≡ {x = x} =
+        η-◯≃≡ {x} =
           η (_≃_.to ◯≃ x)            ≡⟨ cong (λ f → f (_≃_.to ◯≃ x)) $ sym $ proj₂ (◯≃id ext) _ ⟩
           _≃_.from ◯≃ (_≃_.to ◯≃ x)  ≡⟨ _≃_.left-inverse-of ◯≃ _ ⟩∎
           x                          ∎
 
         lemma₁′ : y IM.[ _<_ ]◯ _≃_.to ◯≃ x → _≃_.from ◯≃ y [ _<_ ]◯ x
-        lemma₁′ {y = y} {x = x} (y′ , x′ , ≡y′ , ≡x′ , y′<x′) =
+        lemma₁′ {y} {x} (y′ , x′ , ≡y′ , ≡x′ , y′<x′) =
           η ( y′
             , x′
             , (_≃_.from ◯≃ y  ≡⟨ _≃_.to-from ◯≃ ◯≃-η≡ ⟩
@@ -406,7 +406,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
             )
 
         lemma₂′ : y [ _<_ ]◯ x → _≃_.to ◯≃ y IM.[ _<_ ]◯ _≃_.to ◯≃ x
-        lemma₂′ {y = y} {x = x} y<x =
+        lemma₂′ {y} {x} y<x =
           let (y′ , x′ , y≡ , x≡ , y′<x′) = _≃_.to ◯≃ y<x in
             y′
           , x′
@@ -444,7 +444,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
 
 ¬¬-Empty-modal→Is-proposition→Modal :
   ¬¬ (Empty-modal M → Is-proposition A → Modal A)
-¬¬-Empty-modal→Is-proposition→Modal {A = A} =
+¬¬-Empty-modal→Is-proposition→Modal {A} =
   [ (A                                             →⟨ (λ inhabited prop →
                                                          from-isomorphism $ (F._∘ Bijection.↑↔) $
                                                          inverse $ _⇔_.to contractible⇔↔⊤ $
@@ -464,7 +464,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
 
 ¬¬-Empty-modal→Very-modal→Modal :
   ¬¬ (Extensionality a a → Empty-modal M → Very-modal M → Modal A)
-¬¬-Empty-modal→Very-modal→Modal {A = A} =                           $⟨ ¬¬-Empty-modal→Is-proposition→Modal ⟩
+¬¬-Empty-modal→Very-modal→Modal {A} =                               $⟨ ¬¬-Empty-modal→Is-proposition→Modal ⟩
   ¬¬ (Empty-modal M → Is-proposition (Modal A) → Modal (Modal A))   →⟨ map′ (λ hyp ext Modal-⊥ → hyp Modal-⊥ (Modal-propositional ext)) ⟩
   ¬¬ (Extensionality a a → Empty-modal M → Modal (Modal A))         →⟨ map′ (λ hyp ext Modal-⊥ very-modal →
                                                                                VM.Modal-Modal→Modal (very-modal {_}) (hyp ext Modal-⊥)) ⟩□
@@ -483,7 +483,7 @@ module Empty-modal (Modal-⊥ : Empty-modal M) where
       Empty-modal M →
       Very-modal M →
       ∃ λ (eq : ◯ A ≃ A) → _≃_.from eq ≡ η)
-¬¬-Empty-modal→Very-modal→◯≃id {A = A} =                            $⟨ ¬¬-Empty-modal→Very-modal→Modal ⟩
+¬¬-Empty-modal→Very-modal→◯≃id {A} =                                $⟨ ¬¬-Empty-modal→Very-modal→Modal ⟩
 
   ¬¬ (Extensionality a a → Empty-modal M → Very-modal M → Modal A)  →⟨ map′ (λ hyp ext Modal-⊥ very-modal →
                                                                                inverse (Modal→≃◯ (hyp ext Modal-⊥ very-modal)) , refl _) ⟩□

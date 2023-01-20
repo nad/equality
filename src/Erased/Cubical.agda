@@ -62,7 +62,7 @@ instance-of-[]-cong-axiomatisation-for-Path = λ where
 
 []-cong : {@0 A : Type a} {@0 x y : A} →
           EB.Erased (x ≡ y) → EB.[ x ] ≡ EB.[ y ]
-[]-cong {x = x} {y = y} =
+[]-cong {x} {y} =
   EB.Erased (x ≡ y)      ↝⟨ (λ (EB.[ eq ]) → EB.[ _↔_.to ≡↔≡ eq ]) ⟩
   EB.Erased (x P.≡ y)    ↝⟨ []-cong-Path ⟩
   EB.[ x ] P.≡ EB.[ y ]  ↔⟨ inverse ≡↔≡ ⟩□
@@ -73,7 +73,7 @@ instance-of-[]-cong-axiomatisation-for-Path = λ where
 []-cong-[refl] :
   {@0 A : Type a} {@0 x : A} →
   []-cong EB.[ refl x ] ≡ refl EB.[ x ]
-[]-cong-[refl] {x = x} =
+[]-cong-[refl] {x} =
   _↔_.from ≡↔≡ ([]-cong-Path EB.[ _↔_.to ≡↔≡ (refl x) ])  ≡⟨ cong (_↔_.from ≡↔≡ ∘ []-cong-Path) $ []-cong EB.[ to-≡↔≡-refl ] ⟩
   _↔_.from ≡↔≡ ([]-cong-Path EB.[ P.refl {x = x} ])       ≡⟨ cong (_↔_.from ≡↔≡) $ _↔_.from ≡↔≡ []-cong-Path-[refl] ⟩
   _↔_.from ≡↔≡ (P.refl {x = EB.[ x ]})                    ≡⟨ from-≡↔≡-refl ⟩∎
@@ -116,7 +116,7 @@ private
   Is-proposition-Erased :
     {@0 A : Type a} →
     @0 Is-proposition A → Is-proposition (Erased A)
-  Is-proposition-Erased {A = A} prop =
+  Is-proposition-Erased {A} prop =
     _↔_.from (H-level↔H-level 1)
       (Is-proposition-Erased′
          (_↔_.to (H-level↔H-level 1) prop))
@@ -131,7 +131,7 @@ private
   Is-set-Erased :
     {@0 A : Type a} →
     @0 Is-set A → Is-set (Erased A)
-  Is-set-Erased {A = A} set =
+  Is-set-Erased {A} set =
     _↔_.from (H-level↔H-level 2)
       (Is-set-Erased′
          (_↔_.to (H-level↔H-level 2) set))

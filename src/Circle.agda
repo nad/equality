@@ -108,7 +108,7 @@ elim-loop = dcong-subst≡→[]≡ (refl _)
 η-elim :
   {f : (x : 𝕊¹) → P x} →
   f ≡ elim P (f base) (dcong f loop)
-η-elim {P = P} {f = f} =
+η-elim {P} {f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ elim P (f base) (dcong f loop) x) loop (refl _)  ≡⟨ subst-in-terms-of-trans-and-dcong ⟩
 
@@ -137,7 +137,7 @@ rec-loop = cong-≡↔≡ (refl _)
 -- Every function from 𝕊¹ to A can be expressed using rec.
 
 η-rec : {f : 𝕊¹ → A} → f ≡ rec (f base) (cong f loop)
-η-rec {f = f} =
+η-rec {f} =
   ⟨ext⟩ $ elim _ (refl _)
     (subst (λ x → f x ≡ rec (f base) (cong f loop) x) loop (refl _)      ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
@@ -153,7 +153,7 @@ rec-loop = cong-≡↔≡ (refl _)
 -- An alternative non-dependent eliminator.
 
 rec′ : (b : A) → b ≡ b → 𝕊¹ → A
-rec′ {A = A} b ℓ = elim
+rec′ {A} b ℓ = elim
   (const A)
   b
   (subst (const A) loop b  ≡⟨ subst-const _ ⟩
@@ -453,7 +453,7 @@ Fundamental-group≃ℤ univ = G.≃ᴳ-sym λ where
 𝕊¹-groupoid :
   Univalence lzero →
   H-level 3 𝕊¹
-𝕊¹-groupoid univ {x = x} {y = y} =
+𝕊¹-groupoid univ {x} {y} =
                         $⟨ (λ {_ _} → Int.ℤ-set) ⟩
   Is-set ℤ              ↝⟨ H-level-cong _ 2 (inverse $ base≡base≃ℤ univ) ⦂ (_ → _) ⟩
   Is-set (base ≡ base)  ↝⟨ (λ s →
@@ -586,7 +586,7 @@ loop≢refl =
 
 ¬-Is-proposition-∥∥¹ :
   ¬ ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)
-¬-Is-proposition-∥∥¹ {a = a} =
+¬-Is-proposition-∥∥¹ {a} =
   ({A : Type a} → Is-proposition A → Is-proposition ∥ A ∥¹)  ↝⟨ _$ H-level.mono₁ 0 (↑-closure 0 ⊤-contractible) ⟩
   Is-proposition ∥ ↑ a ⊤ ∥¹                                  ↝⟨ H-level-cong _ 1 (O.∥∥¹-cong-↔ Bijection.↑↔) ⟩
   Is-proposition ∥ ⊤ ∥¹                                      ↝⟨ H-level-cong _ 1 ∥⊤∥¹≃𝕊¹ ⟩
@@ -620,7 +620,7 @@ not-refl≢refl =
 
 ¬-type-of-refl-propositional :
   ∃ λ (A : Type a) → ¬ Is-proposition ((x : A) → x ≡ x)
-¬-type-of-refl-propositional {a = a} =
+¬-type-of-refl-propositional {a} =
     ↑ _ 𝕊¹
   , (Is-proposition (∀ x → x ≡ x)                                 ↝⟨ (λ prop → prop _ _) ⟩
 
@@ -897,7 +897,7 @@ elim-loop-circle :
   let _ , _ , loop′ , elim′ = circle {p = p} in
   ∀ {P b ℓ} →
   dcong (proj₁ (elim′ P b ℓ)) loop′ ≡ ℓ
-elim-loop-circle {P = P} {b = b} {ℓ = ℓ} =
+elim-loop-circle {P} {b} {ℓ} =
   let _ , _ , loop′ , elim′           = circle
       elim″ , elim″-base , elim″-loop = elim′ P b ℓ
 

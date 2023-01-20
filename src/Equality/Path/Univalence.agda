@@ -41,7 +41,7 @@ private
   -- in the same universe).
 
   ≃-CP⇒≡ : {A B : Type ℓ} → A CP.≃ B → A ≡ B
-  ≃-CP⇒≡ {A = A} {B = B} A≃B = λ i → primGlue B
+  ≃-CP⇒≡ {A} {B} A≃B = λ i → primGlue B
     (λ { (i = 0̲) → A
        ; (i = 1̲) → B
     })
@@ -53,7 +53,7 @@ private
   -- is equal to CP.id.
 
   ≃-CP⇒≡-id : ≃-CP⇒≡ CP.id ≡ refl {x = A}
-  ≃-CP⇒≡-id {A = A} = λ i j → primGlue A
+  ≃-CP⇒≡-id {A} = λ i j → primGlue A
     {φ = max i (max j (- j))}
     (λ _ → A)
     (λ _ → ≃-CP⇒≃-Glue CP.id)
@@ -75,7 +75,7 @@ private
   ≡⇒≃∘≃-CP⇒≡ :
     {A B : Type ℓ} (A≃B : A CP.≃ B) →
     CP.≡⇒≃ (≃-CP⇒≡ A≃B) ≡ A≃B
-  ≡⇒≃∘≃-CP⇒≡ {A = A} {B = B} A≃B =
+  ≡⇒≃∘≃-CP⇒≡ {A} {B} A≃B =
     Σ-≡,≡→≡
       (proj₁ (CP.≡⇒≃ (≃-CP⇒≡ A≃B))                            ≡⟨⟩
        proj₁ (transport (λ i → A CP.≃ ≃-CP⇒≡ A≃B i) 0̲ CP.id)  ≡⟨⟩
@@ -95,7 +95,7 @@ private
 -- Univalence.
 
 univ : ∀ {ℓ} → Univalence ℓ
-univ {A = A} {B = B} = record
+univ {A} {B} = record
   { univalence = from , proofs
   }
   where
@@ -125,7 +125,7 @@ private
     (B : Partial φ (Type ℓ))
     (f : PartialP φ (λ x → B x Glue.≃ A)) →
     primGlue A B f CP.≃ A
-  primGlue≃-CP {A = A} φ B f =
+  primGlue≃-CP {A} φ B f =
       prim^unglue {φ = φ}
     , λ x →
           ( prim^glue
@@ -165,7 +165,7 @@ private
 -- An alternative formulation of univalence.
 
 other-univ : Other-univalence ℓ
-other-univ {ℓ = ℓ} {B = B} =                  $⟨ other-univ-CP ⟩
+other-univ {ℓ} {B} =                          $⟨ other-univ-CP ⟩
   Contractible (∃ λ (A : Type ℓ) → A CP.≃ B)  ↝⟨ (H-level-cong _ 0 $
                                                   ∃-cong λ _ → inverse $
                                                   ≃≃≃-CP {k = equivalence} ext) ⦂ (_ → _) ⟩□

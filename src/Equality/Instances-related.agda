@@ -63,7 +63,7 @@ all-equality-types-isomorphic {e₁ = c₁} {e₂ = c₂} eq₁ eq₂ =
   to : ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)
        {a} {A : Type a} {x y : A} →
        _≡_ c₁ x y → _≡_ c₂ x y
-  to c₂ eq₁ {x = x} x≡y = subst eq₁ (_≡_ c₂ x) x≡y (refl c₂ x)
+  to c₂ eq₁ {x} x≡y = subst eq₁ (_≡_ c₂ x) x≡y (refl c₂ x)
 
   to-refl :
     ∀ {c₁} c₂ (eq₁ : ∀ {a p} → Equality-with-J a p c₁)

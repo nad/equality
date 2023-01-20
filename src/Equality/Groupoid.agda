@@ -164,7 +164,7 @@ module Transitivity-commutative
 Ω[2+n]-commutative :
   ∀ {x} {X : Pointed-type x} n →
   (p q : proj₁ (Ω[ 2 + n ] X)) → trans p q ≡ trans q p
-Ω[2+n]-commutative {X = X} n p q =
+Ω[2+n]-commutative {X} n p q =
   Transitivity-commutative.commutative
     id _∘_ left-identity right-identity q p
   where

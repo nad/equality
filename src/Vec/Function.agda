@@ -122,7 +122,7 @@ from-list (x ∷ xs) = cons x (from-list xs)
 -- There is a split surjection from ∃ (Vec A) to List A.
 
 ∃Vec↠List : ∃ (Vec A) ↠ List A
-∃Vec↠List {A = A} = record
+∃Vec↠List {A} = record
   { logical-equivalence = record
     { to   = to-list ∘ proj₂
     ; from = λ xs → length xs , from-list xs
@@ -139,7 +139,7 @@ from-list (x ∷ xs) = cons x (from-list xs)
 ∃Vec≃List :
   {A : Type a} →
   ∃ (Vec A) ↝[ lzero ∣ a ] List A
-∃Vec≃List {a = a} {A = A} =
+∃Vec≃List {a} {A} =
   generalise-ext?
     (_↠_.logical-equivalence ∃Vec↠List)
     (λ ext →

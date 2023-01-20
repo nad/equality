@@ -46,7 +46,7 @@ private variable
 Erased-W⇔W :
   {@0 A : Type a} {@0 P : A → Type p} →
   Erased (W A P) ⇔ W (Erased A) (λ x → Erased (P (erased x)))
-Erased-W⇔W {A = A} {P = P} = record { to = to; from = from }
+Erased-W⇔W {A} {P} = record { to = to; from = from }
   where
   to : Erased (W A P) → W (Erased A) (λ x → Erased (P (erased x)))
   to [ sup x f ] = sup [ x ] (λ ([ y ]) → to [ f y ])
@@ -62,7 +62,7 @@ Very-stableᴱ-W :
   @0 Extensionality p (a ⊔ p) →
   Very-stableᴱ A →
   Very-stableᴱ (W A P)
-Very-stableᴱ-W {A = A} {P = P} ext s =
+Very-stableᴱ-W {A} {P} ext s =
   _≃ᴱ_.is-equivalence $
   EEq.↔→≃ᴱ [_]→ from []∘from from∘[]
   where
@@ -98,7 +98,7 @@ _[_]Erased_ :
 Erased-Acc-⇔ :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} {@0 x : A} →
   Erased (Acc _<_ x) ⇔ Acc _[ _<_ ]Erased_ [ x ]
-Erased-Acc-⇔ {_<_ = _<_} = record
+Erased-Acc-⇔ {_<_} = record
   { to   = λ acc → to (erased acc)
   ; from = [_]→ ∘ from
   }
@@ -116,7 +116,7 @@ Erased-Acc-⇔ {_<_ = _<_} = record
 Erased-Well-founded-⇔ :
   {@0 A : Type a} {@0 _<_ : A → A → Type r} →
   Erased (Well-founded _<_) ⇔ Well-founded _[ _<_ ]Erased_
-Erased-Well-founded-⇔ {_<_ = _<_} =
+Erased-Well-founded-⇔ {_<_} =
   Erased (Well-founded _<_)            ↔⟨⟩
   Erased (∀ x → Acc _<_ x)             ↔⟨ Erased-Π↔Π-Erased ⟩
   (∀ x → Erased (Acc _<_ (erased x)))  ↝⟨ (∀-cong _ λ _ → Erased-Acc-⇔) ⟩
@@ -160,7 +160,7 @@ module []-cong₂-⊔
     {@0 A : Type ℓ₁} {@0 P : A → Type ℓ₂} →
     Erased (W A P) ↝[ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     W (Erased A) (λ x → Erased (P (erased x)))
-  Erased-W↔W {A = A} {P = P} =
+  Erased-W↔W {A} {P} =
     generalise-ext?
       Erased-W⇔W
       (λ ext → to∘from ext , from∘to ext)
@@ -194,7 +194,7 @@ module []-cong₂-⊔
     Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →
     Very-stable A →
     Very-stable (W A P)
-  Very-stable-W {A = A} {P = P} ext s =
+  Very-stable-W {A} {P} ext s =
     _≃_.is-equivalence $
     Eq.↔⇒≃ (record
       { surjection = record
@@ -230,7 +230,7 @@ module []-cong₂-⊔
     ∀ n →
     For-iterated-equality n Very-stable A →
     For-iterated-equality n Very-stable (W A P)
-  Very-stable-Wⁿ {A = A} {P = P} ext n =
+  Very-stable-Wⁿ {A} {P} ext n =
     For-iterated-equality-W
       ext
       n
@@ -270,7 +270,7 @@ module []-cong₂-⊔
     {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} {x : A} →
     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Very-stable (Acc _<_ x)
-  Very-stable-Acc {_<_ = _<_} ext =
+  Very-stable-Acc {_<_} ext =
     Stable→Left-inverse→Very-stable Stable-Acc lemma
     where
     lemma : (a : Acc _<_ x) → Stable-Acc [ a ] ≡ a
@@ -286,7 +286,7 @@ module []-cong₂-⊔
     {A : Type ℓ₁} {_<_ : A → A → Type ℓ₂} →
     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Very-stable (Well-founded _<_)
-  Very-stable-Well-founded {_<_ = _<_} ext =
+  Very-stable-Well-founded {_<_} ext =
     Very-stable-Π (lower-extensionality ℓ₂ lzero ext) λ _ →
     Very-stable-Acc ext
 
@@ -309,7 +309,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ n →
     For-iterated-equality n Very-stableᴱ A →
     For-iterated-equality n Very-stableᴱ (W A P)
-  Very-stableᴱ-Wⁿ {A = A} {P = P} ext n =
+  Very-stableᴱ-Wⁿ {A} {P} ext n =
     For-iterated-equality-W
       ext
       n
@@ -332,7 +332,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Erased-accessibility-modal :
     Modality.Accessibility-modal Erased-modality
-  Erased-accessibility-modal {_<_ = _<_} =
+  Erased-accessibility-modal {_<_} =
       (λ {x} →
          Acc _<_ x                  →⟨ _⇔_.to Erased-Acc-⇔ ∘ [_]→ ⟩
          Acc _[ _<_ ]Erased_ [ x ]  →⟨ (λ acc →
@@ -381,7 +381,7 @@ module Extensionality where
     {@0 A : Type a} {@0 P : A → Type p} →
     Erased (W A P) ↝[ a ⊔ p ∣ a ⊔ p ]
     W (Erased A) (λ x → Erased (P (erased x)))
-  Erased-W↔W {a = a} {p = p} =
+  Erased-W↔W {a} {p} =
     generalise-ext?
       Erased-W⇔W
       (λ ext →

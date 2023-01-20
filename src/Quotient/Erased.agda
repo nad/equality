@@ -73,10 +73,10 @@ _/ᴱ-map-∥∥_ :
   (A₁→A₂ : A₁ → A₂) →
   @0 (∀ x y → ∥ R₁ x y ∥ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥) →
   A₁ /ᴱ R₁ → A₂ /ᴱ R₂
-_/ᴱ-map-∥∥_ {R₁ = R₁} {R₂ = R₂} A₁→A₂ R₁→R₂ = rec λ where
-  .[]ʳ                                   → [_] ∘ A₁→A₂
-  .is-setʳ                               → /ᴱ-is-set
-  .[]-respects-relationʳ {x = x} {y = y} →
+_/ᴱ-map-∥∥_ {R₁} {R₂} A₁→A₂ R₁→R₂ = rec λ where
+  .[]ʳ                           → [_] ∘ A₁→A₂
+  .is-setʳ                       → /ᴱ-is-set
+  .[]-respects-relationʳ {x} {y} →
      R₁ x y                      ↝⟨ ∣_∣ ⟩
      ∥ R₁ x y ∥                  ↝⟨ R₁→R₂ _ _ ⟩
      ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥  ↝⟨ PT.rec /ᴱ-is-set []-respects-relation ⟩□
@@ -125,7 +125,7 @@ _/ᴱ-cong-∥∥-↠_ :
   (A₁↠A₂ : A₁ ↠ A₂) →
   @0 (∀ x y → ∥ R₁ x y ∥ ⇔ ∥ R₂ (_↠_.to A₁↠A₂ x) (_↠_.to A₁↠A₂ y) ∥) →
   A₁ /ᴱ R₁ ↠ A₂ /ᴱ R₂
-_/ᴱ-cong-∥∥-↠_ {R₁ = R₁} {R₂ = R₂} A₁↠A₂ R₁⇔R₂ = record
+_/ᴱ-cong-∥∥-↠_ {R₁} {R₂} A₁↠A₂ R₁⇔R₂ = record
   { logical-equivalence = /ᴱ-cong-∥∥-⇔
       (_↠_.logical-equivalence A₁↠A₂)
       (λ x y → _⇔_.to (R₁⇔R₂ x y))
@@ -163,7 +163,7 @@ _/ᴱ-cong-∥∥_ :
         ∥ R₁ x y ∥ ⇔
         ∥ R₂ (to-implication A₁↔A₂ x) (to-implication A₁↔A₂ y) ∥) →
   A₁ /ᴱ R₁ ↔[ k ] A₂ /ᴱ R₂
-_/ᴱ-cong-∥∥_ {k = k} {R₁ = R₁} {R₂ = R₂} A₁↔A₂′ R₁⇔R₂ =
+_/ᴱ-cong-∥∥_ {k} {R₁} {R₂} A₁↔A₂′ R₁⇔R₂ =
   from-bijection (record
     { surjection = from-isomorphism A₁↔A₂ /ᴱ-cong-∥∥-↠ λ x y →
         ∥ R₁ x y ∥                                                  ↝⟨ R₁⇔R₂ x y ⟩
@@ -207,7 +207,7 @@ _/ᴱ-cong_ A₁↔A₂ R₁⇔R₂ =
   @0 (∀ {x} → ∥ R₂ x x ∥) →
   @0 (∀ {u v x y} → ∥ R₁ u v ∥ → ∥ R₂ x y ∥ → ∥ R₃ (f u x) (f v y) ∥) →
   A₁ /ᴱ R₁ → A₂ /ᴱ R₂ → A₃ /ᴱ R₃
-/ᴱ-zip-∥∥ {R₁ = R₁} {R₂ = R₂} {R₃ = R₃} f r₁ r₂ r₃ = rec λ where
+/ᴱ-zip-∥∥ {R₁} {R₂} {R₃} f r₁ r₂ r₃ = rec λ where
   .is-setʳ →
     Π-closure ext 2 λ _ →
     /ᴱ-is-set
@@ -253,7 +253,7 @@ Surjectiveᴱ-[] = elim-prop λ where
 -- equivalent to quotienting by the relation itself.
 
 /ᴱ-∥∥≃/ᴱ : A /ᴱ (λ x y → ∥ R x y ∥) ≃ A /ᴱ R
-/ᴱ-∥∥≃/ᴱ {R = R} = F.id /ᴱ-cong-∥∥ λ x y →
+/ᴱ-∥∥≃/ᴱ {R} = F.id /ᴱ-cong-∥∥ λ x y →
   ∥ ∥ R x y ∥ ∥  ↔⟨ PT.flatten ⟩□
   ∥ R x y ∥      □
 
@@ -268,8 +268,7 @@ weakly-effective :
   @0 Is-equivalence-relation R →
   ∥ R x x ∥ᴱ →
   _≡_ {A = A /ᴱ R} [ x ] [ y ] → ∥ R x y ∥ᴱ
-weakly-effective
-  {A = A} {r = r} {x = x} {y = y} {R = R} eq ∥Rxx∥ᴱ [x]≡[y] =
+weakly-effective {A} {r} {x} {y} {R} eq ∥Rxx∥ᴱ [x]≡[y] =
                      $⟨ ∥Rxx∥ᴱ ⟩
   R′ x [ x ] .proj₁  ↝⟨ ≡⇒→ (cong (λ y → R′ x y .proj₁) [x]≡[y]) ⟩
   R′ x [ y ] .proj₁  ↔⟨⟩
@@ -300,7 +299,7 @@ effective :
   @0 Is-proposition (R x y) →
   R x x →
   _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
-effective {R = R} {x = x} {y = y} eq prop Rxx =
+effective {R} {x} {y} eq prop Rxx =
   [ x ] ≡ [ y ]  ↝⟨ weakly-effective eq ∣ Rxx ∣ ⟩
   ∥ R x y ∥ᴱ     ↔⟨ PTᴱ.∥∥ᴱ↔ prop ⟩□
   R x y          □
@@ -326,7 +325,7 @@ related≃[equal] eq prop =
 @0 ∥related∥≃[equal] :
   Is-equivalence-relation R →
   ∥ R x y ∥ ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-∥related∥≃[equal] {R = R} {x = x} {y = y} eq =
+∥related∥≃[equal] {R} {x} {y} eq =
   ∥ R x y ∥      ↝⟨ inverse PT.∥∥ᴱ≃∥∥ ⟩
   ∥ R x y ∥ᴱ     ↝⟨ Eq.⇔→≃
                       PTᴱ.truncation-is-proposition
@@ -362,7 +361,7 @@ related≃[equal] eq prop =
 -- using the propositional truncation (with erased proofs).
 
 /ᴱtrivial↔∥∥ᴱ : @0 (∀ x y → R x y) → A /ᴱ R ↔ ∥ A ∥ᴱ
-/ᴱtrivial↔∥∥ᴱ {A = A} {R = R} trivial = record
+/ᴱtrivial↔∥∥ᴱ {A} {R} trivial = record
   { surjection = record
     { logical-equivalence = record
       { to = rec-prop λ where
@@ -402,7 +401,7 @@ related≃[equal] eq prop =
 Σ→Erased-Constant≃∥∥ᴱ→ :
   @0 Is-set B →
   (∃ λ (f : A → B) → Erased (Constant f)) ≃ (∥ A ∥ᴱ → B)
-Σ→Erased-Constant≃∥∥ᴱ→ {B = B} {A = A} B-set =
+Σ→Erased-Constant≃∥∥ᴱ→ {B} {A} B-set =
   (∃ λ (f : A → B) → Erased (Constant f))  ↔⟨ lemma ⟩
   (A /ᴱ (λ _ _ → ⊤) → B)                   ↝⟨ →-cong₁ ext (/ᴱtrivial↔∥∥ᴱ _) ⟩□
   (∥ A ∥ᴱ → B)                             □
@@ -515,7 +514,7 @@ _ = λ _ → refl _
 Maybe/ᴱ :
   {@0 R : A → A → Type r} →
   Maybe A /ᴱ Maybeᴾ R ≃ Maybe (A /ᴱ R)
-Maybe/ᴱ {A = A} {R = R} =
+Maybe/ᴱ {A} {R} =
   Maybe A /ᴱ Maybeᴾ R    ↝⟨ ⊎/ᴱ ⟩
   ⊤ /ᴱ Trivial ⊎ A /ᴱ R  ↔⟨ ⊤/ᴱ ⊎-cong F.id ⟩
   ⊤ ⊎ A /ᴱ R             ↔⟨⟩
@@ -539,7 +538,7 @@ Maybe/ᴱ-[] = ⟨ext⟩ λ x →
   @0 (∀ {x} → R₁ x x) →
   @0 (∀ {x} → R₂ x x) →
   (A₁ × A₂) /ᴱ (R₁ ×ᴾ R₂) ≃ (A₁ /ᴱ R₁ × A₂ /ᴱ R₂)
-×/ᴱ {R₁ = R₁} {R₂ = R₂} R₁-refl R₂-refl = Eq.↔→≃
+×/ᴱ {R₁} {R₂} R₁-refl R₂-refl = Eq.↔→≃
   (rec λ where
      .is-setʳ → ×-closure 2 /ᴱ-is-set /ᴱ-is-set
 
@@ -583,7 +582,7 @@ Maybe/ᴱ-[] = ⟨ext⟩ λ x →
 Σ/ᴱ :
   @0 (∀ {x} → Is-proposition (P x)) →
   Σ (A /ᴱ R) P ≃ Σ A (P ∘ [_]) /ᴱ (R on proj₁)
-Σ/ᴱ {A = A} {R = R} {P = P} prop = Eq.↔→≃
+Σ/ᴱ {A} {R} {P} prop = Eq.↔→≃
   (uncurry $ elim λ where
      .is-setʳ _ →
        Π-closure ext 2 λ _ →
@@ -591,7 +590,7 @@ Maybe/ᴱ-[] = ⟨ext⟩ λ x →
 
      .[]ʳ → curry [_]
 
-     .[]-respects-relationʳ {x = x} {y = y} r → ⟨ext⟩ λ P[y] →
+     .[]-respects-relationʳ {x} {y} r → ⟨ext⟩ λ P[y] →
        subst (λ x → P x → Σ A (P ∘ [_]) /ᴱ (R on proj₁))
              ([]-respects-relation r)
              (curry [_] x) P[y]                               ≡⟨ subst-→-domain P {f = curry [_] x} ([]-respects-relation r) ⟩
@@ -624,7 +623,7 @@ Erased/ᴱ :
   @0 Is-set A →
   @0 (∀ {x y} → R x y → x ≡ y) →
   Erased A /ᴱ Erasedᴾ R ≃ Erased (A /ᴱ R)
-Erased/ᴱ {A = A} {R = R} set R→≡ = Eq.↔→≃
+Erased/ᴱ {A} {R} set R→≡ = Eq.↔→≃
   (rec λ where
      .is-setʳ                       → Er.H-level-Erased 2 /ᴱ-is-set
      .[]ʳ                           → Er.map [_]
@@ -653,7 +652,7 @@ Erased/ᴱ {A = A} {R = R} set R→≡ = Eq.↔→≃
 List/ᴱ :
   @0 (∀ {x} → R x x) →
   List A /ᴱ Listᴾ R ≃ List (A /ᴱ R)
-List/ᴱ {A = A} {R = R} r = Eq.↔→≃ to from to-from from-to
+List/ᴱ {A} {R} r = Eq.↔→≃ to from to-from from-to
   where
   @0 to-lemma :
     ∀ xs ys →

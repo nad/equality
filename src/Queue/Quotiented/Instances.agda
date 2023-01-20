@@ -128,7 +128,7 @@ private
     ∀ {xs} →
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs)) ≡
     just (1 , from-List (2 ∷ 3 ∷ xs))
-  example₅ {xs = xs} =
+  example₅ {xs} =
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))       ≡⟨ cong dequeue′ lemma ⟩
     dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs)))  ≡⟨ _↔_.right-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
     just (1 , from-List (2 ∷ 3 ∷ xs))           ∎

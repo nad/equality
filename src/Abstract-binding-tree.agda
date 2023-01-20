@@ -105,7 +105,7 @@ private
     -- An operator's arity.
 
     arity : ∀ {s} → Op s → Arity
-    arity {s = s} o = domain o , s
+    arity {s} o = domain o , s
 
 open Dummy public using (Signature) hiding (module Signature)
 
@@ -255,16 +255,16 @@ module Signature {ℓ} (sig : Signature ℓ) where
   mutual
 
     Tm : Tmˢ s → Type ℓ
-    Tm {s = s} var       = Var s
-    Tm         (op o as) = Args as
+    Tm {s} var       = Var s
+    Tm     (op o as) = Args as
 
     Args : Argsˢ vs → Type ℓ
     Args nil         = ↑ _ ⊤
     Args (cons a as) = Arg a × Args as
 
     Arg : Argˢ v → Type ℓ
-    Arg (nil t)          = Tm t
-    Arg (cons {s = s} a) = Var s × Arg a
+    Arg (nil t)      = Tm t
+    Arg (cons {s} a) = Var s × Arg a
 
   ----------------------------------------------------------------------
   -- Casting variables
@@ -289,7 +289,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     cast-Var-not-erased :
       ∀ {s s′} {s≡s′ : s ≡ s′} {x} →
       cast-Var s≡s′ x ≡ subst (λ s → Var s) s≡s′ x
-    cast-Var-not-erased {s≡s′ = s≡s′} {x = x} =
+    cast-Var-not-erased {s≡s′} {x} =
       substᴱ Var s≡s′ x           ≡⟨ substᴱ≡subst ⟩∎
       subst (λ s → Var s) s≡s′ x  ∎
 
@@ -300,7 +300,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ≡,cast-Var :
       ∀ {s₁ s₂ x} {eq : s₁ ≡ s₂} →
       _≡_ {A = ∃Var} (s₁ , x) (s₂ , cast-Var eq x)
-    ≡,cast-Var {s₁ = s₁} {s₂ = s₂} {x = x} {eq = eq} =
+    ≡,cast-Var {s₁} {s₂} {x} {eq} =
       Σ-≡,≡→≡ eq
         (subst (λ s → Var s) eq x  ≡⟨ sym cast-Var-not-erased ⟩∎
          cast-Var eq x             ∎)
@@ -310,7 +310,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     cast-Var-refl :
       ∀ {@0 s} {x : Var s} →
       cast-Var (refl s) x ≡ x
-    cast-Var-refl {x = x} =
+    cast-Var-refl {x} =
       substᴱ Var (refl _) x  ≡⟨ substᴱ-refl ⟩∎
       x                      ∎
 
@@ -319,7 +319,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     cast-Var-cast-Var :
       {x : Var s₁} {@0 eq₁ : s₁ ≡ s₂} {@0 eq₂ : s₂ ≡ s₃} →
       cast-Var eq₂ (cast-Var eq₁ x) ≡ cast-Var (trans eq₁ eq₂) x
-    cast-Var-cast-Var {x = x} {eq₁ = eq₁} {eq₂ = eq₂} =
+    cast-Var-cast-Var {x} {eq₁} {eq₂} =
       subst (λ ([ s ]) → Var s) ([]-cong [ eq₂ ])
         (subst (λ ([ s ]) → Var s) ([]-cong [ eq₁ ]) x)        ≡⟨ subst-subst _ _ _ _ ⟩
 
@@ -344,7 +344,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {s₁ s₂} {x₁ : Var s₁} {x₂ : Var s₂}
       (eq : _≡_ {A = ∃Var} (s₁ , x₁) (s₂ , x₂)) →
       cast-Var (proj₁ (Σ-≡,≡←≡ eq)) x₁ ≡ x₂
-    cast-Var-Σ-≡,≡←≡ {x₁ = x₁} {x₂ = x₂} eq =
+    cast-Var-Σ-≡,≡←≡ {x₁} {x₂} eq =
       cast-Var (proj₁ (Σ-≡,≡←≡ eq)) x₁             ≡⟨ cast-Var-not-erased ⟩
       subst (λ s → Var s) (proj₁ (Σ-≡,≡←≡ eq)) x₁  ≡⟨ proj₂ (Σ-≡,≡←≡ eq) ⟩∎
       x₂                                           ∎
@@ -356,7 +356,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 ≡cast-Var≃ :
       {s≡s′ : s ≡ s′} →
       (cast-Var s≡s′ x ≡ y) ≃ _≡_ {A = ∃Var} (s , x) (s′ , y)
-    ≡cast-Var≃ {s = s} {s′ = s′} {x = x} {y = y} {s≡s′ = s≡s′} =
+    ≡cast-Var≃ {s} {s′} {x} {y} {s≡s′} =
       cast-Var s≡s′ x ≡ y                                     ↝⟨ ≡⇒↝ _ $ cong (_≡ _) cast-Var-not-erased ⟩
       subst (λ s → Var s) s≡s′ x ≡ y                          ↔⟨ inverse $ drop-⊤-left-Σ $ _⇔_.to contractible⇔↔⊤ $
                                                                  propositional⇒inhabited⇒contractible Sort-set s≡s′ ⟩
@@ -368,7 +368,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 ≡→,≡,≃ :
       _≡_ {A = ∃Var} (s , x) (s , y) ≃ (x ≡ y)
-    ≡→,≡,≃ {s = s} {x = x} {y = y} =
+    ≡→,≡,≃ {s} {x} {y} =
       (s , x) ≡ (s , y)        ↝⟨ inverse ≡cast-Var≃ ⟩
       cast-Var (refl _) x ≡ y  ↝⟨ ≡⇒↝ _ $ cong (_≡ _) cast-Var-refl ⟩□
       x ≡ y                    □
@@ -380,7 +380,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {s₁ s₂ x y} →
       s₁ ≢ s₂ →
       _≡_ {A = ∃Var} (s₁ , x) (s₂ , y) ≃ ⊥₀
-    ≢→,≡,≃ {s₁ = s₁} {s₂ = s₂} {x = x} {y = y} s₁≢s₂ =
+    ≢→,≡,≃ {s₁} {s₂} {x} {y} s₁≢s₂ =
       (s₁ , x) ≡ (s₂ , y)                                        ↔⟨ inverse Bijection.Σ-≡,≡↔≡ ⟩
       (∃ λ (s₁≡s₂ : s₁ ≡ s₂) → subst (λ s → Var s) s₁≡s₂ x ≡ y)  ↝⟨ Σ-cong-contra (Bijection.⊥↔uninhabited s₁≢s₂) (λ _ → F.id) ⟩
       (∃ λ (p : ⊥₀) → subst (λ s → Var s) (⊥-elim p) x ≡ y)      ↔⟨ Σ-left-zero ⟩□
@@ -419,10 +419,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
   Skeleton arg  = Argˢ
 
   Data : Skeleton k s → Type ℓ
-  Data {k = var} {s = s} = λ _ → Var s
-  Data {k = tm}          = Tm
-  Data {k = args}        = Args
-  Data {k = arg}         = Arg
+  Data {k = var} {s} = λ _ → Var s
+  Data {k = tm}      = Tm
+  Data {k = args}    = Args
+  Data {k = arg}     = Arg
 
   -- Term-kind is equivalent to Fin 4.
 
@@ -502,7 +502,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 ∈restrict-to-sort≃ :
       (x ∈ restrict-to-sort s xs) ≃ ((s , x) ∈ xs)
-    ∈restrict-to-sort≃ {s = s} {x = x} {xs = xs} =
+    ∈restrict-to-sort≃ {s} {x} {xs} =
       x ∈ restrict-to-sort s xs                            ↝⟨ ∈map-Maybe≃ ⟩
       ∥ (∃ λ y → y ∈ xs × maybe-cast-∃Var s y ≡ just x) ∥  ↝⟨ ∥∥-cong (∃-cong λ _ → ∃-cong λ _ → lemma) ⟩
       ∥ (∃ λ y → y ∈ xs × y ≡ (s , x)) ∥                   ↝⟨ ∥∥-cong (∃-cong λ _ → ×-cong₁ λ eq → ≡⇒↝ _ $ cong (_∈ _) eq) ⟩
@@ -519,7 +519,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       lemma :
         (maybe-cast-∃Var s (s′ , y) ≡ just x) ≃
         _≡_ {A = ∃Var} (s′ , y) (s , x)
-      lemma {s′ = s′} {y = y} with s′ ≟S s
+      lemma {s′} {y} with s′ ≟S s
       … | yes [ s′≡s ] =
         just (cast-Var s′≡s y) ≡ just x  ↔⟨ inverse Bijection.≡↔inj₂≡inj₂ ⟩
         cast-Var s′≡s y ≡ x              ↝⟨ ≡cast-Var≃ ⟩□
@@ -535,7 +535,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     @0 ≃∈restrict-to-sort :
       ((s , x) ∈ xs) ≃
       (∀ s′ (s≡s′ : s ≡ s′) → cast-Var s≡s′ x ∈ restrict-to-sort s′ xs)
-    ≃∈restrict-to-sort {s = s} {x = x} {xs = xs} =
+    ≃∈restrict-to-sort {s} {x} {xs} =
       (s , x) ∈ xs                                                       ↝⟨ inverse ∈restrict-to-sort≃ ⟩
       x ∈ restrict-to-sort s xs                                          ↝⟨ ≡⇒↝ _ $ cong (_∈ _) $ sym cast-Var-refl ⟩
       cast-Var (refl _) x ∈ restrict-to-sort s xs                        ↝⟨ ∀-intro _ ext ⟩□
@@ -546,7 +546,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     @0 restrict-to-sort-cong :
       xs ⊆ ys → restrict-to-sort s xs ⊆ restrict-to-sort s ys
-    restrict-to-sort-cong {xs = xs} {ys = ys} {s = s} xs⊆ys = λ z →
+    restrict-to-sort-cong {xs} {ys} {s} xs⊆ys = λ z →
       z ∈ restrict-to-sort s xs  ↔⟨ ∈restrict-to-sort≃ ⟩
       (s , z) ∈ xs               ↝⟨ xs⊆ys _ ⟩
       (s , z) ∈ ys               ↔⟨ inverse ∈restrict-to-sort≃ ⟩□
@@ -559,8 +559,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ {s s′ s≡s′ z} xs →
       (z ∈ restrict-to-sort s xs) ≃
       (cast-Var s≡s′ z ∈ restrict-to-sort s′ xs)
-    sort-can-be-replaced-in-∈-restrict-to-sort
-       {s = s} {s≡s′ = s≡s′} {z = z} xs =
+    sort-can-be-replaced-in-∈-restrict-to-sort {s} {s≡s′} {z} xs =
       elim¹
         (λ {s′} s≡s′ →
            (z ∈ restrict-to-sort s xs) ≃
@@ -575,7 +574,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ xs →
       restrict-to-sort s (xs ∪ ys) ≡
       restrict-to-sort s xs ∪ restrict-to-sort s ys
-    restrict-to-sort-∪ {s = s} {ys = ys} xs =
+    restrict-to-sort-∪ {s} {ys} xs =
       _≃_.from extensionality λ x →
         x ∈ restrict-to-sort s (xs ∪ ys)                   ↔⟨ ∈∪≃ F.∘
                                                               ∈restrict-to-sort≃ ⟩
@@ -603,7 +602,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
   Renaming :
     (@0 dom fs : Finite-subset-of (Var s)) → Type ℓ
-  Renaming {s = s} dom fs =
+  Renaming {s} dom fs =
     (x : Var s) →
     (∃ λ (y : Var s) → Erased (x ∈ dom × y ∈ fs))
       ⊎
@@ -622,7 +621,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     (x y : Var s) →
     Renaming dom fs →
     Renaming (x ∷ dom) (y ∷ fs)
-  extend-renaming {dom = dom} x y ρ z with z ≟V x
+  extend-renaming {dom} x y ρ z with z ≟V x
   … | yes ([ z≡x ]) =
     inj₁
       ( y
@@ -668,9 +667,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
                 ∀ s′ → s′ ≢ s →
                 restrict-to-sort s′ (free-Var x′) ≡
                 restrict-to-sort s′ (free-Var x))
-    rename-Var {s = s} {s′ = s′} {dom = dom} {fs = fs}
-               x ρ ⊆free
-      with s ≟S s′
+    rename-Var {s} {s′} {dom} {fs} x ρ ⊆free with s ≟S s′
     … | no [ s≢s′ ] =
         x
       , [ (λ y →
@@ -791,8 +788,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         , (λ _ ())
         , (λ _ _ → refl _)
         ]
-    rename-Args {s = s} {dom = dom} {fs = fs}
-                (cons aˢ asˢ) (a , as) ρ ⊆free =
+    rename-Args {s} {dom} {fs} (cons aˢ asˢ) (a , as) ρ ⊆free =
       Σ-zip _,_
         (λ {a′ as′} ([ ⊆free₁ , ⊆dom₁ , ≡free₁ ])
                     ([ ⊆free₂ , ⊆dom₂ , ≡free₂ ]) →
@@ -900,8 +896,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
                 restrict-to-sort s′ (free-Arg aˢ a))
     rename-Arg (nil tˢ) = rename-Tm tˢ
 
-    rename-Arg {s = s} {dom = dom} {fs = fs}
-               (cons {s = s′} aˢ) (x , a) ρ ⊆free with s ≟S s′
+    rename-Arg {s} {dom} {fs} (cons {s = s′} aˢ) (x , a) ρ ⊆free
+      with s ≟S s′
     … | no [ s≢s′ ] =
       -- The bound variable does not have the same sort as the
       -- ones to be renamed. Continue recursively.
@@ -1163,7 +1159,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     {x y : Var s} (tˢ : Skeleton k s′) {t : Data tˢ} →
     free tˢ (rename₁ x y tˢ t) ⊆
     (_ , y) ∷ del (_ , x) (free tˢ t)
-  free-rename₁⊆ {s = s} {x = x} {y = y} tˢ {t = t} (s′ , z) =
+  free-rename₁⊆ {s} {x} {y} tˢ {t} (s′ , z) =
     (s′ , z) ∈ free tˢ (rename₁ x y tˢ t)                          ↔⟨ ≃∈restrict-to-sort ⟩
 
     (∀ s″ (s′≡s″ : s′ ≡ s″) →
@@ -1239,7 +1235,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   @0 ⊆free-rename₁ :
     {x y : Var s} (tˢ : Skeleton k s′) {t : Data tˢ} →
     free tˢ t ⊆ (_ , x) ∷ free tˢ (rename₁ x y tˢ t)
-  ⊆free-rename₁ {s = s} {x = x} {y = y} tˢ {t = t} (s′ , z) =
+  ⊆free-rename₁ {s} {x} {y} tˢ {t} (s′ , z) =
     (s′ , z) ∈ free tˢ t                                    ↔⟨ ≃∈restrict-to-sort ⟩
 
     (∀ s″ (s′≡s″ : s′ ≡ s″) →
@@ -1519,10 +1515,10 @@ module Signature {ℓ} (sig : Signature ℓ) where
              Var s → Arg′ aˢ → Arg′ (cons {s = s} aˢ)
 
   Data′ : @0 Skeleton k s → Type ℓ
-  Data′ {k = var} {s = s} = λ _ → Var s
-  Data′ {k = tm}          = Tm′
-  Data′ {k = args}        = Args′
-  Data′ {k = arg}         = Arg′
+  Data′ {k = var} {s} = λ _ → Var s
+  Data′ {k = tm}      = Tm′
+  Data′ {k = args}    = Args′
+  Data′ {k = arg}     = Arg′
 
   -- Lemmas used by Tm′≃Tm, Args′≃Args and Arg′≃Arg below.
 
@@ -1602,7 +1598,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- pointwise equivalent to the original ones.
 
   Tm′≃Tm : {tˢ : Tmˢ s} → Tm′ tˢ ≃ Tm tˢ
-  Tm′≃Tm {tˢ = tˢ} = Eq.↔→≃
+  Tm′≃Tm {tˢ} = Eq.↔→≃
     to-Tm
     (from-Tm _)
     (to-from-Tm tˢ)
@@ -1611,7 +1607,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     open ′≃
 
   Args′≃Args : {asˢ : Argsˢ vs} → Args′ asˢ ≃ Args asˢ
-  Args′≃Args {asˢ = asˢ} = Eq.↔→≃
+  Args′≃Args {asˢ} = Eq.↔→≃
     to-Args
     (from-Args _)
     (to-from-Args asˢ)
@@ -1620,7 +1616,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     open ′≃
 
   Arg′≃Arg : {aˢ : Argˢ v} → Arg′ aˢ ≃ Arg aˢ
-  Arg′≃Arg {aˢ = aˢ} = Eq.↔→≃
+  Arg′≃Arg {aˢ} = Eq.↔→≃
     to-Arg
     (from-Arg _)
     (to-from-Arg aˢ)
@@ -1649,7 +1645,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   -- original one.
 
   Term′≃Term : Term[ k ]′ xs s ≃ Term[ k ] xs s
-  Term′≃Term {k = k} = ∃-cong λ _ → Σ-cong (Data′≃Data k) λ _ → F.id
+  Term′≃Term {k} = ∃-cong λ _ → Σ-cong (Data′≃Data k) λ _ → F.id
 
   ----------------------------------------------------------------------
   -- Decision procedures for equality
@@ -1790,7 +1786,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   equal?-Data′ :
     ∀ k {s} {tˢ : Skeleton k s} →
     Decidable-erased-equality (Data′ tˢ)
-  equal?-Data′ k {tˢ = tˢ} t₁ t₂ =                                    $⟨ equal?-Data tˢ _ _ ⟩
+  equal?-Data′ k {tˢ} t₁ t₂ =                                         $⟨ equal?-Data tˢ _ _ ⟩
     Dec-Erased (_≃_.to (Data′≃Data k) t₁ ≡ _≃_.to (Data′≃Data k) t₂)  ↝⟨ Dec-Erased-map (from-equivalence (Eq.≃-≡ (Data′≃Data k))) ⟩□
     Dec-Erased (t₁ ≡ t₂)                                              □
 
@@ -1837,7 +1833,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   infix 4 _≟Term′_
 
   _≟Term′_ : ∀ {s} → Decidable-erased-equality (Term[ k ]′ xs s)
-  _≟Term′_ {k = k} =
+  _≟Term′_ {k} =
     decidable-erased⇒decidable-erased⇒Σ-decidable-erased
       _≟ˢ_
       λ {tˢ} →
@@ -1853,7 +1849,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   infix 4 _≟Term_
 
   _≟Term_ : ∀ {s} → Decidable-erased-equality (Term[ k ] xs s)
-  _≟Term_ {k = k} {xs = xs} {s = s} =            $⟨ _≟Term′_ ⟩
+  _≟Term_ {k} {xs} {s} =                         $⟨ _≟Term′_ ⟩
     Decidable-erased-equality (Term[ k ]′ xs s)  ↝⟨ Decidable-erased-equality-map (_≃_.surjection Term′≃Term) ⟩□
     Decidable-erased-equality (Term[ k ] xs s)   □
 
@@ -1894,7 +1890,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   @0 Wf-proof-irrelevant :
     ∀ {tˢ : Skeleton k s} {t : Data tˢ} {wf₁ wf₂} →
     _≡_ {A = Term[ k ] xs s} (tˢ , t , [ wf₁ ]) (tˢ , t , [ wf₂ ])
-  Wf-proof-irrelevant {tˢ = tˢ} =
+  Wf-proof-irrelevant {tˢ} =
     cong (λ wf → tˢ , _ , [ wf ]) (Wf-propositional tˢ _ _)
 
   ----------------------------------------------------------------------
@@ -2042,7 +2038,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           ∃ λ (A : Type ℓ) → Erased (Is-proposition A)
         Free-in-argument (nil tˢ) t wf = Free-in-term tˢ t wf
 
-        Free-in-argument {xs = xs} (cons aˢ) (y , a) wf =
+        Free-in-argument {xs} (cons aˢ) (y , a) wf =
           Π _ λ z → Π (Erased ((_ , z) ∉ (_ , x) ∷ xs)) λ ([ z∉ ]) →
           Free-in-argument
             aˢ
@@ -2124,7 +2120,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           ∀ (asˢ : Argsˢ vs) {as} (wfs : Wf ((_ , x) ∷ xs) asˢ as) →
           Free-in x (asˢ , as , [ wfs ]) →
           (_ , x) ∈ free asˢ as
-        Free-free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
+        Free-free-Args {x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
           Free-in x (aˢ , a , [ wf ]) ∥⊎∥ Free-in x (asˢ , as , [ wfs ])  ↝⟨ Free-free-Arg aˢ wf ∥⊎∥-cong Free-free-Args asˢ wfs ⟩
           (_ , x) ∈ free aˢ a ∥⊎∥ (_ , x) ∈ free asˢ as                   ↔⟨ inverse ∈∪≃ ⟩□
           (_ , x) ∈ free aˢ a ∪ free asˢ as                               □
@@ -2134,8 +2130,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           Free-in x (aˢ , a , [ wf ]) → (_ , x) ∈ free aˢ a
         Free-free-Arg (nil tˢ) = Free-free-Tm tˢ
 
-        Free-free-Arg {x = x} {xs = xs}
-                      (cons {s = s} aˢ) {a = y , a} wf =
+        Free-free-Arg {x} {xs} (cons {s} aˢ) {a = y , a} wf =
           let xxs              = (_ , x) ∷ xs
               x₁ ,         x₁∉ = fresh-not-erased xxs
               x₂ , x₂≢x₁ , x₂∉ =                                       $⟨ fresh-not-erased ((_ , x₁) ∷ xxs) ⟩
@@ -2199,7 +2194,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         @0 free-Free-Var :
           ∀ (yˢ : Varˢ s) {y} (wf : Wf ((_ , x) ∷ xs) yˢ y) →
           (_ , x) ∈ free yˢ y → Free-in x (yˢ , y , [ wf ])
-        free-Free-Var {x = x} var {y = y} _ =
+        free-Free-Var {x} var {y} _ =
           (_ , x) ∈ singleton (_ , y)  ↔⟨ ∈singleton≃ ⟩
           ∥ (_ , x) ≡ (_ , y) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩□
           (_ , x) ≡ (_ , y)            □
@@ -2213,7 +2208,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         @0 free-Free-Args :
           ∀ (asˢ : Argsˢ vs) {as} (wf : Wf ((_ , x) ∷ xs) asˢ as) →
           (_ , x) ∈ free asˢ as → Free-in x (asˢ , as , [ wf ])
-        free-Free-Args {x = x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
+        free-Free-Args {x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
           (_ , x) ∈ free aˢ a ∪ free asˢ as                               ↔⟨ ∈∪≃ ⟩
           (_ , x) ∈ free aˢ a ∥⊎∥ (_ , x) ∈ free asˢ as                   ↝⟨ free-Free-Arg aˢ wf
                                                                                ∥⊎∥-cong
@@ -2225,7 +2220,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           (_ , x) ∈ free aˢ a → Free-in x (aˢ , a , [ wf ])
         free-Free-Arg (nil tˢ) = free-Free-Tm tˢ
 
-        free-Free-Arg {x = x} {xs = xs} (cons aˢ) {a = y , a} wf =
+        free-Free-Arg {x} {xs} (cons aˢ) {a = y , a} wf =
           (_ , x) ∈ del (_ , y) (free aˢ a)                       ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
 
           (_ , x) ≢ (_ , y) × (_ , x) ∈ free aˢ a                 ↝⟨ Σ-map id (λ x∈ _ → ⊆free-rename₁ aˢ _ x∈) ⟩
@@ -2359,7 +2354,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
         @0 free-⊆-Var :
           ∀ (xˢ : Varˢ s) {x} → Wf xs xˢ x → free xˢ x ⊆ xs
-        free-⊆-Var {xs = xs} var {x = x} wf y =
+        free-⊆-Var {xs} var {x} wf y =
           y ∈ singleton (_ , x)  ↔⟨ ∈singleton≃ ⟩
           ∥ y ≡ (_ , x) ∥        ↔⟨ ∥∥↔ ∃Var-set ⟩
           y ≡ (_ , x)            ↝⟨ (λ eq → subst (_∈ xs) (sym eq) wf) ⟩□
@@ -2372,8 +2367,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
         @0 free-⊆-Args :
           ∀ (asˢ : Argsˢ vs) {as} → Wf xs asˢ as → free asˢ as ⊆ xs
-        free-⊆-Args           nil           _          _ = λ ()
-        free-⊆-Args {xs = xs} (cons aˢ asˢ) (wf , wfs) y =
+        free-⊆-Args      nil           _          _ = λ ()
+        free-⊆-Args {xs} (cons aˢ asˢ) (wf , wfs) y =
           y ∈ free aˢ _ ∪ free asˢ _        ↔⟨ ∈∪≃ ⟩
           y ∈ free aˢ _ ∥⊎∥ y ∈ free asˢ _  ↝⟨ free-⊆-Arg aˢ wf y ∥⊎∥-cong free-⊆-Args asˢ wfs y ⟩
           y ∈ xs ∥⊎∥ y ∈ xs                 ↔⟨ ∥⊎∥-idempotent ∈-propositional ⟩□
@@ -2383,7 +2378,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
           ∀ (aˢ : Argˢ v) {a} → Wf xs aˢ a → free aˢ a ⊆ xs
         free-⊆-Arg (nil tˢ) = free-⊆-Tm tˢ
 
-        free-⊆-Arg {xs = xs} (cons {s = s} aˢ) {a = x , a} wf y =
+        free-⊆-Arg {xs} (cons {s} aˢ) {a = x , a} wf y =
           y ∈ del (_ , x) (free aˢ a)  ↔⟨ ∈delete≃ merely-equal?-∃Var ⟩
           y ≢ (_ , x) × y ∈ free aˢ a  ↝⟨ uncurry lemma ⟩□
           y ∈ xs                       □
@@ -2425,7 +2420,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ (tˢ : Skeleton k s) {t} →
       (_ , x) ∉ free tˢ t →
       Wf ((_ , x) ∷ xs) tˢ t → Wf xs tˢ t
-    strengthen-Wf {x = x} {xs = xs} tˢ {t = t} x∉ =
+    strengthen-Wf {x} {xs} tˢ {t} x∉ =
       Wf ((_ , x) ∷ xs) tˢ t                ↝⟨ free-⊆ tˢ ⟩
       free tˢ t ⊆ (_ , x) ∷ xs              ↝⟨ ∉→⊆∷→⊆ x∉ ⟩
       free tˢ t ⊆ xs                        ↝⟨ _, wf-free tˢ ⟩
@@ -2435,7 +2430,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∉→⊆∷→⊆ :
         {x : ∃Var} {xs ys : Vars} →
         x ∉ xs → xs ⊆ x ∷ ys → xs ⊆ ys
-      ∉→⊆∷→⊆ {x = x} {xs = xs} {ys = ys} x∉ xs⊆x∷ys z =
+      ∉→⊆∷→⊆ {x} {xs} {ys} x∉ xs⊆x∷ys z =
         z ∈ xs              ↝⟨ (λ z∈ → x∉ ∘ flip (subst (_∈ _)) z∈ , z∈) ⟩
         z ≢ x × z ∈ xs      ↝⟨ Σ-map id (xs⊆x∷ys _) ⟩
         z ≢ x × z ∈ x ∷ ys  ↔⟨ ∃-cong ∈≢∷≃ ⟩
@@ -2448,7 +2443,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       ∀ (tˢ : Skeleton k s) {t} →
       Wf ((_ , x) ∷ xs) tˢ t →
       Wf ((_ , y) ∷ xs) tˢ (rename₁ x y tˢ t)
-    rename₁-Wf {x = x} {xs = xs} {y = y} tˢ {t = t} wf =
+    rename₁-Wf {x} {xs} {y} tˢ {t} wf =
                                                              $⟨ wf-free tˢ ⟩
       Wf (free tˢ (rename₁ x y tˢ t)) tˢ (rename₁ x y tˢ t)  ↝⟨ weaken-Wf
                                                                   (⊆∷delete→⊆∷→⊆∷
@@ -2462,8 +2457,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         xs ⊆ x ∷ del y ys →
         ys ⊆ y ∷ zs →
         xs ⊆ x ∷ zs
-      ⊆∷delete→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
-                     xs⊆ ys⊆ z =
+      ⊆∷delete→⊆∷→⊆∷ {x} {y} {xs} {ys} {zs} xs⊆ ys⊆ z =
         z ∈ xs                        ↝⟨ xs⊆ z ⟩
         z ∈ x ∷ del y ys              ↔⟨ (F.id ∥⊎∥-cong ∈delete≃ merely-equal?-∃Var) F.∘ ∈∷≃ ⟩
         z ≡ x ∥⊎∥ z ≢ y × z ∈ ys      ↝⟨ id ∥⊎∥-cong id ×-cong ys⊆ z ⟩
@@ -2482,7 +2476,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       (_ , y) ∉ free tˢ t →
       Wf ((_ , y) ∷ xs) tˢ (rename₁ x y tˢ t) →
       Wf ((_ , x) ∷ xs) tˢ t
-    renamee-Wf {y = y} {xs = xs} {x = x} tˢ {t = t} y∉a =
+    renamee-Wf {y} {xs} {x} tˢ {t} y∉a =
       Wf ((_ , y) ∷ xs) tˢ (rename₁ x y tˢ t)    ↝⟨ free-⊆ tˢ ⟩
       free tˢ (rename₁ x y tˢ t) ⊆ (_ , y) ∷ xs  ↝⟨ ∉→⊆∷∷→⊆∷→⊆∷ y∉a (⊆free-rename₁ tˢ) ⟩
       free tˢ t ⊆ (_ , x) ∷ xs                   ↝⟨ (λ wf → weaken-Wf wf tˢ (wf-free tˢ)) ⟩□
@@ -2494,8 +2488,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
         xs ⊆ x ∷ ys →
         ys ⊆ y ∷ zs →
         xs ⊆ x ∷ zs
-      ∉→⊆∷∷→⊆∷→⊆∷ {x = x} {y = y} {xs = xs} {ys = ys} {zs = zs}
-                  y∉xs xs⊆x∷y∷ys ys⊆y∷zs = λ z →
+      ∉→⊆∷∷→⊆∷→⊆∷ {x} {y} {xs} {ys} {zs} y∉xs xs⊆x∷y∷ys ys⊆y∷zs = λ z →
         z ∈ xs                                ↝⟨ (λ z∈xs → (λ z≡y → y∉xs (subst (_∈ _) z≡y z∈xs))
                                                          , xs⊆x∷y∷ys z z∈xs) ⟩
 
@@ -2523,7 +2516,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
        (_ , y) ∉ xs →
        Wf ((_ , y) ∷ xs) tˢ (rename₁ x y tˢ t)) →
       Wf ((_ , x) ∷ xs) tˢ t
-    body-Wf {xs = xs} tˢ {t = t} wf =
+    body-Wf {xs} tˢ {t} wf =
       let y , [ y-fresh ] = fresh (xs ∪ free tˢ t)
           y∉xs            = y-fresh ∘ ∈→∈∪ˡ
           y∉t             = y-fresh ∘ ∈→∈∪ʳ xs
@@ -2583,14 +2576,14 @@ module Signature {ℓ} (sig : Signature ℓ) where
     (x : Var s) → Term xs s →
     Term[ k ] ((_ , x) ∷ xs) s′ →
     Term[ var-to-tm k ] xs (var-to-tm-for-sorts k s′)
-  subst-Term {s = s} x t t′ = wf-elim e t′ (refl _) t
+  subst-Term {s} x t t′ = wf-elim e t′ (refl _) t
     where
     e : Wf-elim
           (λ k {xs = xs′} {s = s′} _ →
              ∀ {xs} → @0 xs′ ≡ (_ , x) ∷ xs →
              Term xs s →
              Term[ var-to-tm k ] xs (var-to-tm-for-sorts k s′))
-    e .Wf-elim.varʳ {xs = xs′} y y∈xs′ {xs = xs} xs′≡x∷xs t =
+    e .Wf-elim.varʳ {xs = xs′} y y∈xs′ {xs} xs′≡x∷xs t =
       case (_ , y) ≟∃V (_ , x) of λ where
         (yes [ y≡x ]) →
           substᴱ (λ p → Term xs (proj₁ p)) (sym y≡x) t
@@ -2613,7 +2606,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
     e .Wf-elim.nilʳ′ _ _ _ hyp eq t = Σ-map nil id (hyp eq t)
 
-    e .Wf-elim.consʳ′ {xs = xs′} aˢ y a wf hyp {xs = xs} eq t =
+    e .Wf-elim.consʳ′ {xs = xs′} aˢ y a wf hyp {xs} eq t =
       case (_ , x) ≟∃V (_ , y) of λ where
         (inj₁ [ x≡y ]) →
           -- If the bound variable matches x, keep the original

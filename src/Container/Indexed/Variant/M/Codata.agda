@@ -53,7 +53,7 @@ open M public
 η = _↔_.from ≡↔≡ η′
   where
   η′ : in-M (out-M x) P.≡ x
-  η′ {x = x} _ .out-M = x .out-M
+  η′ {x} _ .out-M = x .out-M
 
 -- M C is, in a certain sense, a fixpoint of ⟦ C ⟧.
 
@@ -92,7 +92,7 @@ private
         x P.≡ u .proj₁ i q →
         x .out-M .proj₁ P.≡
         (map C (u .proj₁) ∘⇾ f) i q .proj₁
-      lemma₁ {i = i} {x = x} {q = q} eq =
+      lemma₁ {i} {x} {q} eq =
         x .out-M .proj₁                     P.≡⟨ P.cong (λ x → x .out-M .proj₁) eq ⟩
         u .proj₁ i q .out-M .proj₁          P.≡⟨ P.cong (λ f → f i q .proj₁) (u .proj₂) ⟩∎
         (map C (u .proj₁) ∘⇾ f) i q .proj₁  ∎
@@ -102,7 +102,7 @@ private
         P.[ (λ l → P (lemma₁ eq l) ⇾ M C) ]
           x .out-M .proj₂ ≡
           (map C (u .proj₁) ∘⇾ f) i q .proj₂
-      lemma₂ {i = i} {x = x} {q = q} eq =
+      lemma₂ {i} {x} {q} eq =
         x .out-M .proj₂                     P.≡⟨ P.hcong (λ x → x .out-M .proj₂) eq ⟩[ (λ p → P p ⇾ M C) ]
         u .proj₁ i q .out-M .proj₂          P.≡⟨ P.hcong (λ f → f i q .proj₂) (u .proj₂) ⟩∎h
         (map C (u .proj₁) ∘⇾ f) i q .proj₂  ∎

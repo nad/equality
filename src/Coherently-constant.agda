@@ -48,7 +48,7 @@ private
 
 Coherently-constant :
   {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
-Coherently-constant {A = A} {B = B} f =
+Coherently-constant {A} {B} f =
   ∃ λ (g : ∥ A ∥ → B) → f ≡ g ∘ ∣_∣
 
 -- Every coherently constant function is weakly constant.
@@ -57,7 +57,7 @@ Coherently-constant {A = A} {B = B} f =
 
 Coherently-constant→Constant :
   Coherently-constant f → Constant f
-Coherently-constant→Constant {f = f} (g , eq) x y =
+Coherently-constant→Constant {f} (g , eq) x y =
   f x      ≡⟨ cong (_$ x) eq ⟩
   g ∣ x ∣  ≡⟨ cong g (T.truncation-is-proposition _ _) ⟩
   g ∣ y ∣  ≡⟨ sym $ cong (_$ y) eq ⟩∎
@@ -72,7 +72,7 @@ Coherently-constant→Constant {f = f} (g , eq) x y =
 Stable-domain→Constant→Coherently-constant :
   {f : A → B} →
   (∥ A ∥ → A) → Constant f → Coherently-constant f
-Stable-domain→Constant→Coherently-constant {f = f} s c =
+Stable-domain→Constant→Coherently-constant {f} s c =
     f ∘ s
   , ⟨ext⟩ λ x →
       f x          ≡⟨ c _ _ ⟩∎
@@ -108,7 +108,7 @@ private
     -- CCC C implies IR C.
 
     CCC→IR : CCC C → IR C
-    CCC→IR {C = C} ccc A f conn inj =
+    CCC→IR {C} ccc A f conn inj =
         (λ a → proj₁ (cc a) (conn a))
       , ⟨ext⟩ λ c →
           proj₁ (cc (f c)) (conn (f c))    ≡⟨ cong (proj₁ (cc (f c))) $ T.truncation-is-proposition _ _ ⟩
@@ -271,7 +271,7 @@ private
     -- The function K.map mul2ʰ is injective.
 
     map-mul2ʰ-injective : Injective (K.map mul2ʰ)
-    map-mul2ʰ-injective {x = x} {y = y} = K.elim-set e x y
+    map-mul2ʰ-injective {x} {y} = K.elim-set e x y
       where
       lemma = K.elim-set λ where
         .K.is-setʳ _ →
@@ -428,7 +428,7 @@ private
           (trans (cong r₁ (cong (K.map mul2ʰ) p))
              (cong (_$ base) r₁-retraction)) ≡
         p
-      r₁-lemma {p = p} =
+      r₁-lemma {p} =
         trans (sym $ cong (_$ base) r₁-retraction)
           (trans (cong r₁ (cong (K.map mul2ʰ) p))
              (cong (_$ base) r₁-retraction))        ≡⟨ cong (trans _) $ cong (flip trans _) $
@@ -471,7 +471,7 @@ private
 
           refl _                                                  ∎
 
-        .K.loop-∘ʳ {x = x} {y = y} →
+        .K.loop-∘ʳ {x} {y} →
           trans (sym $ cong (_$ base) r₁-retraction)
             (trans (cong r₁ (loop (x ℤ/4ℤ.+ y)))
                (cong (_$ base) r₁-retraction))           ≡⟨ cong (trans _) $ cong (flip trans _) $ cong (cong r₁) $
@@ -610,7 +610,7 @@ private
   Univalence lzero →
   ¬ ((A B : Type a) → ∥ A ∥ →
      (f : A → B ≃ B) → Constant f → Coherently-constant f)
-¬-Constant→Coherently-constant {a = a} univ =
+¬-Constant→Coherently-constant {a} univ =
   ((A B : Type a) → ∥ A ∥ →
    (f : A → B ≃ B) → Constant f → Coherently-constant f)  ↝⟨ flip ⟩
 

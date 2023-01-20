@@ -94,7 +94,7 @@ elimᴾ′ :
   {@0 R : A → A → Type r}
   {P : A /ᴱ R → Type p} →
   Elimᴾ′ P → (x : A /ᴱ R) → P x
-elimᴾ′ {A = A} {R = R} {P = P} e = helper
+elimᴾ′ {A} {R} {P} e = helper
   where
   module E = Elimᴾ′ e
 
@@ -140,7 +140,7 @@ private
     {@0 R : A → A → Type r}
     {P : A /ᴱ R → Type p} →
     Elimᴾ′ P → (x : A /ᴱ R) → P x
-  elimᴾ′₂ {P = P} e = elimᴾ λ where
+  elimᴾ′₂ {P} e = elimᴾ λ where
       .[]ʳ                           → E.[]ʳ
       .[]-respects-relationʳ         → E.[]-respects-relationʳ
       .is-setʳ x {x = y} {y = z} p q →                                  $⟨ E.is-setʳ p q ⟩

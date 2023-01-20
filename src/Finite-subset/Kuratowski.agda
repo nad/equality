@@ -74,7 +74,7 @@ is-set = _↔_.from (H-level↔H-level 2) is-setᴾ
 -- ∅ is a right identity for _∪_.
 
 ∪∅ : x ∪ ∅ ≡ x
-∪∅ {x = x} =
+∪∅ {x} =
   x ∪ ∅  ≡⟨ comm ⟩
   ∅ ∪ x  ≡⟨ ∅∪ ⟩∎
   x      ∎
@@ -106,22 +106,20 @@ record Elimᴾ {A : Type a} (P : Finite-subset-of A → Type p) :
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : Finite-subset-of A) → P x
-elimᴾ {A = A} {P = P} e = helper
+elimᴾ {A} {P} e = helper
   where
   module E = Elimᴾ e
 
   helper : (x : Finite-subset-of A) → P x
-  helper ∅                                  = E.∅ʳ
-  helper (singleton x)                      = E.singletonʳ x
-  helper (x ∪ y)                            = E.∪ʳ (helper x) (helper y)
-  helper (∅∪ᴾ {x = x} i)                    = E.∅∪ʳ (helper x) i
-  helper (idem-sᴾ i)                        = E.idem-sʳ _ i
-  helper (assocᴾ {x = x} {y = y} {z = z} i) = E.assocʳ
-                                                (helper x) (helper y)
-                                                (helper z) i
-  helper (commᴾ {x = x} {y = y} i)          = E.commʳ
-                                                (helper x) (helper y) i
-  helper (is-setᴾ x y i j)                  =
+  helper ∅                      = E.∅ʳ
+  helper (singleton x)          = E.singletonʳ x
+  helper (x ∪ y)                = E.∪ʳ (helper x) (helper y)
+  helper (∅∪ᴾ {x} i)            = E.∅∪ʳ (helper x) i
+  helper (idem-sᴾ i)            = E.idem-sʳ _ i
+  helper (assocᴾ {x} {y} {z} i) = E.assocʳ (helper x) (helper y)
+                                    (helper z) i
+  helper (commᴾ {x} {y} i)      = E.commʳ (helper x) (helper y) i
+  helper (is-setᴾ x y i j)      =
     P.heterogeneous-UIP E.is-setʳ (is-setᴾ x y)
       (λ i → helper (x i)) (λ i → helper (y i)) i j
 
@@ -151,14 +149,14 @@ recᴾ r = elimᴾ e
   module R = Recᴾ r
 
   e : Elimᴾ _
-  e .∅ʳ                 = R.∅ʳ
-  e .singletonʳ         = R.singletonʳ
-  e .∪ʳ {x = x} {y = y} = R.∪ʳ x y
-  e .∅∪ʳ {x = x}        = R.∅∪ʳ x
-  e .idem-sʳ            = R.idem-sʳ
-  e .assocʳ             = R.assocʳ
-  e .commʳ              = R.commʳ
-  e .is-setʳ _          = R.is-setʳ
+  e .∅ʳ         = R.∅ʳ
+  e .singletonʳ = R.singletonʳ
+  e .∪ʳ {x} {y} = R.∪ʳ x y
+  e .∅∪ʳ {x}    = R.∅∪ʳ x
+  e .idem-sʳ    = R.idem-sʳ
+  e .assocʳ     = R.assocʳ
+  e .commʳ      = R.commʳ
+  e .is-setʳ _  = R.is-setʳ
 
 -- A dependent eliminator, expressed using equality.
 
@@ -280,7 +278,7 @@ rec-prop r = elim-prop e
   e : Elim-prop _
   e .∅ʳ                 = R.∅ʳ
   e .singletonʳ         = R.singletonʳ
-  e .∪ʳ {x = x} {y = y} = R.∪ʳ x y
+  e .∪ʳ {x} {y}         = R.∪ʳ x y
   e .is-propositionʳ _  = R.is-propositionʳ
 
 ------------------------------------------------------------------------
@@ -289,14 +287,14 @@ rec-prop r = elim-prop e
 -- Union is idempotent.
 
 idem : x ∪ x ≡ x
-idem {x = x} = flip (elim-prop {P = λ x → x ∪ x ≡ x}) x λ where
+idem {x} = flip (elim-prop {P = λ x → x ∪ x ≡ x}) x λ where
   .∅ʳ →
     ∅ ∪ ∅  ≡⟨ ∅∪ ⟩∎
     ∅      ∎
   .singletonʳ x →
     singleton x ∪ singleton x  ≡⟨ idem-s ⟩∎
     singleton x                ∎
-  .∪ʳ {x = x} {y = y} → curry
+  .∪ʳ {x} {y} → curry
     (x ∪ x ≡ x × y ∪ y ≡ y      →⟨ uncurry (cong₂ _∪_) ⟩
      (x ∪ x) ∪ (y ∪ y) ≡ x ∪ y  →⟨ trans $
                                    trans (sym assoc) $
@@ -374,14 +372,14 @@ _ = refl _
 
 >>=-left-distributive :
   ∀ x → (x >>=′ λ x → f x ∪ g x) ≡ (x >>=′ f) ∪ (x >>=′ g)
->>=-left-distributive {f = f} {g = g} = elim-prop e
+>>=-left-distributive {f} {g} = elim-prop e
   where
   e : Elim-prop _
-  e .∅ʳ                           = ∅      ≡⟨ sym idem ⟩∎
-                                    ∅ ∪ ∅  ∎
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+  e .∅ʳ                   = ∅      ≡⟨ sym idem ⟩∎
+                            ∅ ∪ ∅  ∎
+  e .singletonʳ _         = refl _
+  e .is-propositionʳ _    = is-set
+  e .∪ʳ {x} {y} hyp₁ hyp₂ =
     (x ∪ y) >>=′ (λ x → f x ∪ g x)                         ≡⟨⟩
     (x >>=′ λ x → f x ∪ g x) ∪ (y >>=′ λ x → f x ∪ g x)    ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
     ((x >>=′ f) ∪ (x >>=′ g)) ∪ ((y >>=′ f) ∪ (y >>=′ g))  ≡⟨ sym assoc ⟩
@@ -401,22 +399,22 @@ _ = refl _
 >>=-singleton = elim-prop e _
   where
   e : Elim-prop (λ x → x >>=′ singleton ≡ x)
-  e .∅ʳ                           = refl _
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+  e .∅ʳ                   = refl _
+  e .singletonʳ _         = refl _
+  e .is-propositionʳ _    = is-set
+  e .∪ʳ {x} {y} hyp₁ hyp₂ =
     (x ∪ y) >>=′ singleton                   ≡⟨⟩
     (x >>=′ singleton) ∪ (y >>=′ singleton)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩∎
     x ∪ y                                    ∎
 
 >>=-assoc : ∀ x → x >>=′ (λ x → f x >>=′ g) ≡ x >>=′ f >>=′ g
->>=-assoc {f = f} {g = g} = elim-prop e
+>>=-assoc {f} {g} = elim-prop e
   where
   e : Elim-prop _
-  e .∅ʳ                           = refl _
-  e .singletonʳ _                 = refl _
-  e .is-propositionʳ _            = is-set
-  e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+  e .∅ʳ                   = refl _
+  e .singletonʳ _         = refl _
+  e .is-propositionʳ _    = is-set
+  e .∪ʳ {x} {y} hyp₁ hyp₂ =
     (x ∪ y) >>=′ (λ x → f x >>=′ g)                        ≡⟨⟩
     (x >>=′ λ x → f x >>=′ g) ∪ (y >>=′ λ x → f x >>=′ g)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩
     (x >>=′ f >>=′ g) ∪ (y >>=′ f >>=′ g)                  ≡⟨⟩
@@ -448,12 +446,12 @@ private
   to L.[]      = ∅
   to (x L.∷ y) = singleton x ∪ to y
 
-  to (L.dropᴾ {x = x} {y = y} i) =
+  to (L.dropᴾ {x} {y} i) =
     (singleton x ∪ (singleton x ∪ to y)  P.≡⟨ assocᴾ ⟩
      (singleton x ∪ singleton x) ∪ to y  P.≡⟨ P.cong (_∪ to y) idem-sᴾ ⟩∎
      singleton x ∪ to y                  ∎) i
 
-  to (L.swapᴾ {x = x} {y = y} {z = z} i) =
+  to (L.swapᴾ {x} {y} {z} i) =
     (singleton x ∪ (singleton y ∪ to z)  P.≡⟨ assocᴾ ⟩
      (singleton x ∪ singleton y) ∪ to z  P.≡⟨ P.cong (_∪ to z) commᴾ ⟩
      (singleton y ∪ singleton x) ∪ to z  P.≡⟨ P.sym assocᴾ ⟩∎
@@ -463,7 +461,7 @@ private
     is-setᴾ (λ i → to (x i)) (λ i → to (y i)) i j
 
   to-∪ : (x : L.Finite-subset-of A) → to (x L.∪ y) ≡ to x ∪ to y
-  to-∪ {y = y} = L.elim-prop e
+  to-∪ {y} = L.elim-prop e
     where
     e : L.Elim-prop _
     e .L.is-propositionʳ _ = is-set
@@ -480,7 +478,7 @@ private
 -- Listed finite subsets are equivalent to Kuratowski finite subsets.
 
 Listed≃Kuratowski : L.Finite-subset-of A ≃ Finite-subset-of A
-Listed≃Kuratowski {A = A} = from-bijection (record
+Listed≃Kuratowski {A} = from-bijection (record
   { surjection = record
     { logical-equivalence = record
       { to   = to
@@ -496,14 +494,14 @@ Listed≃Kuratowski {A = A} = from-bijection (record
   from (singleton x) = x L.∷ L.[]
   from (x ∪ y)       = from x L.∪ from y
 
-  from (∅∪ᴾ {x = x} _) = from x
+  from (∅∪ᴾ {x} _) = from x
 
-  from (idem-sᴾ {x = x} i) = L.dropᴾ {x = x} {y = L.[]} i
+  from (idem-sᴾ {x} i) = L.dropᴾ {x = x} {y = L.[]} i
 
-  from (assocᴾ {x = x} {y = y} {z = z} i) =
+  from (assocᴾ {x} {y} {z} i) =
     _↔_.to ≡↔≡ (L.assoc {y = from y} {z = from z} (from x)) i
 
-  from (commᴾ {x = x} {y = y} i) =
+  from (commᴾ {x} {y} i) =
     _↔_.to ≡↔≡ (L.comm {y = from y} (from x)) i
 
   from (is-setᴾ x y i j) =
@@ -513,10 +511,10 @@ Listed≃Kuratowski {A = A} = from-bijection (record
   to∘from = elim-prop e
     where
     e : Elim-prop _
-    e .is-propositionʳ _            = is-set
-    e .∅ʳ                           = refl _
-    e .singletonʳ _                 = ∪∅
-    e .∪ʳ {x = x} {y = y} hyp₁ hyp₂ =
+    e .is-propositionʳ _    = is-set
+    e .∅ʳ                   = refl _
+    e .singletonʳ _         = ∪∅
+    e .∪ʳ {x} {y} hyp₁ hyp₂ =
       to (from x L.∪ from y)     ≡⟨ to-∪ (from x) ⟩
       to (from x) ∪ to (from y)  ≡⟨ cong₂ _∪_ hyp₁ hyp₂ ⟩∎
       x ∪ y                      ∎
@@ -527,7 +525,7 @@ Listed≃Kuratowski {A = A} = from-bijection (record
     e : L.Elim-prop _
     e .L.is-propositionʳ _ = L.is-set
     e .L.[]ʳ               = refl _
-    e .L.∷ʳ {y = y} x hyp  =
+    e .L.∷ʳ {y} x hyp      =
       x L.∷ from (to y)  ≡⟨ cong (x L.∷_) hyp ⟩∎
       x L.∷ y            ∎
 
@@ -562,7 +560,7 @@ record List-elim-prop
 open List-elim-prop public
 
 list-elim-prop : List-elim-prop P → (x : Finite-subset-of A) → P x
-list-elim-prop {P = P} l x =
+list-elim-prop {P} l x =
   subst P (_≃_.right-inverse-of Listed≃Kuratowski x)
     (L.elim-prop e (_≃_.from Listed≃Kuratowski x))
   where

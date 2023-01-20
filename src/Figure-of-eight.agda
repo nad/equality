@@ -71,7 +71,7 @@ record Elimᴾ (P : ∞ → Type p) : Type p where
 open Elimᴾ public
 
 elimᴾ : Elimᴾ P → (x : ∞) → P x
-elimᴾ {P = P} e = helper
+elimᴾ {P} e = helper
   where
   module E = Elimᴾ e
 
@@ -285,7 +285,7 @@ private
     {p q : x ≡ x} (f : (x : ∞) → x ≡ x) →
     f x ≡ p →
     trans p q ≡ trans q p
-  trans-sometimes-commutative′ {x = x} {p = p} {q = q} f f-x≡p =
+  trans-sometimes-commutative′ {x} {p} {q} f f-x≡p =
     trans p q      ≡⟨ cong (flip trans _) $ sym f-x≡p ⟩
     trans (f x) q  ≡⟨ trans-sometimes-commutative f ⟩
     trans q (f x)  ≡⟨ cong (trans q) f-x≡p ⟩∎
