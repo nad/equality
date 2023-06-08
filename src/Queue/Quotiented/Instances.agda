@@ -65,13 +65,14 @@ instance
 
 private
 
+  Q′       = Queue Q
   ⌊_⌋      = to-List (λ {_ _} → ℕ-set)
   dequeue′ = dequeue (λ {_ _} → ℕ-set)
-  empty′   = empty ⦂ Queue Q ℕ
+  empty′   = empty ⦂ Q′ ℕ
 
   example₁ : map suc (enqueue 3 empty) ≡ enqueue 4 empty′
   example₁ = _↔_.to ≡-for-lists↔≡ (
-    ⌊ map suc (enqueue 3 empty) ⌋  ≡⟨ to-List-map ⟩
+    ⌊ map suc (enqueue 3 empty) ⌋  ≡⟨ to-List-map {Q = Q′} ⟩
     L.map suc ⌊ enqueue 3 empty ⌋  ≡⟨ cong (L.map suc) $ to-List-foldl-enqueue-empty (_ ∷ []) ⟩
     L.map suc (3 ∷ [])             ≡⟨⟩
     4 ∷ []                         ≡⟨ sym $ to-List-foldl-enqueue-empty (_ ∷ []) ⟩∎
@@ -86,11 +87,11 @@ private
     just (10 , enqueue 6 empty)                          ∎
     where
     lemma = _↔_.to ≡-for-lists↔≡ (
-      ⌊ map (_* 2) (enqueue 3 (enqueue 5 empty)) ⌋  ≡⟨ to-List-map ⟩
+      ⌊ map (_* 2) (enqueue 3 (enqueue 5 empty)) ⌋  ≡⟨ to-List-map {Q = Q′} ⟩
       L.map (_* 2) ⌊ enqueue 3 (enqueue 5 empty) ⌋  ≡⟨ cong (L.map (_* 2)) $ to-List-foldl-enqueue-empty (_ ∷ _ ∷ []) ⟩
       L.map (_* 2) (5 ∷ 3 ∷ [])                     ≡⟨⟩
       10 ∷ 6 ∷ []                                   ≡⟨ cong (10 ∷_) $ sym $ to-List-foldl-enqueue-empty (_ ∷ []) ⟩
-      10 ∷ ⌊ enqueue 6 empty ⌋                      ≡⟨ sym $ to-List-cons ⟩∎
+      10 ∷ ⌊ enqueue 6 empty ⌋                      ≡⟨ sym $ to-List-cons {Q = Q′} ⟩∎
       ⌊ cons 10 (enqueue 6 empty) ⌋                 ∎)
 
   example₃ :
@@ -136,7 +137,7 @@ private
     lemma = _↔_.to ≡-for-lists↔≡ (
       ⌊ from-List (1 ∷ 2 ∷ 3 ∷ xs) ⌋       ≡⟨ _↔_.right-inverse-of (Queue↔List _) _ ⟩
       1 ∷ 2 ∷ 3 ∷ xs                       ≡⟨ cong (1 ∷_) $ sym $ _↔_.right-inverse-of (Queue↔List _) _ ⟩
-      1 ∷ ⌊ from-List (2 ∷ 3 ∷ xs) ⌋       ≡⟨ sym to-List-cons ⟩∎
+      1 ∷ ⌊ from-List (2 ∷ 3 ∷ xs) ⌋       ≡⟨ sym $ to-List-cons {Q = Q′} ⟩∎
       ⌊ cons 1 (from-List (2 ∷ 3 ∷ xs)) ⌋  ∎)
 
   example₆ :

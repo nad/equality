@@ -304,14 +304,14 @@ module _
       enqueue :
         {@0 xs : List A}
         (x : A) → Queue Q ⟪ xs ⟫ → Queue Q ⟪ xs ++ x ∷ [] ⟫
-      enqueue x = unary (Q.enqueue x) Q.to-List-enqueue
+      enqueue x = unary (Q.enqueue x) (Q.to-List-enqueue {Q = Q})
 
       -- A map function.
 
       map :
         {@0 xs : List A} →
         (f : A → B) → Queue Q ⟪ xs ⟫ → Queue Q ⟪ L.map f xs ⟫
-      map f = unary (Q.map f) Q.to-List-map
+      map f = unary (Q.map f) (Q.to-List-map {Q = Q})
 
     -- The result of trying to dequeue an element from an indexed
     -- queue.
@@ -393,7 +393,7 @@ module _
         Result-⟪ xs ⟫ → Queue Q ⟪ xs ⟫
       dequeue⁻¹ {xs} (nothing , eq) =
         ∣ Q.empty
-        , [ Q.to-List _ (Q.empty ⦂ Q _)  ≡⟨ Q.to-List-empty ⟩
+        , [ Q.to-List _ (Q.empty ⦂ Q _)  ≡⟨ Q.to-List-empty {Q = Q} ⟩
             []                           ≡⟨ erased eq ⟩∎
             xs                           ∎
           ]
@@ -401,7 +401,7 @@ module _
       dequeue⁻¹ {xs} (just (x , ys , q) , eq) =
         ∥∥-map (Σ-map (Q.cons x)
                       (λ {q′} → Erased-cong λ eq′ →
-                                  Q.to-List _ (Q.cons x q′)  ≡⟨ Q.to-List-cons ⟩
+                                  Q.to-List _ (Q.cons x q′)  ≡⟨ Q.to-List-cons {Q = Q} ⟩
                                   x ∷ Q.to-List _ q′         ≡⟨ cong (x ∷_) eq′ ⟩
                                   x ∷ erased ys              ≡⟨ erased eq ⟩∎
                                   xs                         ∎))

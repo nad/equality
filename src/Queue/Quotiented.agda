@@ -112,7 +112,7 @@ module _
     -- The function from-List is a right inverse of to-List s.
 
     to-List-from-List : to-List s (from-List q) ≡ q
-    to-List-from-List = Q.to-List-from-List
+    to-List-from-List = Q.to-List-from-List {Q = Q}
 
     -- The function from-List is a left inverse of to-List s.
 
@@ -121,7 +121,7 @@ module _
     from-List-to-List = Quotient.elim-prop λ where
       .[]ʳ q → []-respects-relation (
         Q.to-List ⦃ is-queue = is-queue ⦄ _
-          (Q.from-List (Q.to-List _ q))      ≡⟨ Q.to-List-from-List ⟩∎
+          (Q.from-List (Q.to-List _ q))      ≡⟨ Q.to-List-from-List {Q = Q} ⟩∎
 
         Q.to-List _ q                        ∎)
       .is-propositionʳ _ → Queue-is-set
@@ -251,7 +251,8 @@ module _
     -- Enqueues an element.
 
     enqueue : A → Queue Q A → Queue Q A
-    enqueue x = unary (_++ x ∷ []) (Q.enqueue x) Q.to-List-enqueue
+    enqueue x =
+      unary (_++ x ∷ []) (Q.enqueue x) (Q.to-List-enqueue {Q = Q})
 
     to-List-enqueue : to-List s (enqueue x q) ≡ to-List s q ++ x ∷ []
     to-List-enqueue {q} = to-List-unary q
@@ -267,7 +268,7 @@ module _
       ⊎-map-∘
       (_↔_.to List↔Maybe[×List])
       (Q.dequeue _)
-      Q.to-List-dequeue
+      (Q.to-List-dequeue {Q = Q})
       s
 
     to-List-dequeue :
@@ -288,18 +289,19 @@ module _
 
     dequeue⁻¹ : Maybe (A × Queue Q A) → Queue Q A
     dequeue⁻¹ nothing        = [ Q.empty ]
-    dequeue⁻¹ (just (x , q)) = unary (x ∷_) (Q.cons x) Q.to-List-cons q
+    dequeue⁻¹ (just (x , q)) =
+      unary (x ∷_) (Q.cons x) (Q.to-List-cons {Q = Q}) q
 
     to-List-dequeue⁻¹ :
       to-List s (dequeue⁻¹ x) ≡
       _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
-    to-List-dequeue⁻¹ {x = nothing}      = Q.to-List-empty
+    to-List-dequeue⁻¹ {x = nothing}      = Q.to-List-empty {Q = Q}
     to-List-dequeue⁻¹ {x = just (_ , q)} = to-List-unary q
 
     -- A map function.
 
     map : (A → B) → Queue Q A → Queue Q B
-    map f = unary (L.map f) (Q.map f) Q.to-List-map
+    map f = unary (L.map f) (Q.map f) (Q.to-List-map {Q = Q})
 
     to-List-map : to-List s₁ (map f q) ≡ L.map f (to-List s₂ q)
     to-List-map {q} = to-List-unary q
