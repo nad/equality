@@ -180,7 +180,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
   logical-equivalence′ : Σ A₁ B₁ ⇔ Σ A₂ B₂
   logical-equivalence′ = Σ-cong-⇔ A₁↠A₂ (logical-equivalence ⊚ B₁↠B₂)
 
-  abstract
+  opaque
     right-inverse-of′ :
       ∀ p →
       _⇔_.to logical-equivalence′ (_⇔_.from logical-equivalence′ p) ≡ p
@@ -216,7 +216,7 @@ syntax finally-↠ A B A↠B = A ↠⟨ A↠B ⟩□ B □
     to (from y)  ≡⟨ right-inverse-of _ ⟩∎
     y            ∎
 
-  abstract
+  opaque
     right-inverse-of′ : ∀ p → to′ (cong from p) ≡ p
     right-inverse-of′ = elim
       (λ {x y} x≡y → trans (sym (right-inverse-of x)) (

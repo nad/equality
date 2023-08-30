@@ -225,7 +225,7 @@ J₀⇒Equivalence-relation⁺ {ℓ} {reflexive = r} eq = record
   sym : x ≡ y → y ≡ x
   sym {x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
-  abstract
+  opaque
 
     sym-refl : sym (refl x) ≡ refl x
     sym-refl = cong (_$ _) $ subst-refl (λ z → _ ≡ z → z ≡ _) _
@@ -233,7 +233,7 @@ J₀⇒Equivalence-relation⁺ {ℓ} {reflexive = r} eq = record
   trans : x ≡ y → y ≡ z → x ≡ z
   trans {x} = flip (subst (x ≡_))
 
-  abstract
+  opaque
 
     trans-refl-refl : trans (refl x) (refl x) ≡ refl x
     trans-refl-refl = subst-refl _ _
@@ -261,7 +261,7 @@ J₀⇒J {reflexive = r} eq {a} {p = b} = record
   cong : (f : A → B) → x ≡ y → f x ≡ f y
   cong f = elim (λ {u v} _ → f u ≡ f v) (λ x → refl (f x))
 
-  abstract
+  opaque
 
     cong-refl : (f : A → B) → cong f (refl x) ≡ refl (f x)
     cong-refl _ = elim-refl _ _
@@ -284,7 +284,7 @@ J₀⇒J {reflexive = r} eq {a} {p = b} = record
     x≡y
     f
 
-  abstract
+  opaque
 
     dcong-refl : (f : (x : A) → P x) →
                  dcong f (refl x) ≡ subst-refl _ _
@@ -327,7 +327,7 @@ module Equality-with-J′
   singleton-contractible : (x : A) → Contractible (Singleton x)
   singleton-contractible x = ((x , refl x) , irr)
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for singleton-contractible.
 
@@ -380,7 +380,7 @@ module Equality-with-substitutivity-and-contractibility′
       Equality-with-substitutivity-and-contractibility (eq {a} {a}) public
       using (singleton-contractible)
 
-  abstract
+  opaque
 
     -- Congruence.
 
@@ -393,7 +393,7 @@ module Equality-with-substitutivity-and-contractibility′
   sym : x ≡ y → y ≡ x
   sym {x} x≡y = subst (λ z → x ≡ z → z ≡ x) x≡y id x≡y
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for sym.
 
@@ -407,14 +407,14 @@ module Equality-with-substitutivity-and-contractibility′
   trans : x ≡ y → y ≡ z → x ≡ z
   trans {x} = flip (subst (_≡_ x))
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for trans.
 
     trans-refl-refl : trans (refl x) (refl x) ≡ refl x
     trans-refl-refl = subst-refl _ _
 
-  abstract
+  opaque
 
     -- The J rule.
 
@@ -541,7 +541,7 @@ module Derived-definitions-and-properties
           (proj₂ (singleton-contractible y) (x , x≡y))
           p
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for elim₁.
 
@@ -570,7 +570,7 @@ module Derived-definitions-and-properties
     (x : A) → Contractible (Other-singleton x)
   other-singleton-contractible x = ((x , refl x) , irr)
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for other-singleton-contractible.
 
@@ -590,7 +590,7 @@ module Derived-definitions-and-properties
           (proj₂ (other-singleton-contractible x) (y , x≡y))
           p
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for elim¹.
 
@@ -644,7 +644,7 @@ module Derived-definitions-and-properties
            f y (refl y)                     ∎)
     x≡y f
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for dcong′.
 
@@ -662,7 +662,7 @@ module Derived-definitions-and-properties
     f y u  ≡⟨ cong (f y)      u≡v ⟩∎
     f y v  ∎
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for cong₂.
 
@@ -686,7 +686,7 @@ module Derived-definitions-and-properties
 
   -- A bunch of lemmas that can be used to rearrange equalities.
 
-  abstract
+  opaque
 
     trans-reflʳ : (x≡y : x ≡ y) → trans x≡y (refl y) ≡ x≡y
     trans-reflʳ =
@@ -940,7 +940,8 @@ module Derived-definitions-and-properties
           (subst-refl _ _)
           x₁≡x₂
 
-  abstract
+  opaque
+    unfolding trans-reflˡ
 
     -- One can express sym in terms of subst.
 
@@ -1450,7 +1451,7 @@ module Derived-definitions-and-properties
        ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) → subst B p (proj₂ p₁) ≡ proj₂ p₂)
     (λ p → refl _ , subst-refl _ _)
 
-  abstract
+  opaque
 
     -- "Evaluation rules" for Σ-≡,≡→≡.
 
@@ -1707,7 +1708,7 @@ module Derived-definitions-and-properties
            P (x₁ , y₁) → P (x₂ , y₂)
   subst₂ P x₁≡x₂ y₁≡y₂ = subst P (Σ-≡,≡→≡ x₁≡x₂ y₁≡y₂)
 
-  abstract
+  opaque
 
     -- "Evaluation rule" for subst₂.
 

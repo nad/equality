@@ -305,7 +305,7 @@ Univalence↔Other-univalence {ℓ} ext =
 ------------------------------------------------------------------------
 -- Some simple lemmas
 
-abstract
+opaque
 
   -- "Evaluation rule" for ≡⇒≃.
 
@@ -411,7 +411,7 @@ module _ (univ : Univalence′ Bool Bool) where
   swap-as-an-equality : Bool ≡ Bool
   swap-as-an-equality = ≃⇒≡ univ (Eq.↔⇒≃ swap)
 
-  abstract
+  opaque
 
     swap≢refl : swap-as-an-equality ≢ refl Bool
     swap≢refl =
@@ -429,7 +429,7 @@ module _ (univ : Univalence′ Bool Bool) where
       swap-as-an-equality ≡ refl Bool  ↝⟨ swap≢refl ⟩□
       ⊥                                □
 
-abstract
+opaque
 
   -- The result can be generalised to arbitrary universe levels.
 
@@ -462,7 +462,7 @@ abstract
 ------------------------------------------------------------------------
 -- A consequence: some equality types have infinitely many inhabitants
 
-abstract
+opaque
 
   -- Some equality types have infinitely many inhabitants (assuming
   -- univalence).
@@ -547,7 +547,7 @@ transport-theorem P resp resp-id univ A≃B p =
   subst P (from A≃B) p    ∎
   where open _≃_ (≡≃≃ univ)
 
-abstract
+opaque
 
   -- If the univalence axiom holds, then any "resp" function that
   -- preserves identity is an equivalence family.
@@ -607,7 +607,7 @@ A ²/≡ = ∃ λ (x : A) → ∃ λ (y : A) → x ≡ y
   A × ⊤                                ↝⟨ ×-right-identity ⟩□
   A                                    □
 
-abstract
+opaque
 
   -- The univalence axiom implies non-dependent functional
   -- extensionality.
@@ -774,7 +774,8 @@ Pow↔Fam ℓ {A} ext univ = record
 ------------------------------------------------------------------------
 -- More lemmas
 
-abstract
+opaque
+  unfolding ≡⇒≃-refl
 
   -- The univalence axiom is propositional (assuming extensionality).
 
@@ -1126,7 +1127,7 @@ abstract
     B₂  ↝⟨ inverse B₁≃B₂ ⟩□
     B₁  □)
 
-  abstract
+  opaque
 
     to∘from : ∀ eq → to (from eq) ≡ eq
     to∘from A₂≡B₂ =

@@ -343,7 +343,7 @@ W-map f g (sup x h) = sup (f x) (λ y → W-map f g (h (g y)))
 
 -- If B is always inhabited, then W A B is empty.
 
-abstract
+opaque
 
   inhabited⇒W-empty :
     {@0 B : A → Type b} →

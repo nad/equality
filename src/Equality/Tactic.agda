@@ -106,7 +106,7 @@ private
   lift : x ≡ y → EqS upper x y
   lift x≡y = Cons (No-Sym (Cong id x≡y)) Refl
 
-  abstract
+  opaque
 
     lift-correct : (x≡y : x ≡ y) → x≡y ≡ ⟦ lift x≡y ⟧S
     lift-correct x≡y =
@@ -118,7 +118,7 @@ private
   snoc Refl           y≈z = Cons y≈z Refl
   snoc (Cons x≈y y≈z) z≈u = Cons x≈y (snoc y≈z z≈u)
 
-  abstract
+  opaque
 
     snoc-correct :
       (z≈y : EqS upper z y) (y≈x : EqS middle y x) →
@@ -144,7 +144,7 @@ private
   append Refl           x≈y = x≈y
   append (Cons x≈y y≈z) z≈u = Cons x≈y (append y≈z z≈u)
 
-  abstract
+  opaque
 
     append-correct :
       (x≈y : EqS upper x y) (y≈z : EqS upper y z) →
@@ -164,7 +164,7 @@ private
   map-sym (No-Sym x≈y) = Sym    x≈y
   map-sym (Sym    x≈y) = No-Sym x≈y
 
-  abstract
+  opaque
 
     map-sym-correct :
       (x≈y : EqS middle x y) →
@@ -181,7 +181,7 @@ private
   reverse Refl           = Refl
   reverse (Cons x≈y y≈z) = snoc (reverse y≈z) (map-sym x≈y)
 
-  abstract
+  opaque
 
     reverse-correct :
       (x≈y : EqS upper x y) →
@@ -206,7 +206,7 @@ private
   map-cong {ℓ = upper}  f (Cons x≈y y≈z) =
     Cons (map-cong f x≈y) (map-cong f y≈z)
 
-  abstract
+  opaque
 
     map-cong-correct :
       (f : A → B) (x≈y : EqS ℓ x y) →
@@ -243,7 +243,7 @@ simplify (Sym x≡y)       = reverse (simplify x≡y)
 simplify (Trans x≡y y≡z) = append (simplify x≡y) (simplify y≡z)
 simplify (Cong f x≡y)    = map-cong f (simplify x≡y)
 
-abstract
+opaque
 
   simplify-correct :
     (x≈y : Eq x y) → ⟦ x≈y ⟧ ≡ ⟦ simplify x≈y ⟧S
@@ -260,7 +260,7 @@ abstract
 ------------------------------------------------------------------------
 -- Tactic
 
-abstract
+opaque
 
   -- Simple tactic for proving equality of equality proofs.
 

@@ -49,7 +49,7 @@ record Assumptions : Type₃ where
     univ₁ : Univalence (# 1)
     univ₂ : Univalence (# 2)
 
-  abstract
+  opaque
 
     -- Extensionality.
 
@@ -165,7 +165,7 @@ module Class (Univ : Universe) where
   element : ∀ c (X : Instance c) → El (proj₁ c) (Carrier c X)
   element _ X = proj₁ (proj₂ X)
 
-  abstract
+  opaque
 
     -- One can prove that two instances of a structure are equal by
     -- proving that the carrier types and "elements" (suitably
@@ -226,7 +226,8 @@ module Class (Univ : Universe) where
     Y : Instance c
     Y = D , y , q
 
-  abstract
+  opaque
+    unfolding equality-pair-lemma
 
     -- The type of (lifted) isomorphisms between two instances of a
     -- structure is equal to the type of equalities between the same
@@ -491,7 +492,7 @@ resp a eq = _⇔_.to (cast a (_≃_.logical-equivalence eq))
 resp⁻¹ : ∀ a {B C} → B ≃ C → El a C → El a B
 resp⁻¹ a eq = _⇔_.from (cast a (_≃_.logical-equivalence eq))
 
-abstract
+opaque
 
   -- The cast function respects identities (assuming extensionality).
 
@@ -578,7 +579,7 @@ cast≃ ext a {B} {C} B≃C = Eq.↔⇒≃ record
   cst (a ⊗ b) = cst a ×-cong cst b
   cst (a ⊕ b) = cst a ⊎-cong cst b
 
-  abstract
+  opaque
 
     -- The projection _≃_.logical-equivalence is homomorphic with
     -- respect to cast a/cst a.
@@ -632,7 +633,7 @@ cast≃′ ass a eq =
      ⟩
   where open Assumptions ass
 
-abstract
+opaque
 
   -- The two definitions of "being an isomorphism" are "isomorphic"
   -- (in bijective correspondence), assuming univalence.

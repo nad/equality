@@ -54,7 +54,7 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
 
   -- Some derived properties.
 
-  abstract
+  opaque
 
     -- The identity is an identity for the inverse operator as well.
 

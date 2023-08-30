@@ -173,7 +173,7 @@ module Valid-domain₁ (v : Valid-domain A) where
           ◯ (A → B)    □
       }
 
-    abstract
+    opaque
 
       -- A lemma related to ◯→⇔◯→◯.
 
@@ -1530,7 +1530,7 @@ module Valid-domain-Σ≡◯
         s : ∀ x → Stable-[ equivalence ] (◯-map g (◯-map h x) ≡ x)
         s _ = Modal→Stable $ Separated-◯ _ _
 
-        abstract
+        opaque
 
           lemma₂ :
             {A B : Type a} (g : A → B) (h : B → A) →

@@ -278,7 +278,7 @@ weakly-effective {A} {r} {x} {y} {R} eq ∥Rxx∥ᴱ [x]≡[y] =
   R′ x = rec λ where
     .[]ʳ y → ∥ R x y ∥ᴱ , [ PTᴱ.truncation-is-proposition ]
 
-    .is-setʳ → Er.H-level-1+-∃-H-level-Erased ext U.abstract-univ 1
+    .is-setʳ → Er.H-level-1+-∃-H-level-Erased ext U.opaque-univ 1
 
     .[]-respects-relationʳ {x = y} {y = z} →
       R y z                                        ↝⟨ (λ r → record

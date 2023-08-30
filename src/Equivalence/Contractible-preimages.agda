@@ -61,7 +61,7 @@ right-inverse-of :
   (eq : Is-equivalence f) → ∀ x → f (inverse eq x) ≡ x
 right-inverse-of eq x = proj₂₀ (proj₁₀ (eq x))
 
-abstract
+opaque
 
   left-inverse-of :
     (eq : Is-equivalence f) → ∀ x → inverse eq (f x) ≡ x
@@ -79,7 +79,8 @@ irrelevance :
   ∀ y (p : f ⁻¹ y) → (inverse eq y , right-inverse-of eq y) ≡ p
 irrelevance eq y = proj₂₀ (eq y)
 
-abstract
+opaque
+  unfolding left-inverse-of
 
   -- The two proofs left-inverse-of and right-inverse-of are
   -- related.
@@ -123,6 +124,8 @@ abstract
                                                                             (sym (cong-refl pr)) ⟩∎
            trans (cong f (sym (cong pr (refl f⁻¹y)))) (proj₂ f⁻¹y)  ∎)
 
+opaque
+
   right-left-lemma :
     (eq : Is-equivalence f) →
     ∀ x →
@@ -147,8 +150,6 @@ abstract
        trans (left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))) (refl _)  ≡⟨ trans-reflʳ _ ⟩∎
 
        left-inverse-of eq (f⁻¹ (f (f⁻¹ x)))                   ∎)
-
-abstract
 
   -- If Σ-map P.id f is an equivalence, then f is also an equivalence.
 

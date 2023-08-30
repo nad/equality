@@ -96,7 +96,7 @@ record Standard-notion-of-structure
 -- "Homotopy Type Theory: Univalent Foundations of Mathematics" (first
 -- edition).
 
-abstract
+opaque
 
   structure-identity-principle :
     ∀ {c₁ c₂ ℓ₁ ℓ₂} →

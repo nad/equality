@@ -43,7 +43,7 @@ pred : ℕ → ℕ
 pred zero    = zero
 pred (suc n) = n
 
-abstract
+opaque
 
   -- Zero is not equal to the successor of any number.
 

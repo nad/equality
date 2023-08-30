@@ -143,7 +143,7 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) whe
   _⁻¹¹ : ∀ {X Y} (f : X ≅ Y) → f ⁻¹ ∙ f ¹ ≡ id
   f ⁻¹¹ = proj₂ (proj₂ (proj₂ f))
 
-  abstract
+  opaque
 
     -- "Is-isomorphism f" is a proposition.
 
@@ -185,7 +185,8 @@ record Precategory (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) whe
   _∙≅_ : ∀ {X Y Z} → Y ≅ Z → X ≅ Y → X ≅ Z
   f ∙≅ g = (f ¹ ∙ g ¹) , (g ⁻¹ ∙ f ⁻¹) , fg f g , gf f g
     where
-    abstract
+    opaque
+
       fg : ∀ {X Y Z} (f : Y ≅ Z) (g : X ≅ Y) →
            (f ¹ ∙ g ¹) ∙ (g ⁻¹ ∙ f ⁻¹) ≡ id
       fg f g =
@@ -763,7 +764,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
   P = λ Obj (HOM : Obj → Obj → Set _) →
         ∀ {X} → ⌞ HOM X X ⌟
 
-  abstract
+  opaque
 
     P-lemma :
       ∀ {eqO eqH X} →
@@ -856,7 +857,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                       (λ H X → ∀ {Y Z} → ⌞ H Y Z ⌟ → ⌞ H X Y ⌟ → ⌞ H X Z ⌟) ⟩∎
     subst (Q C) F≡G (c _ _ _) f g                              ∎
 
-  abstract
+  opaque
 
     Q-lemma :
       ∀ {eqO eqH X Y Z f g} →
@@ -1186,7 +1187,7 @@ record Category (ℓ₁ ℓ₂ : Level) : Type (lsuc (ℓ₁ ⊔ ℓ₂)) where
     where
     module P≅ = Precategory precategory-≅
 
-    abstract
+    opaque
 
       is-equiv : ∀ {X Y} → Is-equivalence (P≅.≡→≅ {X = X} {Y = Y})
       is-equiv =

@@ -299,7 +299,7 @@ private
        p₁ ≡ p₂
   to = uncurry Σ-≡,≡→≡
 
-  abstract
+  opaque
 
     to∘from : ∀ eq → to (from {p₁ = p₁} {p₂ = p₂} eq) ≡ eq
     to∘from = elim (λ p≡q → to (from p≡q) ≡ p≡q) λ x →
@@ -360,7 +360,7 @@ private
 
   from = ⊎.cancel-inj₁
 
-  abstract
+  opaque
 
     to∘from : ∀ ix≡iy → to (from ix≡iy) ≡ ix≡iy
     to∘from ix≡iy =
@@ -405,7 +405,7 @@ private
 
   from = ⊎.cancel-inj₂
 
-  abstract
+  opaque
 
     to∘from : ∀ ix≡iy → to (from ix≡iy) ≡ ix≡iy
     to∘from ix≡iy =
@@ -594,7 +594,7 @@ bijection-from-involutive-family f f-involutive _ _ = record
   ; left-inverse-of = f-involutive _ _
   }
 
-abstract
+opaque
 
   -- An equality rearrangement lemma.
 

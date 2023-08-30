@@ -138,7 +138,8 @@ adjunction→monad {C} {D} (F , G , η , ε , εFFη≡1 , GεηG≡1) =
       G ⊙ transformation ε
     , nat
     where
-    abstract
+    opaque
+
       nat :
         ∀ {X Y} {f : C.Hom X Y} →
         ((G ∙⇨ F) ⊙ f) C.∙ (G ⊙ transformation ε) ≡
@@ -151,7 +152,7 @@ adjunction→monad {C} {D} (F , G , η , ε , εFFη≡1 , GεηG≡1) =
         (G ⊙ transformation ε) C.∙ (G ⊙ F ⊙ G ⊙ F ⊙ f)           ≡⟨⟩
         (G ⊙ transformation ε) C.∙ (((G ∙⇨ F) ∙⇨ (G ∙⇨ F)) ⊙ f)  ∎
 
-  abstract
+  opaque
 
     lemma₁ :
       ∀ {X} →

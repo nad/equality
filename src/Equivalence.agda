@@ -202,7 +202,7 @@ subst-as-equivalence P {y} x≡y = ↔⇒≃ (record
       p                                              ∎
   })
 
-abstract
+opaque
 
   subst-is-equivalence :
     ∀ {a p} {A : Type a} (P : A → Type p) {x y : A} (x≡y : x ≡ y) →
@@ -384,7 +384,7 @@ extensionality-isomorphism ext =
 ------------------------------------------------------------------------
 -- Groupoid
 
-abstract
+opaque
 
   -- Two proofs of equivalence are equal if the function components
   -- are equal (assuming extensionality).
@@ -556,7 +556,8 @@ groupoid {ℓ} ext = record
   ; right-inverse  = right-inverse
   }
   where
-  abstract
+  opaque
+
     left-identity : {X Y : Type ℓ} (p : X ≃ Y) → id ∘ p ≡ p
     left-identity _ = lift-equality ext (refl _)
 
@@ -619,8 +620,7 @@ inverse-isomorphism ext = record
 ------------------------------------------------------------------------
 -- A surjection from A ↔ B to A ≃ B, and related results
 
-private
- abstract
+private opaque
 
   -- ↔⇒≃ is a left inverse of _≃_.bijection (assuming extensionality).
 
@@ -718,7 +718,7 @@ private
     where
     open _⇔_ A⇔B
 
-    abstract
+    opaque
 
       to∘from : ∀ x → to (from x) ≡ x
       to∘from _ = B-prop _ _
@@ -781,7 +781,7 @@ propositional-identity≃≡ B B-prop B-refl f =
 ------------------------------------------------------------------------
 -- Closure, preservation
 
-abstract
+opaque
 
   -- All h-levels are closed under the equivalence operator (assuming
   -- extensionality).
@@ -901,7 +901,8 @@ abstract
     Bijection.inverse $
     _≃_.bijection A≃B
 
-  abstract
+  opaque
+
     left-inverse-of′ :
       ∀ p → _↠_.from surjection′ (_↠_.to surjection′ p) ≡ p
     left-inverse-of′ = λ to-x≡to-y →
@@ -944,78 +945,77 @@ to-≃-≡-refl A≃B =
       cong (_,_ x) (_≃_.left-inverse-of (B₁≃B₂ x) y)
   })
 
-abstract
-  private
+private opaque
 
-    -- We can push subst through certain function applications.
+  -- We can push subst through certain function applications.
 
-    push-subst :
-      ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
-        (B₁ : A₁ → Type b₁) {B₂ : A₂ → Type b₂}
-        {f : A₂ → A₁} {x₁ x₂ : A₂} {y : B₁ (f x₁)}
-      (g : ∀ x → B₁ (f x) → B₂ x) (eq : x₁ ≡ x₂) →
-      subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong f eq) y)
-    push-subst B₁ {B₂} {f} g eq = elim
-      (λ {x₁ x₂} eq → ∀ y → subst B₂ eq (g x₁ y) ≡
-                            g x₂ (subst B₁ (cong f eq) y))
-      (λ x y → subst B₂ (refl x) (g x y)           ≡⟨ subst-refl B₂ _ ⟩
-               g x y                               ≡⟨ sym $ cong (g x) $ subst-refl B₁ _ ⟩
-               g x (subst B₁ (refl (f x)) y)       ≡⟨ cong (λ eq → g x (subst B₁ eq y)) (sym $ cong-refl f) ⟩∎
-               g x (subst B₁ (cong f (refl x)) y)  ∎)
-      eq _
+  push-subst :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+      (B₁ : A₁ → Type b₁) {B₂ : A₂ → Type b₂}
+      {f : A₂ → A₁} {x₁ x₂ : A₂} {y : B₁ (f x₁)}
+    (g : ∀ x → B₁ (f x) → B₂ x) (eq : x₁ ≡ x₂) →
+    subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong f eq) y)
+  push-subst B₁ {B₂} {f} g eq = elim
+    (λ {x₁ x₂} eq → ∀ y → subst B₂ eq (g x₁ y) ≡
+                          g x₂ (subst B₁ (cong f eq) y))
+    (λ x y → subst B₂ (refl x) (g x y)           ≡⟨ subst-refl B₂ _ ⟩
+             g x y                               ≡⟨ sym $ cong (g x) $ subst-refl B₁ _ ⟩
+             g x (subst B₁ (refl (f x)) y)       ≡⟨ cong (λ eq → g x (subst B₁ eq y)) (sym $ cong-refl f) ⟩∎
+             g x (subst B₁ (cong f (refl x)) y)  ∎)
+    eq _
 
-    push-subst′ :
-      ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
-      (A₁≃A₂ : A₁ ≃ A₂) (B₁ : A₁ → Type b₁) (B₂ : A₂ → Type b₂) →
-      let open _≃_ A₁≃A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
-      (g : ∀ x → B₁ (from (to x)) → B₂ (to x)) (eq : to x₁ ≡ to x₂) →
-      subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong from eq) y)
-    push-subst′ A₁≃A₂ B₁ B₂ {x₁} {x₂} {y} g eq =
-      subst B₂ eq (g x₁ y)                    ≡⟨ cong (subst B₂ eq) $ sym $ g′-lemma _ _ ⟩
-      subst B₂ eq (g′ (to x₁) y)              ≡⟨ push-subst B₁ g′ eq ⟩
-      g′ (to x₂) (subst B₁ (cong from eq) y)  ≡⟨ g′-lemma _ _ ⟩∎
-      g x₂ (subst B₁ (cong from eq) y)        ∎
-      where
-      open _≃_ A₁≃A₂
+  push-subst′ :
+    ∀ {a₁ a₂ b₁ b₂} {A₁ : Type a₁} {A₂ : Type a₂}
+    (A₁≃A₂ : A₁ ≃ A₂) (B₁ : A₁ → Type b₁) (B₂ : A₂ → Type b₂) →
+    let open _≃_ A₁≃A₂ in {x₁ x₂ : A₁} {y : B₁ (from (to x₁))}
+    (g : ∀ x → B₁ (from (to x)) → B₂ (to x)) (eq : to x₁ ≡ to x₂) →
+    subst B₂ eq (g x₁ y) ≡ g x₂ (subst B₁ (cong from eq) y)
+  push-subst′ A₁≃A₂ B₁ B₂ {x₁} {x₂} {y} g eq =
+    subst B₂ eq (g x₁ y)                    ≡⟨ cong (subst B₂ eq) $ sym $ g′-lemma _ _ ⟩
+    subst B₂ eq (g′ (to x₁) y)              ≡⟨ push-subst B₁ g′ eq ⟩
+    g′ (to x₂) (subst B₁ (cong from eq) y)  ≡⟨ g′-lemma _ _ ⟩∎
+    g x₂ (subst B₁ (cong from eq) y)        ∎
+    where
+    open _≃_ A₁≃A₂
 
-      g′ : ∀ x′ → B₁ (from x′) → B₂ x′
-      g′ x′ y = subst B₂ (right-inverse-of x′) $
-                g (from x′) $
-                subst B₁ (sym $ cong from $ right-inverse-of x′) y
+    g′ : ∀ x′ → B₁ (from x′) → B₂ x′
+    g′ x′ y = subst B₂ (right-inverse-of x′) $
+              g (from x′) $
+              subst B₁ (sym $ cong from $ right-inverse-of x′) y
 
-      g′-lemma : ∀ x y → g′ (to x) y ≡ g x y
-      g′-lemma x y =
-        let lemma = λ y →
-              let gy = g (from (to x)) $
-                         subst B₁
-                           (sym $ cong from $ cong to (refl _)) y in
-              subst B₂ (cong to (refl _)) gy             ≡⟨ cong (λ p → subst B₂ p gy) $ cong-refl to ⟩
-              subst B₂ (refl _) gy                       ≡⟨ subst-refl B₂ gy ⟩
-              gy                                         ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym $ cong from p) y) $ cong-refl to ⟩
-              g (from (to x))
-                (subst B₁ (sym $ cong from (refl _)) y)  ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym p) y) $ cong-refl from ⟩
-              g (from (to x))
-                (subst B₁ (sym (refl _)) y)              ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ p y) sym-refl ⟩
-              g (from (to x)) (subst B₁ (refl _) y)      ≡⟨ cong (g (from (to x))) $ subst-refl B₁ y ⟩∎
-              g (from (to x)) y                          ∎
-        in
-        subst B₂ (right-inverse-of (to x))
-          (g (from (to x)) $
-           subst B₁ (sym $ cong from $
-                       right-inverse-of (to x)) y)  ≡⟨ cong (λ p → subst B₂ p (g (from (to x)) $ subst B₁ (sym $ cong from p) y)) $
-                                                         sym $ left-right-lemma x ⟩
-        subst B₂ (cong to $ left-inverse-of x)
-          (g (from (to x)) $
-           subst B₁ (sym $ cong from $ cong to $
-                       left-inverse-of x) y)        ≡⟨ elim¹
-                                                         (λ {x′} eq →
-                                                            (y : B₁ (from (to x′))) →
-                                                            subst B₂ (cong to eq)
-                                                              (g (from (to x)) $ subst B₁ (sym $ cong from $ cong to eq) y) ≡
-                                                            g x′ y)
-                                                         lemma
-                                                         (left-inverse-of x) y ⟩∎
-        g x y                                       ∎
+    g′-lemma : ∀ x y → g′ (to x) y ≡ g x y
+    g′-lemma x y =
+      let lemma = λ y →
+            let gy = g (from (to x)) $
+                       subst B₁
+                         (sym $ cong from $ cong to (refl _)) y in
+            subst B₂ (cong to (refl _)) gy             ≡⟨ cong (λ p → subst B₂ p gy) $ cong-refl to ⟩
+            subst B₂ (refl _) gy                       ≡⟨ subst-refl B₂ gy ⟩
+            gy                                         ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym $ cong from p) y) $ cong-refl to ⟩
+            g (from (to x))
+              (subst B₁ (sym $ cong from (refl _)) y)  ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ (sym p) y) $ cong-refl from ⟩
+            g (from (to x))
+              (subst B₁ (sym (refl _)) y)              ≡⟨ cong (λ p → g (from (to x)) $ subst B₁ p y) sym-refl ⟩
+            g (from (to x)) (subst B₁ (refl _) y)      ≡⟨ cong (g (from (to x))) $ subst-refl B₁ y ⟩∎
+            g (from (to x)) y                          ∎
+      in
+      subst B₂ (right-inverse-of (to x))
+        (g (from (to x)) $
+         subst B₁ (sym $ cong from $
+                     right-inverse-of (to x)) y)  ≡⟨ cong (λ p → subst B₂ p (g (from (to x)) $ subst B₁ (sym $ cong from p) y)) $
+                                                       sym $ left-right-lemma x ⟩
+      subst B₂ (cong to $ left-inverse-of x)
+        (g (from (to x)) $
+         subst B₁ (sym $ cong from $ cong to $
+                     left-inverse-of x) y)        ≡⟨ elim¹
+                                                       (λ {x′} eq →
+                                                          (y : B₁ (from (to x′))) →
+                                                          subst B₂ (cong to eq)
+                                                            (g (from (to x)) $ subst B₁ (sym $ cong from $ cong to eq) y) ≡
+                                                          g x′ y)
+                                                       lemma
+                                                       (left-inverse-of x) y ⟩∎
+      g x y                                       ∎
 
 -- If the first component is instantiated to the identity, then the
 -- following lemmas state that ∃ preserves injections and bijections.
@@ -1035,7 +1035,8 @@ abstract
   to′ : Σ A₁ B₁ → Σ A₂ B₂
   to′ = Σ-map (_≃_.to A₁≃A₂) (_↣_.to (B₁↣B₂ _))
 
-  abstract
+  opaque
+
     injective′ : Injective to′
     injective′ {x = (x₁ , x₂)} {y = (y₁ , y₂)} =
       _↔_.to Bijection.Σ-≡,≡↔≡ ⊚
@@ -1094,7 +1095,8 @@ abstract
   surjection′ =
     Surjection.Σ-cong (_≃_.surjection A₁≃A₂) (surjection ⊚ B₁↔B₂)
 
-  abstract
+  opaque
+
     left-inverse-of′ :
       ∀ p → _↠_.from surjection′ (_↠_.to surjection′ p) ≡ p
     left-inverse-of′ = λ p → Σ-≡,≡→≡
@@ -1166,7 +1168,8 @@ abstract
   ext₁ = lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext
   ext₂ = lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext
 
-  abstract
+  opaque
+
     to∘from :
       (A₂≃B₂ : A₂ ≃ B₂) →
       B₁≃B₂ ∘ (inverse B₁≃B₂ ∘ A₂≃B₂ ∘ A₁≃A₂) ∘ inverse A₁≃A₂ ≡ A₂≃B₂
@@ -1200,7 +1203,7 @@ abstract
 ------------------------------------------------------------------------
 -- More lemmas
 
-abstract
+opaque
 
   -- As a consequence of extensionality-isomorphism and ≃-≡ we get a
   -- strengthening of W-≡,≡↠≡.

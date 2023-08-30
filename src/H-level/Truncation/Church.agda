@@ -179,7 +179,7 @@ prop-elim {ℓ} {a} {p} ext P P-prop f =
                         (lower-extensionality lzero p ext) _ _)
                      (f x))
 
-abstract
+opaque
 
   -- The eliminator gives the right result, up to propositional
   -- equality, when applied to ∣ x ∣ and ∣ x ∣.

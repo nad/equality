@@ -55,7 +55,7 @@ private
 ------------------------------------------------------------------------
 -- Should "Very-modal" be stated differently?
 
-abstract
+opaque
 
   -- ◯ (∀ x → Modal (P x)) is inhabited.
   --

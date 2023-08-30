@@ -54,7 +54,7 @@ Homotopy-group-[1+ n ] P = λ where
   id′     = ∣ refl _ ∣
   _⁻¹     = ∥∥-map sym
 
-  abstract
+  opaque
 
     Carrier-is-set : Is-set Carrier
     Carrier-is-set = truncation-has-correct-h-level 1
@@ -180,7 +180,7 @@ Homotopy-group-[1+ n ]′ P s = λ where
   id′     = refl _
   _⁻¹     = sym
 
-  abstract
+  opaque
 
     Carrier-is-set : Is-set Carrier
     Carrier-is-set = s

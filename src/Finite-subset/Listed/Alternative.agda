@@ -291,7 +291,7 @@ rec r = elim e
   x ∈ []                               ↔⟨ ⊥↔⊥ ⟩□
   ⊥                                    □
 
-abstract
+opaque
 
   -- Duplicated elements can be dropped.
 

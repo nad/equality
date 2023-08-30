@@ -49,7 +49,7 @@ contractible⇔↔⊤ = record
 ------------------------------------------------------------------------
 -- The empty type
 
-abstract
+opaque
 
   -- The empty type is not contractible.
 
@@ -72,7 +72,7 @@ abstract
 ------------------------------------------------------------------------
 -- Booleans
 
-abstract
+opaque
 
   -- The booleans are not propositional.
 
@@ -89,7 +89,7 @@ abstract
 ------------------------------------------------------------------------
 -- Natural numbers
 
-abstract
+opaque
 
   -- ℕ is not propositional.
 
@@ -167,7 +167,7 @@ abstract
 ------------------------------------------------------------------------
 -- Π-types
 
-abstract
+opaque
 
   -- Given extensionality there is a (split) surjection from
   -- ∀ x → f x ≡ g x to f ≡ g.
@@ -216,7 +216,7 @@ implicit-Π-closure ext n =
     (_↔_.surjection $ Bijection.inverse implicit-Π↔Π) n ∘
   Π-closure ext n
 
-abstract
+opaque
 
   -- Negated types are propositional, assuming extensionality.
 
@@ -278,7 +278,7 @@ abstract
     (Σ-closure′ n (_⇔_.to H-level⇔H-level′ hA)
                   (_⇔_.to H-level⇔H-level′ ∘ hB))
 
-abstract
+opaque
 
   -- In the case of contractibility the codomain only needs to have
   -- the right h-level (0) for a single index.
@@ -442,7 +442,7 @@ W-unfolding = record
   left-inverse-of : (w : W _ _) → sup (headᵂ w) (tailᵂ w) ≡ w
   left-inverse-of (sup x f) = refl (sup x f)
 
-abstract
+opaque
 
   -- Equality between elements of a W-type can be proved using a pair
   -- of equalities (assuming extensionality).
@@ -519,7 +519,7 @@ abstract
 ------------------------------------------------------------------------
 -- H-levels
 
-abstract
+opaque
 
   -- Contractible is /not/ a comonad in the category of types and
   -- functions, because map cannot be defined, but we can at least
@@ -687,14 +687,15 @@ abstract
     ; from = _↠_.from (P₁↠P₂ _) ∘_
     }
 
-  abstract
+  opaque
+
     right-inverse-of′ : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
     right-inverse-of′ f =
       apply-ext (lower-extensionality lzero p₁ ext) λ x →
         _↠_.to (P₁↠P₂ x) (_↠_.from (P₁↠P₂ x) (f x))  ≡⟨ _↠_.right-inverse-of (P₁↠P₂ x) (f x) ⟩∎
         f x                                          ∎
 
-abstract
+opaque
 
   -- Is-equivalence f is a proposition (assuming extensionality).
 
@@ -858,7 +859,7 @@ Extensionality-propositional {a} {p} ext =
 ------------------------------------------------------------------------
 -- CP.Is-equivalence
 
-abstract
+opaque
 
   -- CP.Is-equivalence f is a proposition, assuming extensional
   -- equality.
@@ -915,7 +916,7 @@ abstract
 ------------------------------------------------------------------------
 -- Binary sums
 
-abstract
+opaque
 
   -- Binary sums can be expressed using Σ and Bool (with large
   -- elimination).
@@ -1075,9 +1076,11 @@ abstract
   ... | inj₁ (_ , ¬⊤) = ¬⊤ _
   ... | inj₂ (¬⊤ , _) = ¬⊤ _
 
-  -- Alternative definition of ⊎-closure (for Type₀).
+-- Alternative definition of ⊎-closure (for Type₀).
 
-  module Alternative-proof where
+module Alternative-proof where
+
+  opaque
 
     -- Is-set is closed under _⊎_, by an argument similar to the one
     -- Hedberg used to prove that decidable equality implies

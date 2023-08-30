@@ -105,7 +105,7 @@ univ {A} {B} = record
   from : A ≃ B → A ≡ B
   from = proj₁ (Univalence′.univalence univ′)
 
-  abstract
+  opaque
 
     proofs : HA.Proofs ≡⇒≃ from
     proofs = proj₂ (Univalence′.univalence univ′)

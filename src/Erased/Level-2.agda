@@ -168,7 +168,7 @@ module []-cong₂-⊔
       _≃_.to lemma₂ f ≡ _≃_.to lemma₂ g                           ↝⟨ Eq.≃-≡ lemma₂ ⟩□
       f ≡ g                                                       □
       where
-      abstract
+      opaque
 
         lemma₁ :
           (Erased A → Erased B ≃ᴱ Erased C) ≃

@@ -56,7 +56,7 @@ Nullification : {A : Type a} → (A → Type a) → Type a → Type a
 Nullification {A} P =
   Localisation′ {A = A ⊎ A} {P = P.[ P , Susp ∘ P ]} {Q = λ _ → ⊤} _
 
-private abstract
+private opaque
 
   -- A lemma used below.
 
@@ -154,7 +154,7 @@ Nullification≃Localisation {P} {B} =
   from : Localisation {P = P} {Q = λ _ → ⊤} _ B → Nullification P B
   from = rec from′
 
-  abstract
+  opaque
 
     left-eq :
       _≃_.from PO.Susp≃Susp ∘ _≃_.to PO.Susp≃Susp ≡ id {A = PO.Susp A}
@@ -694,7 +694,7 @@ Nullification-map A₁→A₂ P₂↠P₁ B₁→B₂ =
 ------------------------------------------------------------------------
 -- The lemma Nullification-↑-↑-≃
 
-private abstract
+private opaque
 
   -- A lemma used below.
 
@@ -819,7 +819,7 @@ private
         Nullification {A = ↑ ℓ A} (↑ ℓ ∘ P ∘ lower) (↑ ℓ B)
       from b = rec (from′ b)
 
-    abstract
+    opaque
 
       right-eq :
         {A : Type a} →

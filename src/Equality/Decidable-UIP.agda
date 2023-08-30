@@ -29,7 +29,7 @@ _Left-inverse-of_ : ∀ {a b} {A : Type a} {B : Type b} →
                     (B → A) → (A → B) → Type a
 g Left-inverse-of f = ∀ x → g (f x) ≡ x
 
-abstract
+opaque
 
   -- A set with a constant endofunction with a left inverse is a
   -- proposition.

@@ -52,7 +52,7 @@ record Assumptions : Type₃ where
     univ₁ : Univalence (# 1)
     univ₂ : Univalence (# 2)
 
-  abstract
+  opaque
 
     -- Extensionality.
 
@@ -116,7 +116,7 @@ record Universe : Type₃ where
     subst (El a) (≃⇒≡ univ (Eq.↔⇒≃ B↔C)) x ≡ y
     where open Assumptions ass
 
-  abstract
+  opaque
 
     -- Every element is isomorphic to itself, transported along the
     -- isomorphism.
@@ -239,7 +239,7 @@ module Class (Univ : Universe) where
   Isomorphic (a , _) ((C₁ , _) , x₁ , _) ((C₂ , _) , x₂ , _) =
     Σ (C₁ ↔ C₂) λ C₁↔C₂ → Is-isomorphism a C₁↔C₂ x₁ x₂
 
-  abstract
+  opaque
 
     -- The type of isomorphisms between two instances of a structure
     -- is isomorphic to the type of equalities between the same
@@ -348,7 +348,7 @@ cast ext (a ⇾ b) B≃C = →-cong ext (cast ext a B≃C) (cast ext b B≃C)
 cast ext (a ⊕ b) B≃C = cast ext a B≃C ⊎-cong cast ext b B≃C
 cast ext (a ⊗ b) B≃C = cast ext a B≃C ×-cong cast ext b B≃C
 
-abstract
+opaque
 
   -- The cast function respects identities (assuming extensionality).
 
@@ -386,7 +386,7 @@ Is-isomorphism′ : Extensionality (# 1) (# 1) →
                   ∀ a {B C} → B ↔ C → El a B → El a C → Type₁
 Is-isomorphism′ ext a B↔C x y = _≃_.to (cast ext a (Eq.↔⇒≃ B↔C)) x ≡ y
 
-abstract
+opaque
 
   -- The two definitions of "being an isomorphism" are "isomorphic"
   -- (in bijective correspondence), assuming univalence.

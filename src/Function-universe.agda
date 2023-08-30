@@ -555,7 +555,7 @@ inverse-erased-ext? hyp =
 ≡⇒↝ : ∀ k {ℓ} {A B : Type ℓ} → A ≡ B → A ↝[ k ] B
 ≡⇒↝ k = elim (λ {A B} _ → A ↝[ k ] B) (λ _ → id)
 
-abstract
+opaque
 
   -- Some lemmas that can be used to manipulate expressions involving
   -- ≡⇒↝ and refl/sym/trans.
@@ -998,7 +998,8 @@ private
 
     to′ = ⊎-map (to A₁↣A₂) (to B₁↣B₂)
 
-    abstract
+    opaque
+
       injective′ : Injective to′
       injective′ {x = inj₁ x} {y = inj₁ y} = cong inj₁ ⊚ injective A₁↣A₂ ⊚ ⊎.cancel-inj₁
       injective′ {x = inj₂ x} {y = inj₂ y} = cong inj₂ ⊚ injective B₁↣B₂ ⊚ ⊎.cancel-inj₂
@@ -1342,7 +1343,8 @@ private
     to′ : A₁ × B₁ → A₂ × B₂
     to′ = Σ-map (to A₁↣A₂) (to B₁↣B₂)
 
-    abstract
+    opaque
+
       injective′ : Injective to′
       injective′ to′-x≡to′-y =
         cong₂ _,_ (injective A₁↣A₂ (cong proj₁ to′-x≡to′-y))
@@ -2112,7 +2114,8 @@ Embedding-to-≡↔≡ {a} {b} ext {p} {q} =
   logical-equiv = L.→-cong (_↠_.logical-equivalence A↠B)
                            (_↠_.logical-equivalence C↠D)
 
-  abstract
+  opaque
+
     right-inv :
       ∀ f → _⇔_.to logical-equiv (_⇔_.from logical-equiv f) ≡ f
     right-inv f = apply-ext ext λ x →
@@ -2139,7 +2142,8 @@ private
                     (_↔_.surjection A↔B)
                     (_↔_.surjection C↔D)
 
-    abstract
+    opaque
+
       left-inv :
         ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
       left-inv f = apply-ext (lower-extensionality b d ext) λ x →
@@ -2163,7 +2167,7 @@ private
     to   = _≃_.to   A→C≃B→D
     from = _≃_.from A→C≃B→D
 
-    abstract
+    opaque
 
       proofs : HA.Proofs to from
       proofs = proj₂ (_≃_.is-equivalence A→C≃B→D)
@@ -2223,7 +2227,8 @@ private
     where
     surj = ∀-cong-↠ ext (_↔_.surjection ⊚ B₁↔B₂)
 
-    abstract
+    opaque
+
       left-inverse-of : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
       left-inverse-of = λ f →
         apply-ext (lower-extensionality lzero b₂ ext) λ x →
@@ -2260,7 +2265,8 @@ private
     where
     to = ∀-cong-→ (_↣_.to ⊚ B₁↣B₂)
 
-    abstract
+    opaque
+
       injective : Injective to
       injective {x = f} {y = g} =
         (λ x → _↣_.to (B₁↣B₂ x) (f x)) ≡ (λ x → _↣_.to (B₁↣B₂ x) (g x))  ↔⟨ inverse $ Eq.extensionality-isomorphism
@@ -2285,7 +2291,8 @@ private
 
     ext₂ = lower-extensionality lzero b₁ ext
 
-    abstract
+    opaque
+
       is-embedding : Is-embedding to
       is-embedding f g = _≃_.is-equivalence $
         Eq.with-other-function
@@ -2421,7 +2428,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   where
   equiv = Π-cong-⇔ A₁↠A₂ (_↠_.logical-equivalence ⊚ B₁↠B₂)
 
-  abstract
+  opaque
 
     to∘from : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
     to∘from f = apply-ext ext λ x →
@@ -2452,7 +2459,7 @@ implicit-∀-cong ext {A} {B₁} {B₂} B₁↝B₂ =
   where
   to = Π-cong-contra-→ (_↠_.to A₂↠A₁) (_↣_.to ⊚ B₁↣B₂)
 
-  abstract
+  opaque
 
     injective : Injective to
     injective {x = f} {y = g} to-f≡to-g = apply-ext ext λ x →
@@ -2489,7 +2496,7 @@ private
     equiv = Π-cong-contra-⇔ (_≃_.surjection A₂≃A₁)
                             (_↠_.logical-equivalence ⊚ B₁↠B₂)
 
-    abstract
+    opaque
 
       to∘from : ∀ f → _⇔_.to equiv (_⇔_.from equiv f) ≡ f
       to∘from f = apply-ext ext λ x →
@@ -2530,7 +2537,7 @@ private
     surj = Π-cong-↠ (lower-extensionality a₁ b₁ ext)
                     (_≃_.surjection A₁≃A₂) (_↔_.surjection ⊚ B₁↔B₂)
 
-    abstract
+    opaque
 
       from∘to : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
       from∘to =
@@ -2556,7 +2563,7 @@ private
     surj = Π-cong-contra-↠ (lower-extensionality a₁ b₁ ext)
                            A₂≃A₁ (_↔_.surjection ⊚ B₁↔B₂)
 
-    abstract
+    opaque
 
       from∘to : ∀ f → _↠_.from surj (_↠_.to surj f) ≡ f
       from∘to =
@@ -2649,7 +2656,7 @@ private
 
     to = Π-cong-contra-→ (_≃_.to A₂≃A₁) (Embedding.to ⊚ B₁↣B₂)
 
-    abstract
+    opaque
 
       ext₁₁ : Extensionality a₁ b₁
       ext₁₁ = lower-extensionality a₂ b₂ ext
@@ -3172,7 +3179,8 @@ yoneda {a} {X} ext F map map-id map-∘ = record
   from : x ≡ y → ∀ z → (z ≡ x) ↔[ k ] (z ≡ y)
   from x≡y z = from-bijection (from′ x≡y z)
 
-  abstract
+  opaque
+
     to∘from : ∀ x≡y → to (from x≡y) ≡ x≡y
     to∘from x≡y =
       to (from x≡y)       ≡⟨ sym $ cong (λ f → f (refl x)) $ to-implication∘from-isomorphism bijection ⌊ k ⌋-iso ⟩
@@ -3196,7 +3204,8 @@ yoneda {a} {X} ext F map map-id map-∘ = record
 
   open _↠_ surj
 
-  abstract
+  opaque
+
     from∘to :
       Extensionality a a →
       ∀ f → from (to f) ≡ f
@@ -3228,7 +3237,7 @@ yoneda {a} {X} ext F map map-id map-∘ = record
     ; from = λ f → f x (refl x)
     }
 
-  abstract
+  opaque
 
     from∘to :
       Extensionality a (a ⊔ b) →
@@ -4094,7 +4103,8 @@ private
 
     to′ = ↑-cong-→ {a = a} to
 
-    abstract
+    opaque
+
       injective′ : Injective to′
       injective′ = cong lift ⊚ injective ⊚ cong lower
 
@@ -4150,7 +4160,8 @@ private
 
     logical-equivalence′ = L.↑-cong {a = a} logical-equiv
 
-    abstract
+    opaque
+
       right-inverse-of′ : ∀ x →
                           _⇔_.to logical-equivalence′
                             (_⇔_.from logical-equivalence′ x) ≡
@@ -4169,7 +4180,8 @@ private
 
     surjection′ = ↑-cong-↠ {a = a} surj
 
-    abstract
+    opaque
+
       left-inverse-of′ :
         ∀ x → _↠_.from surjection′ (_↠_.to surjection′ x) ≡ x
       left-inverse-of′ = cong lift ⊚ left-inverse-of ⊚ lower
@@ -5366,7 +5378,7 @@ private
   open _↔_
   open ⊎-left-cancellative
 
-  abstract
+  opaque
 
     g∘g : ∀ {b c} {B : Type b} {C : Type c}
           (f : A ⊎ B ↔ A ⊎ C) →
@@ -5419,7 +5431,7 @@ private
   where
   open _↔_
 
-  abstract
+  opaque
 
     wb : ∀ {a b} {A : Type a} {B : Type b}
          (⊤⊎A↔⊤⊎B : (⊤ ⊎ A) ↔ (⊤ ⊎ B)) →
@@ -5475,7 +5487,7 @@ private
     f ⊤⊎B (inj₂ b)  =
       if ⊤⊎B ≟ inj₂ b then inj₁ tt else inj₂ (_↔_.from A↔B b)
 
-    abstract
+    opaque
 
       t∘f : ∀ ⊤⊎B x → t ⊤⊎B (f ⊤⊎B x) ≡ x
       t∘f (inj₁ tt) (inj₁ tt) = refl _

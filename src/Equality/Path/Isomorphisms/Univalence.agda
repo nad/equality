@@ -29,10 +29,10 @@ univ = _≃_.from Univalence≃Univalence PU.univ
 
 -- A variant of univ that does not compute at compile-time.
 
-abstract
+opaque
 
-  abstract-univ : Univalence ℓ
-  abstract-univ = univ
+  opaque-univ : Univalence ℓ
+  opaque-univ = univ
 
 -- Propositional extensionality.
 

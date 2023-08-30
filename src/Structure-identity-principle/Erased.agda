@@ -131,7 +131,7 @@ record Univalent
       {A B : Type-with F}
       (eq : proj₁ A ≃ᴱ proj₁ B) →
       P A B eq ≃
-      (subst F (≃⇒≡ U.abstract-univ (EEq.≃ᴱ→≃ eq)) (proj₂ A) ≡ proj₂ B)
+      (subst F (≃⇒≡ U.opaque-univ (EEq.≃ᴱ→≃ eq)) (proj₂ A) ≡ proj₂ B)
 
 -- If Ax is pointwise propositional, then the functions
 -- _With-the-axioms Ax and Lift-With-the-axioms preserve
@@ -158,7 +158,7 @@ Univalent-With-the-axioms
   subst (F With-the-axioms Ax) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) (x₁ , ax₁) ≡
   (x₂ , ax₂)                                                          □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- The structure identity principle.
 --
@@ -172,7 +172,7 @@ sip {F} {P} {A} {B} u =
   (A ≃[ P ]ᴱ B)                                                    ↔⟨⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → Erased (P A B eq))              ↔⟨ (∃-cong λ _ → erased Erased↔) ⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → P A B eq)                       ↝⟨ Σ-cong
-                                                                        (inverse $ EEq.≃≃≃ᴱ F.∘ ≡≃≃ U.abstract-univ)
+                                                                        (inverse $ EEq.≃≃≃ᴱ F.∘ ≡≃≃ U.opaque-univ)
                                                                         (u .Univalent.univalent) ⟩
   (∃ λ (eq : proj₁ A ≡ proj₁ B) → subst F eq (proj₂ A) ≡ proj₂ B)  ↔⟨ B.Σ-≡,≡↔≡ ⟩□
   (A ≡ B)                                                          □
@@ -1226,8 +1226,8 @@ Is-Const-equivalence (_ , x) (_ , y) _ = x ≡ y
 
 Const-univalent : Univalent (Const {a = a} B) Is-Const-equivalence
 Const-univalent {B} .Univalent.univalent {A = _ , x} {B = _ , y} eq =
-  x ≡ y                                                      ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ subst-const _ ⟩□
-  subst (Const B) (≃⇒≡ U.abstract-univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
+  x ≡ y                                                    ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ subst-const _ ⟩□
+  subst (Const B) (≃⇒≡ U.opaque-univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
 
 -- Constᴿ is suitable for sets.
 
@@ -1311,7 +1311,7 @@ Id-univalent .Univalent.univalent {A = _ , x} {B = _ , y} eq =
                                               subst-id-in-terms-of-≡⇒↝ equivalence ⟩□
   subst Id (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- Idᴿ is suitable.
 
@@ -1424,7 +1424,7 @@ Product-univalent
                                                                          push-subst-, _ _ ⟩□
   subst (Product F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) (x₁ , x₂) ≡ (y₁ , y₂)  □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- If S and T are suitable, then Productᴿ S T is suitable.
 
@@ -1645,7 +1645,7 @@ Maybe-univalent
   {F} {Is-F-eq} u-F .Univalent.univalent {A = A , x} {B = B , y} =
   lemma x y
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
   lemma :
     (x : Maybe (F A)) (y : Maybe (F B)) →
@@ -2003,7 +2003,7 @@ Function-univalent
 
   subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f ≡ g              □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- A variant of Function-univalent that is stated using
 -- Is-Function-equivalence′ instead of Is-Function-equivalence.
@@ -2049,7 +2049,7 @@ Function-univalent′
                                                                             subst-→) ⟩□
   subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f ≡ g                   □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- If S is positive and T is suitable, then Functionᴿ S T is suitable.
 --
@@ -2275,7 +2275,7 @@ Erased-univalent
 
   subst (λ A → Erased (F A)) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) [ x ] ≡ [ y ]  □
   where
-  univ = U.abstract-univ
+  univ = U.opaque-univ
 
 -- If G is suitable, then Erasedᴿ G is suitable.
 

@@ -98,7 +98,7 @@ module _ {congruence⁺}
   private
     open module Eq = Equivalence eq using (_≃_)
 
-  abstract
+  opaque
 
     -- The type Equality-with-J₀ a p reflexive-relation is
     -- contractible (given the assumptions in the telescope above, and

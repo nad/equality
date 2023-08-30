@@ -121,7 +121,7 @@ mono₁ n =
   mono₁′ n ∘
   _⇔_.to H-level⇔H-level′
 
-abstract
+opaque
 
   mono : m ≤ n → H-level m A → H-level n A
   mono (≤-refl′ eq)     = subst (λ n → H-level n _) eq

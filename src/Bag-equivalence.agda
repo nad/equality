@@ -510,7 +510,7 @@ Fin-length-cong {xs} {ys} xs≈ys =
   ∃ (λ z → z ∈ ys)  ↔⟨ Fin-length ys ⟩
   Fin (length ys)   □
 
-abstract
+opaque
 
   -- In fact, they have equal lengths.
 
@@ -580,7 +580,7 @@ abstract
 -- first definition of bag equivalence, but we can show this directly,
 -- with the help of some lemmas.
 
-abstract
+opaque
 
   -- The index-of function commutes with applications of certain
   -- inverses. Note that the last three equational reasoning steps do
@@ -631,7 +631,7 @@ abstract
                (lemma (inverse ∘ x∷xs≈x∷ys)) ⟩□
   z ∈ ys  □
   where
-  abstract
+  opaque
 
     -- If the equality type is proof irrelevant (so that p and q are
     -- equal), then this lemma can be proved without the help of
@@ -1051,34 +1051,36 @@ index-of≡index-of→≡-refl {x} {zs = _ ∷ _} (inj₂ p) =
         (∃ λ (q : z ∈ ys) →
          Distinct (index-of (_≃_.to (p x) (inj₁ (refl _))))
            (index-of q))                                      □
-    where abstract
-    lemma :
-      ∀ q →
-      Distinct fzero (index-of (_≃_.from (p z) q)) ≃
-      Distinct (index-of (_≃_.to (p x) (inj₁ (refl x)))) (index-of q)
-    lemma {z} q =
-      _↠_.from
-        (Eq.≃↠⇔
-           (Finite.Distinct-propositional
-              fzero {j = index-of (_≃_.from (p z) q)})
-           (Finite.Distinct-propositional
-              (index-of (_≃_.to (p x) (inj₁ (refl x))))))
-        (Distinct fzero (index-of (_≃_.from (p z) q))          ↝⟨ Finite.Distinct↔≢ _ ⟩
+    where
+    opaque
 
-         fzero ≢ index-of (_≃_.from (p z) q)                   ↝⟨ →-cong₁ _ ≡-comm ⟩
+      lemma :
+        ∀ q →
+        Distinct fzero (index-of (_≃_.from (p z) q)) ≃
+        Distinct (index-of (_≃_.to (p x) (inj₁ (refl x)))) (index-of q)
+      lemma {z} q =
+        _↠_.from
+          (Eq.≃↠⇔
+             (Finite.Distinct-propositional
+                fzero {j = index-of (_≃_.from (p z) q)})
+             (Finite.Distinct-propositional
+                (index-of (_≃_.to (p x) (inj₁ (refl x))))))
+          (Distinct fzero (index-of (_≃_.from (p z) q))          ↝⟨ Finite.Distinct↔≢ _ ⟩
 
-         index-of (_≃_.from (p z) q) ≢ fzero                   ↝⟨ ≡⇒↝ _ $ cong (_≢ _) $ index-of-commutes (inverse ∘ p) _ ⟩
+           fzero ≢ index-of (_≃_.from (p z) q)                   ↝⟨ →-cong₁ _ ≡-comm ⟩
 
-         _↔_.from (Fin-length-cong p) (index-of q) ≢ fzero     ↝⟨ →-cong₁ _ $ from≡↔≡to (Eq.↔⇒≃ $ Fin-length-cong p) ⟩
+           index-of (_≃_.from (p z) q) ≢ fzero                   ↝⟨ ≡⇒↝ _ $ cong (_≢ _) $ index-of-commutes (inverse ∘ p) _ ⟩
 
-         index-of q ≢ _↔_.to (Fin-length-cong p) fzero         ↝⟨ ≡⇒↝ _ $ cong (_ ≢_) $ sym $ index-of-commutes p _ ⟩
+           _↔_.from (Fin-length-cong p) (index-of q) ≢ fzero     ↝⟨ →-cong₁ _ $ from≡↔≡to (Eq.↔⇒≃ $ Fin-length-cong p) ⟩
 
-         index-of q ≢ index-of (_≃_.to (p x) (inj₁ (refl x)))  ↝⟨ →-cong₁ _ ≡-comm ⟩
+           index-of q ≢ _↔_.to (Fin-length-cong p) fzero         ↝⟨ ≡⇒↝ _ $ cong (_ ≢_) $ sym $ index-of-commutes p _ ⟩
 
-         index-of (_≃_.to (p x) (inj₁ (refl x))) ≢ index-of q  ↝⟨ inverse $ Finite.Distinct↔≢ _ ⟩□
+           index-of q ≢ index-of (_≃_.to (p x) (inj₁ (refl x)))  ↝⟨ →-cong₁ _ ≡-comm ⟩
 
-         Distinct (index-of (_≃_.to (p x) (inj₁ (refl x))))
-           (index-of q)                                        □)
+           index-of (_≃_.to (p x) (inj₁ (refl x))) ≢ index-of q  ↝⟨ inverse $ Finite.Distinct↔≢ _ ⟩□
+
+           Distinct (index-of (_≃_.to (p x) (inj₁ (refl x))))
+             (index-of q)                                        □)
 
   from :
     (∃ λ (p : x ∈ ys) →
@@ -1111,7 +1113,7 @@ index-of≡index-of→≡-refl {x} {zs = _ ∷ _} (inj₂ p) =
       inj₂ (_≃_.from (q z)
               (r , _⇔_.from (Finite.Distinct↔≢ _) (r≢p ∘ sym)))
 
-    abstract
+    opaque
 
       to′-from′ :
         (r : z ∈ ys) (s : Dec (index-of r ≡ index-of p)) →
@@ -1196,7 +1198,7 @@ index-of≡index-of→≡-refl {x} {zs = _ ∷ _} (inj₂ p) =
         ⊥                                                →⟨ ⊥-elim ⟩□
         _                                                □
 
-  abstract
+  opaque
 
     to-from :
       Extensionality a a →

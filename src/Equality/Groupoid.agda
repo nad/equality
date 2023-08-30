@@ -50,7 +50,7 @@ module Transitivity-commutative
 
   open Groupoid (groupoid A) hiding (left-identity; right-identity)
 
-  abstract
+  opaque
 
     commutative : (p q : e ≡ e) → p ∘ q ≡ q ∘ p
     commutative p q =

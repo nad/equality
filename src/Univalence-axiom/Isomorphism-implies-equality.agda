@@ -43,7 +43,7 @@ Is- zero  -ary-morphism f₁ f₂ m = m f₁ ≡ f₂
 Is- suc n -ary-morphism f₁ f₂ m =
   ∀ x → Is- n -ary-morphism (f₁ x) (f₂ (m x)) m
 
-abstract
+opaque
 
   -- If _↔_.to m is a morphism, then _↔_.from m is also a morphism.
 
@@ -65,7 +65,7 @@ cast : {A₁ A₂ : Type} → A₁ ≃ A₂ → ∀ n → A₁ ^ n ⟶ A₁ → 
 cast A₁≃A₂ zero    = _≃_.to A₁≃A₂
 cast A₁≃A₂ (suc n) = λ f x → cast A₁≃A₂ n (f (_≃_.from A₁≃A₂ x))
 
-abstract
+opaque
 
   -- Cast simplification lemma.
 
@@ -180,7 +180,7 @@ Isomorphism : (s : Structure) → ⟪ s ⟫ → ⟪ s ⟫ → Type
 Isomorphism s (A₁ , s₁) (A₂ , s₂) =
   ∃ λ (m : A₁ ↔ A₂) → Is-structure-morphism s s₁ s₂ (_↔_.to m)
 
-abstract
+opaque
 
   -- If _↔_.to m is a morphism, then _↔_.from m is also a morphism.
 

@@ -37,7 +37,7 @@ ext⁻¹ :
   f ≡ g → (∀ x → f x ≡ g x)
 ext⁻¹ f≡g = λ x → cong (λ h → h x) f≡g
 
-abstract
+opaque
 
   -- A "computation rule" for ext⁻¹.
 
@@ -131,7 +131,7 @@ Function-extensionality a p =
     contractible : Contractible ((x : A) → Singleton (g x))
     contractible = closure (singleton-contractible ∘ g)
 
-abstract
+opaque
 
   -- The function ext⁻¹ is an equivalence (assuming extensionality).
 
@@ -181,7 +181,7 @@ Extensionality⇔Function-extensionality = record
 ------------------------------------------------------------------------
 -- Lemmas related to function extensionality
 
-abstract
+opaque
 
   -- Extensionality at given levels works at lower levels as well.
 
@@ -210,7 +210,7 @@ implicit-extensionality :
 implicit-extensionality ext f≡g =
   cong (λ f {x} → f x) $ apply-ext ext f≡g
 
-abstract
+opaque
 
   -- Some simplification/rearrangement lemmas related to apply-ext.
 

@@ -97,7 +97,7 @@ inverse-equivalence {f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
   f , f⁻¹-f , f-f⁻¹ , f⁻¹-f-f⁻¹
   where
 
-  abstract
+  opaque
 
     f⁻¹-f-f⁻¹ : ∀ x → cong f⁻¹ (f-f⁻¹ x) ≡ f⁻¹-f (f⁻¹ x)
     f⁻¹-f-f⁻¹ x = subst
@@ -138,7 +138,7 @@ composition-equivalence
     g⁻¹ (g x)            ≡⟨ g⁻¹-g _ ⟩∎
     x                    ∎
 
-  abstract
+  opaque
 
     [f-g]-[f-g]⁻¹-[f-g] :
       ∀ x → cong [f-g] ([f-g]⁻¹-[f-g] x) ≡ [f-g]-[f-g]⁻¹ ([f-g] x)
@@ -188,7 +188,7 @@ Is-equivalence→↔ {f} (f⁻¹ , f-f⁻¹ , f⁻¹-f , _) = record
   where
   open module A↔B = _↔_ A↔B using (to; from)
 
-  abstract
+  opaque
 
     right-inverse-of′ : ∀ x → to (from x) ≡ x
     right-inverse-of′ x =
@@ -375,7 +375,7 @@ function-between-contractible-types-is-equivalence f A-contr B-contr =
     ; left-inverse-of = proj₂ A-contr
     })
 
-abstract
+opaque
 
   -- If Σ-map id f is an equivalence, then f is also an equivalence.
 

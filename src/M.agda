@@ -65,7 +65,7 @@ M-unfolding = record
   ; left-inverse-of = λ { (dns x f) → refl (dns x f) }
   }
 
-abstract
+opaque
 
   -- Equality between elements of an M-type can be proved using a pair
   -- of equalities (assuming extensionality and a kind of η law).
@@ -216,7 +216,7 @@ open [_]_≡≡M′_ public
 ------------------------------------------------------------------------
 -- Closure under various h-levels
 
-abstract
+opaque
 
   -- If we assume a notion of extensionality (bisimilarity implies
   -- equality) then Contractible is closed under M.

@@ -281,7 +281,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   … | yes [ s′≡s ] = just (cast-Var s′≡s x)
   … | no  _        = nothing
 
-  abstract
+  opaque
 
     -- When no arguments are erased one can express cast-Var in a
     -- different way.
@@ -496,7 +496,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     ∀ s → Vars → Finite-subset-of (Var s)
   restrict-to-sort = map-Maybe ∘ maybe-cast-∃Var
 
-  abstract
+  opaque
 
     -- A lemma characterising restrict-to-sort (in erased contexts).
 
@@ -2069,7 +2069,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
     Free-in {k = arg} (aˢ , a , [ wf ]) =
       proj₁ (Free-in-argument aˢ a wf)
 
-    abstract
+    opaque
 
       -- The alternative definition of what it means for a variable to
       -- be free is propositional (in erased contexts).
@@ -2086,7 +2086,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
       Free-in-propositional {k = arg} (aˢ , a , [ wf ]) =
         erased (proj₂ (Free-in-argument aˢ a wf))
 
-  abstract
+  opaque
 
     mutual
 
@@ -2254,7 +2254,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   ----------------------------------------------------------------------
   -- Lemmas related to the Wf predicate
 
-  abstract
+  opaque
 
     -- Weakening of the Wf predicate.
 

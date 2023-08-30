@@ -62,7 +62,8 @@ respects-extensional-equality {f} {g} {y} f≡g = record
     g x  ≡⟨ gx≡y ⟩∎
     y    ∎)
 
-  abstract
+  opaque
+
     right-inverse-of : ∀ p → to′ (from′ p) ≡ p
     right-inverse-of = λ g⁻¹y → cong (_,_ (proj₁ g⁻¹y)) (
       let p = f≡g (proj₁ g⁻¹y); q = proj₂ g⁻¹y in
@@ -103,7 +104,8 @@ lift-surjection {A} {B} A↠B {y} = record
   -- If f is a left inverse of g then the other direction also
   -- holds.
 
-  abstract
+  opaque
+
     add-∘-lemma : ∀ {x} → from x ≡ y → from (to (from x)) ≡ y
     add-∘-lemma {x} from-x≡y =
       from (to (from x))  ≡⟨ cong from (right-inverse-of x) ⟩
@@ -113,7 +115,8 @@ lift-surjection {A} {B} A↠B {y} = record
   add-∘ : from ⁻¹ y → (from ∘ to) ⁻¹ y
   add-∘ (x , from-x≡y) = (from x , add-∘-lemma from-x≡y)
 
-  abstract
+  opaque
+    unfolding add-∘-lemma
 
     -- add-∘ is a right inverse of drop-∘.
 
@@ -151,7 +154,7 @@ bijection⁻¹-contractible A↔B =
     from ∘ to ⁻¹ y  ↠⟨ lift-surjection surjection ⟩□
     from ⁻¹ y       □
 
-abstract
+opaque
 
   -- Preimages under an injection into a set are propositional.
 

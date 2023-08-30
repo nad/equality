@@ -59,7 +59,7 @@ module Bool where
 
   -- The values true and false are distinct.
 
-  abstract
+  opaque
 
     true≢false : true ≢ false
     true≢false true≡false = subst T true≡false _
@@ -144,7 +144,7 @@ module × {a b} {A : Type a} {B : Type b} where
 
 module ⊎ {a b} {A : Type a} {B : Type b} where
 
-  abstract
+  opaque
 
     -- The values inj₁ x and inj₂ y are never equal.
 
@@ -177,7 +177,7 @@ module ⊎ {a b} {A : Type a} {B : Type b} where
 
 module List {a} {A : Type a} where
 
-  abstract
+  opaque
 
     -- The values [] and x ∷ xs are never equal.
 
@@ -203,7 +203,7 @@ module List {a} {A : Type a} where
   cancel-∷-tail : ∀ {x y : A} {xs ys} → x ∷ xs ≡ y ∷ ys → xs ≡ ys
   cancel-∷-tail = cong tail?
 
-  abstract
+  opaque
 
     -- An η-like result for the cancellation lemmas.
 

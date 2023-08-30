@@ -702,10 +702,10 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- Eliminators
 
-  -- The eliminators are abstract in order to make types printed by
-  -- Agda potentially easier to read.
+  -- The eliminators are opaque in order to make types printed by Agda
+  -- potentially easier to read.
 
-  abstract
+  opaque
 
     -- An eliminator for ◯.
 
@@ -1071,10 +1071,10 @@ module Modality (M : Modality a) where
   ----------------------------------------------------------------------
   -- The function ◯-map
 
-  -- The function ◯-map is abstract in order to make types printed by
+  -- The function ◯-map is opaque in order to make types printed by
   -- Agda potentially easier to read.
 
-  abstract
+  opaque
 
     -- A map function for ◯.
 
@@ -1335,7 +1335,7 @@ module Modality (M : Modality a) where
     ↑ a ⊤      ↔⟨ Bijection.↑↔ ⟩□
     ⊤          □
 
-  private module Abstract where abstract
+  opaque
 
     -- ◯ commutes with _×_.
 
@@ -1413,8 +1413,6 @@ module Modality (M : Modality a) where
            η (x , y)                ≡⟨ sym ◯-map-η ⟩∎
            ◯-map (x ,_) (η y)       ∎)
         y
-
-  open Abstract public
 
   -- I did not take the remaining results and definitions in this
   -- section from "Modalities in Homotopy Type Theory" or the
@@ -1803,7 +1801,7 @@ module Modality (M : Modality a) where
       ◯ ((x : Fin n) → P (lift x))    →⟨ ◯-map (_∘ lower) ⟩□
       ◯ ((x : ↑ a (Fin n)) → P x)     □
 
-    abstract
+    opaque
 
       ◯Π→Π◯-Π◯→◯Π :
         ∀ (f : (x : ↑ a (Fin n)) → ◯ (P x)) i →
@@ -1987,7 +1985,7 @@ module Modality (M : Modality a) where
     ((x : A) → P x)    →⟨ (λ f → f _) ⟩□
     ({x : A} → P x)    □
 
-  abstract
+  opaque
 
     -- If A is modal, and P x is k-stable for all x, then Σ A P is
     -- k-stable.
@@ -2197,7 +2195,7 @@ module Modality (M : Modality a) where
   -- in Homotopy Type Theory" or the corresponding Coq code (but
   -- perhaps something similar can be found there).
 
-  abstract
+  opaque
 
     -- A variant of ◯-elim that uses Stable instead of Modal.
 
@@ -2271,7 +2269,7 @@ module Modality (M : Modality a) where
          ◯-rec′ s id (η x)  ≡⟨ ◯-rec′-η′ ⟩∎
          x                  ∎)
 
-  abstract
+  opaque
 
     -- A binary variant of ◯-elim.
 
@@ -2442,7 +2440,7 @@ module Modality (M : Modality a) where
   -- "Modalities in Homotopy Type Theory" or the corresponding Coq
   -- code.
 
-  private abstract
+  private opaque
 
     -- A lemma used in the implementation of ◯Ση≃Σ◯◯.
 
@@ -2462,7 +2460,7 @@ module Modality (M : Modality a) where
       (record { to = to; from = from })
       (λ ext → to-from ext , from-to ext)
     where
-    abstract
+    opaque
       s′ : (x : ◯ A) → Stable ((y : P x) → ◯ (Σ A (P ∘ η)))
       s′ _ = Stable-Π λ _ → Modal→Stable Modal-◯
 
@@ -5149,7 +5147,7 @@ Modal⇔Modal≃◯≃◯ {a} ext M₁ M₂ =
        ∀ A → Modality.Modal M₁ A ⇔ Modality.Modal M₂ A)
     where
 
-    module _ {A : Type a} where abstract
+    module _ {A : Type a} where opaque
 
       c₁₁ : Contractible (_∘ M₁.η ⁻¹ M₁.η {A = A})
       c₁₁ =                                            $⟨ M₁.extendable-along-η (λ _ → M₁.Modal-◯) ⟩

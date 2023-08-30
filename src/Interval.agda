@@ -132,7 +132,7 @@ rec-const p p≡p i =
 ------------------------------------------------------------------------
 -- Extensionality
 
-private abstract
+private opaque
 
   -- The interval can be used to prove that equality of functions is
   -- extensional.

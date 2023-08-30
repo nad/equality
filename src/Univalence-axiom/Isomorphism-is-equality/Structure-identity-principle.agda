@@ -83,59 +83,55 @@ isomorphism-is-equality′ Univ ass
     }
     where
 
-    module Separate-abstract-block where
+    opaque
 
-      abstract
+      H-prop′ :
+        (C D : Set (# 1))
+        {x : El a ⌞ C ⌟} {y : El a ⌞ D ⌟}
+        (f : Bij.Hom C D) →
+        Is-proposition (Is-isomorphism a (≅⇒≃ C D f) x y)
+      H-prop′ _ D _ = El-set (proj₂ D)
 
-        H-prop′ :
-          (C D : Set (# 1))
-          {x : El a ⌞ C ⌟} {y : El a ⌞ D ⌟}
-          (f : Bij.Hom C D) →
-          Is-proposition (Is-isomorphism a (≅⇒≃ C D f) x y)
-        H-prop′ _ D _ = El-set (proj₂ D)
+      H-id′ :
+        (C : Set (# 1)) {x : El a ⌞ C ⌟} →
+        Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x x
+      H-id′ C {x} =
+        resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+        resp a Eq.id x                       ≡⟨ resp-id ass a x ⟩∎
+        x                                    ∎
 
-        H-id′ :
-          (C : Set (# 1)) {x : El a ⌞ C ⌟} →
-          Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x x
-        H-id′ C {x} =
-          resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-          resp a Eq.id x                       ≡⟨ resp-id ass a x ⟩∎
-          x                                    ∎
+      H-∘′ :
+        (B C D : Set (# 1))
+        {x : El a ⌞ B ⌟} {y : El a ⌞ C ⌟} {z : El a ⌞ D ⌟}
+        {B≅C : Bij.Hom B C} {C≅D : Bij.Hom C D} →
+        Is-isomorphism a (≅⇒≃ B C B≅C) x y →
+        Is-isomorphism a (≅⇒≃ C D C≅D) y z →
+        Is-isomorphism a
+          (≅⇒≃ B D (Bij._∙_ {X = B} {Y = C} {Z = D} C≅D B≅C)) x z
+      H-∘′ B C D {x} {y} {z} {B≅C} {C≅D} x≅y y≅z =
+        resp a (≅⇒≃ B D (C≅D Bij.∙ B≅C)) x             ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+        resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
+                                                                                      univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
+        resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
+        resp a (≅⇒≃ C D C≅D) y                         ≡⟨ y≅z ⟩∎
+        z                                              ∎
 
-        H-∘′ :
-          (B C D : Set (# 1))
-          {x : El a ⌞ B ⌟} {y : El a ⌞ C ⌟} {z : El a ⌞ D ⌟}
-          {B≅C : Bij.Hom B C} {C≅D : Bij.Hom C D} →
-          Is-isomorphism a (≅⇒≃ B C B≅C) x y →
-          Is-isomorphism a (≅⇒≃ C D C≅D) y z →
-          Is-isomorphism a
-            (≅⇒≃ B D (Bij._∙_ {X = B} {Y = C} {Z = D} C≅D B≅C)) x z
-        H-∘′ B C D {x} {y} {z} {B≅C} {C≅D} x≅y y≅z =
-          resp a (≅⇒≃ B D (C≅D Bij.∙ B≅C)) x             ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-          resp a (≅⇒≃ C D C≅D ⊚ ≅⇒≃ B C B≅C) x           ≡⟨ resp-preserves-compositions (El a) (resp a) (resp-id ass a)
-                                                                                        univ₁ ext (≅⇒≃ B C B≅C) (≅⇒≃ C D C≅D) x ⟩
-          resp a (≅⇒≃ C D C≅D) (resp a (≅⇒≃ B C B≅C) x)  ≡⟨ cong (resp a (≅⇒≃ C D C≅D)) x≅y ⟩
-          resp a (≅⇒≃ C D C≅D) y                         ≡⟨ y≅z ⟩∎
-          z                                              ∎
-
-        H-antisymmetric′ :
-          (C : Set (# 1))
-          (x y : El a ⌞ C ⌟) →
-          Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x y →
-          Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) y x →
-          x ≡ y
-        H-antisymmetric′ C x y x≡y _ =
-          x                                    ≡⟨ sym $ resp-id ass a x ⟩
-          resp a Eq.id x                       ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
-          resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ x≡y ⟩∎
-          y                                    ∎
-
-    open Separate-abstract-block
+      H-antisymmetric′ :
+        (C : Set (# 1))
+        (x y : El a ⌞ C ⌟) →
+        Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) x y →
+        Is-isomorphism a (≅⇒≃ C C (Bij.id {X = C})) y x →
+        x ≡ y
+      H-antisymmetric′ C x y x≡y _ =
+        x                                    ≡⟨ sym $ resp-id ass a x ⟩
+        resp a Eq.id x                       ≡⟨ cong (λ eq → resp a eq x) $ Eq.lift-equality ext (refl _) ⟩
+        resp a (≅⇒≃ C C (Bij.id {X = C})) x  ≡⟨ x≡y ⟩∎
+        y                                    ∎
 
   open module S = Standard-notion-of-structure S
     using (H; Str; module Str)
 
-  abstract
+  opaque
 
     -- Every Str morphism is an isomorphism.
 
@@ -302,7 +298,7 @@ isomorphism-is-equality′ Univ ass
 
         X≡Y D-set
 
-abstract
+opaque
 
   -- The from component of isomorphism-is-equality′ is equal
   -- to a simple function.

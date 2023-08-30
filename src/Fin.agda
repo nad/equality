@@ -40,7 +40,7 @@ open import Univalence-axiom eq
 ------------------------------------------------------------------------
 -- Fin n is a set
 
-abstract
+opaque
 
   Fin-set : ∀ n → Is-set (Fin n)
   Fin-set zero    = mono₁ 1 ⊥-propositional
@@ -82,7 +82,7 @@ _And_Are-related-by_ :
 xs And ys Are-related-by f =
   ∀ i → index xs i ≡ index ys (_↔_.to f i)
 
-abstract
+opaque
 
   -- The tails are related.
 
@@ -124,7 +124,8 @@ isomorphic-same-size {m} {n} = record
   ; from = λ m≡n → subst (λ n → Fin m ↔ Fin n) m≡n id
   }
   where
-  abstract
+  opaque
+
     to : ∀ m n → (Fin m ↔ Fin n) → m ≡ n
     to zero    zero    _       = refl _
     to (suc m) (suc n) 1+m↔1+n = cong suc $ to m n $ cancel-suc 1+m↔1+n

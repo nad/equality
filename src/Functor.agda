@@ -81,168 +81,156 @@ record _⇨_ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
 
 open _⇨_ public
 
-private
- module Dummy₁ where
-  abstract
+opaque
 
-   -- The homomorphism properties are propositional (assuming
-   -- extensionality).
+  -- The homomorphism properties are propositional (assuming
+  -- extensionality).
 
-   functor-properties-propositional :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
-     (F : C ⇨ D) → let open Precategory in
+  functor-properties-propositional :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
+    (F : C ⇨ D) → let open Precategory in
 
-     Is-proposition ((∀ {X} → F ⊙ id C {X = X} ≡ id D) ×
-                     (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-                      F ⊙ (_∙_ C g f) ≡ _∙_ D (F ⊙ g) (F ⊙ f)))
+    Is-proposition ((∀ {X} → F ⊙ id C {X = X} ≡ id D) ×
+                    (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
+                     F ⊙ (_∙_ C g f) ≡ _∙_ D (F ⊙ g) (F ⊙ f)))
 
-   functor-properties-propositional {ℓ₁} {ℓ₂} ext {D} _ = ×-closure 1
-     (implicit-Π-closure (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-      Precategory.Hom-is-set D)
-     (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
-      implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
-      implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
-      implicit-Π-closure (lower-extensionality ℓ₁ ℓ₁        ext) 1 λ _ →
-      implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-      Precategory.Hom-is-set D)
+  functor-properties-propositional {ℓ₁} {ℓ₂} ext {D} _ = ×-closure 1
+    (implicit-Π-closure (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
+     Precategory.Hom-is-set D)
+    (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
+     implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
+     implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
+     implicit-Π-closure (lower-extensionality ℓ₁ ℓ₁        ext) 1 λ _ →
+     implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
+     Precategory.Hom-is-set D)
 
-open Dummy₁ public
+opaque
 
-private
- module Dummy₂ where
-  abstract
+  -- Functor equality is equivalent to equality of the corresponding
+  -- maps, suitably transported (assuming extensionality).
 
-   -- Functor equality is equivalent to equality of the corresponding
-   -- maps, suitably transported (assuming extensionality).
+  equality-characterisation⇨ :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
+    let open Precategory in
 
-   equality-characterisation⇨ :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
-     let open Precategory in
+    (F ≡ G)
 
-     (F ≡ G)
+      ≃
 
-       ≃
+    ∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
+        _≡_ {A = ∀ {X Y} → Hom C X Y → Hom D (G ⊚ X) (G ⊚ Y)}
+            (subst (λ F → ∀ {X Y} → Hom C X Y → Hom D (F X) (F Y))
+                   ⊚F≡⊚G (_⊙_ F))
+            (_⊙_ G)
 
-     ∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-         _≡_ {A = ∀ {X Y} → Hom C X Y → Hom D (G ⊚ X) (G ⊚ Y)}
-             (subst (λ F → ∀ {X Y} → Hom C X Y → Hom D (F X) (F Y))
-                    ⊚F≡⊚G (_⊙_ F))
-             (_⊙_ G)
+  equality-characterisation⇨ ext {C} {D} {F} {G} =
+    let P : (Obj C → Obj D) → Type _
+        P = λ F₀ → ∀ {X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)
 
-   equality-characterisation⇨ ext {C} {D} {F} {G} =
-     let P : (Obj C → Obj D) → Type _
-         P = λ F₀ → ∀ {X Y} → Hom C X Y → Hom D (F₀ X) (F₀ Y)
+        Q : ∃ P → Type _
+        Q = λ { (F₀ , F) → (∀ {X} → F (id C {X = X}) ≡ id D) ×
+                           (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
+                              F (_∙_ C g f) ≡ _∙_ D (F g) (F f)) }
+    in
 
-         Q : ∃ P → Type _
-         Q = λ { (F₀ , F) → (∀ {X} → F (id C {X = X}) ≡ id D) ×
-                            (∀ {X Y Z} {f : Hom C X Y} {g : Hom C Y Z} →
-                               F (_∙_ C g f) ≡ _∙_ D (F g) (F f)) }
-     in
+    (F ≡ G)                                                              ↝⟨ ↔⇒≃ record
+                                                                              { surjection = record
+                                                                                { logical-equivalence = record
+                                                                                  { to   = cong functor
+                                                                                  ; from = cong λ f → record { functor = f }
+                                                                                  }
+                                                                                ; right-inverse-of = λ _ → trans (cong-∘ _ _ _) (sym $ cong-id _)
+                                                                                }
+                                                                              ; left-inverse-of = λ _ → trans (cong-∘ _ _ _) (sym $ cong-id _)
+                                                                              } ⟩
+    (functor F ≡ functor G)                                              ↔⟨ inverse Σ-≡,≡↔≡ ⟩
 
-     (F ≡ G)                                                              ↝⟨ ↔⇒≃ record
-                                                                               { surjection = record
-                                                                                 { logical-equivalence = record
-                                                                                   { to   = cong functor
-                                                                                   ; from = cong λ f → record { functor = f }
-                                                                                   }
-                                                                                 ; right-inverse-of = λ _ → trans (cong-∘ _ _ _) (sym $ cong-id _)
-                                                                                 }
-                                                                               ; left-inverse-of = λ _ → trans (cong-∘ _ _ _) (sym $ cong-id _)
-                                                                               } ⟩
-     (functor F ≡ functor G)                                              ↔⟨ inverse Σ-≡,≡↔≡ ⟩
+    (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
+         subst (λ F₀ → ∃ λ (F : P F₀) → Q (F₀ , F)) ⊚F≡⊚G
+               (proj₂ $ functor F) ≡ proj₂ (functor G))                  ↝⟨ ∃-cong (λ ⊚F≡⊚G → ≡⇒↝ _ $ cong (λ x → x ≡ proj₂ (functor G)) $
+                                                                              push-subst-pair P Q) ⟩
+    (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
+         _≡_ {A = ∃ λ (H : P (_⊚_ G)) → Q (_⊚_ G , H)}
+         ( subst P ⊚F≡⊚G (_⊙_ F)
+         , subst Q (Σ-≡,≡→≡ ⊚F≡⊚G (refl _)) (proj₂ $ proj₂ $ functor F)
+         )
+         (proj₂ (functor G)))                                            ↔⟨ ∃-cong (λ ⊚F≡⊚G → inverse $
+                                                                              ignore-propositional-component
+                                                                                (functor-properties-propositional ext G)) ⟩□
+    (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
+         (λ {_ _} → subst P ⊚F≡⊚G (_⊙_ F)) ≡ _⊙_ G)                      □
 
-     (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-          subst (λ F₀ → ∃ λ (F : P F₀) → Q (F₀ , F)) ⊚F≡⊚G
-                (proj₂ $ functor F) ≡ proj₂ (functor G))                  ↝⟨ ∃-cong (λ ⊚F≡⊚G → ≡⇒↝ _ $ cong (λ x → x ≡ proj₂ (functor G)) $
-                                                                               push-subst-pair P Q) ⟩
-     (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-          _≡_ {A = ∃ λ (H : P (_⊚_ G)) → Q (_⊚_ G , H)}
-          ( subst P ⊚F≡⊚G (_⊙_ F)
-          , subst Q (Σ-≡,≡→≡ ⊚F≡⊚G (refl _)) (proj₂ $ proj₂ $ functor F)
-          )
-          (proj₂ (functor G)))                                            ↔⟨ ∃-cong (λ ⊚F≡⊚G → inverse $
-                                                                               ignore-propositional-component
-                                                                                 (functor-properties-propositional ext G)) ⟩□
-     (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-          (λ {_ _} → subst P ⊚F≡⊚G (_⊙_ F)) ≡ _⊙_ G)                      □
+    where open Precategory
 
-     where open Precategory
+  -- Some simplification lemmas.
 
-   -- Some simplification lemmas.
+  proj₁-to-equality-characterisation⇨ :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
+    (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄))
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
+    let open Precategory in
+    (F≡G : F ≡ G) →
 
-   proj₁-to-equality-characterisation⇨ :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
-     (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄))
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
-     let open Precategory in
-     (F≡G : F ≡ G) →
+    proj₁ (_≃_.to (equality-characterisation⇨ ext {F = F} {G = G}) F≡G)
+      ≡
+    cong _⊚_ F≡G
 
-     proj₁ (_≃_.to (equality-characterisation⇨ ext {F = F} {G = G}) F≡G)
-       ≡
-     cong _⊚_ F≡G
+  proj₁-to-equality-characterisation⇨ ext F≡G =
+    proj₁ (_≃_.to (equality-characterisation⇨ ext) F≡G)  ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
+    cong proj₁ (cong functor F≡G)                        ≡⟨ cong-∘ _ _ _ ⟩∎
+    cong _⊚_ F≡G                                         ∎
 
-   proj₁-to-equality-characterisation⇨ ext F≡G =
-     proj₁ (_≃_.to (equality-characterisation⇨ ext) F≡G)  ≡⟨ proj₁-Σ-≡,≡←≡ _ ⟩
-     cong proj₁ (cong functor F≡G)                        ≡⟨ cong-∘ _ _ _ ⟩∎
-     cong _⊚_ F≡G                                         ∎
+  cong-⊚-from-equality-characterisation⇨ :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
+    (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄))
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
+    let open Precategory in
+    (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
+    (⊙F≡⊙G : _≡_ {A = ∀ {X Y} → Hom C X Y → Hom D (G ⊚ X) (G ⊚ Y)}
+                 (subst (λ F → ∀ {X Y} → Hom C X Y → Hom D (F X) (F Y))
+                        ⊚F≡⊚G (_⊙_ F))
+                 (_⊙_ G)) →
 
-   cong-⊚-from-equality-characterisation⇨ :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
-     (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄))
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
-     let open Precategory in
-     (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-     (⊙F≡⊙G : _≡_ {A = ∀ {X Y} → Hom C X Y → Hom D (G ⊚ X) (G ⊚ Y)}
-                  (subst (λ F → ∀ {X Y} → Hom C X Y → Hom D (F X) (F Y))
-                         ⊚F≡⊚G (_⊙_ F))
-                  (_⊙_ G)) →
+    cong _⊚_ (_≃_.from (equality-characterisation⇨ ext {F = F} {G = G})
+                       (⊚F≡⊚G , ⊙F≡⊙G))
+      ≡
+    ⊚F≡⊚G
 
-     cong _⊚_ (_≃_.from (equality-characterisation⇨ ext {F = F} {G = G})
-                        (⊚F≡⊚G , ⊙F≡⊙G))
-       ≡
-     ⊚F≡⊚G
+  cong-⊚-from-equality-characterisation⇨ ext {F} {G} ⊚F≡⊚G ⊙F≡⊙G =
+    cong _⊚_ (_≃_.from (equality-characterisation⇨ ext {F = F} {G = G})
+                       (⊚F≡⊚G , ⊙F≡⊙G))                                  ≡⟨ cong-∘ _ _ _ ⟩
 
-   cong-⊚-from-equality-characterisation⇨ ext {F} {G} ⊚F≡⊚G ⊙F≡⊙G =
-     cong _⊚_ (_≃_.from (equality-characterisation⇨ ext {F = F} {G = G})
-                        (⊚F≡⊚G , ⊙F≡⊙G))                                  ≡⟨ cong-∘ _ _ _ ⟩
+    cong proj₁ (Σ-≡,≡→≡ ⊚F≡⊚G _)                                         ≡⟨ proj₁-Σ-≡,≡→≡ _ _ ⟩∎
 
-     cong proj₁ (Σ-≡,≡→≡ ⊚F≡⊚G _)                                         ≡⟨ proj₁-Σ-≡,≡→≡ _ _ ⟩∎
+    ⊚F≡⊚G                                                                ∎
 
-     ⊚F≡⊚G                                                                ∎
+opaque
 
-open Dummy₂ public
+  -- Another equality characterisation lemma.
 
-private
- module Dummy₃ where
-  abstract
+  equality-characterisation≡⇨ :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D}
+    {eq₁ eq₂ : F ≡ G} →
+    (eq₁ ≡ eq₂) ≃ (cong _⊚_ eq₁ ≡ cong _⊚_ eq₂)
+  equality-characterisation≡⇨ {ℓ₁} {ℓ₂} ext {D} {eq₁} {eq₂} =
+    eq₁ ≡ eq₂                                              ↝⟨ inverse $ Eq.≃-≡ (equality-characterisation⇨ ext) ⟩
 
-   -- Another equality characterisation lemma.
-
-   equality-characterisation≡⇨ :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D}
-     {eq₁ eq₂ : F ≡ G} →
-     (eq₁ ≡ eq₂) ≃ (cong _⊚_ eq₁ ≡ cong _⊚_ eq₂)
-   equality-characterisation≡⇨ {ℓ₁} {ℓ₂} ext {D} {eq₁} {eq₂} =
-     eq₁ ≡ eq₂                                              ↝⟨ inverse $ Eq.≃-≡ (equality-characterisation⇨ ext) ⟩
-
-     _≃_.to (equality-characterisation⇨ ext) eq₁ ≡
-     _≃_.to (equality-characterisation⇨ ext) eq₂            ↔⟨ inverse $ ignore-propositional-component
-                                                                 (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 2 λ _ →
-                                                                  implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 2 λ _ →
-                                                                  Π-closure          (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 2 λ _ →
-                                                                  Precategory.Hom-is-set D) ⟩
-     proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₁) ≡
-     proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₂)    ↝⟨ ≡⇒↝ _ (cong₂ _≡_ (proj₁-to-equality-characterisation⇨ _ _)
-                                                                                (proj₁-to-equality-characterisation⇨ _ _)) ⟩□
-     cong _⊚_ eq₁ ≡ cong _⊚_ eq₂                            □
-
-open Dummy₃ public
+    _≃_.to (equality-characterisation⇨ ext) eq₁ ≡
+    _≃_.to (equality-characterisation⇨ ext) eq₂            ↔⟨ inverse $ ignore-propositional-component
+                                                                (implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 2 λ _ →
+                                                                 implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 2 λ _ →
+                                                                 Π-closure          (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 2 λ _ →
+                                                                 Precategory.Hom-is-set D) ⟩
+    proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₁) ≡
+    proj₁ (_≃_.to (equality-characterisation⇨ ext) eq₂)    ↝⟨ ≡⇒↝ _ (cong₂ _≡_ (proj₁-to-equality-characterisation⇨ _ _)
+                                                                               (proj₁-to-equality-characterisation⇨ _ _)) ⟩□
+    cong _⊚_ eq₁ ≡ cong _⊚_ eq₂                            □
 
 -- Identity functor.
 
@@ -354,94 +342,90 @@ record _⇾_ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
             (G ⊙ f) ∙ transformation ≡ transformation ∙ (F ⊙ f)
   natural = proj₂ natural-transformation
 
-private
- module Dummy₄ where
-  abstract
+opaque
 
-   -- The naturality property is a proposition (assuming
-   -- extensionality).
+  -- The naturality property is a proposition (assuming
+  -- extensionality).
 
-   naturality-propositional :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
-     (F G : C ⇨ D) →
-     let open Precategory hiding (_∙_); open Precategory D using (_∙_) in
-     {transformation : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)} →
+  naturality-propositional :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
+    (F G : C ⇨ D) →
+    let open Precategory hiding (_∙_); open Precategory D using (_∙_) in
+    {transformation : ∀ {X} → Hom D (F ⊚ X) (G ⊚ X)} →
 
-     Is-proposition (∀ {X Y} {f : Hom C X Y} →
-                     (G ⊙ f) ∙ transformation ≡
-                     transformation ∙ (F ⊙ f))
+    Is-proposition (∀ {X Y} {f : Hom C X Y} →
+                    (G ⊙ f) ∙ transformation ≡
+                    transformation ∙ (F ⊙ f))
 
-   naturality-propositional {ℓ₁} {ℓ₂} ext {D} _ _ =
-     implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
-     implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
-     implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
-     Precategory.Hom-is-set D
+  naturality-propositional {ℓ₁} {ℓ₂} ext {D} _ _ =
+    implicit-Π-closure (lower-extensionality ℓ₂ lzero     ext) 1 λ _ →
+    implicit-Π-closure (lower-extensionality ℓ₂ ℓ₁        ext) 1 λ _ →
+    implicit-Π-closure (lower-extensionality ℓ₁ (ℓ₁ ⊔ ℓ₂) ext) 1 λ _ →
+    Precategory.Hom-is-set D
 
-   -- Natural transformation equality is equivalent to pointwise
-   -- equality of the corresponding "transformations" (assuming
-   -- extensionality).
+  -- Natural transformation equality is equivalent to pointwise
+  -- equality of the corresponding "transformations" (assuming
+  -- extensionality).
 
-   equality-characterisation⇾ :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
-     {F G : C ⇨ D} {γ δ : F ⇾ G} →
+  equality-characterisation⇾ :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
+    {F G : C ⇨ D} {γ δ : F ⇾ G} →
 
-     (γ ≡ δ)
-       ≃
-     (∀ {X} → _⇾_.transformation γ {X = X} ≡
-              _⇾_.transformation δ {X = X})
+    (γ ≡ δ)
+      ≃
+    (∀ {X} → _⇾_.transformation γ {X = X} ≡
+             _⇾_.transformation δ {X = X})
 
-   equality-characterisation⇾ {ℓ₁} {ℓ₂} ext {F} {G} {γ} {δ} =
-     γ ≡ δ                                                          ↝⟨ inverse $ Eq.≃-≡ $ ↔⇒≃ record
-                                                                         { surjection = record
-                                                                           { logical-equivalence = record
-                                                                             { to   = _⇾_.natural-transformation
-                                                                             ; from = λ γ → record { natural-transformation = γ }
-                                                                             }
-                                                                           ; right-inverse-of = refl
-                                                                           }
-                                                                         ; left-inverse-of = refl
-                                                                         } ⟩
-     _⇾_.natural-transformation γ ≡ _⇾_.natural-transformation δ    ↔⟨ inverse $ ignore-propositional-component
-                                                                                   (naturality-propositional ext F G) ⟩
-     (λ {X} → _⇾_.transformation γ {X = X}) ≡ _⇾_.transformation δ  ↝⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ implicit-Π↔Π) ⟩
+  equality-characterisation⇾ {ℓ₁} {ℓ₂} ext {F} {G} {γ} {δ} =
+    γ ≡ δ                                                          ↝⟨ inverse $ Eq.≃-≡ $ ↔⇒≃ record
+                                                                        { surjection = record
+                                                                          { logical-equivalence = record
+                                                                            { to   = _⇾_.natural-transformation
+                                                                            ; from = λ γ → record { natural-transformation = γ }
+                                                                            }
+                                                                          ; right-inverse-of = refl
+                                                                          }
+                                                                        ; left-inverse-of = refl
+                                                                        } ⟩
+    _⇾_.natural-transformation γ ≡ _⇾_.natural-transformation δ    ↔⟨ inverse $ ignore-propositional-component
+                                                                                  (naturality-propositional ext F G) ⟩
+    (λ {X} → _⇾_.transformation γ {X = X}) ≡ _⇾_.transformation δ  ↝⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ implicit-Π↔Π) ⟩
 
-     (λ X → _⇾_.transformation γ {X = X}) ≡
-     (λ X → _⇾_.transformation δ {X = X})                           ↝⟨ inverse $ Eq.extensionality-isomorphism
-                                                                                   (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) ⟩
-     (∀ X → _⇾_.transformation γ {X = X} ≡
-            _⇾_.transformation δ {X = X})                           ↔⟨ inverse implicit-Π↔Π ⟩□
+    (λ X → _⇾_.transformation γ {X = X}) ≡
+    (λ X → _⇾_.transformation δ {X = X})                           ↝⟨ inverse $ Eq.extensionality-isomorphism
+                                                                                  (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) ⟩
+    (∀ X → _⇾_.transformation γ {X = X} ≡
+           _⇾_.transformation δ {X = X})                           ↔⟨ inverse implicit-Π↔Π ⟩□
 
-     (∀ {X} → _⇾_.transformation γ {X = X} ≡
-              _⇾_.transformation δ {X = X})                         □
+    (∀ {X} → _⇾_.transformation γ {X = X} ≡
+             _⇾_.transformation δ {X = X})                         □
 
-   -- Natural transformations form sets (assuming extensionality).
+  -- Natural transformations form sets (assuming extensionality).
 
-   ⇾-set :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
-     Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
-     Is-set (F ⇾ G)
-   ⇾-set {ℓ₁} {ℓ₂} ext {D} {F} {G} =
-     let surj = record
-           { logical-equivalence = record
-             { to   = λ γ → record { natural-transformation = γ }
-             ; from = _⇾_.natural-transformation
-             }
-           ; right-inverse-of = refl
-           } in
+  ⇾-set :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄} {F G : C ⇨ D} →
+    Is-set (F ⇾ G)
+  ⇾-set {ℓ₁} {ℓ₂} ext {D} {F} {G} =
+    let surj = record
+          { logical-equivalence = record
+            { to   = λ γ → record { natural-transformation = γ }
+            ; from = _⇾_.natural-transformation
+            }
+          ; right-inverse-of = refl
+          } in
 
-     respects-surjection surj 2 $
-       Σ-closure 2
-         (implicit-Π-closure
-            (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 2 λ _ →
-          Precategory.Hom-is-set D)
-         (λ _ → mono₁ 1 $ naturality-propositional ext F G)
-
-open Dummy₄ public
+    respects-surjection surj 2 $
+      Σ-closure 2
+        (implicit-Π-closure
+           (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) 2 λ _ →
+         Precategory.Hom-is-set D)
+        (λ _ → mono₁ 1 $ naturality-propositional ext F G)
 
 -- Identity natural transformation.
 
@@ -449,12 +433,11 @@ id⇾ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
         {ℓ₃ ℓ₄} {D : Precategory ℓ₃ ℓ₄}
       (F : C ⇨ D) → F ⇾ F
 id⇾ {C} {D} F =
-  record { natural-transformation = id , Dummy₅.nat }
+  record { natural-transformation = id , nat }
   where
   open Precategory D
 
-  module Dummy₅ where
-   abstract
+  opaque
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
           (F ⊙ f) ∙ id ≡ id ∙ (F ⊙ f)
@@ -472,7 +455,7 @@ _∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
          {F G H : C ⇨ D} →
        G ⇾ H → F ⇾ G → F ⇾ H
 _∙⇾_ {C} {D} {F} {G} {H} γ δ =
-  record { natural-transformation = ε , Dummy₅.nat }
+  record { natural-transformation = ε , nat }
   where
   open Precategory D
   open _⇾_
@@ -480,8 +463,7 @@ _∙⇾_ {C} {D} {F} {G} {H} γ δ =
   ε : ∀ {X} → Hom (F ⊚ X) (H ⊚ X)
   ε = transformation γ ∙ transformation δ
 
-  module Dummy₅ where
-   abstract
+  opaque
 
     nat : ∀ {X Y} {f : Precategory.Hom C X Y} →
           (H ⊙ f) ∙ ε ≡ ε ∙ (F ⊙ f)
@@ -511,8 +493,7 @@ _⇨∙⇾_ : ∀ {ℓ₁ ℓ₂} {C : Precategory ℓ₁ ℓ₂}
           {ℓ₅ ℓ₆} {E : Precategory ℓ₅ ℓ₆}
           {G H : C ⇨ D} →
         (F : D ⇨ E) → G ⇾ H → (F ∙⇨ G) ⇾ (F ∙⇨ H)
-_⇾_.natural-transformation (_⇨∙⇾_ {C} {D} {E} {G} {H} F γ) =
-  ε , Dummy₅.nat
+_⇾_.natural-transformation (_⇨∙⇾_ {C} {D} {E} {G} {H} F γ) = ε , nat
   where
   open Precategory
   open _⇾_ γ
@@ -520,8 +501,7 @@ _⇾_.natural-transformation (_⇨∙⇾_ {C} {D} {E} {G} {H} F γ) =
   ε : ∀ {X} → Hom E (F ⊚ G ⊚ X) (F ⊚ H ⊚ X)
   ε = F ⊙ transformation
 
-  module Dummy₅ where
-   abstract
+  opaque
 
     nat : ∀ {X Y} {f : Hom C X Y} →
           _∙_ E (F ⊙ H ⊙ f) ε ≡ _∙_ E ε (F ⊙ G ⊙ f)
@@ -555,57 +535,53 @@ _^_ : ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄} →
   where
   open Precategory D
 
-private
- module Dummy₅ where
-  abstract
+opaque
 
-   -- The natural transformation γ is an isomorphism in (D ^ C) ext iff
-   -- _⇾_.transformation γ {X = X} is an isomorphism in D for every X.
+  -- The natural transformation γ is an isomorphism in (D ^ C) ext iff
+  -- _⇾_.transformation γ {X = X} is an isomorphism in D for every X.
 
-   natural-isomorphism-lemma :
-     ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
-     (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄)) →
-     {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
-     {F G : C ⇨ D} {γ : F ⇾ G} → let open Precategory in
+  natural-isomorphism-lemma :
+    ∀ {ℓ₁ ℓ₂ ℓ₃ ℓ₄}
+    (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂ ⊔ ℓ₄)) →
+    {C : Precategory ℓ₁ ℓ₂} {D : Precategory ℓ₃ ℓ₄}
+    {F G : C ⇨ D} {γ : F ⇾ G} → let open Precategory in
 
-     Is-isomorphism ((D ^ C) ext) γ ⇔
-     (∀ {X} → Is-isomorphism D (_⇾_.transformation γ {X = X}))
+    Is-isomorphism ((D ^ C) ext) γ ⇔
+    (∀ {X} → Is-isomorphism D (_⇾_.transformation γ {X = X}))
 
-   natural-isomorphism-lemma ext {D} {F} {G} {γ} = record
-     { to = λ { (δ , γδ , δγ) →
-         transformation δ ,
-         (transformation γ ∙ transformation δ  ≡⟨⟩
-          transformation (γ ∙⇾ δ)              ≡⟨ cong (λ ε → transformation ε) γδ ⟩
-          transformation (id⇾ G)               ≡⟨⟩
-          id                                   ∎) ,
-         (transformation δ ∙ transformation γ  ≡⟨⟩
-          transformation (δ ∙⇾ γ)              ≡⟨ cong (λ ε → transformation ε) δγ ⟩
-          transformation (id⇾ F)               ≡⟨⟩
-          id                                   ∎) }
-     ; from = λ iso →
-         record { natural-transformation =
-           proj₁ iso ,
-           (λ {_ _ f} →
-                (F ⊙ f) ∙ proj₁ iso                                     ≡⟨ sym left-identity ⟩
-                id ∙ (F ⊙ f) ∙ proj₁ iso                                ≡⟨ cong (λ g → g ∙ (F ⊙ f) ∙ proj₁ iso) $ sym $ proj₂ (proj₂ iso) ⟩
-                (proj₁ iso ∙ transformation γ) ∙ (F ⊙ f) ∙ proj₁ iso    ≡⟨ sym assoc ⟩
-                proj₁ iso ∙ (transformation γ ∙ (F ⊙ f) ∙ proj₁ iso)    ≡⟨ cong (_ ∙_) assoc ⟩
-                proj₁ iso ∙ ((transformation γ ∙ (F ⊙ f)) ∙ proj₁ iso)  ≡⟨ cong (λ g → _ ∙ (g ∙ _)) $ sym $ natural γ ⟩
-                proj₁ iso ∙ (((G ⊙ f) ∙ transformation γ) ∙ proj₁ iso)  ≡⟨ cong (_ ∙_) $ sym assoc ⟩
-                proj₁ iso ∙ (G ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ cong ((_ ∙_) ∘ ((G ⊙ f) ∙_)) $ proj₁ (proj₂ iso) ⟩
-                proj₁ iso ∙ (G ⊙ f) ∙ id                                ≡⟨ assoc ⟩
-                (proj₁ iso ∙ (G ⊙ f)) ∙ id                              ≡⟨ right-identity ⟩∎
-                proj₁ iso ∙ (G ⊙ f)                                     ∎) } ,
-         _≃_.from (equality-characterisation⇾ ext) (proj₁ (proj₂ iso)) ,
-         _≃_.from (equality-characterisation⇾ ext) (proj₂ (proj₂ iso))
-     }
-     where
-     open Precategory D
-     open _⇾_
+  natural-isomorphism-lemma ext {D} {F} {G} {γ} = record
+    { to = λ { (δ , γδ , δγ) →
+        transformation δ ,
+        (transformation γ ∙ transformation δ  ≡⟨⟩
+         transformation (γ ∙⇾ δ)              ≡⟨ cong (λ ε → transformation ε) γδ ⟩
+         transformation (id⇾ G)               ≡⟨⟩
+         id                                   ∎) ,
+        (transformation δ ∙ transformation γ  ≡⟨⟩
+         transformation (δ ∙⇾ γ)              ≡⟨ cong (λ ε → transformation ε) δγ ⟩
+         transformation (id⇾ F)               ≡⟨⟩
+         id                                   ∎) }
+    ; from = λ iso →
+        record { natural-transformation =
+          proj₁ iso ,
+          (λ {_ _ f} →
+               (F ⊙ f) ∙ proj₁ iso                                     ≡⟨ sym left-identity ⟩
+               id ∙ (F ⊙ f) ∙ proj₁ iso                                ≡⟨ cong (λ g → g ∙ (F ⊙ f) ∙ proj₁ iso) $ sym $ proj₂ (proj₂ iso) ⟩
+               (proj₁ iso ∙ transformation γ) ∙ (F ⊙ f) ∙ proj₁ iso    ≡⟨ sym assoc ⟩
+               proj₁ iso ∙ (transformation γ ∙ (F ⊙ f) ∙ proj₁ iso)    ≡⟨ cong (_ ∙_) assoc ⟩
+               proj₁ iso ∙ ((transformation γ ∙ (F ⊙ f)) ∙ proj₁ iso)  ≡⟨ cong (λ g → _ ∙ (g ∙ _)) $ sym $ natural γ ⟩
+               proj₁ iso ∙ (((G ⊙ f) ∙ transformation γ) ∙ proj₁ iso)  ≡⟨ cong (_ ∙_) $ sym assoc ⟩
+               proj₁ iso ∙ (G ⊙ f) ∙ (transformation γ ∙ proj₁ iso)    ≡⟨ cong ((_ ∙_) ∘ ((G ⊙ f) ∙_)) $ proj₁ (proj₂ iso) ⟩
+               proj₁ iso ∙ (G ⊙ f) ∙ id                                ≡⟨ assoc ⟩
+               (proj₁ iso ∙ (G ⊙ f)) ∙ id                              ≡⟨ right-identity ⟩∎
+               proj₁ iso ∙ (G ⊙ f)                                     ∎) } ,
+        _≃_.from (equality-characterisation⇾ ext) (proj₁ (proj₂ iso)) ,
+        _≃_.from (equality-characterisation⇾ ext) (proj₂ (proj₂ iso))
+    }
+    where
+    open Precategory D
+    open _⇾_
 
-open Dummy₅ public
-
-abstract
+opaque
 
   -- If D is a category, then (D ^ C) ext is also a category.
 

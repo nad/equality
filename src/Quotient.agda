@@ -982,33 +982,26 @@ Erased/-comm {A} {R} set R→≡ = Eq.↔→≃
   { surjection = record
     { logical-equivalence = record
       { to   = ℕ→/-comm-to
-      ; from = from unit
+      ; from = from
       }
-    ; right-inverse-of = to∘from unit
+    ; right-inverse-of = to∘from
     }
-  ; left-inverse-of = from∘to unit
+  ; left-inverse-of = from∘to
   }
   where
   [_]→ : (ℕ → A) → (ℕ → A / R)
   [ f ]→ n = [ f n ]
 
-  -- A module that is introduced to ensure that []→-surjective is not
-  -- in the same abstract block as the abstract definitions below.
+  opaque
 
-  module Dummy where
-
-    abstract
-
-      []→-surjective : Surjective [_]→
-      []→-surjective f =                    $⟨ []-surjective ⟩
-        Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⦂ (_ → _) ⟩
-        (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ TruncP.countable-choice-bijection cc ⟩
-        ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ TruncP.∥∥-cong ΠΣ-comm ⟩
-        ∥ (∃ λ g → ∀ n → [ g n ] ≡ f n) ∥   ↔⟨⟩
-        ∥ (∃ λ g → ∀ n → [ g ]→ n ≡ f n) ∥  ↔⟨ TruncP.∥∥-cong (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩□
-        ∥ (∃ λ g → [ g ]→ ≡ f) ∥            □
-
-  open Dummy
+    []→-surjective : Surjective [_]→
+    []→-surjective f =                    $⟨ []-surjective ⟩
+      Surjective [_]                      ↝⟨ (λ surj → surj ∘ f) ⦂ (_ → _) ⟩
+      (∀ n → ∥ (∃ λ x → [ x ] ≡ f n) ∥)   ↔⟨ TruncP.countable-choice-bijection cc ⟩
+      ∥ (∀ n → ∃ λ x → [ x ] ≡ f n) ∥     ↔⟨ TruncP.∥∥-cong ΠΣ-comm ⟩
+      ∥ (∃ λ g → ∀ n → [ g n ] ≡ f n) ∥   ↔⟨⟩
+      ∥ (∃ λ g → ∀ n → [ g ]→ n ≡ f n) ∥  ↔⟨ TruncP.∥∥-cong (∃-cong λ _ → Eq.extensionality-isomorphism ext) ⟩□
+      ∥ (∃ λ g → [ g ]→ ≡ f) ∥            □
 
   from₁ : ∀ f → [_]→ ⁻¹ f → ℕ→/-comm-to ⁻¹ f
   from₁ f (g , [g]→≡f) =
@@ -1037,35 +1030,37 @@ Erased/-comm {A} {R} set R→≡ = Eq.↔→≃
                                                    /-is-set) ⟩□
     ([ g₁ ] , [g₁]→≡f) ≡ ([ g₂ ] , [g₂]→≡f)  □
 
-  from₂ : Unit → ∀ f → ∥ [_]→ ⁻¹ f ∥ → ℕ→/-comm-to ⁻¹ f
-  from₂ unit f =
-    _≃_.to (TruncP.constant-function≃∥inhabited∥⇒inhabited
-              (Σ-closure 2 /-is-set λ _ →
-               mono₁ 1 (Π-closure ext 2 (λ _ → /-is-set))))
-           (from₁ f , from₁-constant f)
+  opaque
 
-  unblock-from₂ : ∀ x f p → from₂ x f ∣ p ∣ ≡ from₁ f p
-  unblock-from₂ unit _ _ = refl _
+    from₂ : ∀ f → ∥ [_]→ ⁻¹ f ∥ → ℕ→/-comm-to ⁻¹ f
+    from₂ f =
+      _≃_.to (TruncP.constant-function≃∥inhabited∥⇒inhabited
+                (Σ-closure 2 /-is-set λ _ →
+                 mono₁ 1 (Π-closure ext 2 (λ _ → /-is-set))))
+             (from₁ f , from₁-constant f)
 
-  abstract
+    unblock-from₂ : ∀ f p → from₂ f ∣ p ∣ ≡ from₁ f p
+    unblock-from₂ _ _ = refl _
 
-    from₃ : Unit → (f : ℕ → A / R) → ℕ→/-comm-to ⁻¹ f
-    from₃ x f = from₂ x f ([]→-surjective f)
+  opaque
 
-    from : Unit → (ℕ → A / R) → (ℕ → A) / (ℕ →ᴾ R)
-    from x f = proj₁ (from₃ x f)
+    from₃ : (f : ℕ → A / R) → ℕ→/-comm-to ⁻¹ f
+    from₃ f = from₂ f ([]→-surjective f)
 
-    to∘from : ∀ x f → ℕ→/-comm-to (from x f) ≡ f
-    to∘from x f = proj₂ (from₃ x f)
+    from : (ℕ → A / R) → (ℕ → A) / (ℕ →ᴾ R)
+    from f = proj₁ (from₃ f)
 
-    from∘to : ∀ x f → from x (ℕ→/-comm-to f) ≡ f
-    from∘to x = elim-prop λ where
+    to∘from : ∀ f → ℕ→/-comm-to (from f) ≡ f
+    to∘from f = proj₂ (from₃ f)
+
+    from∘to : ∀ f → from (ℕ→/-comm-to f) ≡ f
+    from∘to = elim-prop λ where
       .[]ʳ f →
-        from x (ℕ→/-comm-to [ f ])                      ≡⟨⟩
-        proj₁ (from₂ x [ f ]→ ([]→-surjective [ f ]→))  ≡⟨ cong (proj₁ ∘ from₂ x [ f ]→) $ TruncP.truncation-is-proposition _ _ ⟩
-        proj₁ (from₂ x [ f ]→ ∣ f , refl _ ∣)           ≡⟨ cong proj₁ $ unblock-from₂ x _ (f , refl _) ⟩
-        proj₁ (from₁ [ f ]→ (f , refl _))               ≡⟨⟩
-        [ f ]                                           ∎
+        from (ℕ→/-comm-to [ f ])                      ≡⟨⟩
+        proj₁ (from₂ [ f ]→ ([]→-surjective [ f ]→))  ≡⟨ cong (proj₁ ∘ from₂ [ f ]→) $ TruncP.truncation-is-proposition _ _ ⟩
+        proj₁ (from₂ [ f ]→ ∣ f , refl _ ∣)           ≡⟨ cong proj₁ $ unblock-from₂ _ (f , refl _) ⟩
+        proj₁ (from₁ [ f ]→ (f , refl _))             ≡⟨⟩
+        [ f ]                                         ∎
       .is-propositionʳ _ → /-is-set
 
 ------------------------------------------------------------------------
