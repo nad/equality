@@ -4219,8 +4219,8 @@ tt≡tt↔⊤ = _⇔_.to contractible⇔↔⊤ $
 
 -- Unit is equivalent to ⊤.
 --
--- The forward direction of the equivalence returns the supplied value
--- of type Unit.
+-- The right-to-left direction of the equivalence returns the supplied
+-- value of type Unit.
 
 Unit≃⊤ : Unit → Unit ≃ ⊤
 Unit≃⊤ x =
