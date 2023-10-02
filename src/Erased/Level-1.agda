@@ -43,12 +43,12 @@ open import Univalence-axiom eq-J as U using (Univalence; ≡⇒→; _²/≡)
 
 private
   variable
-    a b c d ℓ ℓ₁ ℓ₂ q r : Level
-    A B                 : Type a
-    eq k k′ p x y       : A
-    P                   : A → Type p
-    f g                 : A → B
-    n                   : ℕ
+    a b c d ℓ ℓ₁ ℓ₂ p₁ p₂ q r : Level
+    A B                       : Type a
+    eq k k′ p x y             : A
+    P                         : A → Type p
+    f g                       : A → B
+    n                         : ℕ
 
 ------------------------------------------------------------------------
 -- Some basic definitions
@@ -505,6 +505,29 @@ implicit-apply-extᴱ {A} {P} {f} {g} ext =
   ((@0 x : A) → f {x = x} ≡ g {x = x})                            →⟨ apply-extᴱ ext ⟩
   _≡_ {A = (@0 x : A) → P x} (λ x → f {x = x}) (λ x → g {x = x})  →⟨ cong {A = (@0 x : A) → P x} {B = {@0 x : A} → P x} (λ f {x = x} → f x) ⟩□
   _≡_ {A = {@0 x : A} → P x} f g                                  □
+
+-- A variant of ∀-cong for function spaces with erased explicit
+-- domains.
+
+∀ᴱ-cong :
+  {@0 A : Type a} {P₁ : @0 A → Type p₁} {P₂ : @0 A → Type p₂} →
+  Extensionality? k a (p₁ ⊔ p₂) →
+  (∀ (@0 x) → P₁ x ↝[ k ] P₂ x) →
+  ((@0 x : A) → P₁ x) ↝[ k ] ((@0 x : A) → P₂ x)
+∀ᴱ-cong {p₁} {p₂} {k} {A} {P₁} {P₂} ext hyp =
+  F._∘_
+    {A = (@0 x : A) → P₁ x}
+    {C = (@0 x : A) → P₂ x}
+    (from-isomorphism
+       {k₂ = k}
+       {B = (@0 x : A) → P₂ x}
+       Π-Erased≃Π0)
+    (F._∘_
+       {A = (@0 x : A) → P₁ x}
+       (∀-cong ext λ ([ x ]) → hyp x)
+       (from-isomorphism
+          {A = (@0 x : A) → P₁ x}
+          (inverse {B = (@0 x : A) → P₁ x} Π-Erased≃Π0)))
 
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
