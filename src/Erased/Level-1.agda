@@ -1583,6 +1583,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
      [ subst P (refl _) p ]                     ∎)
     _
 
+  -- []-cong kind of commutes with sym.
+
+  []-cong-sym :
+    {@0 A : Type ℓ} {@0 x y : A} {@0 p : x ≡ y} →
+    []-cong [ sym p ] ≡ sym ([]-cong [ p ])
+  []-cong-sym =
+    elim¹ᴱ
+      (λ p → []-cong [ sym p ] ≡ sym ([]-cong [ p ]))
+      ([]-cong [ sym (refl _) ]  ≡⟨ cong []-cong $ []-cong [ sym-refl ] ⟩
+       []-cong [ refl _ ]        ≡⟨ []-cong-[refl] ⟩
+       refl [ _ ]                ≡⟨ sym sym-refl ⟩
+       sym (refl [ _ ])          ≡⟨ cong sym $ sym $ []-cong-[refl] ⟩∎
+       sym ([]-cong [ refl _ ])  ∎)
+      _
+
   -- []-cong kind of commutes with trans.
 
   []-cong-trans :
