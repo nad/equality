@@ -883,6 +883,14 @@ to-implication-inverse-with-other-function-ext? = λ where
   equivalence         → refl _
   equivalenceᴱ        → refl _
 
+-- Another variant of with-other-function.
+
+with-other-function-→ :
+  ∀ {a b c d} {A : Type a} {B : Type b} →
+  A ↝[ c ∣ d ] B → (A → B) → A ↝[ c ∣ d ] B
+with-other-function-→ A↝B f {k = implication} _ = f
+with-other-function-→ A↝B _                     = A↝B
+
 -- One can replace the "from" function with an extensionally equal
 -- function.
 
