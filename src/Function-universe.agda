@@ -3577,6 +3577,114 @@ Is-equivalence≃Is-equivalence-∘ʳ {a} {b} g-eq =
     (Is-equivalence-propositional ⊚ lower-extensionality b b)
 
 ------------------------------------------------------------------------
+-- Lemmas related to _≡_
+
+-- Equality is commutative.
+
+open Bijection public using (≡-comm)
+
+-- The following two lemmas are based on Example 2.4.8 in the HoTT
+-- book.
+
+-- The function trans x≡y is the to component of an isomorphism.
+
+trans-isomorphism :
+  ∀ {a} {A : Type a} {x y z : A} →
+  x ≡ y → y ≡ z ↔ x ≡ z
+trans-isomorphism x≡y = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = trans x≡y
+      ; from = trans (sym x≡y)
+      }
+    ; right-inverse-of = trans--[trans-sym] _
+    }
+  ; left-inverse-of = trans-sym-[trans] _
+  }
+
+-- The function flip trans x≡y is the to component of an isomorphism.
+
+flip-trans-isomorphism :
+  ∀ {a} {A : Type a} {x y z : A} →
+  x ≡ y → z ≡ x ↔ z ≡ y
+flip-trans-isomorphism x≡y = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = flip trans x≡y
+      ; from = flip trans (sym x≡y)
+      }
+    ; right-inverse-of = λ _ → trans-[trans-sym]- _ _
+    }
+  ; left-inverse-of = λ _ → trans-[trans]-sym _ _
+  }
+
+-- Equality expression rearrangement lemmas.
+
+from≡↔≡to : ∀ {a b} →
+            {A : Type a} {B : Type b}
+            (A≃B : A ≃ B) {x : B} {y : A} →
+            (_≃_.from A≃B x ≡ y) ↔ (x ≡ _≃_.to A≃B y)
+from≡↔≡to A≃B {x} {y} =
+  (_≃_.from A≃B x ≡ y)                          ↔⟨ inverse $ Eq.≃-≡ A≃B ⟩
+  (_≃_.to A≃B (_≃_.from A≃B x) ≡ _≃_.to A≃B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≃_.to A≃B y) $ _≃_.right-inverse-of A≃B x ⟩□
+  (x ≡ _≃_.to A≃B y)                            □
+
+to∘≡↔≡from∘ : ∀ {a b c} →
+              Extensionality a (b ⊔ c) →
+              {A : Type a} {B : A → Type b} {C : A → Type c}
+              (B≃C : ∀ {x} → B x ≃ C x)
+              {f : (x : A) → B x} {g : (x : A) → C x} →
+              (_≃_.to B≃C ⊚ f ≡ g) ↔ (f ≡ _≃_.from B≃C ⊚ g)
+to∘≡↔≡from∘ ext B≃C =
+  from≡↔≡to (∀-cong ext (λ _ → inverse B≃C))
+
+∘from≡↔≡∘to : ∀ {a b c} →
+              Extensionality (a ⊔ b) c →
+              {A : Type a} {B : Type b} {C : Type c}
+              (A≃B : A ≃ B) {f : A → C} {g : B → C} →
+              (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
+∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
+
+∘from≡↔≡∘to′ :
+  ∀ {a b c} →
+  Extensionality (a ⊔ b) c →
+  {A : Type a} {B : Type b} {C : A → Type c}
+  (A≃B : A ≃ B)
+  {f : (x : A) → C x} {g : (x : B) → C (_≃_.from A≃B x)} →
+  (f ⊚ _≃_.from A≃B ≡ g) ↔
+  (f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B)
+∘from≡↔≡∘to′ {a} {b} ext {C} A≃B {f} {g} =
+  f ⊚ _≃_.from A≃B ≡ g                                                  ↝⟨ ≡⇒↝ _ $ cong (_≡ g) $ apply-ext (lower-extensionality a lzero ext)
+                                                                           lemma ⟩
+  subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B _) ⊚
+    _≃_.from (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚
+    f ⊚ _≃_.from A≃B ≡
+  g                                                                     ↝⟨ from≡↔≡to
+                                                                             (Π-cong-contra ext A≃B λ x →
+                                                                                ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B x)) ⟩
+  f ≡
+  _≃_.to (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚ g ⊚ _≃_.to A≃B  ↝⟨ (≡⇒↝ _ $ cong (f ≡_) $ apply-ext (lower-extensionality b lzero ext) λ _ →
+                                                                            sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩□
+  f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B              □
+  where
+  lemma : ∀ _ → _
+  lemma x =
+    f (_≃_.from A≃B x)                                          ≡⟨ sym $ _≃_.right-inverse-of equiv _ ⟩
+
+    _≃_.to equiv (_≃_.from equiv (f (_≃_.from A≃B x)))          ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
+
+    subst C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ cong (λ eq → subst C eq (_≃_.from equiv (f (_≃_.from A≃B x)))) $ sym $
+                                                                   _≃_.right-left-lemma A≃B _ ⟩
+    subst C (cong (_≃_.from A≃B) (_≃_.right-inverse-of A≃B x))
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ sym $ subst-∘ _ _ (_≃_.right-inverse-of A≃B x) ⟩∎
+
+    subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B x)
+      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ∎
+    where
+    equiv = ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
+
+------------------------------------------------------------------------
 -- Lemmas related to _↠_
 
 -- An alternative characterisation of split surjections.
@@ -3610,7 +3718,7 @@ Split-surjective-cong :
   (∀ x → f x ≡ g x) →
   Split-surjective f ↝[ k ] Split-surjective g
 Split-surjective-cong {f} {g} ext f≡g =
-  (∀ y → ∃ λ x → f x ≡ y)  ↝⟨ (∀-cong ext λ _ → ∃-cong λ x → ≡⇒↝ _ $ cong (_≡ _) $ f≡g x) ⟩□
+  (∀ y → ∃ λ x → f x ≡ y)  ↝⟨ (∀-cong ext λ _ → ∃-cong λ x → from-isomorphism $ inverse $ trans-isomorphism (f≡g x)) ⟩□
   (∀ y → ∃ λ x → g x ≡ y)  □
 
 -- A "computation rule" for Split-surjective-cong.
@@ -3620,14 +3728,8 @@ Split-surjective-cong-refl :
   Extensionality b (a ⊔ b) →
   Split-surjective-cong _ (refl ⊚ f) p ≡ p
 Split-surjective-cong-refl {p} ext = apply-ext ext λ x →
-  ( proj₁ (p x)
-  , ≡⇒↝ _ (cong (_≡ _) (refl _)) (proj₂ (p x))
-  )                                             ≡⟨ cong (proj₁ (p x) ,_) $ cong (flip (≡⇒↝ _) _) $
-                                                   cong-refl _ ⟩
-
-  (proj₁ (p x) , ≡⇒↝ _ (refl _) (proj₂ (p x)))  ≡⟨ cong (_ ,_) $ cong (_$ _) ≡⇒↝-refl ⟩∎
-
-  p x                                           ∎
+  proj₁ (p x) , trans (sym (refl _)) (proj₂ (p x))  ≡⟨ cong (_ ,_) $ trans (cong (flip trans _) sym-refl) $ trans-reflˡ _ ⟩∎
+  p x                                               ∎
 
 -- If f is an equivalence, then there is an equivalence between "g is
 -- split surjective" and "f ∘ g is split surjective" (assuming
@@ -3799,114 +3901,6 @@ Is-embedding-cong {k} {a} {b} {f} {g} ext f≡g =
   (∀ x y → Is-equivalence (cong g))                                       □
   where
   ext′ = lower-extensionality? k b lzero ext
-
-------------------------------------------------------------------------
--- Lemmas related to _≡_
-
--- Equality is commutative.
-
-open Bijection public using (≡-comm)
-
--- The following two lemmas are based on Example 2.4.8 in the HoTT
--- book.
-
--- The function trans x≡y is the to component of an isomorphism.
-
-trans-isomorphism :
-  ∀ {a} {A : Type a} {x y z : A} →
-  x ≡ y → y ≡ z ↔ x ≡ z
-trans-isomorphism x≡y = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = trans x≡y
-      ; from = trans (sym x≡y)
-      }
-    ; right-inverse-of = trans--[trans-sym] _
-    }
-  ; left-inverse-of = trans-sym-[trans] _
-  }
-
--- The function flip trans x≡y is the to component of an isomorphism.
-
-flip-trans-isomorphism :
-  ∀ {a} {A : Type a} {x y z : A} →
-  x ≡ y → z ≡ x ↔ z ≡ y
-flip-trans-isomorphism x≡y = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = flip trans x≡y
-      ; from = flip trans (sym x≡y)
-      }
-    ; right-inverse-of = λ _ → trans-[trans-sym]- _ _
-    }
-  ; left-inverse-of = λ _ → trans-[trans]-sym _ _
-  }
-
--- Equality expression rearrangement lemmas.
-
-from≡↔≡to : ∀ {a b} →
-            {A : Type a} {B : Type b}
-            (A≃B : A ≃ B) {x : B} {y : A} →
-            (_≃_.from A≃B x ≡ y) ↔ (x ≡ _≃_.to A≃B y)
-from≡↔≡to A≃B {x} {y} =
-  (_≃_.from A≃B x ≡ y)                          ↔⟨ inverse $ Eq.≃-≡ A≃B ⟩
-  (_≃_.to A≃B (_≃_.from A≃B x) ≡ _≃_.to A≃B y)  ↝⟨ ≡⇒↝ _ $ cong (λ z → z ≡ _≃_.to A≃B y) $ _≃_.right-inverse-of A≃B x ⟩□
-  (x ≡ _≃_.to A≃B y)                            □
-
-to∘≡↔≡from∘ : ∀ {a b c} →
-              Extensionality a (b ⊔ c) →
-              {A : Type a} {B : A → Type b} {C : A → Type c}
-              (B≃C : ∀ {x} → B x ≃ C x)
-              {f : (x : A) → B x} {g : (x : A) → C x} →
-              (_≃_.to B≃C ⊚ f ≡ g) ↔ (f ≡ _≃_.from B≃C ⊚ g)
-to∘≡↔≡from∘ ext B≃C =
-  from≡↔≡to (∀-cong ext (λ _ → inverse B≃C))
-
-∘from≡↔≡∘to : ∀ {a b c} →
-              Extensionality (a ⊔ b) c →
-              {A : Type a} {B : Type b} {C : Type c}
-              (A≃B : A ≃ B) {f : A → C} {g : B → C} →
-              (f ∘ _≃_.from A≃B ≡ g) ↔ (f ≡ g ∘ _≃_.to A≃B)
-∘from≡↔≡∘to ext A≃B = from≡↔≡to (→-cong₁ ext (inverse A≃B))
-
-∘from≡↔≡∘to′ :
-  ∀ {a b c} →
-  Extensionality (a ⊔ b) c →
-  {A : Type a} {B : Type b} {C : A → Type c}
-  (A≃B : A ≃ B)
-  {f : (x : A) → C x} {g : (x : B) → C (_≃_.from A≃B x)} →
-  (f ⊚ _≃_.from A≃B ≡ g) ↔
-  (f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B)
-∘from≡↔≡∘to′ {a} {b} ext {C} A≃B {f} {g} =
-  f ⊚ _≃_.from A≃B ≡ g                                                  ↝⟨ ≡⇒↝ _ $ cong (_≡ g) $ apply-ext (lower-extensionality a lzero ext)
-                                                                           lemma ⟩
-  subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B _) ⊚
-    _≃_.from (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚
-    f ⊚ _≃_.from A≃B ≡
-  g                                                                     ↝⟨ from≡↔≡to
-                                                                             (Π-cong-contra ext A≃B λ x →
-                                                                                ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B x)) ⟩
-  f ≡
-  _≃_.to (≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B _)) ⊚ g ⊚ _≃_.to A≃B  ↝⟨ (≡⇒↝ _ $ cong (f ≡_) $ apply-ext (lower-extensionality b lzero ext) λ _ →
-                                                                            sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _) ⟩□
-  f ≡ subst C (_≃_.left-inverse-of A≃B _) ⊚ g ⊚ _≃_.to A≃B              □
-  where
-  lemma : ∀ _ → _
-  lemma x =
-    f (_≃_.from A≃B x)                                          ≡⟨ sym $ _≃_.right-inverse-of equiv _ ⟩
-
-    _≃_.to equiv (_≃_.from equiv (f (_≃_.from A≃B x)))          ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩
-
-    subst C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
-      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ cong (λ eq → subst C eq (_≃_.from equiv (f (_≃_.from A≃B x)))) $ sym $
-                                                                   _≃_.right-left-lemma A≃B _ ⟩
-    subst C (cong (_≃_.from A≃B) (_≃_.right-inverse-of A≃B x))
-      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ≡⟨ sym $ subst-∘ _ _ (_≃_.right-inverse-of A≃B x) ⟩∎
-
-    subst (C ⊚ _≃_.from A≃B) (_≃_.right-inverse-of A≃B x)
-      (_≃_.from equiv (f (_≃_.from A≃B x)))                     ∎
-    where
-    equiv = ≡⇒↝ _ $ cong C (_≃_.left-inverse-of A≃B (_≃_.from A≃B x))
 
 ------------------------------------------------------------------------
 -- Some lemmas related to _⁻¹_
