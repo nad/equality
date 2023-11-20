@@ -32,20 +32,22 @@ private
 
 Identity-modality : Modality ℓ
 Identity-modality {ℓ} = λ where
-    .◯       → id
-    .η       → id
-    .Modal _ → ↑ ℓ ⊤
+    .◯            → id
+    .η            → id
+    .modality-for → λ where
+      .Modal _ → ↑ ℓ ⊤
 
-    .Modal-propositional _ →
-      H-level.mono₁ 0 (↑-closure 0 ⊤-contractible)
+      .Modal-propositional _ →
+        H-level.mono₁ 0 (↑-closure 0 ⊤-contractible)
 
-    .Modal-◯ → _
+      .Modal-◯ → _
 
-    .Modal-respects-≃ → _
+      .Modal-respects-≃ → _
 
-    .extendable-along-η _ → ∞-extendable-along-id
+      .extendable-along-η _ → ∞-extendable-along-id
   where
   open Modality
+  open Modality-for
 
 -- The identity modality is empty-modal.
 

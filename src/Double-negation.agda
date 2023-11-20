@@ -186,27 +186,29 @@ Excluded-middle≃Double-negation-elimination ext =
 
     .η → return
 
-    .Modal → ¬¬-modal
+    .modality-for → λ where
+      .Modal → ¬¬-modal
 
-    .Modal-propositional ext →
-      Σ-closure 1 (H-level-propositional ext 1) λ prop →
-      Π-closure ext 1 λ _ →
-      prop
+      .Modal-propositional ext →
+        Σ-closure 1 (H-level-propositional ext 1) λ prop →
+        Π-closure ext 1 λ _ →
+        prop
 
-    .Modal-◯ → ¬¬-propositional ext₀ , _>>= id
+      .Modal-◯ → ¬¬-propositional ext₀ , _>>= id
 
-    .Modal-respects-≃ {A} {B} A≃B →
-      Σ-map
-        (H-level-cong _ 1 A≃B)
-        ((¬¬ A → A)  →⟨ (_≃_.to A≃B ∘_) ∘ (_∘ map (_≃_.from A≃B)) ⟩□
-         (¬¬ B → B)  □)
+      .Modal-respects-≃ {A} {B} A≃B →
+        Σ-map
+          (H-level-cong _ 1 A≃B)
+          ((¬¬ A → A)  →⟨ (_≃_.to A≃B ∘_) ∘ (_∘ map (_≃_.from A≃B)) ⟩□
+           (¬¬ B → B)  □)
 
-    .extendable-along-η {A} {P} →
-      (∀ x → ¬¬-modal (P x))              →⟨ lemma ⟩
-      Is-equivalence (_∘ return)          ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
-      Is-∞-extendable-along-[ return ] P  □
+      .extendable-along-η {A} {P} →
+        (∀ x → ¬¬-modal (P x))              →⟨ lemma ⟩
+        Is-equivalence (_∘ return)          ↔⟨ inverse $ PS.Is-∞-extendable-along≃Is-equivalence ext ⟩□
+        Is-∞-extendable-along-[ return ] P  □
   where
   open Modality
+  open Modality-for
 
   ext₀ = lower-extensionality lzero _ ext
 

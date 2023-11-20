@@ -60,16 +60,46 @@ private
 ------------------------------------------------------------------------
 -- Modalities
 
+-- The definition of "modality" used here is based on that in (one
+-- version of) the Coq code accompanying "Modalities in Homotopy Type
+-- Theory".
+--
+-- One difference is that in the Coq code the proof showing that the
+-- modality predicate is propositional is allowed to make use of
+-- function extensionality for arbitrary universe levels.
+
+-- Modalities for a certain modal operator and a certain modal unit.
+
+record Modality-for
+         {◯ : Type a → Type a}
+         (η : {A : Type a} → A → ◯ A) :
+         Type (lsuc a) where
+  field
+    -- A type A is modal if Modal A is inhabited.
+    Modal : Type a → Type a
+
+    -- Modal A is propositional (assuming function extensionality).
+    Modal-propositional :
+      Extensionality a a →
+      Is-proposition (Modal A)
+
+    -- ◯ A is modal.
+    Modal-◯ : Modal (◯ A)
+
+    -- Modal respects equivalences.
+    Modal-respects-≃ : A ≃ B → Modal A → Modal B
+
+    -- Pointwise modal families of type ◯ A → Type a are
+    -- ∞-extendable along η.
+    extendable-along-η :
+      {P : ◯ A → Type a} →
+      (∀ x → Modal (P x)) →
+      Is-∞-extendable-along-[ η ] P
+
 private
  module Dummy where
 
-  -- The following is a definition of "modality" based on that in (one
-  -- version of) the Coq code accompanying "Modalities in Homotopy
-  -- Type Theory".
-  --
-  -- One difference is that in the Coq code the proof showing that the
-  -- modality predicate is propositional is allowed to make use of
-  -- function extensionality for arbitrary universe levels.
+  -- Modalities.
 
   record Modality-record a : Type (lsuc a) where
     field
@@ -79,26 +109,10 @@ private
       -- The modal unit.
       η : A → ◯ A
 
-      -- A type A is modal if Modal A is inhabited.
-      Modal : Type a → Type a
+      -- ◯ and η form a modality.
+      modality-for : Modality-for η
 
-      -- Modal A is propositional (assuming function extensionality).
-      Modal-propositional :
-        Extensionality a a →
-        Is-proposition (Modal A)
-
-      -- ◯ A is modal.
-      Modal-◯ : Modal (◯ A)
-
-      -- Modal respects equivalences.
-      Modal-respects-≃ : A ≃ B → Modal A → Modal B
-
-      -- Pointwise modal families of type ◯ A → Type a are
-      -- ∞-extendable along η.
-      extendable-along-η :
-        {P : ◯ A → Type a} →
-        (∀ x → Modal (P x)) →
-        Is-∞-extendable-along-[ η ] P
+    open Modality-for modality-for public
 
 open Dummy using (module Modality-record)
 open Dummy public
@@ -294,16 +308,16 @@ record Uniquely-eliminating-modality a : Type (lsuc a) where
 
     .Modality-record.η → η
 
-    .Modality-record.Modal → Modal
+    .Modality-record.modality-for → λ where
+      .Modality-for.Modal → Modal
 
-    .Modality-record.Modal-propositional →
-      Is-equivalence-propositional
+      .Modality-for.Modal-propositional → Is-equivalence-propositional
 
-    .Modality-record.Modal-◯ → Modal-◯
+      .Modality-for.Modal-◯ → Modal-◯
 
-    .Modality-record.Modal-respects-≃ → Modal-respects-≃ ext
+      .Modality-for.Modal-respects-≃ → Modal-respects-≃ ext
 
-    .Modality-record.extendable-along-η → extendable-along-η ext
+      .Modality-for.extendable-along-η → extendable-along-η ext
 
 ------------------------------------------------------------------------
 -- Σ-closed reflective subuniverses
@@ -491,13 +505,14 @@ record Σ-closed-reflective-subuniverse a : Type (lsuc a) where
 
   modality : Modality a
   modality = λ where
-    .Modality-record.◯                   → ◯
-    .Modality-record.η                   → η
-    .Modality-record.Modal               → Modal
-    .Modality-record.Modal-propositional → Modal-propositional
-    .Modality-record.Modal-◯             → Modal-◯
-    .Modality-record.Modal-respects-≃    → Modal-respects-≃
-    .Modality-record.extendable-along-η  → stronger-extendable-along-η
+    .Modality-record.◯            → ◯
+    .Modality-record.η            → η
+    .Modality-record.modality-for → λ where
+      .Modality-for.Modal               → Modal
+      .Modality-for.Modal-propositional → Modal-propositional
+      .Modality-for.Modal-◯             → Modal-◯
+      .Modality-for.Modal-respects-≃    → Modal-respects-≃
+      .Modality-for.extendable-along-η  → stronger-extendable-along-η
 
 ------------------------------------------------------------------------
 -- Connectedness
@@ -5087,6 +5102,98 @@ module Modality (M : Modality a) where
          eq)
 
 ------------------------------------------------------------------------
+-- Modality-for is propositional
+
+private
+
+  -- A variant of Modality-for without the field "Modal" (which has
+  -- been turned into a parameter).
+
+  Modality-for′ :
+    {◯ : Type a → Type a} →
+    ({A : Type a} → A → ◯ A) →
+    (Type a → Type a) →
+    Type (lsuc a)
+  Modality-for′ {a} {◯} η Modal =
+    ({A : Type a} →
+     Extensionality a a →
+     Is-proposition (Modal A)) ×
+    ({A : Type a} → Modal (◯ A)) ×
+    ({A B : Type a} → A ≃ B → Modal A → Modal B) ×
+    ({A : Type a} {P : ◯ A → Type a} →
+     (∀ x → Modal (P x)) →
+     Is-∞-extendable-along-[ η ] P)
+
+  -- Modality-for η can be expressed using Modality-for′.
+
+  Modality-for≃ :
+    {◯ : Type a → Type a}
+    {η : {A : Type a} → A → ◯ A} →
+    Modality-for η ≃ ∃ (Modality-for′ η)
+  Modality-for≃ = Eq.↔→≃
+    (λ modality-for →
+       let open Modality-for modality-for in
+       Modal , Modal-propositional , Modal-◯ , Modal-respects-≃ ,
+       extendable-along-η)
+    _
+    refl
+    refl
+
+  -- Modality-for′ is pointwise propositional (assuming function
+  -- extensionality).
+
+  Modality-for′-propositional :
+    {◯ : Type a → Type a}
+    {η : {A : Type a} → A → ◯ A}
+    {Modal : Type a → Type a} →
+    Extensionality (lsuc a) (lsuc a) →
+    Is-proposition (Modality-for′ η Modal)
+  Modality-for′-propositional ext =
+    Σ-closure 1
+      (implicit-Π-closure ext 1 λ _ →
+       Π-closure ext′ 1 λ ext →
+       H-level-propositional ext 1) λ prop →
+    ×-closure 1
+      (implicit-Π-closure ext′ 1 λ _ →
+       prop ext″) $
+    ×-closure 1
+      (implicit-Π-closure ext 1 λ _ →
+       implicit-Π-closure ext′ 1 λ _ →
+       Π-closure ext″ 1 λ _ →
+       Π-closure ext″ 1 λ _ →
+       prop ext″) $
+    implicit-Π-closure ext 1 λ _ →
+    implicit-Π-closure ext′ 1 λ _ →
+    Π-closure ext″ 1 λ _ →
+    PS.Is-∞-extendable-along-propositional ext″
+    where
+    ext′ = lower-extensionality lzero _ ext
+    ext″ = lower-extensionality _ _ ext
+
+-- Modality-for η is a proposition (assuming function extensionality
+-- and univalence).
+
+Modality-for-propositional :
+  {◯ : Type a → Type a} {η : {A : Type a} → A → ◯ A} →
+  Extensionality (lsuc a) (lsuc a) →
+  Univalence a →
+  Is-proposition (Modality-for η)
+Modality-for-propositional {η} ext univ mf₁ mf₂ =      $⟨ Σ-≡,≡→≡
+                                                            (apply-ext ext λ A → ≃⇒≡ univ (
+    M₁.Modal A                                                 ↝⟨ M₁.Modal≃Is-equivalence-η ext′ ⟩
+    Is-equivalence (η {A = A})                                 ↝⟨ inverse $
+                                                                  M₂.Modal≃Is-equivalence-η ext′ ⟩□
+    M₂.Modal A                                                 □))
+                                                            (Modality-for′-propositional ext _ _) ⟩
+  _≃_.to Modality-for≃ mf₁ ≡ _≃_.to Modality-for≃ mf₂  ↝⟨ Eq.≃-≡ Modality-for≃ ⟩□
+  mf₁ ≡ mf₂                                            □
+  where
+  module M₁ = Modality (record { modality-for = mf₁ })
+  module M₂ = Modality (record { modality-for = mf₂ })
+
+  ext′ = lower-extensionality _ _ ext
+
+------------------------------------------------------------------------
 -- Lemmas relating two modalities to each other
 
 -- If the modal operators and units of two modalities (for a given
@@ -5275,23 +5382,7 @@ Modal⇔Modal≃≡ {a} {M₁} {M₂} ext univ =
   (∀ A → Modality.Modal M₁ A ≡ Modality.Modal M₂ A)                ↝⟨ Eq.extensionality-isomorphism ext ⟩
   Modality.Modal M₁ ≡ Modality.Modal M₂                            ↔⟨ (ignore-propositional-component λ M₁′ M₂′ →
                                                                        _↔_.to (ignore-propositional-component
-                                                                                 (×-closure 1
-                                                                                    (implicit-Π-closure ext 1 λ _ →
-                                                                                     Π-closure ext′ 1 λ ext →
-                                                                                     H-level-propositional ext 1) $
-                                                                                  ×-closure 1
-                                                                                    (implicit-Π-closure ext′ 1 λ _ →
-                                                                                     Modality.Modal-propositional M₂ ext″) $
-                                                                                  ×-closure 1
-                                                                                    (implicit-Π-closure ext 1 λ _ →
-                                                                                     implicit-Π-closure ext′ 1 λ _ →
-                                                                                     Π-closure ext″ 1 λ _ →
-                                                                                     Π-closure ext″ 1 λ _ →
-                                                                                     Modality.Modal-propositional M₂ ext″) $
-                                                                                  implicit-Π-closure ext 1 λ _ →
-                                                                                  implicit-Π-closure ext′ 1 λ _ →
-                                                                                  Π-closure ext″ 1 λ _ →
-                                                                                  PS.Is-∞-extendable-along-propositional ext″)) $
+                                                                                 (Modality-for′-propositional ext)) $
                                                                        lemma
                                                                          (_≃_.from equiv (Modality.Modal M₂ , M₁′))
                                                                          (_≃_.from equiv (Modality.Modal M₂ , M₂′))
@@ -5310,12 +5401,7 @@ Modal⇔Modal≃≡ {a} {M₁} {M₂} ext univ =
     (∃ λ (Modal : Type a → Type a) →
      ∃ λ ((◯ , η) :
           ∃ λ (◯ : Type a → Type a) → {A : Type a} → A → ◯ A) →
-     ({A : Type a} → Extensionality a a → Is-proposition (Modal A)) ×
-     ({A : Type a} → Modal (◯ A)) ×
-     ({A B : Type a} → A ≃ B → Modal A → Modal B) ×
-     ({A : Type a} {P : ◯ A → Type a} →
-      (∀ x → Modal (P x)) →
-      Is-∞-extendable-along-[ η ] P))
+     Modality-for′ η Modal)
   equiv = Eq.↔→≃
     (λ M →
        let open Modality M in

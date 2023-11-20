@@ -90,13 +90,14 @@ Stable A = Squash A → A
 
 modality : Modality ℓ
 modality {ℓ} = λ where
-    .Modality.◯                   → Squash
-    .Modality.η x                 → [ x ]
-    .Modality.Modal               → Modal
-    .Modality.Modal-propositional → prop
-    .Modality.Modal-◯             → Modal-Squash
-    .Modality.Modal-respects-≃    → resp
-    .Modality.extendable-along-η  → extendable
+    .Modality.◯            → Squash
+    .Modality.η x          → [ x ]
+    .Modality.modality-for → λ where
+      .Modality-for.Modal               → Modal
+      .Modality-for.Modal-propositional → prop
+      .Modality-for.Modal-◯             → Modal-Squash
+      .Modality-for.Modal-respects-≃    → resp
+      .Modality-for.extendable-along-η  → extendable
   where
   Modal : Type ℓ → Type ℓ
   Modal A = Stable A × Is-proposition A

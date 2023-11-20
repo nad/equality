@@ -2102,15 +2102,17 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   Erased-modality : Modality ℓ
   Erased-modality = λ where
-      .◯                   → λ A → Erased A
-      .η                   → [_]→
-      .Modal               → Very-stable
-      .Modal-propositional → Very-stable-propositional
-      .Modal-◯             → Very-stable-Erased
-      .Modal-respects-≃    → Very-stable-cong _
-      .extendable-along-η  → extendable
+      .◯            → λ A → Erased A
+      .η            → [_]→
+      .modality-for → λ where
+        .Modal               → Very-stable
+        .Modal-propositional → Very-stable-propositional
+        .Modal-◯             → Very-stable-Erased
+        .Modal-respects-≃    → Very-stable-cong _
+        .extendable-along-η  → extendable
     where
     open Modality
+    open Modality-for
 
   -- The modality is empty-modal.
 

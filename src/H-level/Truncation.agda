@@ -672,15 +672,17 @@ downwards-closed {m} {n} {A} m≤n =
 
 ∥∥[1+_]-modality : ℕ → Modality ℓ
 ∥∥[1+_]-modality {ℓ} n = λ where
-    .◯                   → ∥_∥[1+ n ]
-    .η                   → ∣_∣
-    .Modal               → H-level (1 + n)
-    .Modal-propositional → λ ext → H-level-propositional ext (1 + n)
-    .Modal-◯             → truncation-has-correct-h-level n
-    .Modal-respects-≃    → H-level-cong _ (1 + n)
-    .extendable-along-η  → extendable
+    .◯            → ∥_∥[1+ n ]
+    .η            → ∣_∣
+    .modality-for → λ where
+      .Modal               → H-level (1 + n)
+      .Modal-propositional → λ ext → H-level-propositional ext (1 + n)
+      .Modal-◯             → truncation-has-correct-h-level n
+      .Modal-respects-≃    → H-level-cong _ (1 + n)
+      .extendable-along-η  → extendable
   where
   open Modality
+  open Modality-for
 
   extendable :
     {A : Type ℓ} {P : ∥ A ∥[1+ n ] → Type ℓ} →

@@ -269,15 +269,17 @@ countable-choice-bijection cc = record
 
 ∥∥-modality : Modality ℓ
 ∥∥-modality {ℓ} = λ where
-    .◯                   → ∥_∥
-    .η                   → ∣_∣
-    .Modal               → Is-proposition
-    .Modal-propositional → λ ext → H-level-propositional ext 1
-    .Modal-◯             → truncation-is-proposition
-    .Modal-respects-≃    → H-level-cong _ 1
-    .extendable-along-η  → extendable
+    .◯            → ∥_∥
+    .η            → ∣_∣
+    .modality-for → λ where
+      .Modal               → Is-proposition
+      .Modal-propositional → λ ext → H-level-propositional ext 1
+      .Modal-◯             → truncation-is-proposition
+      .Modal-respects-≃    → H-level-cong _ 1
+      .extendable-along-η  → extendable
   where
   open Modality
+  open Modality-for
 
   extendable :
     {A : Type ℓ} {P : ∥ A ∥ → Type ℓ} →

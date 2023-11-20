@@ -185,17 +185,19 @@ rec r = recᴾ λ where
 
 ∥∥ᴱ-modality : Modality ℓ
 ∥∥ᴱ-modality {ℓ} = λ where
-    .◯                   → ∥_∥ᴱ
-    .η                   → ∣_∣
-    .Modal A             → Erased (Is-proposition A)
-    .Modal-propositional → λ ext →
-                             Er.H-level-Erased 1
-                               (H-level-propositional ext 1)
-    .Modal-◯             → [ truncation-is-proposition ]
-    .Modal-respects-≃    → λ A≃B → Er.map (H-level-cong _ 1 A≃B)
-    .extendable-along-η  → extendable
+    .◯            → ∥_∥ᴱ
+    .η            → ∣_∣
+    .modality-for → λ where
+      .Modal A             → Erased (Is-proposition A)
+      .Modal-propositional → λ ext →
+                               Er.H-level-Erased 1
+                                 (H-level-propositional ext 1)
+      .Modal-◯             → [ truncation-is-proposition ]
+      .Modal-respects-≃    → λ A≃B → Er.map (H-level-cong _ 1 A≃B)
+      .extendable-along-η  → extendable
   where
   open Modality
+  open Modality-for
 
   extendable :
     {A : Type ℓ} {P : ∥ A ∥ᴱ → Type ℓ} →
