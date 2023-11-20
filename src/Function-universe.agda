@@ -29,6 +29,9 @@ open import Preimage eq as Preimage using (_⁻¹_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
 
+private variable
+  a b : Level
+
 ------------------------------------------------------------------------
 -- The universe
 
@@ -46,6 +49,9 @@ data Kind : Type where
     equivalence
     equivalenceᴱ : Kind
 
+private variable
+  k : Kind
+
 -- The interpretation of the universe.
 
 infix 0 _↝[_]_
@@ -59,6 +65,18 @@ A ↝[ surjection          ] B = A ↠ B
 A ↝[ bijection           ] B = A ↔ B
 A ↝[ equivalence         ] B = A ≃ B
 A ↝[ equivalenceᴱ        ] B = A ≃ᴱ B
+
+-- Another interpretation of the universe codes.
+
+Is : {A : Type a} {B : Type b} → Kind → (A → B) → Type (a ⊔ b)
+Is                 implication         = λ _ → ↑ _ ⊤
+Is {A = A} {B = B} logical-equivalence = λ _ → B → A
+Is                 injection           = Injective
+Is                 embedding           = Is-embedding
+Is                 surjection          = Split-surjective
+Is                 bijection           = Has-quasi-inverse
+Is                 equivalence         = Is-equivalence
+Is                 equivalenceᴱ        = λ f → EEq.Is-equivalenceᴱ f
 
 -- Equivalences can be converted to all kinds of functions.
 
@@ -3901,6 +3919,39 @@ Is-embedding-cong {k} {a} {b} {f} {g} ext f≡g =
   (∀ x y → Is-equivalence (cong g))                                       □
   where
   ext′ = lower-extensionality? k b lzero ext
+
+------------------------------------------------------------------------
+-- A lemma related to Is
+
+-- A ↝[ k ] B can be expressed using Is k.
+
+↝≃∃-Is :
+  {A : Type a} {B : Type b} →
+  (A ↝[ k ] B) ≃ ∃ λ (f : A → B) → Is k f
+↝≃∃-Is {k = implication} {A} {B} =
+  (A → B)          ↔⟨ (inverse $ drop-⊤-right λ _ → Bijection.↑↔) ⟩□
+  (A → B) × ↑ _ ⊤  □
+↝≃∃-Is {k = logical-equivalence} {A} {B} =
+  A ⇔ B              ↔⟨ ⇔↔→×→ ⟩□
+  (A → B) × (B → A)  □
+↝≃∃-Is {k = injection} {A} {B} =
+  A ↣ B                            ↔⟨ ↣↔∃-Injective ⟩□
+  (∃ λ (f : A → B) → Injective f)  □
+↝≃∃-Is {k = embedding} {A} {B} =
+  Embedding A B                       ↔⟨ Emb.Embedding-as-Σ ⟩□
+  (∃ λ (f : A → B) → Is-embedding f)  □
+↝≃∃-Is {k = surjection} {A} {B} =
+  A ↠ B                                   ↔⟨ ↠↔∃-Split-surjective ⟩□
+  (∃ λ (f : A → B) → Split-surjective f)  □
+↝≃∃-Is {k = bijection} {A} {B} =
+  A ↔ B                                    ↔⟨ Bijection.↔-as-Σ ⟩□
+  (∃ λ (f : A → B) → Has-quasi-inverse f)  □
+↝≃∃-Is {k = equivalence} {A} {B} =
+  A ≃ B                                 ↔⟨ Eq.≃-as-Σ ⟩□
+  (∃ λ (f : A → B) → Is-equivalence f)  □
+↝≃∃-Is {k = equivalenceᴱ} {A} {B} =
+  A ≃ᴱ B                                     ↔⟨ EEq.≃ᴱ-as-Σ ⟩□
+  (∃ λ (f : A → B) → EEq.Is-equivalenceᴱ f)  □
 
 ------------------------------------------------------------------------
 -- Some lemmas related to _⁻¹_
