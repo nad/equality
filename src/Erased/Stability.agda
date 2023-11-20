@@ -3059,6 +3059,63 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
     Very-stable-≡-Erased-axiomatisation-propositional
 
 ------------------------------------------------------------------------
+-- Yet another alternative to []-cong-axiomatisation
+
+-- For the universe level ℓ this axiomatisation states that there is a
+-- modality for λ {A : Type ℓ} (x : A) → [ x ].
+
+[]-modality-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+[]-modality-axiomatisation ℓ =
+  Modality-for (λ {A : Type ℓ} (x : A) → [ x ])
+
+-- The type []-modality-axiomatisation ℓ is propositional (assuming
+-- function extensionality and univalence).
+
+[]-modality-axiomatisation-propositional :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Univalence ℓ →
+  Is-proposition ([]-modality-axiomatisation ℓ)
+[]-modality-axiomatisation-propositional =
+  Modality-for-propositional
+
+-- The type []-cong-axiomatisation ℓ is logically equivalent to
+-- []-modality-axiomatisation ℓ.
+
+[]-cong-axiomatisation⇔[]-modality-axiomatisation :
+  []-cong-axiomatisation ℓ ⇔ []-modality-axiomatisation ℓ
+[]-cong-axiomatisation⇔[]-modality-axiomatisation {ℓ} = record
+  { to   = λ ax → []-cong₁.Erased-modality ax .Modality.modality-for
+  ; from =
+      []-modality-axiomatisation ℓ  →⟨ (λ mf →
+                                          let open Modality (record { modality-for = mf }) in
+                                          record
+                                            { []-cong        = η-cong
+                                            ; []-cong-[refl] = λ {_} {x = x} →
+        η-cong [ refl x ]                       ≡⟨ η-cong-η ⟩
+        cong [_]→ (refl x)                      ≡⟨ cong-refl _ ⟩∎
+        refl [ x ]                              ∎
+                                            }) ⟩
+      []-cong-axiomatisation′ ℓ     →⟨ []-cong-axiomatisation′→[]-cong-axiomatisation ⟩
+      []-cong-axiomatisation ℓ      □
+  }
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- []-modality-axiomatisation ℓ (assuming function extensionality and
+-- univalence).
+
+[]-cong-axiomatisation≃[]-modality-axiomatisation :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Univalence ℓ →
+  []-cong-axiomatisation ℓ ≃ []-modality-axiomatisation ℓ
+[]-cong-axiomatisation≃[]-modality-axiomatisation ext univ =
+  _↠_.from
+    (Eq.≃↠⇔
+       ([]-cong-axiomatisation-propositional
+          (lower-extensionality lzero _ ext))
+       ([]-modality-axiomatisation-propositional ext univ))
+    []-cong-axiomatisation⇔[]-modality-axiomatisation
+
+------------------------------------------------------------------------
 -- Two more alternatives to []-cong-axiomatisation
 
 -- This axiomatisation states that, for types A and B in a given
