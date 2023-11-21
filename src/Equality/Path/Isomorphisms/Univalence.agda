@@ -22,17 +22,12 @@ private
   variable
     ℓ : Level
 
--- Univalence.
-
-univ : Univalence ℓ
-univ = _≃_.from Univalence≃Univalence PU.univ
-
--- An opaque variant of univ.
-
 opaque
 
-  opaque-univ : Univalence ℓ
-  opaque-univ = univ
+  -- Univalence.
+
+  univ : Univalence ℓ
+  univ = _≃_.from Univalence≃Univalence PU.univ
 
 -- Propositional extensionality.
 

@@ -31,7 +31,7 @@ open import Prelude
 open import Bijection equality-with-J as B using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
-import Equality.Path.Isomorphisms.Univalence eq as U
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq
   using (_≃_; Is-equivalence)
 open import Equivalence.Erased.Cubical eq as EEq
@@ -131,7 +131,7 @@ record Univalent
       {A B : Type-with F}
       (eq : proj₁ A ≃ᴱ proj₁ B) →
       P A B eq ≃
-      (subst F (≃⇒≡ U.opaque-univ (EEq.≃ᴱ→≃ eq)) (proj₂ A) ≡ proj₂ B)
+      (subst F (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) (proj₂ A) ≡ proj₂ B)
 
 -- If Ax is pointwise propositional, then the functions
 -- _With-the-axioms Ax and Lift-With-the-axioms preserve
@@ -157,8 +157,6 @@ Univalent-With-the-axioms
 
   subst (F With-the-axioms Ax) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) (x₁ , ax₁) ≡
   (x₂ , ax₂)                                                          □
-  where
-  univ = U.opaque-univ
 
 -- The structure identity principle.
 --
@@ -172,7 +170,7 @@ sip {F} {P} {A} {B} u =
   (A ≃[ P ]ᴱ B)                                                    ↔⟨⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → Erased (P A B eq))              ↔⟨ (∃-cong λ _ → erased Erased↔) ⟩
   (∃ λ (eq : proj₁ A ≃ᴱ proj₁ B) → P A B eq)                       ↝⟨ Σ-cong
-                                                                        (inverse $ EEq.≃≃≃ᴱ F.∘ ≡≃≃ U.opaque-univ)
+                                                                        (inverse $ EEq.≃≃≃ᴱ F.∘ ≡≃≃ univ)
                                                                         (u .Univalent.univalent) ⟩
   (∃ λ (eq : proj₁ A ≡ proj₁ B) → subst F eq (proj₂ A) ≡ proj₂ B)  ↔⟨ B.Σ-≡,≡↔≡ ⟩□
   (A ≡ B)                                                          □
@@ -285,7 +283,7 @@ R ⟶ = R ⁻¹ ;ᴱ R
   R ⟵ ≡ R
 ⟵≡ prop equiv =
   ⟨ext⟩ λ _ → ⟨ext⟩ λ _ →
-  ≃⇒≡ U.univ $
+  ≃⇒≡ univ $
   EEq.≃ᴱ→≃ $
   ⟵≃ᴱ prop equiv
 
@@ -300,7 +298,7 @@ R ⟶ = R ⁻¹ ;ᴱ R
   R ⟶ ≡ R
 ⟶≡ prop equiv =
   ⟨ext⟩ λ _ → ⟨ext⟩ λ _ →
-  ≃⇒≡ U.univ $
+  ≃⇒≡ univ $
   EEq.≃ᴱ→≃ $
   ⟶≃ᴱ prop equiv
 
@@ -331,7 +329,7 @@ Graph-[]-⟵≡ {R} prop equiv =
            .T.∣∣ʳ (_ , [x]≡z , [y]≡z)    → trans [x]≡z (sym [y]≡z))
         (λ [x]≡[y] → ∣ _ , [x]≡[y] , refl _ ∣)
   in
-  ≃⇒≡ U.univ
+  ≃⇒≡ univ
     ((Graph [_] ⟵) x y  ↝⟨ lemma ⟩
      [ x ] ≡ [ y ]      ↔⟨ inverse $ Q.related≃[equal] equiv (prop _ _) ⟩□
      R x y              □)
@@ -348,7 +346,7 @@ Graph-[]-⟵≡ {R} prop equiv =
   R ;ᴱ Graph ([_] {R = R}) ≡ Graph ([_] {R = R})
 ;ᴱ-Graph-[]≡Graph-[] {R} prop equiv =
   ⟨ext⟩ λ x → ⟨ext⟩ λ y →
-  ≃⇒≡ U.univ $
+  ≃⇒≡ univ $
   flip
     (Q.elim-prop
        {P = λ y → (R ;ᴱ Graph ([_] {R = R})) x y ≃
@@ -1045,7 +1043,7 @@ Suitable→/ᴱ⟵×/ᴱ⟶ {F} (A , x) (B , y) {R} {G}
   g″ =
     subst (λ R → G R x″ y″)
       (⟨ext⟩ λ x → ⟨ext⟩ λ y →
-       ≃⇒≡ U.univ (lemma x y))
+       ≃⇒≡ univ (lemma x y))
       g′
 
 -- If R is a propositional QER (with erased proofs) between A and B, G
@@ -1226,8 +1224,8 @@ Is-Const-equivalence (_ , x) (_ , y) _ = x ≡ y
 
 Const-univalent : Univalent (Const {a = a} B) Is-Const-equivalence
 Const-univalent {B} .Univalent.univalent {A = _ , x} {B = _ , y} eq =
-  x ≡ y                                                    ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ subst-const _ ⟩□
-  subst (Const B) (≃⇒≡ U.opaque-univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
+  x ≡ y                                           ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $ subst-const _ ⟩□
+  subst (Const B) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
 
 -- Constᴿ is suitable for sets.
 
@@ -1310,8 +1308,6 @@ Id-univalent .Univalent.univalent {A = _ , x} {B = _ , y} eq =
   ≡⇒→ (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x ≡ y       ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $
                                               subst-id-in-terms-of-≡⇒↝ equivalence ⟩□
   subst Id (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x ≡ y  □
-  where
-  univ = U.opaque-univ
 
 -- Idᴿ is suitable.
 
@@ -1423,8 +1419,6 @@ Product-univalent
   ) ≡ (y₁ , y₂)                                                       ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym $
                                                                          push-subst-, _ _ ⟩□
   subst (Product F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) (x₁ , x₂) ≡ (y₁ , y₂)  □
-  where
-  univ = U.opaque-univ
 
 -- If S and T are suitable, then Productᴿ S T is suitable.
 
@@ -1645,8 +1639,6 @@ Maybe-univalent
   {F} {Is-F-eq} u-F .Univalent.univalent {A = A , x} {B = B , y} =
   lemma x y
   where
-  univ = U.opaque-univ
-
   lemma :
     (x : Maybe (F A)) (y : Maybe (F B)) →
     (eq : A ≃ᴱ B) →
@@ -2002,8 +1994,6 @@ Function-univalent
   (∀ y → subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f y ≡ g y)  ↝⟨ Eq.extensionality-isomorphism ext ⟩□
 
   subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f ≡ g              □
-  where
-  univ = U.opaque-univ
 
 -- A variant of Function-univalent that is stated using
 -- Is-Function-equivalence′ instead of Is-Function-equivalence.
@@ -2048,8 +2038,6 @@ Function-univalent′
   g                                                                     ↝⟨ (≡⇒≃ $ cong (_≡ _) $ sym $ ⟨ext⟩ λ _ →
                                                                             subst-→) ⟩□
   subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f ≡ g                   □
-  where
-  univ = U.opaque-univ
 
 -- If S is positive and T is suitable, then Functionᴿ S T is suitable.
 --
@@ -2274,8 +2262,6 @@ Erased-univalent
   [ subst F (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) x ] ≡ [ y ]                     ↝⟨ ≡⇒≃ $ cong (_≡ _) $ sym push-subst-[] ⟩□
 
   subst (λ A → Erased (F A)) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) [ x ] ≡ [ y ]  □
-  where
-  univ = U.opaque-univ
 
 -- If G is suitable, then Erasedᴿ G is suitable.
 
