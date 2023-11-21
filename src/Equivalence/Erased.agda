@@ -14,6 +14,7 @@ open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (id; [_,_]) renaming (_∘_ to _⊚_)
 
 open import Bijection eq using (_↔_)
+open import Embedding eq using (Embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq as CP
 open import Equivalence.Erased.Contractible-preimages eq as ECP
@@ -28,6 +29,7 @@ open import Function-universe eq as F
           step-↔; _↔⟨⟩_; _□; finally-↔; $⟨_⟩_)
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Injection eq using (_↣_)
 import Nat eq as Nat
 open import Preimage eq as Preimage using (_⁻¹_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
@@ -1419,7 +1421,332 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (∃ λ (x : B) → Erased ((y : B) → x ≡ y))  □
 
   ----------------------------------------------------------------------
-  -- Variants of some lemmas from Function-universe
+  -- Variants of Σ-cong, Σ-cong-contra, Π-cong and Π-cong-contra
+
+  -- A preservation lemma for Σ. Note the type of Q.
+  --
+  -- For this lemma it would suffice if ΠΣ-cong-domain implication
+  -- were implication.
+
+  Σ-cong-Erased :
+    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    (A↝B : A ↝[ ΠΣ-cong-domain k ] B) →
+    (∀ x → P x ↝[ k ] Q (to-implication A↝B x)) →
+    Σ A P ↝[ k ] Σ B (λ x → Q x)
+  Σ-cong-Erased {k = implication} A↠B P→Q =
+    Σ-map (_↠_.to A↠B) (P→Q _)
+  Σ-cong-Erased {k = logical-equivalence} =
+    Surjection.Σ-cong-⇔
+  Σ-cong-Erased {k = equivalenceᴱ} =
+    Σ-cong-≃ᴱ-Erased
+  Σ-cong-Erased {k = injection}   = Σ-cong
+  Σ-cong-Erased {k = embedding}   = Σ-cong
+  Σ-cong-Erased {k = surjection}  = Σ-cong
+  Σ-cong-Erased {k = bijection}   = Σ-cong
+  Σ-cong-Erased {k = equivalence} = Σ-cong
+
+  -- Another preservation lemma for Σ. Note the type of P.
+
+  Σ-cong-contra-Erased :
+    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    (B↝A : B ↝[ ΠΣ-cong-domain k ] A) →
+    (∀ x → P (to-implication B↝A x) ↝[ k ] Q x) →
+    Σ A (λ x → P x) ↝[ k ] Σ B Q
+  Σ-cong-contra-Erased {k = implication} =
+    Σ-cong-contra-→
+  Σ-cong-contra-Erased {k = logical-equivalence} =
+    Σ-cong-contra-⇔
+  Σ-cong-contra-Erased {k = equivalenceᴱ} =
+    Σ-cong-contra-≃ᴱ-Erased
+  Σ-cong-contra-Erased {k = injection}   = Σ-cong-contra
+  Σ-cong-contra-Erased {k = embedding}   = Σ-cong-contra
+  Σ-cong-contra-Erased {k = surjection}  = Σ-cong-contra
+  Σ-cong-contra-Erased {k = bijection}   = Σ-cong-contra
+  Σ-cong-contra-Erased {k = equivalence} = Σ-cong-contra
+
+  -- A variant of Σ-cong-Erased that is formulated using
+  -- _↝[_∣_]-ΠΣ-cong_.
+
+  Σ-cong-Erased′ :
+    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    Extensionality? k c d →
+    (A↝B : A ↝[ c ∣ d ]-ΠΣ-cong B) →
+    (∀ x → P x ↝[ k ] Q (A↝B .proj₁ x)) →
+    Σ A P ↝[ k ] Σ B (λ x → Q x)
+  Σ-cong-Erased′ {k = implication} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = implication} A↝B ext)
+  Σ-cong-Erased′ {k = logical-equivalence} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = logical-equivalence} A↝B ext)
+  Σ-cong-Erased′ {k = injection} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = injection} A↝B ext)
+  Σ-cong-Erased′ {k = embedding} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = embedding} A↝B ext)
+  Σ-cong-Erased′ {k = surjection} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = surjection} A↝B ext)
+  Σ-cong-Erased′ {k = bijection} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = bijection} A↝B ext)
+  Σ-cong-Erased′ {k = equivalence} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = equivalence} A↝B ext)
+  Σ-cong-Erased′ {k = equivalenceᴱ} ext A↝B =
+    Σ-cong-Erased (↝-ΠΣ-cong→↝ {k = equivalenceᴱ} A↝B ext)
+
+  -- A variant of Σ-cong-contra-Erased that is formulated using
+  -- _↝[_∣_]-ΠΣ-cong_.
+
+  Σ-cong-contra-Erased′ :
+    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    Extensionality? k c d →
+    (B↝A : B ↝[ c ∣ d ]-ΠΣ-cong A) →
+    (∀ x → P (B↝A .proj₁ x) ↝[ k ] Q x) →
+    Σ A (λ x → P x) ↝[ k ] Σ B Q
+  Σ-cong-contra-Erased′ {k = implication} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = implication} B↝A ext)
+  Σ-cong-contra-Erased′ {k = logical-equivalence} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = logical-equivalence} B↝A ext)
+  Σ-cong-contra-Erased′ {k = injection} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = injection} B↝A ext)
+  Σ-cong-contra-Erased′ {k = embedding} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = embedding} B↝A ext)
+  Σ-cong-contra-Erased′ {k = surjection} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = surjection} B↝A ext)
+  Σ-cong-contra-Erased′ {k = bijection} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = bijection} B↝A ext)
+  Σ-cong-contra-Erased′ {k = equivalence} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = equivalence} B↝A ext)
+  Σ-cong-contra-Erased′ {k = equivalenceᴱ} ext B↝A =
+    Σ-cong-contra-Erased (↝-ΠΣ-cong→↝ {k = equivalenceᴱ} B↝A ext)
+
+  -- A "computation rule" for Σ-cong-Erased′.
+
+  to-implication-Σ-cong-Erased′ :
+    ∀ {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q}
+      {A↝B : A ↝[ c ∣ d ]-ΠΣ-cong B}
+      {P↝Q : ∀ x → P x ↝[ k ] Q (A↝B .proj₁ x)} {x} →
+    (ext : Extensionality? k c d) →
+    to-implication (Σ-cong-Erased′ {Q = Q} ext A↝B P↝Q) x ≡
+    Σ-map (A↝B .proj₁) (to-implication (P↝Q _)) x
+  to-implication-Σ-cong-Erased′ {k} _ with k
+  … | implication         = refl _
+  … | logical-equivalence = refl _
+  … | injection           = refl _
+  … | embedding           = refl _
+  … | surjection          = refl _
+  … | bijection           = refl _
+  … | equivalence         = refl _
+  … | equivalenceᴱ        = refl _
+
+  -- A "computation rule" for Σ-cong-contra-Erased′.
+
+  to-implication-Σ-cong-contra-Erased′ :
+    ∀ {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q}
+      {B↝A : B ↝[ c ∣ d ]-ΠΣ-cong A}
+      {P↝Q : ∀ x → P (B↝A .proj₁ x) ↝[ k ] Q x} {x} →
+    (ext : Extensionality? k c d) →
+    let (from , [ right-inverse-of ]) =
+          ↝-ΠΣ-cong-right-inverse B↝A ext in
+    to-implication (Σ-cong-contra-Erased′ {P = P} ext B↝A P↝Q) x ≡
+    Σ-map from
+      (to-implication (P↝Q _) ⊚ substᴱ P (sym (right-inverse-of _)))
+      x
+  to-implication-Σ-cong-contra-Erased′
+    {k = implication} {P} {B↝A} {P↝Q} {x = x , y} _ =
+      _↠_.from B↝A′ x
+    , P↝Q (_↠_.from B↝A′ x)
+        (subst (λ x → P x) (sym (_↠_.right-inverse-of B↝A′ x)) y)  ≡⟨ cong ((_ ,_) ⊚ P↝Q _) $ sym $ substᴱ≡subst ⟩∎
+
+      _↠_.from B↝A′ x
+    , P↝Q (_↠_.from B↝A′ x)
+        (substᴱ P (sym (_↠_.right-inverse-of B↝A′ x)) y)           ∎
+    where
+    B↝A′ = ↝-ΠΣ-cong→↝ {k = implication} B↝A _
+  to-implication-Σ-cong-contra-Erased′
+    {k = logical-equivalence} {P↝Q} _ =
+    cong ((_ ,_) ⊚ _⇔_.to (P↝Q _)) $ sym $ substᴱ≡subst
+  to-implication-Σ-cong-contra-Erased′
+    {k = injection} {P} {B↝A} {P↝Q} {x = x , y} _ =
+      _≃_.from B↝A′ x
+    , _↣_.to (P↝Q (_≃_.from B↝A′ x))
+        (_↣_.to
+           (≡⇒↝ injection
+              (cong {x = _≃_.to B↝A′}
+                 (λ f → P (f (_≃_.from B↝A′ x))) (sym (refl _))))
+           (_↣_.to
+              (≡⇒↝ injection
+                 (cong (λ x → P x) (sym (_≃_.right-inverse-of B↝A′ _))))
+              y))                                                         ≡⟨ cong ((_ ,_) ⊚ _↣_.to (P↝Q _) ⊚ flip _↣_.to _) $
+                                                                             trans
+                                                                               (cong (≡⇒↝ _) $
+                                                                                trans (cong (cong _) sym-refl) $
+                                                                                cong-refl _)
+                                                                             ≡⇒↝-refl ⟩
+      _≃_.from B↝A′ x
+    , _↣_.to (P↝Q (_≃_.from B↝A′ x))
+        (_↣_.to
+           (≡⇒↝ injection
+              (cong (λ x → P x) (sym (_≃_.right-inverse-of B↝A′ _))))
+           y)                                                             ≡⟨ cong ((_ ,_) ⊚ _↣_.to (P↝Q _)) $ sym $
+                                                                             subst-in-terms-of-≡⇒↝ injection _ _ _ ⟩
+      _≃_.from B↝A′ x
+    , _↣_.to (P↝Q (_≃_.from B↝A′ x))
+        (subst (λ x → P x) (sym (_≃_.right-inverse-of B↝A′ x)) y)         ≡⟨ cong ((_ ,_) ⊚ _↣_.to (P↝Q _)) $ sym
+                                                                             substᴱ≡subst ⟩∎
+      _≃_.from B↝A′ x
+    , _↣_.to (P↝Q (_≃_.from B↝A′ x))
+        (substᴱ P (sym (_≃_.right-inverse-of B↝A′ x)) y)                  ∎
+    where
+    B↝A′ = ↝-ΠΣ-cong→↝ {k = injection} B↝A _
+  to-implication-Σ-cong-contra-Erased′ {k = embedding} {P↝Q} _ =
+    trans
+      (cong ((_ ,_) ⊚ Embedding.to (P↝Q _) ⊚ flip Embedding.to _) $
+       trans
+         (cong (≡⇒↝ _) $
+          trans (cong (cong _) sym-refl) $
+          cong-refl _) $
+       ≡⇒↝-refl)
+      (trans
+         (cong ((_ ,_) ⊚ Embedding.to (P↝Q _)) $ sym $
+          subst-in-terms-of-≡⇒↝ embedding _ _ _)
+         (cong ((_ ,_) ⊚ Embedding.to (P↝Q _)) $ sym
+          substᴱ≡subst))
+  to-implication-Σ-cong-contra-Erased′ {k = surjection} {P↝Q} _ =
+    trans
+      (cong ((_ ,_) ⊚ _↠_.to (P↝Q _) ⊚ flip _↠_.to _) $
+       trans
+         (cong (≡⇒↝ _) $
+          trans (cong (cong _) sym-refl) $
+          cong-refl _) $
+       ≡⇒↝-refl)
+      (trans
+         (cong ((_ ,_) ⊚ _↠_.to (P↝Q _)) $ sym $
+          subst-in-terms-of-≡⇒↝ surjection _ _ _)
+         (cong ((_ ,_) ⊚ _↠_.to (P↝Q _)) $ sym
+          substᴱ≡subst))
+  to-implication-Σ-cong-contra-Erased′ {k = bijection} {P↝Q} _ =
+    cong ((_ ,_) ⊚ _↔_.to (P↝Q _)) $ sym $ substᴱ≡subst
+  to-implication-Σ-cong-contra-Erased′ {k = equivalence} {P↝Q} _ =
+    cong ((_ ,_) ⊚ _≃_.to (P↝Q _)) $ sym $ substᴱ≡subst
+  to-implication-Σ-cong-contra-Erased′ {k = equivalenceᴱ} _ =
+    refl _
+
+  -- A preservation lemma for Π. Note the type of Q.
+
+  Π-cong-Erased :
+    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    Extensionality? k (a ⊔ ℓ) (p ⊔ q) →
+    (A↝B : A ↝[ ΠΣ-cong-domain k ] B) →
+    (∀ x → P x ↝[ k ] Q (to-implication A↝B x)) →
+    ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+  Π-cong-Erased {k = implication} _ =
+    Π-cong-→
+  Π-cong-Erased {k = logical-equivalence} _ =
+    Π-cong-⇔
+  Π-cong-Erased {k = equivalenceᴱ} [ ext ] =
+    Π-cong-≃ᴱ-Erased ext
+  Π-cong-Erased {k = injection}   ext = Π-cong ext
+  Π-cong-Erased {k = embedding}   ext = Π-cong ext
+  Π-cong-Erased {k = surjection}  ext = Π-cong ext
+  Π-cong-Erased {k = bijection}   ext = Π-cong ext
+  Π-cong-Erased {k = equivalence} ext = Π-cong ext
+
+  -- Another preservation lemma for Π. Note the type of P.
+
+  Π-cong-contra-Erased :
+    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    Extensionality? k (b ⊔ ℓ) (p ⊔ q) →
+    (B↝A : B ↝[ ΠΣ-cong-domain k ] A) →
+    (∀ x → P (to-implication B↝A x) ↝[ k ] Q x) →
+    ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+  Π-cong-contra-Erased {k = implication} _ B↠A =
+    Π-cong-contra-→ (_↠_.to B↠A)
+  Π-cong-contra-Erased {k = logical-equivalence} _ =
+    Π-cong-contra-⇔
+  Π-cong-contra-Erased {k = equivalenceᴱ} [ ext ] =
+    Π-cong-contra-≃ᴱ-Erased ext
+  Π-cong-contra-Erased {k = injection}   ext = Π-cong-contra ext
+  Π-cong-contra-Erased {k = embedding}   ext = Π-cong-contra ext
+  Π-cong-contra-Erased {k = surjection}  ext = Π-cong-contra ext
+  Π-cong-contra-Erased {k = bijection}   ext = Π-cong-contra ext
+  Π-cong-contra-Erased {k = equivalence} ext = Π-cong-contra ext
+
+  -- A variant of Π-cong-Erased that is formulated using
+  -- _↝[_∣_]-ΠΣ-cong_.
+
+  Π-cong-Erased′ :
+    {A : Type a} {B : Type ℓ} {P : A → Type p} {Q : @0 B → Type q} →
+    Extensionality? k (a ⊔ c ⊔ ℓ) (d ⊔ p ⊔ q) →
+    (A↝B : A ↝[ c ∣ d ]-ΠΣ-cong B) →
+    (∀ x → P x ↝[ k ] Q (A↝B .proj₁ x)) →
+    ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+  Π-cong-Erased′ {a} {p} {q} {c} {d} {A} {B} {P} {Q} ext A↝B =
+    lemma _
+      (lower-extensionality? _ c d ext)
+      (lower-extensionality? _ (a ⊔ ℓ) (p ⊔ q) ext)
+    where
+    lemma :
+      ∀ k →
+      Extensionality? k (a ⊔ ℓ) (p ⊔ q) →
+      Extensionality? k c d →
+      (∀ x → P x ↝[ k ] Q (A↝B .proj₁ x)) →
+      ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+    lemma implication ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = implication} A↝B ext₂)
+    lemma logical-equivalence ext₁ ext₂ =
+      Π-cong-Erased ext₁
+        (↝-ΠΣ-cong→↝ {k = logical-equivalence} A↝B ext₂)
+    lemma injection ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = injection} A↝B ext₂)
+    lemma embedding ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = embedding} A↝B ext₂)
+    lemma surjection ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = surjection} A↝B ext₂)
+    lemma bijection ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = bijection} A↝B ext₂)
+    lemma equivalence ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = equivalence} A↝B ext₂)
+    lemma equivalenceᴱ ext₁ ext₂ =
+      Π-cong-Erased ext₁ (↝-ΠΣ-cong→↝ {k = equivalenceᴱ} A↝B ext₂)
+
+  -- A variant of Π-cong-contra-Erased that is formulated using
+  -- _↝[_∣_]-ΠΣ-cong_.
+
+  Π-cong-contra-Erased′ :
+    {A : Type ℓ} {B : Type b} {P : @0 A → Type p} {Q : B → Type q} →
+    Extensionality? k (b ⊔ c ⊔ ℓ) (d ⊔ p ⊔ q) →
+    (B↝A : B ↝[ c ∣ d ]-ΠΣ-cong A) →
+    (∀ x → P (B↝A .proj₁ x) ↝[ k ] Q x) →
+    ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+  Π-cong-contra-Erased′ {b} {p} {q} {c} {d} {A} {B} {P} {Q} ext B↝A =
+    lemma _
+      (lower-extensionality? _ c d ext)
+      (lower-extensionality? _ (b ⊔ ℓ) (p ⊔ q) ext)
+    where
+    lemma :
+      ∀ k →
+      Extensionality? k (b ⊔ ℓ) (p ⊔ q) →
+      Extensionality? k c d →
+      (∀ x → P (B↝A .proj₁ x) ↝[ k ] Q x) →
+      ((x : A) → P x) ↝[ k ] ((x : B) → Q x)
+    lemma implication ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = implication} B↝A ext₂)
+    lemma logical-equivalence ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁
+        (↝-ΠΣ-cong→↝ {k = logical-equivalence} B↝A ext₂)
+    lemma injection ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = injection} B↝A ext₂)
+    lemma embedding ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = embedding} B↝A ext₂)
+    lemma surjection ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = surjection} B↝A ext₂)
+    lemma bijection ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = bijection} B↝A ext₂)
+    lemma equivalence ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁ (↝-ΠΣ-cong→↝ {k = equivalence} B↝A ext₂)
+    lemma equivalenceᴱ ext₁ ext₂ =
+      Π-cong-contra-Erased ext₁
+        (↝-ΠΣ-cong→↝ {k = equivalenceᴱ} B↝A ext₂)
+
+  ----------------------------------------------------------------------
+  -- Variants of other lemmas from Function-universe
 
   -- A variant of drop-⊤-left-Σ.
 
