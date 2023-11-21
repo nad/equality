@@ -101,8 +101,7 @@ Nat-with-∥∥ᴱ≃ᴱ⊤ =
 
 module _ (o : Operations) where
 
-  open Operations-for-Nat o
-  open Operations-for-Nat-correct o
+  open Operations-for-Nat′ o
 
   private
 
@@ -182,25 +181,32 @@ module _ (o : Operations) where
     (λ m n → _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))  ≡⟨ (⟨ext⟩ λ m → ⟨ext⟩ λ n → from[to+to]≡+ m n) ⟩∎
     _+_                                                                 ∎
 
-  -- Addition is commutative (in erased contexts).
+  -- Addition is commutative.
 
-  @0 +-comm-cubical : ∀ m {n} → m + n ≡ n + m
-  +-comm-cubical =
-    transport
-      (λ i → (m {n} : ℕ≡Nat i) → +≡+ i m n ≡ +≡+ i n m)
-      0̲
-      Nat.+-comm
+  +-comm-cubical : ∀ m {n} → m + n ≡ n + m
+  +-comm-cubical m {n} =
+    Very-stable→Stable₀
+      (Decidable-equality→Very-stable-≡ _≟_ _ _)
+      [ transport
+          (λ i → (m {n} : ℕ≡Nat i) → +≡+ i m n ≡ +≡+ i n m)
+          0̲
+          Nat.+-comm
+          m {n = n}
+      ]
 
   -- Addition is associative (in erased contexts).
 
-  @0 +-assoc-cubical : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
-  +-assoc-cubical =
-    transport
-      (λ i → (m {n o} : ℕ≡Nat i) →
-             +≡+ i m (+≡+ i n o) ≡ +≡+ i (+≡+ i m n) o)
-      0̲
-      Nat.+-assoc
+  +-assoc-cubical : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
+  +-assoc-cubical m {n} {o} =
+    Very-stable→Stable₀
+      (Decidable-equality→Very-stable-≡ _≟_ _ _)
+      [ transport
+          (λ i → (m {n o} : ℕ≡Nat i) →
+                 +≡+ i m (+≡+ i n o) ≡ +≡+ i (+≡+ i m n) o)
+          0̲
+          Nat.+-assoc
+          m {n = n} {o = o}
+      ]
 
   -- This proof technique seems to scale better than the one used
-  -- above, at least for examples of the kind used here. However, when
-  -- --erased-cubical is used it only works in erased contexts.
+  -- above, at least for examples of the kind used here.

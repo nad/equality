@@ -646,15 +646,16 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
   _ = refl _
 
   ----------------------------------------------------------------------
-  -- A correctness result related to the module Operations-for-Nat
+  -- Some definitions related to the module Operations-for-Nat
 
-  module Operations-for-Nat-correct (o : Operations) where
+  module Operations-for-Nat′ (o : Operations) where
 
     private
 
       module O-[] = Operations-for-Nat-[] o
+      open module O = Operations-for-Nat o public hiding (_≟_)
 
-    open Operations-for-Nat o
+    -- A lemma related to from-bits and to-bits.
 
     to-ℕ-from-bits-to-bits :
       ∀ n → Nat→ℕ (from-bits (to-bits n)) ≡ Nat→ℕ n
@@ -664,6 +665,15 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
           [ ⌊ from-bits (to-bits n) ⌋  ≡⟨ erased (proj₂ (O-[].to-bits n′)) ⟩∎
             ⌊ n ⌋                      ∎
           ]
+
+    -- Equality is decidable for Nat.
+
+    infix 4 _≟_
+
+    _≟_ : Decidable-equality Nat
+    m ≟ n =                         $⟨ m O.≟ n ⟩
+      Dec (Erased (⌊ m ⌋ ≡ ⌊ n ⌋))  →⟨ Dec-map (from-bijection ≡-for-indices↔≡) ⟩
+      Dec (m ≡ n)                   □
 
   ----------------------------------------------------------------------
   -- Some examples
@@ -696,7 +706,7 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
 
     module Nat-examples (o : Operations) where
 
-      open Operations-for-Nat o
+      open Operations-for-Nat′ o
 
       -- If Nat is used instead of Nat-[_], then it can be easier to
       -- state that two values are equal.
@@ -715,6 +725,4 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
       -- to "inj₁ something" at compile-time.
 
       example₃ : Dec (⌈ 5 ⌉ ≡ ⌈ 2 ⌉ + ⌈ 3 ⌉)
-      example₃ =
-        Dec-map (_↔_.logical-equivalence ≡-for-indices↔≡)
-          (⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉)
+      example₃ = ⌈ 5 ⌉ ≟ ⌈ 2 ⌉ + ⌈ 3 ⌉

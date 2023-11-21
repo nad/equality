@@ -91,8 +91,7 @@ Nat-with-∥∥↔⊤ =
 
 module _ (o : Operations) where
 
-  open Operations-for-Nat o
-  open Operations-for-Nat-correct o
+  open Operations-for-Nat′ o
 
   private
 
