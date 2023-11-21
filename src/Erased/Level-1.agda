@@ -793,6 +793,11 @@ Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
        refl [ x ]                            ∎)
   })
 
+-- A variant of []≡[]≃≡.
+
+@0 ≡≃erased≡erased : (x ≡ y) ≃ (erased x ≡ erased y)
+≡≃erased≡erased {x = [ _ ]} {y = [ _ ]} = []≡[]≃≡
+
 -- In an erased context [_]→ is always an embedding.
 
 Erased-Is-embedding-[] :
