@@ -198,7 +198,7 @@ member? :
 member? equal? x = elim-prop e
   where
   e : Elim-prop _
-  e .[]ʳ          = no λ ()
+  e .[]ʳ          = no λ { [ () ] }
   e .∷ʳ {y = z} y = case equal? x y of λ where
     (yes ∥x≡y∥) _ →
       yes (EC.Very-stable→Stable 0 Very-stable-∈
@@ -855,7 +855,7 @@ fresh = λ ns →
 
   e : Elim (λ ms → ∃ λ m → OK ms m)
   e .[]ʳ =
-    0 , [ (λ _ ()) ]
+    0 , [ (λ { _ [ () ] }) ]
 
   e .∷ʳ m (n , ub) =
     Nat.max (suc m) n , ∷-max-suc ub

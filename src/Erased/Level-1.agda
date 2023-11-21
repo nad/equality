@@ -89,6 +89,23 @@ Very-stableᴱ-≡ : Type a → Type a
 Very-stableᴱ-≡ = For-iterated-equality 1 Very-stableᴱ
 
 ------------------------------------------------------------------------
+-- Propositional η-equality for Erased
+
+-- The record type Erased is defined without definitional η-equality,
+-- but propositional η-equality holds.
+
+Erased-η :
+  {@0 A : Type a} {x : Erased A} → [ erased x ] ≡ x
+Erased-η {x = [ _ ]} = refl _
+
+-- The type [ erased x ] ≡ [ erased y ] is equivalent to x ≡ y.
+
+[erased]≡[erased]≃≡ :
+  {@0 A : Type a} {x y : Erased A} →
+  ([ erased x ] ≡ [ erased y ]) ≃ (x ≡ y)
+[erased]≡[erased]≃≡ {x = [ _ ]} {y = [ _ ]} = F.id
+
+------------------------------------------------------------------------
 -- Erased is a monad
 
 -- A universe-polymorphic variant of bind.
@@ -110,17 +127,19 @@ instance
 
   monad : Monad (λ (A : Type a) → Erased A)
   Monad.raw-monad      monad = raw-monad
-  Monad.left-identity  monad = λ _ _ → refl _
-  Monad.right-identity monad = λ _ → refl _
+  Monad.left-identity  monad = λ _ _ → Erased-η
+  Monad.right-identity monad = λ _ → Erased-η
   Monad.associativity  monad = λ _ _ _ → refl _
 
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
 
--- Erased is functorial for dependent functions.
+-- The function map id is pointwise equal to the identity function.
 
-map-id : {@0 A : Type a} → map id ≡ id {A = Erased A}
-map-id = refl _
+map-id : {@0 A : Type a} {x : Erased A} → map id x ≡ id x
+map-id = Erased-η
+
+-- The function map commutes with composition.
 
 map-∘ :
   {@0 A : Type a} {@0 P : A → Type b} {@0 Q : {x : A} → P x → Type c}
@@ -138,12 +157,19 @@ Erased-cong-⇔ A⇔B = record
   ; from = map (_⇔_.from A⇔B)
   }
 
--- Erased is functorial for logical equivalences.
+-- The function Erased-cong-⇔ F.id is equal to F.id (assuming function
+-- extensionality).
 
 Erased-cong-⇔-id :
   {@0 A : Type a} →
+  Extensionality a a →
   Erased-cong-⇔ F.id ≡ F.id {A = Erased A}
-Erased-cong-⇔-id = refl _
+Erased-cong-⇔-id ext =
+  cong₂ (λ f g → record { to = f; from = g })
+    (apply-ext ext λ _ → map-id)
+    (apply-ext ext λ _ → map-id)
+
+-- Erased-cong-⇔ commutes with composition.
 
 Erased-cong-⇔-∘ :
   {@0 A : Type a} {@0 B : Type b} {@0 C : Type c}
@@ -159,8 +185,8 @@ Erased-cong-≃ᴱ :
 Erased-cong-≃ᴱ A≃ᴱB = EEq.↔→≃ᴱ
   (map (_≃ᴱ_.to   A≃ᴱB))
   (map (_≃ᴱ_.from A≃ᴱB))
-  (cong [_]→ ∘ _≃ᴱ_.right-inverse-of A≃ᴱB ∘ erased)
-  (cong [_]→ ∘ _≃ᴱ_.left-inverse-of  A≃ᴱB ∘ erased)
+  (λ @0 { ([ x ]) → cong [_]→ (_≃ᴱ_.right-inverse-of A≃ᴱB x) })
+  (λ @0 { ([ x ]) → cong [_]→ (_≃ᴱ_.left-inverse-of  A≃ᴱB x) })
 
 ------------------------------------------------------------------------
 -- Some isomorphisms
@@ -176,27 +202,8 @@ Erased↔ = [ record
       }
     ; right-inverse-of = λ _ → refl _
     }
-  ; left-inverse-of = λ _ → refl _
+  ; left-inverse-of = λ _ → Erased-η
   } ]
-
--- The following result is based on a result in Mishra-Linger's PhD
--- thesis (see Section 5.4.4).
-
--- Erased (Erased A) is isomorphic to Erased A.
-
-Erased-Erased↔Erased :
-  {@0 A : Type a} →
-  Erased (Erased A) ↔ Erased A
-Erased-Erased↔Erased = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ x → [ erased (erased x) ]
-      ; from = [_]→
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
 
 -- Erased ⊤ is isomorphic to ⊤.
 
@@ -209,7 +216,7 @@ Erased-⊤↔⊤ = record
       }
     ; right-inverse-of = λ _ → refl _
     }
-  ; left-inverse-of = λ _ → refl _
+  ; left-inverse-of = λ _ → Erased-η
   }
 
 -- Erased ⊥ is isomorphic to ⊥.
@@ -226,44 +233,60 @@ Erased-⊥↔⊥ = record
   ; left-inverse-of = λ { [ () ] }
   }
 
--- Erased commutes with Π A.
+-- Erased commutes with Π A (assuming function extensionality).
+
+Π≃Erased-Π :
+  {A : Type a} {@0 P : A → Type p} →
+  ((x : A) → Erased (P x)) ↝[ a ∣ p ]-ΠΣ-cong Erased ((x : A) → P x)
+Π≃Erased-Π = generalise-ext?-ΠΣ-cong
+  (record
+     { logical-equivalence = record
+       { to   = λ f → [ (λ x → erased (f x)) ]
+       ; from = λ f x → [ erased f x ]
+       }
+     ; right-inverse-of = λ { [ _ ] → refl _ }
+     })
+  (λ ext _ → apply-ext ext λ _ → Erased-η)
+
+-- Erased commutes with Π A (assuming function extensionality).
 
 Erased-Π↔Π :
-  {@0 P : A → Type p} →
-  Erased ((x : A) → P x) ↔ ((x : A) → Erased (P x))
-Erased-Π↔Π = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ { [ f ] x → [ f x ] }
-      ; from = λ f → [ (λ x → erased (f x)) ]
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
+  {A : Type a} {@0 P : A → Type p} →
+  Erased ((x : A) → P x) ↝[ a ∣ p ] ((x : A) → Erased (P x))
+Erased-Π↔Π = inverse-ext? (↝-ΠΣ-cong→↝[∣] Π≃Erased-Π)
 
 -- A variant of Erased-Π↔Π.
 
 Erased-Π≃ᴱΠ :
   {@0 A : Type a} {@0 P : A → Type p} →
+  @0 Extensionality a p →
   Erased ((x : A) → P x) ≃ᴱ ((x : A) → Erased (P x))
-Erased-Π≃ᴱΠ = EEq.[≃]→≃ᴱ (EEq.[proofs] $ from-isomorphism Erased-Π↔Π)
+Erased-Π≃ᴱΠ ext =
+  EEq.[≃]→≃ᴱ (EEq.[proofs] $ from-bijection $ Erased-Π↔Π ext)
 
--- Erased commutes with Π.
+-- Erased commutes with Π (assuming function extensionality).
+
+Π-Erased≃Erased-Π :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  ((x : Erased A) → Erased (P (erased x))) ↝[ a ∣ p ]-ΠΣ-cong
+  Erased ((x : A) → P x)
+Π-Erased≃Erased-Π = generalise-ext?-ΠΣ-cong
+  (record
+     { logical-equivalence = record
+       { to   = λ f → [ (λ x → erased (f [ x ])) ]
+       ; from = λ ([ f ]) → map f
+       }
+     ; right-inverse-of = λ { [ _ ] → refl _ }
+     })
+  (λ ext _ → apply-ext ext λ { [ _ ] → Erased-η })
+
+-- Erased commutes with Π (assuming function extensionality).
 
 Erased-Π↔Π-Erased :
   {@0 A : Type a} {@0 P : A → Type p} →
-  Erased ((x : A) → P x) ↔ ((x : Erased A) → Erased (P (erased x)))
-Erased-Π↔Π-Erased = record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = λ ([ f ]) → map f
-      ; from = λ f → [ (λ x → erased (f [ x ])) ]
-      }
-    ; right-inverse-of = λ _ → refl _
-    }
-  ; left-inverse-of = λ _ → refl _
-  }
+  Erased ((x : A) → P x) ↝[ a ∣ p ]
+  ((x : Erased A) → Erased (P (erased x)))
+Erased-Π↔Π-Erased = inverse-ext? (↝-ΠΣ-cong→↝[∣] Π-Erased≃Erased-Π)
 
 -- Erased commutes with Σ.
 
@@ -276,9 +299,9 @@ Erased-Σ↔Σ = record
       { to   = λ { [ p ] → [ proj₁ p ] , [ proj₂ p ] }
       ; from = λ { ([ x ] , [ y ]) → [ x , y ] }
       }
-    ; right-inverse-of = λ _ → refl _
+    ; right-inverse-of = λ { ([ _ ] , [ _ ]) → refl _ }
     }
-  ; left-inverse-of = λ _ → refl _
+  ; left-inverse-of = λ { [ _ ] → refl _ }
   }
 
 -- Erased commutes with ↑ ℓ.
@@ -292,9 +315,9 @@ Erased-↑↔↑ = record
       { to   = λ { [ x ] → lift [ lower x ] }
       ; from = λ { (lift [ x ]) → [ lift x ] }
       }
-    ; right-inverse-of = λ _ → refl _
+    ; right-inverse-of = λ { (lift [ _ ]) → refl _ }
     }
-  ; left-inverse-of = λ _ → refl _
+  ; left-inverse-of = λ { [ _ ] → refl _ }
   }
 
 -- Erased commutes with ¬_ (assuming extensionality).
@@ -303,7 +326,7 @@ Erased-¬↔¬ :
   {@0 A : Type a} →
   Erased (¬ A) ↝[ a ∣ lzero ] ¬ Erased A
 Erased-¬↔¬ {A} ext =
-  Erased (A → ⊥)         ↔⟨ Erased-Π↔Π-Erased ⟩
+  Erased (A → ⊥)         ↝⟨ Erased-Π↔Π-Erased ext ⟩
   (Erased A → Erased ⊥)  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-⊥↔⊥) ⟩□
   (Erased A → ⊥)         □
 
@@ -321,83 +344,43 @@ Erased-¬↔¬ {A} ext =
     ¬-propositional
     ¬-propositional
 
--- The following three results are inspired by a result in
--- Mishra-Linger's PhD thesis (see Section 5.4.1).
---
--- See also Π-Erased↔Π0[], Π-Erased≃Π0[], Π-Erased↔Π0 and Π-Erased≃Π0
--- in Erased.Cubical and Erased.With-K.
-
--- There is a logical equivalence between
--- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
-
-Π-Erased⇔Π0 :
-  {@0 A : Type a} {@0 P : A → Type p} →
-  ((x : Erased A) → P (erased x)) ⇔ ((@0 x : A) → P x)
-Π-Erased⇔Π0 = record
-  { to   = λ f x → f [ x ]
-  ; from = λ f ([ x ]) → f x
-  }
-
--- There is an equivalence with erased proofs between
--- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
-
-Π-Erased≃ᴱΠ0 :
-  {@0 A : Type a} {@0 P : A → Type p} →
-  ((x : Erased A) → P (erased x)) ≃ᴱ ((@0 x : A) → P x)
-Π-Erased≃ᴱΠ0 = EEq.↔→≃ᴱ
-  (_⇔_.to Π-Erased⇔Π0)
-  (_⇔_.from Π-Erased⇔Π0)
-  refl
-  refl
-
--- There is an equivalence between (x : Erased A) → P (erased x) and
--- (@0 x : A) → P x.
-
-Π-Erased≃Π0 :
-  {@0 A : Type a} {P : @0 A → Type p} →
-  ((x : Erased A) → P (erased x)) ≃ ((@0 x : A) → P x)
-Π-Erased≃Π0 {A} {P} =
-  Eq.↔→≃ {B = (@0 x : A) → P x}
-    (_⇔_.to Π-Erased⇔Π0)
-    (_⇔_.from Π-Erased⇔Π0)
-    (λ _ → refl {A = (@0 x : A) → P x} _)
-    (λ _ → refl _)
-
--- A variant of Π-Erased≃Π0.
-
-Π-Erased≃Π0[] :
-  {@0 A : Type a} {P : Erased A → Type p} →
-  ((x : Erased A) → P x) ≃ ((@0 x : A) → P [ x ])
-Π-Erased≃Π0[] = Π-Erased≃Π0
-
 ----------------------------------------------------------------------
 -- Erased is a modality
 
 -- The function λ A → Erased A is the modal operator of a uniquely
--- eliminating modality with [_]→ as the modal unit.
+-- eliminating modality with [_]→ as the modal unit (assuming function
+-- extensionality).
 --
 -- The terminology here roughly follows that of "Modalities in
 -- Homotopy Type Theory" by Rijke, Shulman and Spitters.
 
 uniquely-eliminating :
-  {@0 P : Erased A → Type p} →
+  {A : Type a} {@0 P : Erased A → Type p} →
+  Extensionality a p →
   Is-equivalence
     (λ (f : (x : Erased A) → Erased (P x)) → f ∘ [ A ∣_]→)
-uniquely-eliminating {A} {P} =
-  _≃_.is-equivalence
-    (((x : Erased A) → Erased (P x))  ↔⟨ inverse Erased-Π↔Π-Erased ⟩
-     Erased ((x : A) → (P [ x ]))     ↔⟨ Erased-Π↔Π ⟩
-     ((x : A) → Erased (P [ x ]))     □)
+uniquely-eliminating {A} {P} ext =
+  _≃_.is-equivalence $
+  Eq.with-other-function
+    (((x : Erased A) → Erased (P x))             ↝⟨ (∀-cong ext λ { [ _ ] → F.id }) ⟩
+     ((x : Erased A) → Erased (P [ erased x ]))  ↝⟨ inverse-ext? Erased-Π↔Π-Erased ext ⟩
+     Erased ((x : A) → (P [ x ]))                ↝⟨ Erased-Π↔Π ext ⟩
+     ((x : A) → Erased (P [ x ]))                □)
+    _
+    (λ _ → apply-ext ext λ _ → Erased-η)
 
 -- The function λ A → Erased A is the modal operator of a uniquely
--- eliminating modality with [_]→ as the modal unit.
+-- eliminating modality with [_]→ as the modal unit (assuming function
+-- extensionality).
 
-uniquely-eliminating-modality : Uniquely-eliminating-modality a
-uniquely-eliminating-modality = λ where
+uniquely-eliminating-modality :
+  Extensionality a a →
+  Uniquely-eliminating-modality a
+uniquely-eliminating-modality ext = λ where
     .Uniquely-eliminating-modality.◯ A                  → Erased A
     .Uniquely-eliminating-modality.η                    → [_]→
     .Uniquely-eliminating-modality.uniquely-eliminating →
-      uniquely-eliminating
+      uniquely-eliminating ext
 
 -- Two results that are closely related to uniquely-eliminating.
 --
@@ -406,30 +389,32 @@ uniquely-eliminating-modality = λ where
 -- Spitters.
 
 -- Precomposition with [_]→ is injective for functions from Erased A
--- to Erased B.
+-- to Erased B (assuming function extensionality).
 
 ∘-[]-injective :
-  {@0 B : Type b} →
+  {A : Type a} {@0 B : Type b} →
+  Extensionality a b →
   Injective (λ (f : Erased A → Erased B) → f ∘ [_]→)
-∘-[]-injective = _≃_.injective Eq.⟨ _ , uniquely-eliminating ⟩
+∘-[]-injective ext = _≃_.injective Eq.⟨ _ , uniquely-eliminating ext ⟩
 
 -- A rearrangement lemma for ext⁻¹ and ∘-[]-injective.
 
 ext⁻¹-∘-[]-injective :
-  {@0 B : Type b} {f g : Erased A → Erased B} {p : f ∘ [_]→ ≡ g ∘ [_]→} →
-  ext⁻¹ (∘-[]-injective {x = f} {y = g} p) [ x ] ≡ ext⁻¹ p x
-ext⁻¹-∘-[]-injective {x} {f} {g} {p} =
-  ext⁻¹ (∘-[]-injective p) [ x ]               ≡⟨ elim₁
-                                                    (λ p → ext⁻¹ p [ x ] ≡ ext⁻¹ (_≃_.from equiv p) x) (
-      ext⁻¹ (refl g) [ x ]                            ≡⟨ cong-refl (_$ [ x ]) ⟩
-      refl (g [ x ])                                  ≡⟨ sym $ cong-refl _ ⟩
-      ext⁻¹ (refl (g ∘ [_]→)) x                       ≡⟨ cong (λ p → ext⁻¹ p x) $ sym $ cong-refl _ ⟩∎
-      ext⁻¹ (_≃_.from equiv (refl g)) x               ∎)
-                                                    (∘-[]-injective p) ⟩
-  ext⁻¹ (_≃_.from equiv (∘-[]-injective p)) x  ≡⟨ cong (flip ext⁻¹ x) $ _≃_.left-inverse-of equiv _ ⟩∎
-  ext⁻¹ p x                                    ∎
+  {@0 B : Type b} {ext : Extensionality a b}
+  {f g : Erased A → Erased B} {p : f ∘ [_]→ ≡ g ∘ [_]→} →
+  ext⁻¹ (∘-[]-injective ext {x = f} {y = g} p) [ x ] ≡ ext⁻¹ p x
+ext⁻¹-∘-[]-injective {x} {ext} {f} {g} {p} =
+  ext⁻¹ (∘-[]-injective ext p) [ x ]               ≡⟨ elim₁
+                                                        (λ p → ext⁻¹ p [ x ] ≡ ext⁻¹ (_≃_.from equiv p) x) (
+      ext⁻¹ (refl g) [ x ]                                 ≡⟨ cong-refl (_$ [ x ]) ⟩
+      refl (g [ x ])                                       ≡⟨ sym $ cong-refl _ ⟩
+      ext⁻¹ (refl (g ∘ [_]→)) x                            ≡⟨ cong (λ p → ext⁻¹ p x) $ sym $ cong-refl _ ⟩∎
+      ext⁻¹ (_≃_.from equiv (refl g)) x                    ∎)
+                                                        (∘-[]-injective ext p) ⟩
+  ext⁻¹ (_≃_.from equiv (∘-[]-injective ext p)) x  ≡⟨ cong (flip ext⁻¹ x) $ _≃_.left-inverse-of equiv _ ⟩∎
+  ext⁻¹ p x                                        ∎
   where
-  equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating ⟩
+  equiv = Eq.≃-≡ Eq.⟨ _ , uniquely-eliminating ext ⟩
 
 -- In erased contexts the function λ (A : Type a) → Erased A is the
 -- modal operator of a cotopological modality.
@@ -448,6 +433,46 @@ cotopological-modality =
 ----------------------------------------------------------------------
 -- Some lemmas related to functions with erased domains
 
+-- The following three results are inspired by a result in
+-- Mishra-Linger's PhD thesis (see Section 5.4.1).
+--
+-- See also Π-Erased≃Π0[] below as well as
+-- Π-Erased↔Π0[], Π-Erased≃Π0[], Π-Erased↔Π0 and Π-Erased≃Π0 in
+-- Erased.Cubical and Erased.With-K.
+
+-- There is a logical equivalence between
+-- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
+
+Π-Erased⇔Π0 :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  ((x : Erased A) → P (erased x)) ⇔ ((@0 x : A) → P x)
+Π-Erased⇔Π0 = record
+  { to   = λ f x → f [ x ]
+  ; from = λ f ([ x ]) → f x
+  }
+
+-- A variant of Π-Erased⇔Π0.
+
+Π-Erased⇔Π0[] :
+  {@0 A : Type a} {@0 P : Erased A → Type p} →
+  ((x : Erased A) → P x) ⇔ ((@0 x : A) → P [ x ])
+Π-Erased⇔Π0[] = record
+  { to   = λ f x → f [ x ]
+  ; from = λ { f [ x ] → f x }
+  }
+
+-- There is an equivalence between (x : Erased A) → P (erased x) and
+-- (@0 x : A) → P x (assuming function extensionality).
+
+Π-Erased≃Π0 :
+  {@0 A : Type a} {P : @0 A → Type p} →
+  ((x : Erased A) → P (erased x)) ↝[ a ∣ p ] ((@0 x : A) → P x)
+Π-Erased≃Π0 = generalise-ext?
+  Π-Erased⇔Π0
+  (λ ext →
+       (λ _ → refl _)
+     , (λ _ → apply-ext ext λ { [ _ ] → refl _ }))
+
 -- A variant of H-level.Π-closure for function spaces with erased
 -- explicit domains. Note the type of P.
 
@@ -458,9 +483,9 @@ cotopological-modality =
   ((@0 x : A) → H-level n (P x)) →
   H-level n ((@0 x : A) → P x)
 Πᴱ-closure {P} ext n =
-  (∀ (@0 x) → H-level n (P x))       →⟨ Eq._≃₀_.from Π-Erased≃Π0 ⟩
+  (∀ (@0 x) → H-level n (P x))       →⟨ Eq._≃₀_.from (Π-Erased≃Π0 ext) ⟩
   (∀ x → H-level n (P (x .erased)))  →⟨ Π-closure ext n ⟩
-  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n Π-Erased≃Π0 ⟩□
+  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n (Π-Erased≃Π0 {k = equivalence} ext) ⟩□
   H-level n (∀ (@0 x) → P x)         □
 
 -- A variant of H-level.Π-closure for function spaces with erased
@@ -488,9 +513,9 @@ apply-extᴱ :
   ((@0 x : A) → f x ≡ g x) →
   f ≡ g
 apply-extᴱ {A} {P} {f} {g} ext =
-  ((@0 x : A) → f x ≡ g x)                          →⟨ Eq._≃₀_.from Π-Erased≃Π0 ⟩
+  ((@0 x : A) → f x ≡ g x)                          →⟨ Eq._≃₀_.from (Π-Erased≃Π0 ext) ⟩
   ((x : Erased A) → f (x .erased) ≡ g (x .erased))  →⟨ apply-ext ext ⟩
-  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (Eq._≃₀_.to Π-Erased≃Π0) ⟩□
+  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (Eq._≃₀_.to (Π-Erased≃Π0 ext)) ⟩□
   f ≡ g                                             □
 
 -- Extensionality implies extensionality for some functions with
@@ -518,16 +543,28 @@ implicit-apply-extᴱ {A} {P} {f} {g} ext =
   F._∘_
     {A = (@0 x : A) → P₁ x}
     {C = (@0 x : A) → P₂ x}
-    (from-isomorphism
-       {k₂ = k}
-       {B = (@0 x : A) → P₂ x}
-       Π-Erased≃Π0)
+    (Π-Erased≃Π0 (lower-extensionality? k lzero p₁ ext))
     (F._∘_
        {A = (@0 x : A) → P₁ x}
        (∀-cong ext λ ([ x ]) → hyp x)
-       (from-isomorphism
-          {A = (@0 x : A) → P₁ x}
-          (inverse {B = (@0 x : A) → P₁ x} Π-Erased≃Π0)))
+       (inverse-ext?
+          {B = (@0 x : A) → P₁ x}
+          Π-Erased≃Π0
+          (lower-extensionality? k lzero p₂ ext)))
+
+-- A variant of Π-Erased≃Π0.
+--
+-- This lemma is inspired by a result in Mishra-Linger's PhD thesis
+-- (see Section 5.4.1).
+
+Π-Erased≃Π0[] :
+  {@0 A : Type a} {P : Erased A → Type p} →
+  ((x : Erased A) → P x) ↝[ a ∣ p ] ((@0 x : A) → P [ x ])
+Π-Erased≃Π0[] = generalise-ext?
+  Π-Erased⇔Π0[]
+  (λ ext →
+       (λ _ → apply-extᴱ ext λ _ → refl _)
+     , (λ _ → apply-ext ext λ { [ _ ] → refl _ }))
 
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
@@ -723,7 +760,7 @@ Erasedᴾ :
   {@0 A : Type a} {@0 B : Type b} →
   @0 (A → B → Type r) →
   (Erased A → Erased B → Type r)
-Erasedᴾ R [ x ] [ y ] = Erased (R x y)
+Erasedᴾ R x y = Erased (R (erased x) (erased y))
 
 -- Erasedᴾ preserves Is-equivalence-relation.
 
@@ -746,7 +783,7 @@ Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
 -- "boxed" values and equality of values.
 
 @0 []≡[]≃≡ : ([ x ] ≡ [ y ]) ≃ (x ≡ y)
-[]≡[]≃≡ = Eq.↔⇒≃ (record
+[]≡[]≃≡ {x} = Eq.↔⇒≃ (record
   { surjection = record
     { logical-equivalence = record
       { to   = cong erased
@@ -757,10 +794,11 @@ Erasedᴾ-preserves-Is-equivalence-relation equiv = λ where
         cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
         eq                          ∎
     }
-  ; left-inverse-of = λ eq →
-      cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
-      cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
-      eq                          ∎
+  ; left-inverse-of = elim¹
+      (λ { {y = [ _ ]} eq → cong [_]→ (cong erased eq) ≡ eq })
+      (cong [_]→ (cong erased (refl [ x ]))  ≡⟨ cong (cong _) $ cong-refl _ ⟩
+       cong [_]→ (refl x)                    ≡⟨ cong-refl _ ⟩∎
+       refl [ x ]                            ∎)
   })
 
 -- In an erased context [_]→ is always an embedding.
@@ -777,7 +815,7 @@ Erased-Is-embedding-[] =
 
 Erased-Split-surjective-[] :
   {@0 A : Type a} → Erased (Split-surjective [ A ∣_]→)
-Erased-Split-surjective-[] = [ (λ ([ x ]) → x , refl _) ]
+Erased-Split-surjective-[] = [ (λ @0 { [ x ] → x , refl _ }) ]
 
 -- In erased contexts the type ∃ λ (A : Type a) → Erased (H-level n A)
 -- has h-level 1 + n (assuming function extensionality and
@@ -1010,7 +1048,7 @@ module Extensionality→[]-cong-axiomatisation
   Stable-≡-Erased x y eq =
     x                               ≡⟨ flip ext⁻¹ eq (
 
-      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
+      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective ext (
 
         (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
 
@@ -1029,10 +1067,10 @@ module Extensionality→[]-cong-axiomatisation
     {@0 A : Type a} {x : Erased A} →
     Stable-≡-Erased x x [ refl x ] ≡ refl x
   Stable-≡-Erased-[refl] {x = [ x ]} =
-    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                ≡⟨⟩
-    ext⁻¹ (∘-[]-injective (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
-    ext⁻¹ (apply-ext ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _ ⟩∎
-    refl [ x ]                                                ∎
+    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                    ≡⟨⟩
+    ext⁻¹ (∘-[]-injective ext (apply-ext ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
+    ext⁻¹ (apply-ext ext id) (refl [ x ])                         ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (Eq.extensionality-isomorphism ext) _ ⟩∎
+    refl [ x ]                                                    ∎
 
   open Stable-≡-Erased-axiomatisation→[]-cong-axiomatisation
     (Stable-≡-Erased , Stable-≡-Erased-[refl])
@@ -1052,97 +1090,6 @@ Extensionality→[]-cong-axiomatisation ext =
   instance-of-[]-cong-axiomatisation
   where
   open Extensionality→[]-cong-axiomatisation ext
-
-------------------------------------------------------------------------
--- The []-cong axioms can be instantiated in the presence of a limited
--- form of function extensionality
-
--- A limited form of function extensionality.
-
-Extensionality-for-≡-Erased : (a : Level) → Type (lsuc a)
-Extensionality-for-≡-Erased a =
-  {A : Type a} {x y : Erased A} →
-  Extensionality′ (x ≡ y) (λ _ → Erased A)
-
--- Some lemmas used to implement
--- Extensionality-for-≡-Erased→[]-cong-axiomatisation.
-
-module Extensionality-for-≡-Erased→[]-cong-axiomatisation
-  (ext : Extensionality-for-≡-Erased a)
-  where
-
-  -- Equality is stable for Erased A.
-  --
-  -- The proof is based on the proof of Lemma 1.25 in "Modalities in
-  -- Homotopy Type Theory" by Rijke, Shulman and Spitters, and the
-  -- corresponding Coq source code.
-
-  Stable-≡-Erased : {A : Type a} → Stable-≡ (Erased A)
-  Stable-≡-Erased x y eq =
-    x                               ≡⟨ flip ext⁻¹ eq (
-
-      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective (
-
-        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext′ ext (λ (eq : x ≡ y) →
-
-          x                                  ≡⟨ eq ⟩∎
-          y                                  ∎) ⟩∎
-
-        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
-
-      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
-
-    y                               ∎
-
-  -- A "computation rule" for Stable-≡-Erased.
-
-  Stable-≡-Erased-[refl] :
-    {A : Type a} {x : Erased A} →
-    Stable-≡-Erased x x [ refl x ] ≡ refl x
-  Stable-≡-Erased-[refl] {x = [ x ]} =
-    Stable-≡-Erased [ x ] [ x ] [ refl [ x ] ]                 ≡⟨⟩
-    ext⁻¹ (∘-[]-injective (apply-ext′ ext id)) [ refl [ x ] ]  ≡⟨ ext⁻¹-∘-[]-injective ⟩
-    ext⁻¹ (apply-ext′ ext id) (refl [ x ])                     ≡⟨ cong (_$ refl _) $ _≃_.left-inverse-of (inverse Eq.⟨ _ , ext ⟩) _ ⟩∎
-    refl [ x ]                                                 ∎
-
-  open Stable-≡-Erased-axiomatisation′→[]-cong-axiomatisation
-    (Stable-≡-Erased , Stable-≡-Erased-[refl])
-    public
-
--- Extensionality-for-≡-Erased a implies []-cong-axiomatisation a.
---
--- The idea for this result comes from "Modalities in Homotopy Type
--- Theory" in which Rijke, Shulman and Spitters state that []-cong can
--- be implemented for every modality, and that it is an equivalence
--- for lex modalities (Theorem 3.1 (ix)).
-
-Extensionality-for-≡-Erased→[]-cong-axiomatisation :
-  Extensionality-for-≡-Erased a →
-  []-cong-axiomatisation a
-Extensionality-for-≡-Erased→[]-cong-axiomatisation ext =
-  instance-of-[]-cong-axiomatisation
-  where
-  open Extensionality-for-≡-Erased→[]-cong-axiomatisation ext
-
--- One may wonder whether the other direction is provable: does
--- []-cong-axiomatisation a imply Extensionality-for-≡-Erased a?
---
--- My guess is that this is not provable. If a given program is
--- type-correct, then it should still be type-correct if every
--- occurrence of @0 is removed (and the feature that makes parameter
--- arguments erased in the types of constructors and projections is
--- turned off). After every occurrence of @0 has been removed one can
--- prove []-cong-axiomatisation a (see
--- erased-instance-of-[]-cong-axiomatisation). Furthermore
--- Extensionality-for-≡-Erased a turns into something that is
--- essentially
---
---   {A : Type a} {x y : A} →
---   Extensionality′ (x ≡ y) (λ _ → A).
---
--- This statement should not be provable in "plain" Agda (with the
--- --safe option), and thus the implication under discussion should
--- not be provable.
 
 ------------------------------------------------------------------------
 -- Erased preserves some kinds of functions
@@ -1216,21 +1163,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     _
     (λ eq → [ cong erased eq ])
     (elim¹
-       (λ eq → []-cong [ cong erased eq ] ≡ eq)
+       (λ { {y = [ _ ]} eq → []-cong [ cong erased eq ] ≡ eq })
        ([]-cong [ cong erased (refl [ x ]) ]  ≡⟨ cong []-cong $ []-cong [ cong-refl _ ] ⟩
         []-cong [ refl x ]                    ≡⟨ []-cong-[refl] ⟩∎
         refl [ x ]                            ∎))
-    (λ ([ eq ]) →
-       [ cong erased ([]-cong [ eq ]) ]    ≡⟨ []-cong
-                                                [ elim¹
-                                                    (λ eq → cong erased ([]-cong [ eq ]) ≡ eq)
-                                                    (
-         cong erased ([]-cong [ refl x ])            ≡⟨ cong (cong erased) []-cong-[refl] ⟩
-         cong erased (refl [ x ])                    ≡⟨ cong-refl _ ⟩∎
-         refl x                                      ∎)
-                                                    _
-                                                ] ⟩∎
-       [ eq ]                              ∎)
+    (λ { [ eq ] →
+         [ cong erased ([]-cong [ eq ]) ]    ≡⟨ []-cong
+                                                  [ elim¹
+                                                      (λ eq → cong erased ([]-cong [ eq ]) ≡ eq)
+                                                      (
+           cong erased ([]-cong [ refl x ])            ≡⟨ cong (cong erased) []-cong-[refl] ⟩
+           cong erased (refl [ x ])                    ≡⟨ cong-refl _ ⟩∎
+           refl x                                      ∎)
+                                                      _
+                                                  ] ⟩∎
+         [ eq ]                              ∎ })
 
   -- There is an equivalence between erased equality proofs and
   -- equalities between erased values.
@@ -1239,6 +1186,16 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {@0 A : Type ℓ} {@0 x y : A} →
     Erased (x ≡ y) ≃ ([ x ] ≡ [ y ])
   Erased-≡≃[]≡[] = Eq.⟨ _ , []-cong-equivalence ⟩
+
+  -- A variant of Erased-≡≃[]≡[].
+
+  Erased-≡≃≡ :
+    {@0 A : Type ℓ} {x y : Erased A} →
+    Erased (erased x ≡ erased y) ≃ (x ≡ y)
+  Erased-≡≃≡ {x} {y} =
+    Erased (erased x ≡ erased y)  ↝⟨ Erased-≡≃[]≡[] ⟩
+    [ erased x ] ≡ [ erased y ]   ↝⟨ [erased]≡[erased]≃≡ ⟩□
+    x ≡ y                         □
 
   -- There is a bijection between erased equality proofs and
   -- equalities between erased values.
@@ -1278,9 +1235,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     where
     @0 lemma : _
     lemma =
-      x≡y                          ≡⟨ cong-id _ ⟩
-      cong id x≡y                  ≡⟨⟩
-      cong ([_]→ ∘ erased) x≡y     ≡⟨ sym $ cong-∘ _ _ _ ⟩
+      x≡y                          ≡⟨ sym (_≃_.left-inverse-of []≡[]≃≡ _) ⟩
       cong [_]→ (cong erased x≡y)  ≡⟨ sym []-cong-[]≡cong-[] ⟩∎
       []-cong [ cong erased x≡y ]  ∎
 
@@ -1299,15 +1254,16 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   []-cong⁻¹-sym :
     {@0 A : Type ℓ} {@0 x y : A} {x≡y : [ x ] ≡ [ y ]} →
     []-cong⁻¹ (sym x≡y) ≡ map sym ([]-cong⁻¹ x≡y)
-  []-cong⁻¹-sym = elim¹
-    (λ x≡y → []-cong⁻¹ (sym x≡y) ≡ map sym ([]-cong⁻¹ x≡y))
+  []-cong⁻¹-sym {x≡y} = elim¹
+    (λ { {y = [ _ ]} x≡y →
+         []-cong⁻¹ (sym x≡y) ≡ map sym ([]-cong⁻¹ x≡y) })
     ([]-cong⁻¹ (sym (refl _))      ≡⟨ cong []-cong⁻¹ sym-refl ⟩
      []-cong⁻¹ (refl _)            ≡⟨ []-cong⁻¹-refl ⟩
      [ refl _ ]                    ≡⟨ []-cong [ sym sym-refl ] ⟩
      [ sym (refl _) ]              ≡⟨⟩
      map sym [ refl _ ]            ≡⟨ cong (map sym) $ sym []-cong⁻¹-refl ⟩∎
      map sym ([]-cong⁻¹ (refl _))  ∎)
-    _
+    x≡y
 
   []-cong-[sym] :
     {@0 A : Type ℓ} {@0 x y : A} {@0 x≡y : x ≡ y} →
@@ -1325,9 +1281,10 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {x≡y : [ x ] ≡ [ y ]} {y≡z : [ y ] ≡ [ z ]} →
     []-cong⁻¹ (trans x≡y y≡z) ≡
     [ trans (erased ([]-cong⁻¹ x≡y)) (erased ([]-cong⁻¹ y≡z)) ]
-  []-cong⁻¹-trans {y≡z} = elim₁
-    (λ x≡y → []-cong⁻¹ (trans x≡y y≡z) ≡
-             [ trans (erased ([]-cong⁻¹ x≡y)) (erased ([]-cong⁻¹ y≡z)) ])
+  []-cong⁻¹-trans {x≡y} {y≡z} = elim₁
+    (λ { {x = [ _ ]} x≡y →
+         []-cong⁻¹ (trans x≡y y≡z) ≡
+         [ trans (erased ([]-cong⁻¹ x≡y)) (erased ([]-cong⁻¹ y≡z)) ] })
     ([]-cong⁻¹ (trans (refl _) y≡z)                                    ≡⟨ cong []-cong⁻¹ $ trans-reflˡ _ ⟩
      []-cong⁻¹ y≡z                                                     ≡⟨⟩
      [ erased ([]-cong⁻¹ y≡z) ]                                        ≡⟨ []-cong [ sym $ trans-reflˡ _ ] ⟩
@@ -1335,7 +1292,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
      [ trans (erased [ refl _ ]) (erased ([]-cong⁻¹ y≡z)) ]            ≡⟨ []-cong [ cong (flip trans _) $ cong erased $ sym
                                                                           []-cong⁻¹-refl ] ⟩∎
      [ trans (erased ([]-cong⁻¹ (refl _))) (erased ([]-cong⁻¹ y≡z)) ]  ∎)
-    _
+    x≡y
 
   []-cong-[trans] :
     {@0 A : Type ℓ} {@0 x y z : A} {@0 x≡y : x ≡ y} {@0 y≡z : y ≡ z} →
@@ -1365,14 +1322,12 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
         }
       ; right-inverse-of = λ eq →
           []-cong [ cong erased eq ]  ≡⟨ []-cong-[]≡cong-[] ⟩
-          cong [_]→ (cong erased eq)  ≡⟨ cong-∘ _ _ _ ⟩
-          cong id eq                  ≡⟨ sym $ cong-id _ ⟩∎
+          cong [_]→ (cong erased eq)  ≡⟨ _≃_.left-inverse-of []≡[]≃≡ _ ⟩∎
           eq                          ∎
       }
     ; left-inverse-of = λ eq →
         cong erased ([]-cong [ eq ])  ≡⟨ cong (cong erased) []-cong-[]≡cong-[] ⟩
-        cong erased (cong [_]→ eq)    ≡⟨ cong-∘ _ _ _ ⟩
-        cong id eq                    ≡⟨ sym $ cong-id _ ⟩∎
+        cong erased (cong [_]→ eq)    ≡⟨ _≃_.right-inverse-of []≡[]≃≡ _ ⟩∎
         eq                            ∎
     })
 
@@ -1384,6 +1339,32 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   @0 _ : _≃_.from (≡≃[]≡[] {x = x} {y = y}) ≡ cong erased
   _ = refl _
+
+  ----------------------------------------------------------------------
+  -- An isomorphism
+
+  -- The following result is based on a result in Mishra-Linger's PhD
+  -- thesis (see Section 5.4.4).
+
+  -- Erased (Erased A) is isomorphic to Erased A.
+  --
+  -- If the --erased-matches flag is activated, then this lemma can be
+  -- proved without the use of []-cong, see
+  -- Erased.Erased-matches.Erased-Erased↔Erased.
+
+  Erased-Erased↔Erased :
+    {@0 A : Type ℓ} →
+    Erased (Erased A) ↔ Erased A
+  Erased-Erased↔Erased = record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = λ x → [ erased (erased x) ]
+        ; from = [_]→
+        }
+      ; right-inverse-of = λ { [ _ ] → refl _ }
+      }
+    ; left-inverse-of = λ { [ _ ] → []-cong [ Erased-η ] }
+    }
 
   ----------------------------------------------------------------------
   -- Variants of subst, cong and the J rule that take erased equality
@@ -1464,18 +1445,18 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A computation rule for elim₁ᴱ.
 
   elim₁ᴱ-refl :
-    ∀ {@0 A : Type ℓ} {@0 y}
-      {P : {@0 x : A} → @0 x ≡ y → Type p}
-      {p : P (refl y)} →
+    ∀ {@0 A : Type ℓ} {@0 y} →
+    (P : {@0 x : A} → @0 x ≡ y → Type p)
+    {p : P (refl y)} →
     elim₁ᴱ P p (refl y) ≡ p
-  elim₁ᴱ-refl {y} {P} {p} =
+  elim₁ᴱ-refl {y} P {p} =
     substᴱ
       (λ p → P (proj₂ p))
       (proj₂ (singleton-contractible y) (y , refl y))
       p                                                ≡⟨ congᴱ (λ q → substᴱ (λ p → P (proj₂ p)) q _)
                                                             (singleton-contractible-refl _) ⟩
 
-    substᴱ (λ p → P (proj₂ p)) (refl (y , refl y)) p   ≡⟨ substᴱ-refl ⟩∎
+    substᴱ (λ p → P (proj₂ p)) (refl (y , refl y)) p   ≡⟨ substᴱ-refl {P = λ p → P (proj₂ p)} ⟩∎
 
     p                                                  ∎
 
@@ -1487,7 +1468,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     elim₁ᴱ P r eq ≡ elim₁ (λ x → P x) r eq
   elim₁ᴱ≡elim₁ {eq} {P} {r} = elim₁
     (λ eq → elim₁ᴱ P r eq ≡ elim₁ (λ x → P x) r eq)
-    (elim₁ᴱ P r (refl _)           ≡⟨ elim₁ᴱ-refl ⟩
+    (elim₁ᴱ P r (refl _)           ≡⟨ elim₁ᴱ-refl P ⟩
      r                             ≡⟨ sym $ elim₁-refl _ _ ⟩∎
      elim₁ (λ x → P x) r (refl _)  ∎)
     eq
@@ -1495,18 +1476,18 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A computation rule for elim¹ᴱ.
 
   elim¹ᴱ-refl :
-    ∀ {@0 A : Type ℓ} {@0 x}
-      {P : {@0 y : A} → @0 x ≡ y → Type p}
-      {p : P (refl x)} →
+    ∀ {@0 A : Type ℓ} {@0 x} →
+    (P : {@0 y : A} → @0 x ≡ y → Type p)
+    {p : P (refl x)} →
     elim¹ᴱ P p (refl x) ≡ p
-  elim¹ᴱ-refl {x} {P} {p} =
+  elim¹ᴱ-refl {x} P {p} =
     substᴱ
       (λ p → P (proj₂ p))
       (proj₂ (other-singleton-contractible x) (x , refl x))
       p                                                      ≡⟨ congᴱ (λ q → substᴱ (λ p → P (proj₂ p)) q _)
                                                                   (other-singleton-contractible-refl _) ⟩
 
-    substᴱ (λ p → P (proj₂ p)) (refl (x , refl x)) p         ≡⟨ substᴱ-refl ⟩∎
+    substᴱ (λ p → P (proj₂ p)) (refl (x , refl x)) p         ≡⟨ substᴱ-refl {P = λ p → P (proj₂ p)} ⟩∎
 
     p                                                        ∎
 
@@ -1518,7 +1499,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     elim¹ᴱ P r eq ≡ elim¹ (λ x → P x) r eq
   elim¹ᴱ≡elim¹ {eq} {P} {r} = elim¹
     (λ eq → elim¹ᴱ P r eq ≡ elim¹ (λ x → P x) r eq)
-    (elim¹ᴱ P r (refl _)           ≡⟨ elim¹ᴱ-refl ⟩
+    (elim¹ᴱ P r (refl _)           ≡⟨ elim¹ᴱ-refl P ⟩
      r                             ≡⟨ sym $ elim¹-refl _ _ ⟩∎
      elim¹ (λ x → P x) r (refl _)  ∎)
     eq
@@ -1526,10 +1507,11 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- A computation rule for elimᴱ.
 
   elimᴱ-refl :
-    {@0 A : Type ℓ} {@0 x : A} {P : {@0 x y : A} → @0 x ≡ y → Type p}
+    {@0 A : Type ℓ} {@0 x : A}
+    (P : {@0 x y : A} → @0 x ≡ y → Type p)
     (r : (@0 x : A) → P (refl x)) →
     elimᴱ P r (refl x) ≡ r x
-  elimᴱ-refl _ = elim₁ᴱ-refl
+  elimᴱ-refl P _ = elim₁ᴱ-refl P
 
   -- If all arguments are non-erased, then one can replace elimᴱ with
   -- elim (if the first two explicit arguments are η-expanded).
@@ -1541,7 +1523,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   elimᴱ≡elim {eq} {P} {r} = elim
     (λ eq → elimᴱ P r eq ≡ elim (λ x → P x) (λ x → r x) eq)
     (λ x →
-       elimᴱ P r (refl _)                     ≡⟨ elimᴱ-refl r ⟩
+       elimᴱ P r (refl _)                     ≡⟨ elimᴱ-refl P r ⟩
        r x                                    ≡⟨ sym $ elim-refl _ _ ⟩∎
        elim (λ x → P x) (λ x → r x) (refl _)  ∎)
     eq
@@ -1552,7 +1534,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {@0 A : Type ℓ} {@0 x : A} {f : @0 A → B} →
     congᴱ f (refl x) ≡ refl (f x)
   congᴱ-refl {x} {f} =
-    elimᴱ (λ {x y} _ → f x ≡ f y) (λ x → refl (f x)) (refl x)  ≡⟨ elimᴱ-refl (λ x → refl (f x)) ⟩∎
+    elimᴱ (λ {x y} _ → f x ≡ f y) (λ x → refl (f x)) (refl x)  ≡⟨ elimᴱ-refl (λ _ → _ ≡ _) (λ x → refl (f x)) ⟩∎
     refl (f x)                                                 ∎
 
   -- If all arguments are non-erased, then one can replace congᴱ with
@@ -1626,16 +1608,16 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Erased-H-level′↔H-level′ {A} zero ext =
     Erased (H-level′ zero A)                                              ↔⟨⟩
     Erased (∃ λ (x : A) → (y : A) → x ≡ y)                                ↔⟨ Erased-Σ↔Σ ⟩
-    (∃ λ (x : Erased A) → Erased ((y : A) → erased x ≡ y))                ↔⟨ (∃-cong λ _ → Erased-Π↔Π-Erased) ⟩
-    (∃ λ (x : Erased A) → (y : Erased A) → Erased (erased x ≡ erased y))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
+    (∃ λ (x : Erased A) → Erased ((y : A) → erased x ≡ y))                ↝⟨ (∃-cong λ _ → Erased-Π↔Π-Erased ext) ⟩
+    (∃ λ (x : Erased A) → (y : Erased A) → Erased (erased x ≡ erased y))  ↝⟨ (∃-cong λ _ → ∀-cong ext λ _ → from-isomorphism Erased-≡≃≡) ⟩
     (∃ λ (x : Erased A) → (y : Erased A) → x ≡ y)                         ↔⟨⟩
     H-level′ zero (Erased A)                                              □
   Erased-H-level′↔H-level′ {A} (suc n) ext =
     Erased (H-level′ (suc n) A)                                      ↔⟨⟩
-    Erased ((x y : A) → H-level′ n (x ≡ y))                          ↔⟨ Erased-Π↔Π-Erased ⟩
-    ((x : Erased A) → Erased ((y : A) → H-level′ n (erased x ≡ y)))  ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    Erased ((x y : A) → H-level′ n (x ≡ y))                          ↝⟨ Erased-Π↔Π-Erased ext ⟩
+    ((x : Erased A) → Erased ((y : A) → H-level′ n (erased x ≡ y)))  ↝⟨ (∀-cong ext λ _ → Erased-Π↔Π-Erased ext) ⟩
     ((x y : Erased A) → Erased (H-level′ n (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → Erased-H-level′↔H-level′ n ext) ⟩
-    ((x y : Erased A) → H-level′ n (Erased (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level′-cong ext n Erased-≡↔[]≡[]) ⟩
+    ((x y : Erased A) → H-level′ n (Erased (erased x ≡ erased y)))   ↝⟨ (∀-cong ext λ _ → ∀-cong ext λ _ → H-level′-cong ext n Erased-≡≃≡) ⟩
     ((x y : Erased A) → H-level′ n (x ≡ y))                          ↔⟨⟩
     H-level′ (suc n) (Erased A)                                      □
 
@@ -1699,9 +1681,14 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   -- Some properties related to "Modalities in Homotopy Type Theory"
   -- by Rijke, Shulman and Spitters
 
-  -- The function λ (A : Type ℓ) → Erased A is the modal operator of a
-  -- lex modality (see Theorem 3.1, case (i) in "Modalities in
-  -- Homotopy Type Theory" for the definition used here).
+  -- The function λ (A : Type ℓ) → Erased A is left exact.
+  --
+  -- See Theorem 3.1, case (i) in "Modalities in Homotopy Type Theory"
+  -- for the definition of "left exact" used here. That definition is
+  -- restricted to modalities. See
+  -- Erased.Stability.[]-cong₁.Erased-modality for a proof showing
+  -- that the function λ (A : Type ℓ) → Erased A is a modality,
+  -- assuming that the []-cong axioms hold for ℓ.
 
   lex :
     {@0 A : Type ℓ} {@0 x y : A} →
@@ -1712,8 +1699,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Erased (Contractible (x ≡ y))  ↝⟨ Erased-H-level↔H-level 0 _ ⟩□
     Contractible (Erased (x ≡ y))  □
 
-  -- The function λ (A : Type ℓ) → Erased A is the modal operator of a
-  -- lex modality.
+  -- The function λ (A : Type ℓ) → Erased A is left exact.
 
   lex-modality : Left-exact (λ (A : Type ℓ) → Erased A)
   lex-modality = lex
@@ -1738,9 +1724,9 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Erased (Split-surjective f) ↝[ ℓ ∣ a ⊔ ℓ ]
     Split-surjective (map f)
   Erased-Split-surjective↔Split-surjective {f} ext =
-    Erased (∀ y → ∃ λ x → f x ≡ y)                    ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ y → ∃ λ x → f x ≡ y)                    ↝⟨ Erased-Π↔Π-Erased ext ⟩
     (∀ y → Erased (∃ λ x → f x ≡ erased y))           ↝⟨ (∀-cong ext λ _ → from-isomorphism Erased-Σ↔Σ) ⟩
-    (∀ y → ∃ λ x → Erased (f (erased x) ≡ erased y))  ↝⟨ (∀-cong ext λ _ → ∃-cong λ _ → from-isomorphism Erased-≡↔[]≡[]) ⟩
+    (∀ y → ∃ λ x → Erased (f (erased x) ≡ erased y))  ↝⟨ (∀-cong ext λ _ → ∃-cong λ _ → from-isomorphism Erased-≡≃≡) ⟩
     (∀ y → ∃ λ x → [ f (erased x) ] ≡ y)              ↔⟨⟩
     (∀ y → ∃ λ x → map f x ≡ y)                       □
 
@@ -1866,51 +1852,81 @@ module []-cong₂
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂}
     {@0 f : A → B} {@0 x y : A} {@0 p : x ≡ y} →
     BC₂.[]-cong [ cong f p ] ≡ cong (map f) (BC₁.[]-cong [ p ])
-  []-cong-cong {f} =
+  []-cong-cong {f} {x} =
     BC₁.elim¹ᴱ
       (λ p → BC₂.[]-cong [ cong f p ] ≡
              cong (map f) (BC₁.[]-cong [ p ]))
-      (BC₂.[]-cong [ cong f (refl _) ]        ≡⟨ cong BC₂.[]-cong (BC₂.[]-cong [ cong-refl _ ]) ⟩
-       BC₂.[]-cong [ refl _ ]                 ≡⟨ BC₂.[]-cong-[refl] ⟩
-       refl _                                 ≡⟨ sym $ cong-refl _ ⟩
-       cong (map f) (refl _)                  ≡⟨ sym $ cong (cong (map f)) BC₁.[]-cong-[refl] ⟩∎
-       cong (map f) (BC₁.[]-cong [ refl _ ])  ∎)
+      (BC₂.[]-cong [ cong f (refl x) ]        ≡⟨ cong BC₂.[]-cong (BC₂.[]-cong [ cong-refl _ ]) ⟩
+       BC₂.[]-cong [ refl (f x) ]             ≡⟨ BC₂.[]-cong-[refl] ⟩
+       refl [ f x ]                           ≡⟨ sym $ cong-refl _ ⟩
+       cong (map f) (refl [ x ])              ≡⟨ sym $ cong (cong (map f)) BC₁.[]-cong-[refl] ⟩∎
+       cong (map f) (BC₁.[]-cong [ refl x ])  ∎)
       _
 
   ----------------------------------------------------------------------
   -- Erased "commutes" with various things
 
-  -- Erased "commutes" with Has-quasi-inverse.
+  -- Erased "commutes" with Has-quasi-inverse (up to _⇔_).
 
-  Erased-Has-quasi-inverse↔Has-quasi-inverse :
+  Erased-Has-quasi-inverse⇔Has-quasi-inverse :
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
-    Erased (Has-quasi-inverse f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
-    Has-quasi-inverse (map f)
-  Erased-Has-quasi-inverse↔Has-quasi-inverse {A} {B} {f} {k} ext =
+    Erased (Has-quasi-inverse f) ⇔ Has-quasi-inverse (map f)
+  Erased-Has-quasi-inverse⇔Has-quasi-inverse {f} = record
+    { to = λ ([ f⁻¹ , f-f⁻¹ , f⁻¹-f ]) →
+          map f⁻¹
+        , (λ { [ _ ] → BC₂.[]-cong [ f-f⁻¹ _ ] })
+        , (λ { [ _ ] → BC₁.[]-cong [ f⁻¹-f _ ] })
+    ; from = λ (map-f⁻¹ , map-f-map-f⁻¹ , map-f⁻¹-map-f) →
+        [ erased ∘ map-f⁻¹ ∘ [_]→
+        , (λ x →
+             f (erased (map-f⁻¹ [ x ]))                 ≡⟨⟩
+             erased (map f [ erased (map-f⁻¹ [ x ]) ])  ≡⟨ cong (erased ∘ map f) (Erased-η {x = map-f⁻¹ _}) ⟩
+             erased (map f (map-f⁻¹ [ x ]))             ≡⟨ cong erased (map-f-map-f⁻¹ _) ⟩
+             erased [ x ]                               ≡⟨⟩
+             x                                          ∎)
+        , (λ x →
+             erased (map-f⁻¹ [ f x ])        ≡⟨⟩
+             erased (map-f⁻¹ (map f [ x ]))  ≡⟨ cong erased (map-f⁻¹-map-f [ _ ]) ⟩
+             erased [ x ]                    ≡⟨⟩
+             x                               ∎)
+        ]
+    }
+
+  -- Erased "commutes" with Has-quasi-inverse (assuming function
+  -- extensionality).
+  --
+  -- See also
+  -- Erased.Level-2.[]-cong₂-⊔.Erased-Has-quasi-inverse↔Has-quasi-inverse.
+
+  Erased-Has-quasi-inverse≃Has-quasi-inverse :
+    {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Erased (Has-quasi-inverse f) ≃ Has-quasi-inverse (map f)
+  Erased-Has-quasi-inverse≃Has-quasi-inverse {f} ext =
     Erased (∃ λ g → (∀ x → f (g x) ≡ x) × (∀ x → g (f x) ≡ x))            ↔⟨ Erased-Σ↔Σ ⟩
 
     (∃ λ g →
-       Erased ((∀ x → f (erased g x) ≡ x) × (∀ x → erased g (f x) ≡ x)))  ↝⟨ (∃-cong λ _ → from-isomorphism Erased-Σ↔Σ) ⟩
+       Erased ((∀ x → f (erased g x) ≡ x) × (∀ x → erased g (f x) ≡ x)))  ↔⟨ (∃-cong λ _ → Erased-Σ↔Σ) ⟩
 
     (∃ λ g →
        Erased (∀ x → f (erased g x) ≡ x) ×
-       Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong Erased-Π↔Π-Erased (λ g →
+       Erased (∀ x → erased g (f x) ≡ x))                                 ↝⟨ Σ-cong (Erased-Π↔Π-Erased {k = equivalence} ext₂₁) (λ g →
                                                                              lemma₁ (erased g) ×-cong lemma₂ (erased g)) ⟩□
     (∃ λ g → (∀ x → map f (g x) ≡ x) × (∀ x → g (map f x) ≡ x))           □
     where
-    lemma₁ : (@0 g : B → A) → _ ↝[ k ] _
-    lemma₁ g =
-      Erased (∀ x → f (g x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
-      (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₁ ℓ₁ ext) λ _ →
-                                                        from-isomorphism BC₂.Erased-≡↔[]≡[]) ⟩
+    ext₁₁ = lower-extensionality ℓ₂ ℓ₂ ext
+    ext₂₁ = lower-extensionality ℓ₁ ℓ₂ ext
+    ext₂₂ = lower-extensionality ℓ₁ ℓ₁ ext
+
+    lemma₁ = λ (@0 g) →
+      Erased (∀ x → f (g x) ≡ x)                    ↝⟨ Erased-Π↔Π-Erased ext₂₂ ⟩
+      (∀ x → Erased (f (g (erased x)) ≡ erased x))  ↝⟨ (∀-cong ext₂₂ λ _ → BC₂.Erased-≡≃≡) ⟩
       (∀ x → [ f (g (erased x)) ] ≡ x)              ↔⟨⟩
       (∀ x → map (f ∘ g) x ≡ x)                     □
 
-    lemma₂ : (@0 g : B → A) → _ ↝[ k ] _
-    lemma₂ g =
-      Erased (∀ x → g (f x) ≡ x)                    ↔⟨ Erased-Π↔Π-Erased ⟩
-      (∀ x → Erased (g (f (erased x)) ≡ erased x))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₂ ℓ₂ ext) λ _ →
-                                                        from-isomorphism BC₁.Erased-≡↔[]≡[]) ⟩
+    lemma₂ = λ (@0 g) →
+      Erased (∀ x → g (f x) ≡ x)                    ↝⟨ Erased-Π↔Π-Erased ext₁₁ ⟩
+      (∀ x → Erased (g (f (erased x)) ≡ erased x))  ↝⟨ (∀-cong ext₁₁ λ _ → BC₁.Erased-≡≃≡) ⟩
       (∀ x → [ g (f (erased x)) ] ≡ x)              ↔⟨⟩
       (∀ x → map (g ∘ f) x ≡ x)                     □
 
@@ -1930,18 +1946,17 @@ module []-cong₂
                                                                              Erased-Σ↔Σ ⟩
     (∃ λ (f-g : Erased ((x : B) → f (g x) ≡ x)) →
      ∃ λ (g-f : Erased ((x : A) → g (f x) ≡ x)) →
-     Erased ((x : A) → cong f (erased g-f x) ≡ erased f-g (f x)))         ↔⟨ (Σ-cong Erased-Π↔Π-Erased λ _ →
-                                                                              Σ-cong Erased-Π↔Π-Erased λ _ →
-                                                                              Erased-Π↔Π-Erased) ⟩
+     Erased ((x : A) → cong f (erased g-f x) ≡ erased f-g (f x)))         ↝⟨ (Σ-cong (Erased-Π↔Π-Erased {k = equivalence} ext₂₂) λ _ →
+                                                                              Σ-cong (Erased-Π↔Π-Erased {k = equivalence} ext₁₁) λ _ →
+                                                                              Erased-Π↔Π-Erased ext₁₂) ⟩
     (∃ λ (f-g : (x : Erased B) → Erased (f (g (erased x)) ≡ erased x)) →
      ∃ λ (g-f : (x : Erased A) → Erased (g (f (erased x)) ≡ erased x)) →
      (x : Erased A) →
-     Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x))))           ↝⟨ (Σ-cong (∀-cong (lower-extensionality ℓ₁ ℓ₁ ext) λ _ →
-                                                                                      BC₂.Erased-≡≃[]≡[]) λ f-g →
-                                                                              Σ-cong (∀-cong (lower-extensionality ℓ₂ ℓ₂ ext) λ _ →
-                                                                                      BC₁.Erased-≡≃[]≡[]) λ g-f →
-                                                                              ∀-cong (lower-extensionality ℓ₂ ℓ₁ ext) λ x →
-      Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x)))                 ↝⟨ BC₂.Erased-≡≃[]≡[] ⟩
+     Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x))))           ↝⟨ (Σ-cong (∀-cong ext₂₂ λ _ → BC₂.Erased-≡≃≡) λ f-g →
+                                                                              Σ-cong (∀-cong ext₁₁ λ _ → BC₁.Erased-≡≃≡) λ g-f →
+                                                                              ∀-cong ext₁₂ λ { x@([ _ ]) →
+
+      Erased (cong f (erased (g-f x)) ≡ erased (f-g (map f x)))                 ↝⟨ BC₂.Erased-≡≃≡ ⟩
 
       map (cong f) (g-f x) ≡ f-g (map f x)                                      ↝⟨ inverse $ Eq.≃-≡ BC₂.Erased-≡≃[]≡[] ⟩
 
@@ -1961,15 +1976,19 @@ module []-cong₂
         cong (map f) (BC₁.[]-cong [ refl x ])                                           ∎)
                                                                                      _ ⟩
       cong (map f) (BC₁.[]-cong [ erased (g-f x) ]) ≡
-      BC₂.[]-cong (f-g (map f x))                                               ↔⟨⟩
+      BC₂.[]-cong (f-g (map f x))                                               ↝⟨ ≡⇒↝ _ $ cong (_≡ _) $ cong (cong _) $ cong BC₁.[]-cong $ Erased-η ⟩
 
-      cong (map f) (BC₁.[]-cong (g-f x)) ≡ BC₂.[]-cong (f-g (map f x))          □) ⟩
+      cong (map f) (BC₁.[]-cong (g-f x)) ≡ BC₂.[]-cong (f-g (map f x))          □ }) ⟩
 
     (∃ λ (f-g : (x : Erased B) → map (f ∘ g) x ≡ x) →
      ∃ λ (g-f : (x : Erased A) → map (g ∘ f) x ≡ x) →
      (x : Erased A) → cong (map f) (g-f x) ≡ f-g (map f x))               ↔⟨⟩
 
     HA.Proofs (map f) (map g)                                             □
+    where
+    ext₁₁ = lower-extensionality ℓ₂ ℓ₂ ext
+    ext₁₂ = lower-extensionality ℓ₂ ℓ₁ ext
+    ext₂₂ = lower-extensionality ℓ₁ ℓ₁ ext
 
 ------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold for the maximum
@@ -2006,12 +2025,13 @@ module []-cong₂-⊔
     (∀ y → Contractible (Erased (f ⁻¹ y))) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     Erased (Is-equivalence f)
   Erased-connected↔Erased-Is-equivalence {f} {k} ext =
-    (∀ y → Contractible (Erased (f ⁻¹ y)))  ↝⟨ (∀-cong (lower-extensionality? k ℓ₁ lzero ext) λ _ →
-                                                inverse-ext? (BC.Erased-H-level↔H-level 0) ext) ⟩
-    (∀ y → Erased (Contractible (f ⁻¹ y)))  ↔⟨ inverse Erased-Π↔Π ⟩
+    (∀ y → Contractible (Erased (f ⁻¹ y)))  ↝⟨ (∀-cong ext′ λ _ → inverse-ext? (BC.Erased-H-level↔H-level 0) ext) ⟩
+    (∀ y → Erased (Contractible (f ⁻¹ y)))  ↝⟨ inverse-ext? Erased-Π↔Π ext′ ⟩
     Erased (∀ y → Contractible (f ⁻¹ y))    ↔⟨⟩
     Erased (CP.Is-equivalence f)            ↝⟨ inverse-ext? (λ ext → EC.Erased-cong? Is-equivalence≃Is-equivalence-CP ext) ext ⟩□
     Erased (Is-equivalence f)               □
+    where
+    ext′ = lower-extensionality? k ℓ₁ lzero ext
 
   ----------------------------------------------------------------------
   -- Erased "commutes" with various things
@@ -2024,9 +2044,9 @@ module []-cong₂-⊔
     Is-equivalence (map f)
   Erased-Is-equivalence↔Is-equivalence {f} {k} ext =
     Erased (Is-equivalence f)                      ↝⟨ EC.Erased-cong? Is-equivalence≃Is-equivalence-CP ext ⟩
-    Erased (∀ x → Contractible (f ⁻¹ x))           ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ x → Contractible (f ⁻¹ x))           ↝⟨ Erased-Π↔Π-Erased ext′ ⟩
     (∀ x → Erased (Contractible (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → BC.Erased-H-level↔H-level 0 ext) ⟩
-    (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ _ → H-level-cong ext 0 BC₂.Erased-⁻¹) ⟩
+    (∀ x → Contractible (Erased (f ⁻¹ erased x)))  ↝⟨ (∀-cong ext′ λ { [ _ ] → H-level-cong ext 0 BC₂.Erased-⁻¹ }) ⟩
     (∀ x → Contractible (map f ⁻¹ x))              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP ext ⟩□
     Is-equivalence (map f)                         □
     where
@@ -2046,29 +2066,31 @@ module []-cong₂-⊔
                                                                           from-isomorphism Bijection.implicit-Π↔Π)
                                                                        ext ⟩
 
-    Erased (∀ x y → f x ≡ f y → x ≡ y)                            ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ x y → f x ≡ f y → x ≡ y)                            ↝⟨ Erased-Π↔Π-Erased ext₁₁₂ ⟩
 
-    (∀ x → Erased (∀ y → f (erased x) ≡ f y → erased x ≡ y))      ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    (∀ x → Erased (∀ y → f (erased x) ≡ f y → erased x ≡ y))      ↝⟨ (∀-cong ext₁₁₂ λ _ → Erased-Π↔Π-Erased ext₁₁₂) ⟩
 
     (∀ x y →
-     Erased (f (erased x) ≡ f (erased y) → erased x ≡ erased y))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+     Erased (f (erased x) ≡ f (erased y) → erased x ≡ erased y))  ↝⟨ (∀-cong ext₁₁₂ λ _ → ∀-cong ext₁₁₂ λ _ → Erased-Π↔Π-Erased ext₂₁) ⟩
 
     (∀ x y →
      Erased (f (erased x) ≡ f (erased y)) →
-     Erased (erased x ≡ erased y))                                ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+     Erased (erased x ≡ erased y))                                ↝⟨ (∀-cong ext₁₁₂ λ { [ _ ] → ∀-cong ext₁₁₂ λ { [ _ ] →
                                                                       generalise-ext?-sym
-                                                                        (λ {k} ext → →-cong (lower-extensionality? ⌊ k ⌋-sym ℓ₁ ℓ₂ ext)
-                                                                                            (from-isomorphism BC₂.Erased-≡↔[]≡[])
-                                                                                            (from-isomorphism BC₁.Erased-≡↔[]≡[]))
-                                                                        ext) ⟩
+                                                                        (λ ext →
+                                                                           →-cong ext
+                                                                             (from-isomorphism BC₂.Erased-≡↔[]≡[])
+                                                                             (from-isomorphism BC₁.Erased-≡↔[]≡[]))
+                                                                        ext₂₁ }}) ⟩
 
-    (∀ x y → [ f (erased x) ] ≡ [ f (erased y) ] → x ≡ y)         ↝⟨ (∀-cong ext′ λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
+    (∀ x y → [ f (erased x) ] ≡ [ f (erased y) ] → x ≡ y)         ↝⟨ (∀-cong ext₁₁₂ λ _ → from-isomorphism $ inverse Bijection.implicit-Π↔Π) ⟩
 
     (∀ x {y} → [ f (erased x) ] ≡ [ f (erased y) ] → x ≡ y)       ↔⟨ inverse Bijection.implicit-Π↔Π ⟩□
 
     (∀ {x y} → [ f (erased x) ] ≡ [ f (erased y) ] → x ≡ y)       □
     where
-    ext′ = lower-extensionality? k ℓ₂ lzero ext
+    ext₁₁₂ = lower-extensionality? k ℓ₂ lzero ext
+    ext₂₁  = lower-extensionality? k ℓ₁ ℓ₂ ext
 
   -- Erased "commutes" with Is-embedding.
 
@@ -2076,9 +2098,9 @@ module []-cong₂-⊔
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
     Erased (Is-embedding f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ] Is-embedding (map f)
   Erased-Is-embedding↔Is-embedding {f} {k} ext =
-    Erased (∀ x y → Is-equivalence (cong f))                         ↔⟨ Erased-Π↔Π-Erased ⟩
+    Erased (∀ x y → Is-equivalence (cong f))                         ↝⟨ Erased-Π↔Π-Erased ext′ ⟩
 
-    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                   ↝⟨ (∀-cong ext′ λ _ → from-isomorphism Erased-Π↔Π-Erased) ⟩
+    (∀ x → Erased (∀ y → Is-equivalence (cong f)))                   ↝⟨ (∀-cong ext′ λ _ → Erased-Π↔Π-Erased ext′) ⟩
 
     (∀ x y → Erased (Is-equivalence (cong f)))                       ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
                                                                          Erased-Is-equivalence↔Is-equivalence ext) ⟩
@@ -2087,10 +2109,10 @@ module []-cong₂-⊔
                                                                          Is-equivalence-cong ext λ _ → []-cong₂.map-cong≡cong-map ax₁ ax₂) ⟩
 
     (∀ x y →
-       Is-equivalence (BC₂.[]-cong⁻¹ ∘ cong (map f) ∘ BC₁.[]-cong))  ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+       Is-equivalence (BC₂.[]-cong⁻¹ ∘ cong (map f) ∘ BC₁.[]-cong))  ↝⟨ (∀-cong ext′ λ { [ _ ] → ∀-cong ext′ λ { [ _ ] →
                                                                          inverse-ext?
                                                                            (Is-equivalence≃Is-equivalence-∘ʳ BC₁.[]-cong-equivalence)
-                                                                           ext) ⟩
+                                                                           ext }}) ⟩
 
     (∀ x y → Is-equivalence (BC₂.[]-cong⁻¹ ∘ cong (map f)))          ↝⟨ (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
                                                                          inverse-ext?
@@ -2105,17 +2127,20 @@ module []-cong₂-⊔
   ----------------------------------------------------------------------
   -- Erased commutes with various type formers
 
-  -- Erased commutes with _⇔_.
+  -- Erased commutes with _⇔_ (assuming function extensionality).
 
   Erased-⇔↔⇔ :
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} →
-    Erased (A ⇔ B) ↔ (Erased A ⇔ Erased B)
-  Erased-⇔↔⇔ {A} {B} =
-    Erased (A ⇔ B)                                 ↝⟨ EC.Erased-cong-↔ ⇔↔→×→ ⟩
-    Erased ((A → B) × (B → A))                     ↝⟨ Erased-Σ↔Σ ⟩
-    Erased (A → B) × Erased (B → A)                ↝⟨ Erased-Π↔Π-Erased ×-cong Erased-Π↔Π-Erased ⟩
-    (Erased A → Erased B) × (Erased B → Erased A)  ↝⟨ inverse ⇔↔→×→ ⟩□
+    Erased (A ⇔ B) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ] (Erased A ⇔ Erased B)
+  Erased-⇔↔⇔ {A} {B} {k} ext =
+    Erased (A ⇔ B)                                 ↔⟨ EC.Erased-cong-↔ ⇔↔→×→ ⟩
+    Erased ((A → B) × (B → A))                     ↔⟨ Erased-Σ↔Σ ⟩
+    Erased (A → B) × Erased (B → A)                ↝⟨ Erased-Π↔Π-Erased ext₁₂ ×-cong Erased-Π↔Π-Erased ext₂₁ ⟩
+    (Erased A → Erased B) × (Erased B → Erased A)  ↔⟨ inverse ⇔↔→×→ ⟩□
     (Erased A ⇔ Erased B)                          □
+    where
+    ext₁₂ = lower-extensionality? k ℓ₂ ℓ₁ ext
+    ext₂₁ = lower-extensionality? k ℓ₁ ℓ₂ ext
 
   -- Erased commutes with _↣_.
 
@@ -2242,7 +2267,7 @@ module Extensionality where
     Extensionality (a ⊔ b) (a ⊔ b) →
     Erased (Has-quasi-inverse f) ≃ Has-quasi-inverse (map f)
   Erased-Has-quasi-inverse≃Has-quasi-inverse {a} {b} ext =
-    []-cong₂.Erased-Has-quasi-inverse↔Has-quasi-inverse
+    []-cong₂.Erased-Has-quasi-inverse≃Has-quasi-inverse
       (Extensionality→[]-cong-axiomatisation
          (lower-extensionality b b ext))
       (Extensionality→[]-cong-axiomatisation
@@ -2272,6 +2297,21 @@ module Extensionality where
     Erased (Is-embedding f) ≃ Is-embedding (map f)
   Erased-Is-embedding≃Is-embedding {a} {b} ext =
     []-cong₂-⊔.Erased-Is-embedding↔Is-embedding
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality b b ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality a a ext))
+      (Extensionality→[]-cong-axiomatisation ext)
+      ext
+
+  -- Erased commutes with _⇔_ (assuming function extensionality).
+
+  Erased-⇔≃⇔ :
+    {@0 A : Type a} {@0 B : Type b} →
+    Extensionality (a ⊔ b) (a ⊔ b) →
+    Erased (A ⇔ B) ≃ (Erased A ⇔ Erased B)
+  Erased-⇔≃⇔ {a} {b} ext =
+    []-cong₂-⊔.Erased-⇔↔⇔
       (Extensionality→[]-cong-axiomatisation
          (lower-extensionality b b ext))
       (Extensionality→[]-cong-axiomatisation
@@ -2312,7 +2352,7 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
     Erased (lift {ℓ = a′} x ≡ lift y) ≃ ([ x ] ≡ [ y ])
   lemma {x} {y} =
     Erased (lift {ℓ = a′} x ≡ lift y)  ↝⟨ Erased-≡≃[]≡[] ⟩
-    [ lift x ] ≡ [ lift y ]            ↝⟨ inverse $ Eq.≃-≡ (Eq.↔→≃ (map lower) (map lift) refl refl) ⟩□
+    [ lift x ] ≡ [ lift y ]            ↝⟨ inverse $ Eq.≃-≡ (Eq.↔→≃ (map lower) (map lift) (λ _ → Erased-η) (λ _ → Erased-η)) ⟩□
     [ x ] ≡ [ y ]                      □
 
   []-cong′ :
@@ -2339,16 +2379,86 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
   (ax₁ ax₂ : []-cong-axiomatisation a) →
   []-cong-axiomatisation.[]-cong ax₁ x≡y ≡
   []-cong-axiomatisation.[]-cong ax₂ x≡y
-[]-cong-unique {x} ax₁ ax₂ =
+[]-cong-unique {x} {x≡y = [ x≡y ]} ax₁ ax₂ =
   BC₁.elim¹ᴱ
     (λ x≡y → BC₁.[]-cong [ x≡y ] ≡ BC₂.[]-cong [ x≡y ])
     (BC₁.[]-cong [ refl x ]  ≡⟨ BC₁.[]-cong-[refl] ⟩
      refl [ x ]              ≡⟨ sym BC₂.[]-cong-[refl] ⟩∎
      BC₂.[]-cong [ refl x ]  ∎)
-    _
+    x≡y
   where
   module BC₁ = []-cong₁ ax₁
   module BC₂ = []-cong₁ ax₂
+
+private
+
+  -- A lemma used below.
+
+  ≃Erased²/≡ :
+    {@0 A : Type a} {P : {@0 x y : A} → @0 x ≡ y → Type p} →
+    ((@0 x y : A) (([ x≡y ]) : Erased (x ≡ y)) → P x≡y) ↝[ a ∣ a ⊔ p ]
+    ((([ _ , _ , x≡y ]) : Erased (A ²/≡)) → P x≡y)
+  ≃Erased²/≡ {a} = generalise-ext?
+    (record
+       { to   = λ f ([ _ , _ , x≡y ]) → f _ _ [ x≡y ]
+       ; from = λ f (@0 _ _) ([ x≡y ]) → f [ _ , _ , x≡y ]
+       })
+    (λ ext →
+       let ext′ = lower-extensionality lzero a ext in
+         (λ _ → apply-ext ext′ λ { [ _ ] → refl _ })
+       , (λ _ →
+            apply-extᴱ ext λ _ →
+            apply-extᴱ ext λ _ →
+            apply-ext ext′ λ { [ _ ] →
+            refl _ }))
+
+  -- A variant of ≃Erased²/≡.
+
+  ≃Erased²/≡′ :
+    {@0 A : Type a} {P : {@0 x y : A} → @0 x ≡ y → Type p} →
+    ((@0 x y : A) (@0 x≡y : x ≡ y) → P x≡y) ↝[ a ∣ a ⊔ p ]
+    ((([ _ , _ , x≡y ]) : Erased (A ²/≡)) → P x≡y)
+  ≃Erased²/≡′ {a} {A} {P} {k} ext =
+    ((@0 x y : A) (@0 x≡y : x ≡ y) → P x≡y)              ↝⟨ (∀ᴱ-cong ext λ _ → ∀ᴱ-cong ext λ _ →
+                                                             inverse-ext? Π-Erased≃Π0 ext′) ⟩
+    ((@0 x y : A) (([ x≡y ]) : Erased (x ≡ y)) → P x≡y)  ↝⟨ ≃Erased²/≡ {P = P} ext ⟩□
+    ((([ _ , _ , x≡y ]) : Erased (A ²/≡)) → P x≡y)       □
+    where
+    ext′ = lower-extensionality? k lzero a ext
+
+-- []-cong-axiomatisation a can be expressed in a different way
+-- (assuming function extensionality).
+
+[]-cong-axiomatisation≃ :
+  Extensionality (lsuc a) a →
+  []-cong-axiomatisation a ≃
+  ((([ A ]) : Erased (Type a)) →
+   ∃ λ (c : (([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ]) →
+     (([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ])
+[]-cong-axiomatisation≃ {a} ext =
+  []-cong-axiomatisation a                                         ↔⟨ Eq.↔→≃
+                                                                        (λ { (record { []-cong        = c
+                                                                                     ; []-cong-[refl] = r
+                                                                                     })
+                                                                             _ → (λ _ _ → c) , (λ _ → r) })
+                                                                        (λ f → record
+                                                                           { []-cong        = f _ .proj₁ _ _
+                                                                           ; []-cong-[refl] = f _ .proj₂ _
+                                                                           })
+                                                                        refl
+                                                                        refl ⟩
+  ((@0 A : Type a) →
+   Σ ((@0 x y : A) → Erased (x ≡ y) → [ x ] ≡ [ y ]) λ c →
+     (@0 x : A) → c x x [ refl x ] ≡ refl [ x ])                   ↝⟨ (∀-cong ext λ _ →
+                                                                       Σ-cong (≃Erased²/≡ {k = equivalence} ext′) λ _ →
+                                                                       inverse (Π-Erased≃Π0 ext′)) F.∘
+                                                                      inverse (Π-Erased≃Π0 ext) ⟩□
+  ((([ A ]) : Erased (Type a)) →
+   ∃ λ (c : (([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ]) →
+     (([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ])     □
+  where
+  ext′ : Extensionality a a
+  ext′ = lower-extensionality _ lzero ext
 
 -- The type []-cong-axiomatisation a is propositional (assuming
 -- extensionality).
@@ -2366,41 +2476,30 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
       module EC = Erased-cong ax ax
   in
   _⇔_.from contractible⇔↔⊤
-    ([]-cong-axiomatisation a                                             ↔⟨ Eq.↔→≃
-                                                                               (λ (record { []-cong             = c
-                                                                                          ; []-cong-[refl]      = r
-                                                                                          })
-                                                                                  _ →
-                                                                                    (λ ([ _ , _ , x≡y ]) → c [ x≡y ])
-                                                                                  , (λ _ → r))
-                                                                               (λ f → record
-                                                                                  { []-cong        = λ ([ x≡y ]) →
-                                                                                                       f _ .proj₁ [ _ , _ , x≡y ]
-                                                                                  ; []-cong-[refl] = f _ .proj₂ _
-                                                                                  })
-                                                                               refl
-                                                                               refl ⟩
+    ([]-cong-axiomatisation a                                         ↔⟨ []-cong-axiomatisation≃ ext ⟩
+
      ((([ A ]) : Erased (Type a)) →
-      ∃ λ (c : ((([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ])) →
-        ((([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ]))       ↝⟨ (∀-cong ext λ _ →
-                                                                              Σ-cong
-                                                                                (inverse $
-                                                                                 Π-cong ext′ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
-                                                                                 Bijection.id)
-                                                                                 λ _ →
-                                                                              F.id) ⟩
+      ∃ λ (c : (([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ]) →
+        (([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ])     ↝⟨ (∀-cong ext λ _ →
+                                                                          Σ-cong
+                                                                            (inverse $
+                                                                             Π-cong ext′ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
+                                                                             inverse [erased]≡[erased]≃≡) λ _ →
+                                                                          ∀-cong ext′ λ { [ _ ] →
+                                                                          F.id }) ⟩
      ((([ A ]) : Erased (Type a)) →
       ∃ λ (c : ((x : Erased A) → x ≡ x)) →
-        ((x : Erased A) → c x ≡ refl x))                                  ↝⟨ (∀-cong ext λ _ → inverse
-                                                                              ΠΣ-comm) ⟩
+        (x : Erased A) → c x ≡ refl x)                                ↝⟨ (∀-cong ext λ _ → inverse
+                                                                          ΠΣ-comm) ⟩
      ((([ A ]) : Erased (Type a)) (x : Erased A) →
-      ∃ λ (c : x ≡ x) → c ≡ refl x)                                       ↔⟨⟩
+      ∃ λ (c : x ≡ x) → c ≡ refl x)                                   ↔⟨⟩
 
-     ((([ A ]) : Erased (Type a)) (x : Erased A) → Singleton (refl x))    ↝⟨ _⇔_.to contractible⇔↔⊤ $
-                                                                               (Π-closure ext  0 λ _ →
-                                                                                Π-closure ext′ 0 λ _ →
-                                                                                singleton-contractible _) ⟩□
-     ⊤                                                                    □)
+     ((([ A ]) : Erased (Type a)) (x : Erased A) →
+      Singleton (refl x))                                             ↝⟨ _⇔_.to contractible⇔↔⊤ $
+                                                                           (Π-closure ext  0 λ _ →
+                                                                            Π-closure ext′ 0 λ _ →
+                                                                            singleton-contractible _) ⟩□
+     ⊤                                                                □)
   where
   ext′ : Extensionality a a
   ext′ = lower-extensionality _ lzero ext
@@ -2527,7 +2626,7 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
   to :
     []-cong⁻¹-axiomatisation ℓ →
     ≡→Erased[erased≡erased]-axiomatisation ℓ
-  to ax {x} {y} =                                             $⟨ _≃_.is-equivalence $ inverse Erased-≡≃[]≡[] ⟩
+  to ax {x = x@([ _ ])} {y = y@([ _ ])} =                     $⟨ _≃_.is-equivalence $ inverse Erased-≡≃[]≡[] ⟩
     Is-equivalence ([]-cong⁻¹ {x = erased x} {y = erased y})  →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
     Is-equivalence (≡→Erased[erased≡erased] {x = x} {y = y})  □
     where
@@ -2603,47 +2702,61 @@ Substᴱ-axiomatisation-propositional {ℓ} ext =
       module EC = Erased-cong ax′ ax′
   in
   _⇔_.from contractible⇔↔⊤
-    (Substᴱ-axiomatisation ℓ                                            ↔⟨ Eq.↔→≃
-                                                                             (λ (substᴱ , substᴱ-refl) _ P →
-                                                                                  (λ ([ _ , _ , x≡y ]) → substᴱ (λ A → P [ A ]) x≡y)
-                                                                                , (λ _ _ → substᴱ-refl))
-                                                                             (λ hyp →
-                                                                                  (λ P x≡y p → hyp _ (λ ([ A ]) → P A) .proj₁ [ _ , _ , x≡y ] p)
-                                                                                , hyp _ _ .proj₂ _ _)
-                                                                             refl
-                                                                             refl ⟩
+    (Substᴱ-axiomatisation ℓ                                              ↔⟨ Eq.↔→≃
+                                                                               (λ (substᴱ , substᴱ-refl) _ P →
+                                                                                    (λ _ _ x≡y → substᴱ P x≡y)
+                                                                                  , (λ _ _ → substᴱ-refl))
+                                                                               (λ hyp →
+                                                                                    (λ _ → hyp _ _ .proj₁ _ _)
+                                                                                  , hyp _ _ .proj₂ _ _)
+                                                                               refl
+                                                                               refl ⟩
+     ((@0 A : Type ℓ) (P : @0 A → Type ℓ) →
+      Σ ((@0 x y : A) → @0 x ≡ y → P x → P y) λ s →
+        (@0 x : A) (p : P x) → s x x (refl x) p ≡ p)                      ↝⟨ (∀-cong ext λ _ →
+                                                                              Π-cong ext′ (inverse $ Π-Erased≃Π0 {k = equivalence} ext″) λ _ →
+                                                                              Σ-cong (≃Erased²/≡′ {k = equivalence} ext‴) λ _ →
+                                                                              inverse (Π-Erased≃Π0 ext‴)) F.∘
+                                                                             inverse (Π-Erased≃Π0 ext) ⟩
      ((([ A ]) : Erased (Type ℓ)) (P : Erased A → Type ℓ) →
-      ∃ λ (s : ((([ x , y , _ ]) : Erased (A ²/≡)) →
-                P [ x ] → P [ y ])) →
-        ((([ x ]) : Erased A) (p : P [ x ]) →
-         s [ x , x , refl x ] p ≡ p))                                   ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ →
-                                                                            Σ-cong
-                                                                              (inverse $
-                                                                               Π-cong ext″ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
-                                                                               Bijection.id)
-                                                                              (λ _ → Bijection.id)) ⟩
+      ∃ λ (s : (([ x , y , _ ]) : Erased (A ²/≡)) → P [ x ] → P [ y ]) →
+        (([ x ]) : Erased A) (p : P [ x ]) → s [ x , x , refl x ] p ≡ p)
+                                                                          ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ →
+                                                                              Σ-cong
+                                                                                (inverse $
+                                                                                 Π-cong ext‴ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
+                                                                                 Bijection.id)
+                                                                                (λ _ → Bijection.id)) ⟩
      ((([ A ]) : Erased (Type ℓ)) (P : Erased A → Type ℓ) →
-      ∃ λ (s : ((([ x ]) : Erased A) → P [ x ] → P [ x ])) →
-        ((([ x ]) : Erased A) (p : P [ x ]) → s [ x ] p ≡ p))           ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ → inverse $
-                                                                            ΠΣ-comm F.∘
-                                                                            (∀-cong ext″ λ _ → ΠΣ-comm)) ⟩
+      ∃ λ (s : (([ x ]) : Erased A) → P [ x ] → P [ x ]) →
+        (([ x ]) : Erased A) (p : P [ x ]) → s [ x ] p ≡ p)               ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ P → inverse $
+                                                                              (∃-cong λ _ → ∀-cong ext‴ λ { [ _ ] → F.id }) F.∘
+                                                                              ΠΣ-comm F.∘
+                                                                              (∀-cong ext‴ λ _ → ΠΣ-comm)) ⟩
      ((([ A ]) : Erased (Type ℓ)) (P : Erased A → Type ℓ)
-      (x : Erased A) (p : P x) → ∃ λ (p′ : P x) → p′ ≡ p)               ↔⟨⟩
+      (([ x ]) : Erased A) (p : P [ x ]) →
+      ∃ λ (p′ : P [ x ]) → p′ ≡ p)                                        ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ → ∀-cong ext‴ λ { [ _ ] →
+                                                                              F.id }) ⟩
+     ((([ A ]) : Erased (Type ℓ)) (P : Erased A → Type ℓ)
+      (x : Erased A) (p : P x) → ∃ λ (p′ : P x) → p′ ≡ p)                 ↔⟨⟩
 
      ((([ A ]) : Erased (Type ℓ)) (P : Erased A → Type ℓ)
-      (x : Erased A) (p : P x) → Singleton p)                           ↝⟨ (_⇔_.to contractible⇔↔⊤ $
-                                                                            Π-closure ext  0 λ _ →
-                                                                            Π-closure ext′ 0 λ _ →
-                                                                            Π-closure ext″ 0 λ _ →
-                                                                            Π-closure ext″ 0 λ _ →
-                                                                            singleton-contractible _) ⟩□
-     ⊤                                                                  □)
+      (x : Erased A) (p : P x) → Singleton p)                             ↝⟨ (_⇔_.to contractible⇔↔⊤ $
+                                                                              Π-closure ext  0 λ _ →
+                                                                              Π-closure ext′ 0 λ _ →
+                                                                              Π-closure ext‴ 0 λ _ →
+                                                                              Π-closure ext‴ 0 λ _ →
+                                                                              singleton-contractible _) ⟩□
+     ⊤                                                                    □)
   where
   ext′ : Extensionality (lsuc ℓ) ℓ
   ext′ = lower-extensionality lzero _ ext
 
-  ext″ : Extensionality ℓ ℓ
-  ext″ = lower-extensionality _ _ ext
+  ext″ : Extensionality ℓ (lsuc ℓ)
+  ext″ = lower-extensionality _ lzero ext
+
+  ext‴ : Extensionality ℓ ℓ
+  ext‴ = lower-extensionality _ _ ext
 
 -- The type []-cong-axiomatisation ℓ is equivalent to
 -- Substᴱ-axiomatisation ℓ (assuming extensionality).
@@ -2685,7 +2798,7 @@ private
     record { to = to; from = from }
     where
     to : Substᴱ-axiomatisation ℓ → Elimᴱ-axiomatisation ℓ
-    to ax = elimᴱ , elimᴱ-refl
+    to ax = elimᴱ , λ {_ _} {P = P} → elimᴱ-refl P
       where
       open
         []-cong₁
@@ -2716,17 +2829,23 @@ Elimᴱ-axiomatisation-propositional {ℓ} ext =
   in
   _⇔_.from contractible⇔↔⊤
     (Elimᴱ-axiomatisation ℓ                                       ↔⟨ Eq.↔→≃
-                                                                       (λ (elimᴱ , elimᴱ-refl) _ P r →
-                                                                            (λ ([ _ , _ , x≡y ]) →
-                                                                               elimᴱ (λ x≡y → P [ _ , _ , x≡y ]) (λ x → r [ x ]) x≡y)
+                                                                       (λ (elimᴱ , elimᴱ-refl) _ _ r →
+                                                                            (λ _ _ → elimᴱ _ r)
                                                                           , (λ _ → elimᴱ-refl _))
                                                                        (λ hyp →
-                                                                            (λ P r x≡y →
-                                                                               hyp _ (λ ([ _ , _ , x≡y ]) → P x≡y) (λ ([ x ]) → r x)
-                                                                                 .proj₁ [ _ , _ , x≡y ])
+                                                                            (λ _ r → hyp _ _ r .proj₁ _ _)
                                                                           , (λ _ → hyp _ _ _ .proj₂ _))
                                                                        refl
                                                                        refl ⟩
+     ((@0 A : Type ℓ) (P : (@0 x y : A) → @0 x ≡ y → Type ℓ)
+      (r : (@0 x : A) → P x x (refl x)) →
+      ∃ λ (e : (@0 x y : A) (@0 x≡y : x ≡ y) → P x y x≡y) →
+        (@0 x : A) → e x x (refl x) ≡ r x)                        ↝⟨ (∀-cong ext λ _ →
+                                                                      Π-cong ext′ (≃Erased²/≡′ {k = equivalence} ext″) λ _ →
+                                                                      Π-cong ext‴ (inverse (Π-Erased≃Π0 {k = equivalence} ext‴)) λ _ →
+                                                                      Σ-cong (≃Erased²/≡′ {k = equivalence} ext‴) λ _ →
+                                                                      inverse (Π-Erased≃Π0 ext‴)) F.∘
+                                                                     inverse (Π-Erased≃Π0 ext) ⟩
      ((([ A ]) : Erased (Type ℓ))
       (P : Erased (A ²/≡) → Type ℓ)
       (r : (([ x ]) : Erased A) → P [ x , x , refl x ]) →
@@ -2734,12 +2853,13 @@ Elimᴱ-axiomatisation-propositional {ℓ} ext =
         ((([ x ]) : Erased A) → e [ x , x , refl x ] ≡ r [ x ]))  ↝⟨ (∀-cong ext λ _ →
                                                                       Π-cong {k₁ = bijection} ext′
                                                                         (→-cong₁ ext″ (EC.Erased-cong-↔ U.-²/≡↔-)) λ _ →
-                                                                        ∀-cong ext‴ λ _ →
-                                                                        Σ-cong
-                                                                          (inverse $
-                                                                           Π-cong ext‴ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
-                                                                           Bijection.id)
-                                                                          (λ _ → Bijection.id)) ⟩
+                                                                      ∀-cong ext‴ λ _ →
+                                                                      Σ-cong
+                                                                        (inverse $
+                                                                         Π-cong ext‴ (EC.Erased-cong-↔ (inverse U.-²/≡↔-)) λ _ →
+                                                                         Bijection.id) λ _ →
+                                                                      ∀-cong ext‴ λ { [ _ ] →
+                                                                      Bijection.id }) ⟩
      ((([ A ]) : Erased (Type ℓ))
       (P : Erased A → Type ℓ)
       (r : (x : Erased A) → P x) →
@@ -2787,152 +2907,3 @@ Substᴱ-axiomatisation≃Elimᴱ-axiomatisation =
   []-cong-axiomatisation ℓ  ↝⟨ []-cong-axiomatisation≃Substᴱ-axiomatisation ext ⟩
   Substᴱ-axiomatisation ℓ   ↝⟨ Substᴱ-axiomatisation≃Elimᴱ-axiomatisation ext ⟩□
   Elimᴱ-axiomatisation ℓ    □
-
-------------------------------------------------------------------------
--- A variant of Erased without η-equality
-
--- A definition of Erased without η-equality.
-
-data Erased-no-η (@0 A : Type a) : Type a where
-  [_]-no-η : @0 A → Erased-no-η A
-
--- A variant of the projection erased.
-
-@0 erased-no-η : Erased-no-η A → A
-erased-no-η [ x ]-no-η = x
-
--- Erased A is equivalent to Erased-no-η A.
-
-Erased≃Erased-no-η :
-  {@0 A : Type a} →
-  Erased A ≃ Erased-no-η A
-Erased≃Erased-no-η = Eq.↔→≃
-  (λ x → [ x .erased ]-no-η)
-  (λ x → [ erased-no-η x ] )
-  (λ { [ x ]-no-η → refl [ x ]-no-η })
-  refl
-
--- A variant of ≡→Erased[erased≡erased].
-
-≡→Erased[erased≡erased]-no-η :
-  {x y : Erased-no-η A} →
-  x ≡ y → Erased-no-η (erased-no-η x ≡ erased-no-η y)
-≡→Erased[erased≡erased]-no-η eq =
-  [ cong erased-no-η eq ]-no-η
-
--- A variant of ≡→Erased[erased≡erased]-axiomatisation that uses
--- Erased-no-η instead of Erased.
-
-≡→Erased[erased≡erased]-no-η-axiomatisation :
-  (ℓ : Level) → Type (lsuc ℓ)
-≡→Erased[erased≡erased]-no-η-axiomatisation ℓ =
-  {A : Type ℓ} {x y : Erased-no-η A} →
-  Is-equivalence (≡→Erased[erased≡erased]-no-η {x = x} {y = y})
-
--- The type ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ is
--- propositional (assuming function extensionality).
-
-≡→Erased[erased≡erased]-no-η-axiomatisation-propositional :
-  Extensionality (lsuc ℓ) ℓ →
-  Is-proposition (≡→Erased[erased≡erased]-no-η-axiomatisation ℓ)
-≡→Erased[erased≡erased]-no-η-axiomatisation-propositional {ℓ} ext =
-  implicit-Π-closure ext 1 λ _ →
-  implicit-Π-closure ext′ 1 λ _ →
-  implicit-Π-closure ext′ 1 λ _ →
-  Is-equivalence-propositional ext′
-  where
-  ext′ : Extensionality ℓ ℓ
-  ext′ = lower-extensionality _ lzero ext
-
--- The type ≡→Erased[erased≡erased]-axiomatisation ℓ is equivalent to
--- ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ (assuming function
--- extensionality).
-
-≃≡→Erased[erased≡erased]-no-η-axiomatisation :
-  ≡→Erased[erased≡erased]-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
-  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
-≃≡→Erased[erased≡erased]-no-η-axiomatisation {ℓ} =
-  generalise-ext?-prop
-    (record
-       { to   = to
-       ; from = from
-       })
-    ≡→Erased[erased≡erased]-axiomatisation-propositional
-    ≡→Erased[erased≡erased]-no-η-axiomatisation-propositional
-  where
-  to :
-    ≡→Erased[erased≡erased]-axiomatisation ℓ →
-    ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
-  to ax {x} {y} =
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      ≡≃Erased-no-η[erased-no-η≡erased-no-η]
-      _
-      (λ x≡y →
-         [ cong erased (cong (λ eq → [ erased-no-η eq ]) x≡y) ]-no-η  ≡⟨ []-no-η-cong (cong-∘ _ _ _) ⟩∎
-         [ cong erased-no-η x≡y ]-no-η                                ∎)
-    where
-    ≡≃Erased-no-η[erased-no-η≡erased-no-η] :
-      {@0 A : Type ℓ} {x y : Erased-no-η A} →
-      (x ≡ y) ≃ Erased-no-η (erased-no-η x ≡ erased-no-η y)
-    ≡≃Erased-no-η[erased-no-η≡erased-no-η] {x} {y} =
-      x ≡ y                                        ↝⟨ inverse $ Eq.≃-≡ (inverse Erased≃Erased-no-η) ⟩
-      [ erased-no-η x ] ≡ [ erased-no-η y ]        ↝⟨ inverse $
-                                                      []-cong₁.Erased-≡≃[]≡[] $
-                                                      _⇔_.from ([]-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation _) ax ⟩
-      Erased (erased-no-η x ≡ erased-no-η y)       ↝⟨ Erased≃Erased-no-η ⟩□
-      Erased-no-η (erased-no-η x ≡ erased-no-η y)  □
-
-    []-no-η-cong :
-      {@0 A : Type ℓ} {@0 x y : A} →
-      @0 x ≡ y → [ x ]-no-η ≡ [ y ]-no-η
-    []-no-η-cong eq =
-      _≃_.from ≡≃Erased-no-η[erased-no-η≡erased-no-η] [ eq ]-no-η
-
-  from :
-    ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ →
-    ≡→Erased[erased≡erased]-axiomatisation ℓ
-  from ax {x} {y} =
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      ≡≃Erased[erased≡erased]
-      _
-      (λ x≡y →
-         [ cong erased-no-η (cong (λ eq → [ eq .erased ]-no-η) x≡y) ]  ≡⟨ []-cong₀ (cong-∘ _ _ _) ⟩∎
-         [ cong erased x≡y ]                                           ∎)
-    where
-    ≡≃Erased[erased≡erased] :
-      {A : Type ℓ} {x y : Erased A} →
-      (x ≡ y) ≃ Erased (erased x ≡ erased y)
-    ≡≃Erased[erased≡erased] {x} {y} =
-      x ≡ y                                  ↝⟨ inverse $ Eq.≃-≡ Erased≃Erased-no-η ⟩
-      [ erased x ]-no-η ≡ [ erased y ]-no-η  ↝⟨ Eq.⟨ _ , ax ⟩ ⟩
-      Erased-no-η (erased x ≡ erased y)      ↝⟨ inverse Erased≃Erased-no-η ⟩□
-      Erased (erased x ≡ erased y)           □
-
-    []-cong :
-      {A : Type ℓ} {@0 x y : A} →
-      @0 x ≡ y → [ x ] ≡ [ y ]
-    []-cong eq = _≃_.from ≡≃Erased[erased≡erased] [ eq ]
-
-    []-cong₀ :
-      {@0 A : Type ℓ} {@0 x y : A} →
-      @0 x ≡ y → [ x ] ≡ [ y ]
-    []-cong₀ {x} {y} eq =     $⟨ [ eq ] ⟩
-      Erased (x ≡ y)          →⟨ map (cong [_]→) ⟩
-      Erased ([ x ] ≡ [ y ])  →⟨ (λ hyp → []-cong (hyp .erased)) ⟩
-      [ [ x ] ] ≡ [ [ y ] ]   →⟨ cong (map erased) ⟩□
-      [ x ] ≡ [ y ]           □
-
--- The type []-cong-axiomatisation ℓ is equivalent to
--- ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ (assuming function
--- extensionality).
-
-[]-cong-axiomatisation≃≡→Erased[erased≡erased]-no-η-axiomatisation :
-  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
-  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ
-[]-cong-axiomatisation≃≡→Erased[erased≡erased]-no-η-axiomatisation
-  {ℓ} ext =
-  []-cong-axiomatisation ℓ                       ↝⟨ []-cong-axiomatisation≃≡→Erased[erased≡erased]-axiomatisation ext ⟩
-  ≡→Erased[erased≡erased]-axiomatisation ℓ       ↝⟨ ≃≡→Erased[erased≡erased]-no-η-axiomatisation ext ⟩□
-  ≡→Erased[erased≡erased]-no-η-axiomatisation ℓ  □

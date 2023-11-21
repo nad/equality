@@ -12,7 +12,7 @@ import Modality.Basics
 module Modality.Box-cong
   {c⁺}
   (eq : ∀ {a p} → Equality-with-J a p c⁺)
-  (open Erased.Level-1 eq using (Erased; []-cong-axiomatisation))
+  (open Erased.Level-1 eq using (Erased; [_]; []-cong-axiomatisation))
   {a}
   (ax : []-cong-axiomatisation a)
   (open Modality.Basics eq)
@@ -51,11 +51,11 @@ Modal-Erased :
 Modal-Erased {A} m =
   Stable→left-inverse→Modal
     (Stable-Erased (Modal→Stable m))
-    (λ x →
-       Stable-Erased (Modal→Stable m) (η x)         ≡⟨⟩
-       E.[ Modal→Stable m (◯-map E.erased (η x)) ]  ≡⟨ BC.[]-cong E.[ cong (Modal→Stable m) ◯-map-η ] ⟩
-       E.[ Modal→Stable m (η (E.erased x)) ]        ≡⟨ BC.[]-cong E.[ _≃_.left-inverse-of (Modal→≃◯ m) _ ] ⟩∎
-       E.[ E.erased x ]                             ∎)
+    (λ { x@([ _ ]) →
+         Stable-Erased (Modal→Stable m) (η x)         ≡⟨⟩
+         E.[ Modal→Stable m (◯-map E.erased (η x)) ]  ≡⟨ BC.[]-cong E.[ cong (Modal→Stable m) ◯-map-η ] ⟩
+         E.[ Modal→Stable m (η (E.erased x)) ]        ≡⟨ BC.[]-cong E.[ _≃_.left-inverse-of (Modal→≃◯ m) _ ] ⟩∎
+         E.[ E.erased x ]                             ∎ })
 
 -- If f has type A → B, where A is modal and B is separated, then
 -- f ⁻¹ᴱ y is modal.

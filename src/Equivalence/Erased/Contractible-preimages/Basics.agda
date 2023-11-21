@@ -90,7 +90,7 @@ Is-equivalence→Is-equivalenceᴱ :
   CP.Is-equivalence f → Is-equivalenceᴱ f
 Is-equivalence→Is-equivalenceᴱ eq y =
     ⁻¹→⁻¹ᴱ (proj₁₀ (eq y))
-  , [ cong ⁻¹→⁻¹ᴱ ∘ proj₂ (eq y) ∘ ⁻¹ᴱ→⁻¹ ]
+  , [ (λ @0 { x@(_ , [ _ ]) → cong ⁻¹→⁻¹ᴱ (proj₂ (eq y) (⁻¹ᴱ→⁻¹ x)) }) ]
 
 @0 Is-equivalenceᴱ→Is-equivalence :
   Is-equivalenceᴱ f → CP.Is-equivalence f
@@ -144,7 +144,7 @@ Contractibleᴱ-⁻¹ᴱ :
   ∀ y → Contractibleᴱ (f ⁻¹ᴱ y)
 Contractibleᴱ-⁻¹ᴱ {A} {B} f g f∘g g∘f y =
     (g y , [ proj₂ (proj₁ c′) ])
-  , [ cong ⁻¹→⁻¹ᴱ ∘ proj₂ c′ ∘ ⁻¹ᴱ→⁻¹ ]
+  , [ (λ @0 { x@(_ , [ _ ]) → cong ⁻¹→⁻¹ᴱ (proj₂ c′ (⁻¹ᴱ→⁻¹ x)) }) ]
   where
   @0 A↔B : A ↔ B
   A↔B = record

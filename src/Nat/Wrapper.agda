@@ -74,7 +74,7 @@ Nat = ∃ λ (n : Erased ℕ) → Nat-[ erased n ]
 -- Returns the (erased) index.
 
 @0 ⌊_⌋ : Nat → ℕ
-⌊ [ n ] , _ ⌋ = n
+⌊ n , _ ⌋ = erased n
 
 ------------------------------------------------------------------------
 -- Some conversion functions
@@ -183,6 +183,7 @@ binary-[] :
 binary-[] f′ hyp m n =
   n-ary-[]
     2
+    {ms = [ _ ] , [ _ ] , _}
     _
     (λ (m , n , _) → f′ m n)
     (λ (m , n , _) → hyp m n)
@@ -378,7 +379,7 @@ unary :
   (@0 f : ℕ → ℕ) (f′ : Nat′ → Nat′) →
   @0 (∀ n → to-ℕ (f′ n) ≡ f (to-ℕ n)) →
   Nat → Nat
-unary f f′ hyp ([ n ] , n′) = ([ f n ] , unary-[] f′ hyp n′)
+unary f f′ hyp = Σ-map (E₁.map f) (unary-[] {f = f} f′ hyp)
 
 -- A first correctness result for unary.
 --
@@ -622,7 +623,7 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
     {m n : Nat} →
     Erased (⌊ m ⌋ ≡ ⌊ n ⌋) ↔ m ≡ n
   ≡-for-indices↔≡ {m} {n} =
-    Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
+    Erased (⌊ m ⌋ ≡ ⌊ n ⌋)  ↔⟨ Erased-≡≃≡ ⟩
     proj₁ m ≡ proj₁ n       ↝⟨ ignore-propositional-component Nat-[]-propositional ⟩□
     m ≡ n                   □
 

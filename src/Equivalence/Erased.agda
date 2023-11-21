@@ -42,7 +42,7 @@ private
     A B C D         : Type a
     c k k′ p x y    : A
     P Q             : A → Type p
-    f g             : (x : A) → P x
+    f f⁻¹ g         : (x : A) → P x
 
 ------------------------------------------------------------------------
 -- Some basic stuff
@@ -1780,7 +1780,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ∀ {@0 A : Type ℓ} {x y}
     (A≃B : Erased A ≃ᴱ B) →
     (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ᴱ (x ≡ y)
-  to≡to≃ᴱ≡-Erased {B} {A} {x} {y} A≃B =
+  to≡to≃ᴱ≡-Erased {B} {A} {x = x@([ _ ])} {y = y@([ _ ])} A≃B =
     [≃]→≃ᴱ ([proofs] ≡≃≡)
     where
     @0 ≡≃≡ : (_≃ᴱ_.to A≃B x ≡ _≃ᴱ_.to A≃B y) ≃ (x ≡ y)
@@ -1788,18 +1788,37 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Eq.with-other-function
         (Eq.≃-≡ (≃ᴱ→≃ A≃B))
         (λ eq →
-           x                              ≡⟨ sym $ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B x) ] ⟩
-           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B x)  ≡⟨ cong (_≃ᴱ_.from A≃B) eq ⟩
-           _≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B y)  ≡⟨ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B y) ] ⟩∎
-           y                              ∎)
+           x                                           ≡⟨ sym $ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B x) ] ⟩
+           [ erased (_≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B x)) ]  ≡⟨ []-cong [ cong erased (cong (_≃ᴱ_.from A≃B) eq) ] ⟩
+           [ erased (_≃ᴱ_.from A≃B (_≃ᴱ_.to A≃B y)) ]  ≡⟨ []-cong [ cong erased (_≃ᴱ_.left-inverse-of A≃B y) ] ⟩∎
+           y                                           ∎)
         (λ eq →
            let f = _≃ᴱ_.left-inverse-of A≃B in
-           trans (sym (f x)) (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))  ≡⟨ cong₂ (λ p q → trans (sym p) (trans (cong (_≃ᴱ_.from A≃B) eq) q))
-                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _)
-                                                                           (sym $ _≃_.right-inverse-of ≡≃[]≡[] _) ⟩∎
+           trans (sym (f x)) (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))      ≡⟨ sym $ _≃_.right-inverse-of ≡≃[]≡[] _ ⟩
+
+           []-cong
+             [ cong erased
+                 (trans (sym (f x))
+                    (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))) ]            ≡⟨ cong []-cong $ []-cong [ cong-trans _ _ _ ] ⟩
+
+           []-cong
+             [ trans (cong erased (sym (f x)))
+                 (cong erased
+                    (trans (cong (_≃ᴱ_.from A≃B) eq) (f y))) ]            ≡⟨ cong []-cong $
+                                                                             []-cong [ cong₂ trans (cong-sym _ _) (cong-trans _ _ _) ] ⟩
+           []-cong
+             [ trans (sym (cong erased (f x)))
+                 (trans (cong erased (cong (_≃ᴱ_.from A≃B) eq))
+                    (cong erased (f y))) ]                                ≡⟨ []-cong-trans ⟩
+
+           trans ([]-cong [ sym (cong erased (f x)) ])
+              ([]-cong
+                 [ trans (cong erased (cong (_≃ᴱ_.from A≃B) eq))
+                     (cong erased (f y)) ])                               ≡⟨ cong₂ trans []-cong-sym []-cong-trans ⟩∎
+
            trans (sym ([]-cong [ cong erased (f x) ]))
-              (trans (cong (_≃ᴱ_.from A≃B) eq)
-                 ([]-cong [ cong erased (f y) ]))                     ∎)
+              (trans ([]-cong [ cong erased (cong (_≃ᴱ_.from A≃B) eq) ])
+                 ([]-cong [ cong erased (f y) ]))                         ∎)
 
 ------------------------------------------------------------------------
 -- Results that follow if the []-cong axioms hold for the maximum of
@@ -1912,27 +1931,56 @@ module []-cong₂-⊔
 
   Erased-Is-equivalence≃Is-equivalenceᴱ :
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
-    Erased (Is-equivalence f) ≃ Is-equivalenceᴱ f
-  Erased-Is-equivalence≃Is-equivalenceᴱ {A} {B} {f} =
-    Erased (Is-equivalence f)                                F.↔⟨⟩
+    Erased (Is-equivalence f) ↝[ ℓ₂ ∣ ℓ₁ ] Is-equivalenceᴱ f
+  Erased-Is-equivalence≃Is-equivalenceᴱ {A} {B} {f} ext =
+    Erased (Is-equivalence f)                              F.↔⟨⟩
 
-    Erased (∃ λ (f⁻¹ : B → Erased A) → HA.Proofs f f⁻¹)      F.↔⟨ Erased-cong-↔ (F.inverse $ Σ-cong-id →≃→Erased) ⟩
+    Erased (∃ λ (f⁻¹ : B → Erased A) → HA.Proofs f f⁻¹)    ↝⟨ lemma₂ ext ⟩
 
-    Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs f ([_]→ ⊚ f⁻¹))    F.↔⟨ Erased-Σ↔Σ ⟩
+    Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs f ([_]→ ⊚ f⁻¹))  F.↔⟨ Erased-Σ↔Σ ⟩
 
     (∃ λ (f⁻¹ : Erased (B → A)) →
-     Erased (HA.Proofs f (λ x → map (_$ x) f⁻¹)))            ↝⟨ (F.Σ-cong Erased-Π↔Π λ _ → F.id) ⟩
+     Erased (HA.Proofs f (λ x → map (_$ x) f⁻¹)))          ↝⟨ lemma₃ ext ⟩
 
-    (∃ λ (f⁻¹ : B → Erased A) → Erased (HA.Proofs f f⁻¹))    F.↔⟨⟩
+    (∃ λ (f⁻¹ : B → Erased A) → Erased (HA.Proofs f f⁻¹))  F.↔⟨⟩
 
-    Is-equivalenceᴱ f                                        F.□
+    Is-equivalenceᴱ f                                      F.□
     where
-    @0 →≃→Erased : (B → A) ≃ (B → Erased A)
-    →≃→Erased = Eq.↔→≃
-      (λ f x → [ f x ])
-      (λ f x → erased (f x))
-      refl
-      refl
+    @0 lemma₁ :
+      HA.Proofs f f⁻¹ →
+      HA.Proofs f ([_]→ ⊚ erased ⊚ f⁻¹)
+    lemma₁ (f-f⁻¹ , f⁻¹-f , f-f⁻¹-f) =
+        (λ _ → trans (cong f Erased-η) (f-f⁻¹ _))
+      , (λ _ → trans Erased-η (f⁻¹-f _))
+      , (λ x →
+           cong f (trans Erased-η (f⁻¹-f x))           ≡⟨ cong-trans _ _ _ ⟩
+           trans (cong f Erased-η) (cong f (f⁻¹-f x))  ≡⟨ cong (trans _) (f-f⁻¹-f _) ⟩∎
+           trans (cong f Erased-η) (f-f⁻¹ (f x))       ∎)
+
+    lemma₂ :
+      Erased (∃ λ (f⁻¹ : B → Erased A) → HA.Proofs f f⁻¹) ↝[ ℓ₂ ∣ ℓ₁ ]ᴱ
+      Erased (∃ λ (f⁻¹ : B → A) → HA.Proofs f ([_]→ ⊚ f⁻¹))
+    lemma₂ = generalise-erased-ext?
+      (Erased-cong-⇔ record
+         { to   = Σ-map (erased ⊚_) lemma₁
+         ; from = Σ-map ([_]→   ⊚_) P.id
+         })
+      (λ ext →
+         Erased-cong-↔ (Σ-cong (∀-cong ext λ _ → erased Erased↔) λ _ →
+         ≡⇒↝ _ $ cong (HA.Proofs _) $ sym $ apply-ext ext λ _ →
+         Erased-η))
+
+    lemma₃ :
+      (∃ λ (f⁻¹ : Erased (B → A)) →
+       Erased (HA.Proofs f (λ x → map (_$ x) f⁻¹))) ↝[ ℓ₂ ∣ ℓ₁ ]
+      (∃ λ (f⁻¹ : B → Erased A) → Erased (HA.Proofs f f⁻¹))
+    lemma₃ = generalise-ext?′
+      (record
+         { to   = Σ-map (_⇔_.to   (Erased-Π↔Π _)) P.id
+         ; from = Σ-map (_⇔_.from (Erased-Π↔Π _)) (map lemma₁)
+         })
+      (λ ext → F.Σ-cong (Erased-Π↔Π {k = bijection} ext) λ _ → F.id)
+      (λ ext → Σ-cong-≃ᴱ-Erased (Erased-Π↔Π [ ext ]) λ _ → F.id)
 
   ----------------------------------------------------------------------
   -- Variants of some lemmas proved above
@@ -1942,19 +1990,21 @@ module []-cong₂-⊔
 
   Is-equivalenceᴱ-propositional-for-Erased :
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {@0 f : Erased A → B} →
-    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     Is-proposition (Is-equivalenceᴱ f)
   Is-equivalenceᴱ-propositional-for-Erased {f} ext =
                                                 F.$⟨ H-level-Erased 1 (Is-equivalence-propositional ext) ⟩
-    Is-proposition (Erased (Is-equivalence f))  ↝⟨ H-level-cong _ 1 Erased-Is-equivalence≃Is-equivalenceᴱ ⦂ (_ → _) ⟩□
+    Is-proposition (Erased (Is-equivalence f))  ↝⟨ H-level.respects-surjection (Erased-Is-equivalence≃Is-equivalenceᴱ ext′) 1 ⟩□
     Is-proposition (Is-equivalenceᴱ f)          □
+    where
+    ext′ = lower-extensionality ℓ₁ ℓ₂ ext
 
   -- A variant of to≡to→≡ that is not defined in an erased context.
   -- Note that one side of the equivalence is Erased A.
 
   to≡to→≡-Erased :
     {@0 A : Type ℓ₁} {B : Type ℓ₂} {p q : Erased A ≃ᴱ B} →
-    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
+    Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
     _≃ᴱ_.to p ≡ _≃ᴱ_.to q → p ≡ q
   to≡to→≡-Erased {p = ⟨ f , f-eq ⟩} {q = ⟨ g , g-eq ⟩} ext f≡g =
     elim (λ {f g} f≡g → ∀ f-eq g-eq → ⟨ f , f-eq ⟩ ≡ ⟨ g , g-eq ⟩)
@@ -1976,11 +2026,13 @@ module []-cong₂-⊔
     generalise-ext?-prop
       (Is-equivalenceᴱ (map f)                                        ↝⟨ Is-equivalenceᴱ⇔Is-equivalenceᴱ-CP ⟩
        (∀ y → Contractibleᴱ (map f ⁻¹ᴱ y))                            F.↔⟨⟩
-       (∀ y → Contractibleᴱ (∃ λ x → Erased ([ f (erased x) ] ≡ y)))  ↝⟨ (∀-cong _ λ _ → ECP.[]-cong₂.Contractibleᴱ-cong ax ax _ (Eq.↔⇒≃ $ F.inverse Erased-Σ↔Σ)) ⟩
-       (∀ y → Contractibleᴱ (Erased (∃ λ x → [ f x ] ≡ y)))           ↝⟨ (∀-cong _ λ _ → ECP.[]-cong₁.Contractibleᴱ-Erased↔Contractible-Erased ax _) ⟩
+       (∀ y → Contractibleᴱ (∃ λ x → Erased ([ f (erased x) ] ≡ y)))  ↝⟨ (∀-cong _ λ _ → ECP.[]-cong₂.Contractibleᴱ-cong ax ax _ $ Eq.↔⇒≃ $
+                                                                          F.inverse Erased-Σ↔Σ) ⟩
+       (∀ y → Contractibleᴱ (Erased (∃ λ x → [ f x ] ≡ y)))           ↝⟨ (∀-cong _ λ _ →
+                                                                          ECP.[]-cong₁.Contractibleᴱ-Erased↔Contractible-Erased ax _) ⟩
        (∀ y → Contractible (Erased (∃ λ x → [ f x ] ≡ y)))            ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 Erased-Σ↔Σ) ⟩
        (∀ y → Contractible (∃ λ x → Erased (map f x ≡ y)))            F.↔⟨⟩
-       (∀ y → Contractible (map f ⁻¹ᴱ y))                             ↝⟨ (∀-cong _ λ _ → H-level-cong _ 0 $ ECP.[]-cong₁.⁻¹ᴱ[]↔⁻¹[] ax₂) ⟩
+       (∀ y → Contractible (map f ⁻¹ᴱ y))                             ↝⟨ (∀-cong _ λ { [ _ ] → H-level-cong _ 0 $ ECP.[]-cong₁.⁻¹ᴱ[]↔⁻¹[] ax₂ }) ⟩
        (∀ y → Contractible (map f ⁻¹ y))                              ↝⟨ inverse-ext? Is-equivalence≃Is-equivalence-CP _ ⟩□
        Is-equivalence (map f)                                         □)
       (λ ext → Is-equivalenceᴱ-propositional-for-Erased ext)
@@ -1990,13 +2042,13 @@ module []-cong₂-⊔
 
   Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ :
     {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B} →
-    Erased (Is-equivalenceᴱ f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]ᴱ
+    Erased (Is-equivalenceᴱ f) ↝[ ℓ₁ ⊔ ℓ₂ ∣ ℓ₁ ⊔ ℓ₂ ]
     Is-equivalenceᴱ (map f)
-  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f} ext =
+  Erased-Is-equivalenceᴱ↔Is-equivalenceᴱ {f} {k} ext =
     Erased (Is-equivalenceᴱ f)          F.↔⟨ Erased-Is-equivalenceᴱ≃Erased-Is-equivalence ⟩
     Erased (Is-equivalence f)           F.↔⟨ F.inverse Erased-Erased↔Erased ⟩
     Erased (Erased (Is-equivalence f))  ↝⟨ Erased-cong? Erased-Is-equivalence↔Is-equivalence ext ⟩
-    Erased (Is-equivalence (map f))     F.↔⟨ Erased-Is-equivalence≃Is-equivalenceᴱ ⟩□
+    Erased (Is-equivalence (map f))     ↝⟨ Erased-Is-equivalence≃Is-equivalenceᴱ (lower-extensionality? k ℓ₁ ℓ₂ ext) ⟩□
     Is-equivalenceᴱ (map f)             □
 
 ------------------------------------------------------------------------

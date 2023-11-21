@@ -613,7 +613,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   empty-renaming :
     (@0 fs : Finite-subset-of (Var s)) →
     Renaming [] fs
-  empty-renaming _ = λ _ → inj₂ [ (λ ()) ]
+  empty-renaming _ = λ _ → inj₂ [ (λ { [ () ] }) ]
 
   -- Adds the mapping x ↦ y to the renaming.
 
@@ -784,8 +784,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
                 restrict-to-sort s′ (free-Args asˢ as))
     rename-Args nil _ _ _ =
         _
-      , [ (λ _ ())
-        , (λ _ ())
+      , [ (λ { _ [ () ] })
+        , (λ { _ [ () ] })
         , (λ _ _ → refl _)
         ]
     rename-Args {s} {dom} {fs} (cons aˢ asˢ) (a , as) ρ ⊆free =
@@ -1424,21 +1424,21 @@ module Signature {ℓ} (sig : Signature ℓ) where
     to∘from : ∀ x → to (from x) ≡ x
     to∘from (inj₁ [ eq ]) = elim¹ᴱ
       (λ eq → to (substᴱ Argsˢ eq nil) ≡ inj₁ [ eq ])
-      (to (substᴱ Argsˢ (refl _) nil)  ≡⟨ cong to substᴱ-refl ⟩
+      (to (substᴱ Argsˢ (refl _) nil)  ≡⟨ cong to $ substᴱ-refl {P = Argsˢ} ⟩
        to nil                          ≡⟨⟩
        inj₁ [ refl _ ]                 ∎)
       eq
-    to∘from (inj₂ (((_ , a) , _ , as) , [ eq ])) = elim¹ᴱ
+    to∘from (inj₂ ((([ _ ] , a) , [ _ ] , as) , [ eq ])) = elim¹ᴱ
       (λ eq → to (substᴱ Argsˢ eq (cons a as)) ≡
               inj₂ (((_ , a) , _ , as) , [ eq ]))
-      (to (substᴱ Argsˢ (refl _) (cons a as))  ≡⟨ cong to substᴱ-refl ⟩
+      (to (substᴱ Argsˢ (refl _) (cons a as))  ≡⟨ cong to $ substᴱ-refl {P = Argsˢ} ⟩
        to (cons a as)                          ≡⟨⟩
        inj₂ (((_ , a) , _ , as) , [ refl _ ])  ∎)
       eq
 
     from∘to : ∀ x → from (to x) ≡ x
-    from∘to nil        = substᴱ-refl
-    from∘to (cons _ _) = substᴱ-refl
+    from∘to nil        = substᴱ-refl {P = Argsˢ}
+    from∘to (cons _ _) = substᴱ-refl {P = Argsˢ}
 
   -- A rearrangement lemma for Argˢ.
 
@@ -1475,24 +1475,24 @@ module Signature {ℓ} (sig : Signature ℓ) where
     from (inj₂ ((_ , _ , a) , [ eq ])) = substᴱ Argˢ eq (cons a)
 
     to∘from : ∀ x → to (from x) ≡ x
-    to∘from (inj₁ ((_ , t) , [ eq ])) = elim¹ᴱ
+    to∘from (inj₁ (([ _ ] , t) , [ eq ])) = elim¹ᴱ
       (λ eq → to (substᴱ Argˢ eq (nil t)) ≡
               inj₁ ((_ , t) , [ eq ]))
-      (to (substᴱ Argˢ (refl _) (nil t))  ≡⟨ cong to substᴱ-refl ⟩
+      (to (substᴱ Argˢ (refl _) (nil t))  ≡⟨ cong to $ substᴱ-refl {P = Argˢ} ⟩
        to (nil t)                         ≡⟨⟩
        inj₁ ((_ , t) , [ refl _ ])        ∎)
       eq
-    to∘from (inj₂ ((_ , _ , a) , [ eq ])) = elim¹ᴱ
+    to∘from (inj₂ ((_ , [ _ ] , a) , [ eq ])) = elim¹ᴱ
       (λ eq → to (substᴱ Argˢ eq (cons a)) ≡
               inj₂ ((_ , _ , a) , [ eq ]))
-      (to (substᴱ Argˢ (refl _) (cons a))  ≡⟨ cong to substᴱ-refl ⟩
+      (to (substᴱ Argˢ (refl _) (cons a))  ≡⟨ cong to $ substᴱ-refl {P = Argˢ} ⟩
        to (cons a)                         ≡⟨⟩
        inj₂ ((_ , _ , a) , [ refl _ ])     ∎)
       eq
 
     from∘to : ∀ x → from (to x) ≡ x
-    from∘to (nil _)  = substᴱ-refl
-    from∘to (cons _) = substᴱ-refl
+    from∘to (nil _)  = substᴱ-refl {P = Argˢ}
+    from∘to (cons _) = substᴱ-refl {P = Argˢ}
 
   ----------------------------------------------------------------------
   -- Alternative definitions of Tm/Args/Arg/Data and Term[_]
@@ -1839,7 +1839,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
       λ {tˢ} →
         decidable-erased⇒decidable-erased⇒Σ-decidable-erased
           (equal?-Data′ k)
-          λ _ _ → yes [ []-cong [ Wf-propositional tˢ _ _ ] ]
+          λ { [ _ ] [ _ ] →
+              yes [ []-cong [ Wf-propositional tˢ _ _ ] ] }
 
   -- Erased equality is decidable for Term[_].
   --
@@ -2208,6 +2209,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
         @0 free-Free-Args :
           ∀ (asˢ : Argsˢ vs) {as} (wf : Wf ((_ , x) ∷ xs) asˢ as) →
           (_ , x) ∈ free asˢ as → Free-in x (asˢ , as , [ wf ])
+        free-Free-Args nil _ =
+          λ { [ () ] }
         free-Free-Args {x} (cons aˢ asˢ) {as = a , as} (wf , wfs) =
           (_ , x) ∈ free aˢ a ∪ free asˢ as                               ↔⟨ ∈∪≃ ⟩
           (_ , x) ∈ free aˢ a ∥⊎∥ (_ , x) ∈ free asˢ as                   ↝⟨ free-Free-Arg aˢ wf
@@ -2367,7 +2370,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
 
         @0 free-⊆-Args :
           ∀ (asˢ : Argsˢ vs) {as} → Wf xs asˢ as → free asˢ as ⊆ xs
-        free-⊆-Args      nil           _          _ = λ ()
+        free-⊆-Args      nil           _          _ = λ { [ () ] }
         free-⊆-Args {xs} (cons aˢ asˢ) (wf , wfs) y =
           y ∈ free aˢ _ ∪ free asˢ _        ↔⟨ ∈∪≃ ⟩
           y ∈ free aˢ _ ∥⊎∥ y ∈ free asˢ _  ↝⟨ free-⊆-Arg aˢ wf y ∥⊎∥-cong free-⊆-Args asˢ wfs y ⟩

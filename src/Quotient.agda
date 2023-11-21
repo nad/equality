@@ -935,15 +935,15 @@ Erased/-comm {A} {R} set R→≡ = Eq.↔→≃
      .[]-respects-relationʳ E.[ Rxy ] →
        E.[]-cong E.[ []-respects-relation Rxy ])
   (λ (E.[ x ]) → [ E.[ from′ x ] ])
-  (λ (E.[ x ]) →
-     E.[]-cong
-       E.[ flip (elim-prop {P = λ x → [ from′ x ] ≡ x}) x (λ @0 where
-             .is-propositionʳ _ → /-is-set
-             .[]ʳ _             → refl _)
-         ])
+  (λ { E.[ x ] →
+       E.[]-cong
+         E.[ flip (elim-prop {P = λ x → [ from′ x ] ≡ x}) x (λ @0 where
+               .is-propositionʳ _ → /-is-set
+               .[]ʳ _             → refl _)
+           ] })
   (elim-prop λ where
      .is-propositionʳ _ → /-is-set
-     .[]ʳ _             → refl _)
+     .[]ʳ E.[ _ ]       → refl _)
   where
   @0 from′ : A / R → A
   from′ = rec λ @0 where

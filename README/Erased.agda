@@ -6,12 +6,19 @@
 ------------------------------------------------------------------------
 
 -- Note that the code has changed after the paper draft (that is
--- current at the time of writing) was written.
+-- current at the time of writing) was written. The most important
+-- change is perhaps that η-equality was turned off for Erased. In
+-- connection with that the following changes were made:
+--
+-- * An assumption of function extensionality was added to some
+--   lemmas.
+--
+-- * Some lemmas are now proved using erased matches, and also,
+--   alternatively, assuming that the []-cong axioms hold.
 
--- Note also that the code does not follow the paper exactly. For
--- instance, some definitions use bijections (functions with
--- quasi-inverses) instead of equivalences. Some other differences are
--- mentioned below.
+-- The code does not follow the paper exactly. For instance, some
+-- definitions use bijections (functions with quasi-inverses) instead
+-- of equivalences. Some other differences are mentioned below.
 
 -- This file is not checked using --safe, because some parts use
 -- --cubical, and some parts use --with-K. However, all files
@@ -63,8 +70,11 @@ bind = Erased._>>=′_
 erased-monad = Erased.monad
 
 -- Lemma 3.
+--
+-- One proof uses the []-cong axioms, the other uses erased matches.
 
-Lemma-3 = Erased.Erased-Erased↔Erased
+Lemma-3  = Erased.Erased-Erased↔Erased
+Lemma-3′ = Erased.Erased-matches.Erased-Erased↔Erased
 
 ------------------------------------------------------------------------
 -- 3.2: The relationship between @0 and Erased
@@ -272,8 +282,12 @@ Lemma-32 = Erased.With-K.Is-proposition-Erased→Is-proposition
 -- 3.8: More commutation properties
 
 -- There is a single statement for Lemmas 33–38 (and more).
+--
+-- Note that when η-equality was turned off for Erased the statement
+-- of Lemma 33 was changed: now the lemma is proved using function
+-- extensionality.
 
-Lemmas-33-to-38 = Erased.Erased-↝↔↝
+Lemmas-33-to-38 = Erased.Erased-↝↝↝
 
 -- There is also a single statement for the variants of Lemmas 33–38,
 -- stated as logical equivalences instead of equivalences, that can be
@@ -299,6 +313,11 @@ Lemma-45 = Erased.Erased-Is-embedding↔Is-embedding
 Lemma-46 = Erased.map-cong≡cong-map
 
 -- There is a single statement for Lemmas 47–52 (and more).
+--
+-- This lemma used to be proved using Lemmas-33-to-38, but when
+-- η-equality was turned off for Erased the implementation of this
+-- lemma was changed in an attempt to optimise the code. (Some cases
+-- are still proved using Lemmas-33-to-38.)
 
 Lemmas-47-to-52 = Erased.Erased-cong
 
@@ -308,14 +327,15 @@ map-id = Erased.map-id
 map-∘  = Erased.map-∘
 
 -- All preservation lemmas (47–52) map identity to identity (assuming
--- extensionality, except for logical equivalences).
+-- function extensionality).
 
 Erased-cong-id = Erased.Erased-cong-id
 
 -- All preservation lemmas (47–52) commute with composition (assuming
 -- extensionality, except for logical equivalences).
 
-Erased-cong-∘ = Erased.Erased-cong-∘
+Erased-cong-⇔-∘ = Erased.Erased-cong-⇔-∘
+Erased-cong-∘   = Erased.Erased-cong-∘
 
 ------------------------------------------------------------------------
 -- 4.1: Stable types
@@ -351,19 +371,27 @@ Very-stable→Stable = Erased.Very-stable→Stable
 Very-stable→Is-embedding-[] = Erased.Very-stable→Is-embedding-[]
 
 -- Some lemmas.
+--
+-- One proof of Lemma 61 uses the []-cong axioms, the other uses
+-- erased matches.
 
-Lemma-59 = Erased.Stable→Left-inverse→Very-stable
-Lemma-60 = Erased.Stable-proposition→Very-stable
-Lemma-61 = Erased.Very-stable-Erased
+Lemma-59  = Erased.Stable→Left-inverse→Very-stable
+Lemma-60  = Erased.Stable-proposition→Very-stable
+Lemma-61  = Erased.Very-stable-Erased
+Lemma-61′ = Erased.Erased-matches.Very-stable-Erased
 
 -- It is not the case that every very stable type is a proposition.
 
 ¬-Very-stable→Is-proposition = Erased.¬-Very-stable→Is-proposition
 
 -- More lemmas.
+--
+-- One proof of Lemma 63 uses the []-cong axioms, the other uses
+-- erased matches.
 
-Lemma-62 = Erased.Very-stable-∃-Very-stable
-Lemma-63 = Erased.Stable-∃-Very-stable
+Lemma-62  = Erased.Very-stable-∃-Very-stable
+Lemma-63  = Erased.Stable-∃-Very-stable
+Lemma-63′ = Erased.Erased-matches.Stable-∃-Very-stable
 
 ------------------------------------------------------------------------
 -- 4.3: Stability for equality types

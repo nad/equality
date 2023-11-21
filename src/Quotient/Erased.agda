@@ -630,15 +630,15 @@ Erased/ᴱ {A} {R} set R→≡ = Eq.↔→≃
      .[]-respects-relationʳ [ Rxy ] →
        Er.[]-cong [ []-respects-relation Rxy ])
   (λ ([ x ]) → [ [ from′ x ] ])
-  (λ ([ x ]) →
-     Er.[]-cong
-       [ flip (elim-prop {P = λ x → [ from′ x ] ≡ x}) x (λ @0 where
-           .is-propositionʳ _ → /ᴱ-is-set
-           .[]ʳ _             → refl _)
-       ])
+  (λ { [ x ] →
+       Er.[]-cong
+         [ flip (elim-prop {P = λ x → [ from′ x ] ≡ x}) x (λ @0 where
+             .is-propositionʳ _ → /ᴱ-is-set
+             .[]ʳ _             → refl _)
+         ] })
   (elim-prop λ where
      .is-propositionʳ _ → /ᴱ-is-set
-     .[]ʳ _             → refl _)
+     .[]ʳ [ _ ]         → refl _)
   where
   @0 from′ : A /ᴱ R → A
   from′ = rec λ @0 where

@@ -47,20 +47,21 @@ instance
   -- Instances.
 
   Queue-is-queue : Is-queue (Queue Q) Very-stableᴱ-≡ ℓ
-  Queue-is-queue .Is-queue.to-List           = Q.to-List
-  Queue-is-queue .Is-queue.from-List         = Q.from-List
-  Queue-is-queue .Is-queue.to-List-from-List = _↔_.right-inverse-of
-                                                 (Q.Queue↔List _) _
-  Queue-is-queue .Is-queue.enqueue           = N.enqueue
-  Queue-is-queue .Is-queue.to-List-enqueue   = N.to-List-enqueue
-  Queue-is-queue .Is-queue.dequeue           = N.dequeue
-  Queue-is-queue .Is-queue.to-List-dequeue   = N.to-List-dequeue
-  Queue-is-queue .Is-queue.dequeue⁻¹         = N.dequeue⁻¹
-  Queue-is-queue .Is-queue.to-List-dequeue⁻¹ = N.to-List-dequeue⁻¹
+  Queue-is-queue .Is-queue.to-List             = Q.to-List
+  Queue-is-queue .Is-queue.from-List           = Q.from-List
+  Queue-is-queue .Is-queue.to-List-from-List   = _↔_.right-inverse-of
+                                                   (Q.Queue↔List _) _
+  Queue-is-queue .Is-queue.enqueue             = N.enqueue
+  Queue-is-queue .Is-queue.to-List-enqueue {q} = N.to-List-enqueue q
+  Queue-is-queue .Is-queue.dequeue             = N.dequeue
+  Queue-is-queue .Is-queue.to-List-dequeue {q} = N.to-List-dequeue q
+  Queue-is-queue .Is-queue.dequeue⁻¹           = N.dequeue⁻¹
+  Queue-is-queue .Is-queue.to-List-dequeue⁻¹   = N.to-List-dequeue⁻¹
 
   Queue-is-queue-with-map : Is-queue-with-map (Queue Q) ℓ₁ ℓ₂
-  Queue-is-queue-with-map .Is-queue-with-map.map         = N.map
-  Queue-is-queue-with-map .Is-queue-with-map.to-List-map = N.to-List-map
+  Queue-is-queue-with-map .Is-queue-with-map.map             = N.map
+  Queue-is-queue-with-map .Is-queue-with-map.to-List-map {q} =
+    N.to-List-map q
 
   Queue-is-queue-with-unique-representations :
     Is-queue-with-unique-representations (Queue Q) ℓ
@@ -85,7 +86,12 @@ private
   example₂ : dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty))) ≡
              just (10 , enqueue 6 empty)
   example₂ =
-    dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))  ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
+    dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))  ≡⟨ cong dequeue′
+                                                              (_↔_.to
+                                                                 (Q.≡-for-indices↔≡
+                                                                    {xs = map _ (enqueue _ (enqueue _ empty))}
+                                                                    {ys = cons _ _})
+                                                                 [ refl _ ]) ⟩
     dequeue′ (cons 10 (enqueue 6 empty))                 ≡⟨ _↔_.right-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
     just (10 , enqueue 6 empty)                          ∎
 
@@ -95,7 +101,7 @@ private
     just (enqueue 30 (enqueue 6 empty))
   example₃ =
     (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
-        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                      ≡⟨ cong (_>>= λ _ → return (enqueue _ _)) example₂ ⟩
+        return (enqueue (3 * x) q ⦂ Queue Q ℕ))                      ≡⟨ cong (_>>= λ (_ , q) → return (enqueue _ q)) example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (enqueue (3 * x) (q ⦂ Queue Q ℕ)))                    ≡⟨⟩
@@ -109,7 +115,7 @@ private
     just (6 ∷ 30 ∷ [])
   example₄ =
     (do x , q ← dequeue′ (map (_* 2) (enqueue 3 (enqueue 5 empty)))
-        return (to-List′ (enqueue (3 * x) q)))                       ≡⟨ cong (_>>= λ _ → return (to-List′ (enqueue _ _))) example₂ ⟩
+        return (to-List′ (enqueue (3 * x) q)))                       ≡⟨ cong (_>>= λ (_ , q) → return (to-List′ (enqueue _ q))) example₂ ⟩
 
     (do x , q ← just (10 , enqueue 6 empty)
         return (to-List′ (enqueue (3 * x) (q ⦂ Queue Q ℕ))))         ≡⟨⟩
@@ -123,7 +129,7 @@ private
     dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs)) ≡
     just (1 , from-List (2 ∷ 3 ∷ xs))
   example₅ {xs} =
-    dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))       ≡⟨ cong dequeue′ (_↔_.to Q.≡-for-indices↔≡ [ refl _ ]) ⟩
+    dequeue′ (from-List (1 ∷ 2 ∷ 3 ∷ xs))       ≡⟨ cong dequeue′ (_↔_.to (Q.≡-for-indices↔≡ {xs = from-List _} {ys = cons _ _}) [ refl _ ]) ⟩
     dequeue′ (cons 1 (from-List (2 ∷ 3 ∷ xs)))  ≡⟨ _↔_.right-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
     just (1 , from-List (2 ∷ 3 ∷ xs))           ∎
 

@@ -99,9 +99,9 @@ module _ (o : Operations) where
     -- A lemma used several times below.
 
     from[to+to]≡+ :
-      ∀ m →
+      ∀ m n →
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n) ≡ m + n
-    from[to+to]≡+ {n} m =
+    from[to+to]≡+ m n =
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ sym $ to-ℕ-+ m n ⟩
       _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ (m + n))                     ≡⟨ _↔_.left-inverse-of Nat↔ℕ _ ⟩∎
       m + n                                                     ∎
@@ -112,18 +112,18 @@ module _ (o : Operations) where
 
   +-comm-traditional : ∀ m {n} → m + n ≡ n + m
   +-comm-traditional m {n} =
-    m + n                                                     ≡⟨ sym $ from[to+to]≡+ m ⟩
+    m + n                                                     ≡⟨ sym $ from[to+to]≡+ m n ⟩
     _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)  ≡⟨ cong (_↔_.from Nat↔ℕ) $ Nat.+-comm (_↔_.to Nat↔ℕ m) ⟩
-    _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ m)  ≡⟨ from[to+to]≡+ n ⟩∎
+    _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ m)  ≡⟨ from[to+to]≡+ n m ⟩∎
     n + m                                                     ∎
 
   -- Addition is associative.
 
   +-assoc-traditional : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
   +-assoc-traditional m {n} {o} =
-    m + (n + o)                                                     ≡⟨ cong (m +_) $ sym $ from[to+to]≡+ n ⟩
+    m + (n + o)                                                     ≡⟨ cong (m +_) $ sym $ from[to+to]≡+ n o ⟩
 
-    m + (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o))  ≡⟨ sym $ from[to+to]≡+ m ⟩
+    m + (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ n Prelude.+ _↔_.to Nat↔ℕ o))  ≡⟨ sym $ from[to+to]≡+ m (_↔_.from Nat↔ℕ _) ⟩
 
     _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m
                       Prelude.+
@@ -144,9 +144,9 @@ module _ (o : Operations) where
       (_↔_.to Nat↔ℕ (_↔_.from Nat↔ℕ
          (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))
          Prelude.+
-       _↔_.to Nat↔ℕ o)                                              ≡⟨ from[to+to]≡+ (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)) ⟩
+       _↔_.to Nat↔ℕ o)                                              ≡⟨ from[to+to]≡+ (_↔_.from Nat↔ℕ _) o ⟩
 
-    (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)) + o  ≡⟨ cong (_+ o) $ from[to+to]≡+ {n = n} m ⟩∎
+    (_↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n)) + o  ≡⟨ cong (_+ o) $ from[to+to]≡+ m n ⟩∎
 
     (m + n) + o                                                     ∎
 
@@ -169,7 +169,7 @@ module _ (o : Operations) where
                                                                                     (λ j → ℕ≡Nat (min i j) → ℕ≡Nat (min i j) → ℕ≡Nat (min i j))
                                                                                     (- i) Prelude._+_) ⟩h
     transport (λ i → ℕ≡Nat i → ℕ≡Nat i → ℕ≡Nat i) 0̲ Prelude._+_         ≡⟨⟩
-    (λ m n → _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))  ≡⟨ (⟨ext⟩ λ m → ⟨ext⟩ λ _ → from[to+to]≡+ m) ⟩∎
+    (λ m n → _↔_.from Nat↔ℕ (_↔_.to Nat↔ℕ m Prelude.+ _↔_.to Nat↔ℕ n))  ≡⟨ (⟨ext⟩ λ m → ⟨ext⟩ λ n → from[to+to]≡+ m n) ⟩∎
     _+_                                                                 ∎
 
   -- Addition is commutative.

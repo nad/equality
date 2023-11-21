@@ -756,8 +756,8 @@ Erased-∥∥×≃ = Eq.↔→≃
   proj₂
   (λ x → E.[ ∣ x ∣ ] , x)
   refl
-  (λ (_ , x) →
-     cong (_, x) (E.[]-cong E.[ truncation-is-proposition _ _ ]))
+  (λ { (E.[ _ ] , x) →
+       cong (_, x) (E.[]-cong E.[ truncation-is-proposition _ _ ]) })
 
 _ : _≃_.right-inverse-of Erased-∥∥×≃ x ≡ refl _
 _ = refl _

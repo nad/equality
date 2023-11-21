@@ -19,7 +19,7 @@ open import Prelude
 
 open import Bijection equality-with-J as Bijection using (_↔_)
 open import Equality.Path.Isomorphisms eq
-open import Erased.Cubical eq hiding (map)
+open import Erased.Cubical eq as E hiding (map)
 open import Function-universe equality-with-J as F hiding (id; _∘_)
 open import List equality-with-J as L hiding (map)
 open import H-level equality-with-J
@@ -109,7 +109,7 @@ module _
     {xs ys : Queue Q A} →
     Erased (⌊ xs ⌋ ≡ ⌊ ys ⌋) ↔ xs ≡ ys
   ≡-for-indices↔≡ {xs} {ys} =
-    Erased (⌊ xs ⌋ ≡ ⌊ ys ⌋)  ↝⟨ Erased-≡↔[]≡[] ⟩
+    Erased (⌊ xs ⌋ ≡ ⌊ ys ⌋)  ↔⟨ Erased-≡≃≡ ⟩
     proj₁ xs ≡ proj₁ ys       ↝⟨ ignore-propositional-component Queue-⟪⟫-propositional ⟩□
     xs ≡ ys                   □
 
@@ -203,8 +203,8 @@ module _
 
     -- The function to-List returns the index.
 
-    @0 ≡⌊⌋ : to-List s q ≡ ⌊ q ⌋
-    ≡⌊⌋ {s} {q} =
+    @0 ≡⌊⌋ : ∀ q → to-List s q ≡ ⌊ q ⌋
+    ≡⌊⌋ {s} q =
       to-Σ-Erased-∥-Σ-Erased-≡-∥↔≡
         (Q.Queue↠List _) (Very-stableᴱ-≡-List 0 s) q
 
@@ -230,7 +230,8 @@ module _
 
   -- The forward directions of Queue↔List and Queue↔Listⁱ match.
 
-  @0 to-Queue↔List : _↔_.to (Queue↔List s) q ≡ _↔_.to Queue↔Listⁱ q
+  @0 to-Queue↔List :
+    ∀ q → _↔_.to (Queue↔List s) q ≡ _↔_.to Queue↔Listⁱ q
   to-Queue↔List = ≡⌊⌋
 
   -- Variants of Queue↔List and Queue↔Listⁱ.
@@ -256,18 +257,19 @@ module _
     _↔_.to Maybe[×Queue]↔Listⁱ xs
   to-Maybe[×Queue]↔List {s} xs =
     _↔_.from List↔Maybe[×List]
-      (⊎-map id (Σ-map id (_↔_.to (Queue↔List s))) xs)  ≡⟨ cong (λ f → _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id f) xs)) (⟨ext⟩ λ _ →
-                                                           to-Queue↔List) ⟩∎
+      (⊎-map id (Σ-map id (_↔_.to (Queue↔List s))) xs)  ≡⟨ cong (λ f → _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id f) xs)) $ ⟨ext⟩
+                                                           to-Queue↔List ⟩∎
     _↔_.from List↔Maybe[×List]
       (⊎-map id (Σ-map id (_↔_.to Queue↔Listⁱ)) xs)     ∎
 
   -- A lemma that can be used to prove "to-List lemmas".
 
   ⌊⌋≡→to-List≡ :
+    ∀ q →
     Erased (⌊ q ⌋ ≡ xs) →
     to-List s q ≡ xs
-  ⌊⌋≡→to-List≡ {q} {xs} {s} eq =
-    to-List s q               ≡⟨ cong (to-List _) (_↔_.to ≡-for-indices↔≡ eq) ⟩
+  ⌊⌋≡→to-List≡ {xs} {s} q eq =
+    to-List s q               ≡⟨ cong (to-List _) (_↔_.to (≡-for-indices↔≡ {xs = q} {ys = from-List _}) eq) ⟩
     to-List s (from-List xs)  ≡⟨ _↔_.right-inverse-of (Queue↔List _) _ ⟩∎
     xs                        ∎
 
@@ -362,7 +364,7 @@ module _
         (Result-⟪⟫-propositional s)
         (λ (q , [ eq ]) →
 
-             ⊎-map id (Σ-map id λ q → _ , ∣ q , [ refl _ ] ∣)
+             ⊎-map id (Σ-map id λ q → [ _ ] , ∣ q , [ refl _ ] ∣)
                (Q.dequeue _ q)
 
            , [ _↔_.to Maybe[×Queue]↔Listⁱ
@@ -434,22 +436,23 @@ module _
     -- Enqueues an element.
 
     enqueue : A → Queue Q A → Queue Q A
-    enqueue x = Σ-map _ (Indexed.enqueue x)
+    enqueue x = Σ-map (E.map (_++ _)) (Indexed.enqueue x)
 
-    to-List-enqueue : to-List s (enqueue x q) ≡ to-List s q ++ x ∷ []
-    to-List-enqueue {s} {x} {q} = ⌊⌋≡→to-List≡
-      [ ⌊ q ⌋ ++ x ∷ []        ≡⟨ cong (_++ _) $ sym ≡⌊⌋ ⟩∎
+    to-List-enqueue :
+      ∀ q → to-List s (enqueue x q) ≡ to-List s q ++ x ∷ []
+    to-List-enqueue {s} {x} q = ⌊⌋≡→to-List≡ (enqueue _ q)
+      [ ⌊ q ⌋ ++ x ∷ []        ≡⟨ cong (_++ _) $ sym $ ≡⌊⌋ q ⟩∎
         to-List s q ++ x ∷ []  ∎
       ]
 
     -- A map function.
 
     map : (A → B) → Queue Q A → Queue Q B
-    map f = Σ-map _ (Indexed.map f)
+    map f = Σ-map (E.map (L.map _)) (Indexed.map f)
 
-    to-List-map : to-List s₁ (map f q) ≡ L.map f (to-List s₂ q)
-    to-List-map {f} {q} {s₂} = ⌊⌋≡→to-List≡
-      [ L.map f ⌊ q ⌋           ≡⟨ cong (L.map f) $ sym ≡⌊⌋ ⟩∎
+    to-List-map : ∀ q → to-List s₁ (map f q) ≡ L.map f (to-List s₂ q)
+    to-List-map {f} {s₂} q = ⌊⌋≡→to-List≡ (map _ q)
+      [ L.map f ⌊ q ⌋           ≡⟨ cong (L.map f) $ sym $ ≡⌊⌋ q ⟩∎
         L.map f (to-List s₂ q)  ∎
       ]
 
@@ -467,7 +470,7 @@ module _
       Result↠Maybe[×Queue] = record
         { logical-equivalence = record
           { to   = proj₁ ∘ proj₂
-          ; from = λ q → _ , q , [ refl _ ]
+          ; from = λ q → [ _ ] , q , [ refl _ ]
           }
         ; right-inverse-of = refl
         }
@@ -478,7 +481,7 @@ module _
       Result↔Maybe[×Queue] s = record
         { surjection      = Result↠Maybe[×Queue]
         ; left-inverse-of = λ r →               $⟨ from∘to r ⟩
-            Erased (⌊ from (to r) ⌋ʳ ≡ ⌊ r ⌋ʳ)  ↝⟨ Erased-≡↔[]≡[] ⟩
+            Erased (⌊ from (to r) ⌋ʳ ≡ ⌊ r ⌋ʳ)  ↔⟨ Erased-≡≃≡ ⟩
             proj₁ (from (to r)) ≡ proj₁ r       ↝⟨ ignore-propositional-component (Indexed.Result-⟪⟫-propositional s) ⟩□
             from (to r) ≡ r                     □
         }
@@ -516,12 +519,14 @@ module _
     to-List-dequeue⁻¹ :
       to-List s (dequeue⁻¹ x) ≡
       _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id (to-List s)) x)
-    to-List-dequeue⁻¹ {x = nothing} = ⌊⌋≡→to-List≡ [ refl _ ]
+    to-List-dequeue⁻¹ {x = nothing} =
+      ⌊⌋≡→to-List≡ (dequeue⁻¹ _) [ refl _ ]
 
-    to-List-dequeue⁻¹ {s} {x = just (x , q)} = ⌊⌋≡→to-List≡
-      [ x ∷ ⌊ q ⌋        ≡⟨ cong (_ ∷_) $ sym ≡⌊⌋ ⟩∎
-        x ∷ to-List s q  ∎
-      ]
+    to-List-dequeue⁻¹ {s} {x = just (x , q)} =
+      ⌊⌋≡→to-List≡ (dequeue⁻¹ _)
+        [ x ∷ ⌊ q ⌋        ≡⟨ cong (_ ∷_) $ sym $ ≡⌊⌋ q ⟩∎
+          x ∷ to-List s q  ∎
+        ]
 
     -- Dequeues an element, if possible.
 
@@ -529,11 +534,12 @@ module _
     dequeue s = _↔_.to (Queue↔Maybe[×Queue] s)
 
     to-List-dequeue :
+      ∀ q →
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q) ≡
       _↔_.to List↔Maybe[×List] (to-List s q)
-    to-List-dequeue {s} {q} =
+    to-List-dequeue {s} q =
       ⊎-map id (Σ-map id (to-List s)) (dequeue s q)                   ≡⟨ _↔_.to (from≡↔≡to (from-isomorphism List↔Maybe[×List])) $
                                                                          sym to-List-dequeue⁻¹ ⟩
       _↔_.to List↔Maybe[×List] (to-List s (dequeue⁻¹ (dequeue s q)))  ≡⟨ cong (_↔_.to List↔Maybe[×List] ∘ to-List s) $
-                                                                         _↔_.left-inverse-of (Queue↔Maybe[×Queue] _) _ ⟩∎
+                                                                         _↔_.left-inverse-of (Queue↔Maybe[×Queue] _) q ⟩∎
       _↔_.to List↔Maybe[×List] (to-List s q)                          ∎

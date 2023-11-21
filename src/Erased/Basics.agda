@@ -22,6 +22,8 @@ private
 -- run-time.
 
 record Erased (@0 A : Type a) : Type a where
+  no-eta-equality
+  pattern
   constructor [_]
   field
     @0 erased : A
@@ -48,7 +50,7 @@ Stable A = Erased A → A
 map :
   {@0 A : Type a} {@0 P : A → Type p} →
   @0 ((x : A) → P x) → (x : Erased A) → Erased (P (erased x))
-map f [ x ] = [ f x ]
+map f x = [ f (erased x) ]
 
 -- A binary variant of map.
 
@@ -56,4 +58,4 @@ zip :
   {@0 A : Type a} {@0 P : A → Type p} {@0 Q : {x : A} → P x → Type q} →
   @0 ((x : A) (p : P x) → Q p) →
   (([ x ]) : Erased A) (([ p ]) : Erased (P x)) → Erased (Q p)
-zip f [ x ] [ p ] = [ f x p ]
+zip f x p = [ f (erased x) (erased p) ]

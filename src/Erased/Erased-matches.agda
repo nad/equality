@@ -19,6 +19,8 @@ open import Accessibility eq as A using (Acc; Well-founded)
 open import Bijection eq using (_↔_)
 open import Equivalence eq as Eq using (_≃_)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
+open import Equivalence.Erased.Contractible-preimages eq
+  using (_⁻¹ᴱ_; Contractibleᴱ)
 open import Erased.Level-1 eq as EL₁
   hiding (module []-cong₁; module []-cong₂-⊔; module []-cong;
           module Extensionality)
@@ -31,12 +33,167 @@ open import Function-universe eq hiding (_∘_)
 open import H-level eq
 open import H-level.Closure eq
 open import Modality.Basics eq
+open import Preimage eq using (_⁻¹_)
 open import Surjection eq using (_↠_)
+open import Univalence-axiom eq
 
 private variable
-  a ℓ ℓ₁ ℓ₂ p r : Level
-  A             : Type a
-  x             : A
+  a b ℓ ℓ₁ ℓ₂ p r : Level
+  A               : Type a
+  x               : A
+
+------------------------------------------------------------------------
+-- Some lemmas that can be proved without --erased-matches if an
+-- instantiation of the []-cong axioms is available
+
+-- Erased (Erased A) is isomorphic to Erased A.
+--
+-- See also Erased.Level-1.[]-cong₁.Erased-Erased↔Erased.
+
+Erased-Erased↔Erased :
+  {@0 A : Type a} →
+  Erased (Erased A) ↔ Erased A
+Erased-Erased↔Erased = record
+  { surjection = record
+    { logical-equivalence = record
+      { to   = λ x → [ erased (erased x) ]
+      ; from = [_]→
+      }
+    ; right-inverse-of = λ { [ _ ] → refl _ }
+    }
+  ; left-inverse-of = λ { [ [ _ ] ] → refl _ }
+  }
+
+-- An isomorphism relating _⁻¹ᴱ_ to _⁻¹_.
+--
+-- See also
+-- Equivalence.Erased.Contractible-preimages.[]-cong₁.Erased-⁻¹ᴱ↔Erased-⁻¹.
+
+Erased-⁻¹ᴱ↔Erased-⁻¹ :
+  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
+  Erased (f ⁻¹ᴱ y) ↔ Erased (f ⁻¹ y)
+Erased-⁻¹ᴱ↔Erased-⁻¹ {f} {y} =
+  Erased (∃ λ x → Erased (f x ≡ y))             ↝⟨ Erased-Σ↔Σ ⟩
+  (∃ λ x → Erased (Erased (f (erased x) ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
+  (∃ λ x → Erased (f (erased x) ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
+  Erased (∃ λ x → f x ≡ y)                      □
+
+-- An isomorphism relating Contractibleᴱ to Contractible.
+--
+-- See also
+-- Equivalence.Erased.Contractible-preimages.[]-cong₁.Erased-Contractibleᴱ↔Erased-Contractible.
+
+Erased-Contractibleᴱ↔Erased-Contractible :
+  {@0 A : Type a} →
+  Erased (Contractibleᴱ A) ↔ Erased (Contractible A)
+Erased-Contractibleᴱ↔Erased-Contractible =
+  Erased (∃ λ x → Erased (∀ y → x ≡ y))           ↝⟨ Erased-Σ↔Σ ⟩
+  (∃ λ x → Erased (Erased (∀ y → erased x ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
+  (∃ λ x → Erased (∀ y → erased x ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
+  Erased (∃ λ x → ∀ y → x ≡ y)                    □
+
+-- Erased A is very stable.
+--
+-- See also Erased.Stability.[]-cong₁.Very-stable-Erased.
+
+Very-stable-Erased :
+  {@0 A : Type a} → Very-stable (Erased A)
+Very-stable-Erased =
+  _≃_.is-equivalence (Eq.↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { from = λ ([ x ]) → [ erased x ]
+        }
+      ; right-inverse-of = λ { [ [ x ] ] → refl [ [ x ] ] }
+      }
+    ; left-inverse-of = λ { [ x ] → refl [ x ] }
+    }))
+
+-- ∃ λ (A : Set a) → Very-stable A is stable.
+--
+-- This result is based on Theorem 3.11 in "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+--
+-- See also Erased.Stability.[]-cong₁.Stable-∃-Very-stable.
+
+Stable-∃-Very-stable : Stable (∃ λ (A : Type a) → Very-stable A)
+Stable-∃-Very-stable [ A ] = Erased (proj₁ A) , Very-stable-Erased
+
+-- ∃ λ (A : Set a) → Very-stable A is stable with erased proofs.
+--
+-- This result is based on Theorem 3.11 in "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+--
+-- See also Erased.Stability.[]-cong₁.Stable-∃-Very-stableᴱ.
+
+Stable-∃-Very-stableᴱ : Stable (∃ λ (A : Type a) → Very-stableᴱ A)
+Stable-∃-Very-stableᴱ [ A ] =
+  Erased (proj₁ A) , Very-stable→Very-stableᴱ 0 Very-stable-Erased
+
+-- ∃ λ (A : Set a) → Very-stableᴱ A is very stable (with erased
+-- proofs), assuming extensionality and univalence.
+--
+-- This result is based on Theorem 3.11 in "Modalities in Homotopy
+-- Type Theory" by Rijke, Shulman and Spitters.
+--
+-- See also Erased.Stability.[]-cong₁.Very-stableᴱ-∃-Very-stableᴱ.
+
+Very-stableᴱ-∃-Very-stableᴱ :
+  @0 Extensionality a a →
+  @0 Univalence a →
+  Very-stableᴱ (∃ λ (A : Type a) → Very-stableᴱ A)
+Very-stableᴱ-∃-Very-stableᴱ ext univ =
+  Stable→Left-inverse→Very-stableᴱ Stable-∃-Very-stableᴱ inv
+  where
+  @0 inv : ∀ p → Stable-∃-Very-stableᴱ [ p ] ≡ p
+  inv (A , s) = Σ-≡,≡→≡
+    (Erased A  ≡⟨ ≃⇒≡ univ (Very-stable→Stable 0 (Very-stableᴱ→Very-stable 0 s)) ⟩∎
+     A         ∎)
+    (Very-stableᴱ-propositional ext _ _)
+
+------------------------------------------------------------------------
+-- Some types are logically equivalent to []-cong-axiomatisation ℓ if
+-- --erased-matches is used
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- 2-extendable-along-[]→-axiomatisation ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
+  2-extendable-along-[]→-axiomatisation ℓ
+[]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation {ℓ} =
+  generalise-ext?-prop
+    {B = 2-extendable-along-[]→-axiomatisation ℓ}
+    (record
+       { to   = λ ax s → ES.[]-cong₁.extendable ax (λ _ → s) 2
+       ; from =
+           2-extendable-along-[]→-axiomatisation ℓ         ↝⟨ _$ Very-stable-Erased ⟩
+           2-extendable-along-[]→-Erased-axiomatisation ℓ  ↝⟨ _⇔_.from ([]-cong-axiomatisation≃2-extendable-along-[]→-Erased-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ                        □
+       })
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    2-extendable-along-[]→-axiomatisation-propositional
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- ∞-extendable-along-[]→-axiomatisation ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ]
+  ∞-extendable-along-[]→-axiomatisation ℓ
+[]-cong-axiomatisation≃∞-extendable-along-[]→-axiomatisation {ℓ} =
+  generalise-ext?-prop
+    {B = ∞-extendable-along-[]→-axiomatisation ℓ}
+    (record
+       { to   = λ ax s → ES.[]-cong₁.extendable ax (λ _ → s)
+       ; from =
+           ∞-extendable-along-[]→-axiomatisation ℓ  ↝⟨ (λ ext s → ext s 2) ⟩
+           2-extendable-along-[]→-axiomatisation ℓ  ↝⟨ _⇔_.from ([]-cong-axiomatisation≃2-extendable-along-[]→-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ                 □
+       })
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    ∞-extendable-along-[]→-axiomatisation-propositional
 
 ------------------------------------------------------------------------
 -- Some lemmas related to W
@@ -89,7 +246,7 @@ Very-stableᴱ-W {A} {P} ext s =
 
 _[_]Erased_ :
   {@0 A : Type a} → Erased A → @0 (A → A → Type r) → Erased A → Type r
-[ x ] [ _<_ ]Erased [ y ] = Erased (x < y)
+x [ _<_ ]Erased y = Erased (erased x < erased y)
 
 -- Erased "commutes" with Acc (up to logical equivalence).
 --
@@ -104,7 +261,7 @@ Erased-Acc-⇔ {_<_} = record
   }
   where
   to : ∀ {@0 x} → @0 Acc _<_ x → Acc _[ _<_ ]Erased_ [ x ]
-  to (A.acc f) = A.acc λ ([ y ]) ([ y<x ]) → to (f y y<x)
+  to (A.acc f) = A.acc λ { [ y ] [ y<x ] → to (f y y<x) }
 
   from : ∀ {@0 x} → Acc _[ _<_ ]Erased_ [ x ] → Acc _<_ x
   from (A.acc f) = A.acc λ y y<x → from (f [ y ] [ y<x ])
@@ -118,8 +275,8 @@ Erased-Well-founded-⇔ :
   Erased (Well-founded _<_) ⇔ Well-founded _[ _<_ ]Erased_
 Erased-Well-founded-⇔ {_<_} =
   Erased (Well-founded _<_)            ↔⟨⟩
-  Erased (∀ x → Acc _<_ x)             ↔⟨ Erased-Π↔Π-Erased ⟩
-  (∀ x → Erased (Acc _<_ (erased x)))  ↝⟨ (∀-cong _ λ _ → Erased-Acc-⇔) ⟩
+  Erased (∀ x → Acc _<_ x)             ↝⟨ Erased-Π↔Π-Erased _ ⟩
+  (∀ x → Erased (Acc _<_ (erased x)))  ↝⟨ (∀-cong _ λ { [ _ ] → Erased-Acc-⇔ }) ⟩
   (∀ x → Acc _[ _<_ ]Erased_ x)        ↔⟨⟩
   Well-founded _[ _<_ ]Erased_         □
 
@@ -173,8 +330,10 @@ module []-cong₂-⊔
       to (from x) ≡ x
     to∘from ext (sup [ x ] f) =
       cong (sup [ x ]) $
-      apply-ext ext λ ([ y ]) →
-      to∘from ext (f [ y ])
+      apply-ext ext λ { y@([ _ ]) →
+        to [ erased (from (f y)) ]  ≡⟨ cong to Erased-η ⟩
+        to (from (f y))             ≡⟨ to∘from ext (f y) ⟩∎
+        f y                         ∎ }
 
     from∘to :
       Extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) →

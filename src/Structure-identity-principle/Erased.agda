@@ -422,23 +422,23 @@ Is-QERᴱ≃Is-QER-Erased {A} {B} {R} = ×-cong₁ λ _ →
 
   Erased (∀ {x x′ y y′} → R x y → R x′ y → R x′ y′ → R x y′)  ↝⟨ Erased-cong lemma ⟩
 
-  Erased (∀ x x′ y y′ → R x y → R x′ y → R x′ y′ → R x y′)    ↔⟨ (∀-cong ext λ _ →
+  Erased (∀ x x′ y y′ → R x y → R x′ y → R x′ y′ → R x y′)    ↝⟨ (∀-cong ext λ _ →
                                                                   (∀-cong ext λ _ →
                                                                    (∀-cong ext λ _ →
-                                                                    Erased-Π↔Π) F.∘
-                                                                   Erased-Π↔Π) F.∘
-                                                                  Erased-Π↔Π) F.∘
-                                                                 Erased-Π↔Π ⟩
+                                                                    Erased-Π↔Π ext) F.∘
+                                                                   Erased-Π↔Π ext) F.∘
+                                                                  Erased-Π↔Π ext) F.∘
+                                                                 Erased-Π↔Π ext ⟩
 
-  (∀ x x′ y y′ → Erased (R x y → R x′ y → R x′ y′ → R x y′))  ↔⟨ (∀-cong ext λ _ →
+  (∀ x x′ y y′ → Erased (R x y → R x′ y → R x′ y′ → R x y′))  ↝⟨ (∀-cong ext λ _ →
                                                                   ∀-cong ext λ _ →
                                                                   ∀-cong ext λ _ →
                                                                   ∀-cong ext λ _ →
                                                                   (∀-cong ext λ _ →
                                                                    (∀-cong ext λ _ →
-                                                                    Erased-Π↔Π-Erased) F.∘
-                                                                   Erased-Π↔Π-Erased) F.∘
-                                                                  Erased-Π↔Π-Erased) ⟩
+                                                                    Erased-Π↔Π-Erased ext) F.∘
+                                                                   Erased-Π↔Π-Erased ext) F.∘
+                                                                  Erased-Π↔Π-Erased ext) ⟩
   (∀ x x′ y y′ →
    Erased (R x y) → Erased (R x′ y) →
    Erased (R x′ y′) → Erased (R x y′))                        ↝⟨ inverse lemma ⟩□
@@ -1715,7 +1715,7 @@ Maybeᴿ-suitable {G} s-G = λ where
     .Suitable.descent {x = nothing} {R} prop equiv _ →
         (nothing , [ _ ])
       , [ (λ @0 where
-             (nothing , _) → refl _)
+             (nothing , [ _ ]) → refl _)
         ]
     .Suitable.descent {x = just x} {R} prop equiv SRxx →
                                                                         $⟨ [ SRxx ] ⟩
@@ -1724,11 +1724,11 @@ Maybeᴿ-suitable {G} s-G = λ where
                                                                              (Eq.↔→≃
                                                                                 (Σ-map just id)
                                                                                 (λ where
-                                                                                   (nothing , ())
-                                                                                   (just y , s)   → y , s)
+                                                                                   (nothing , [ () ])
+                                                                                   (just y , s)       → y , s)
                                                                                 (λ where
-                                                                                   (nothing , ())
-                                                                                   (just _ , _)   → refl _)
+                                                                                   (nothing , [ () ])
+                                                                                   (just _ , _)       → refl _)
                                                                                 refl)
                                                                              ⦂ (_ → _) ⟩□
       Contractibleᴱ (∃ λ y → Erased (Maybeᴿ G (Graph [_]) (just x) y))  □
@@ -2253,8 +2253,8 @@ Erasedᴿ G R = Erasedᴾ (G R)
 Is-Erased-equivalence :
   @0 Structure-preserving-equivalence-predicate F a →
   Structure-preserving-equivalence-predicate (λ A → Erased (F A)) a
-Is-Erased-equivalence Is-F-eq (_ , [ x ]) (_ , [ y ]) eq =
-  Erased (Is-F-eq (_ , x) (_ , y) eq)
+Is-Erased-equivalence Is-F-eq (_ , x) (_ , y) eq =
+  Erased (Is-F-eq (_ , erased x) (_ , erased y) eq)
 
 -- If F is univalent, then λ A → Erased (F A) is univalent.
 
@@ -2324,7 +2324,7 @@ Erasedᴿ-acts-on-functions {G} a-G = λ where
     Er.map (a-G .Acts-on-functions.map f)
   .Acts-on-functions.map-id →
     Er.map (a-G .Acts-on-functions.map id)  ≡⟨ cong (λ f → Er.map f) (a-G .Acts-on-functions.map-id) ⟩
-    Er.map id                               ≡⟨⟩
+    Er.map id                               ≡⟨ (⟨ext⟩ λ _ → Er.map-id) ⟩
     id                                      ∎
   .Acts-on-functions.map-map
     {f} {g} {x = [ x ]} {y = [ y ]} {R₁} {R₂} R₁→R₂ →

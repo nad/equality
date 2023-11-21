@@ -245,6 +245,7 @@ _ = refl _
    Erased (u⁻¹ f ≡ g))                                                    ↔⟨ inverse $
                                                                              Σ-assoc F.∘
                                                                              (∃-cong λ _ →
+                                                                              (∃-cong λ { [ _ ] → F.id }) F.∘
                                                                               Erased-Σ↔Σ F.∘
                                                                               (from-equivalence $ Erased-cong (∃-cong λ _ →
                                                                                Eq.extensionality-isomorphism ext))) ⟩
@@ -304,12 +305,12 @@ _ = refl _
     cong (_$ x) (cong (_$ n) f≡g₊))))                                     ↔⟨ (∃-cong λ _ → Erased-cong (∃-cong λ _ →
                                                                               (∃-cong λ _ → ∃-cong λ _ →
                                                                                (∀-cong ext λ _ → ≡⇒↝ _ $ cong (_≡ _) $
-                                                                                cong (subst (λ x → u⁻¹ _ x ≡ g x) _) $
+                                                                                cong (subst (λ x → u⁻¹ (_ , [ _ ]) x ≡ g x) _) $
                                                                                 trans (cong (cong (_$ _)) $ cong-refl _) $
                                                                                 cong-refl _)
                                                                                  ×-cong
                                                                                (∀-cong ext λ _ → ∀-cong ext λ _ → ≡⇒↝ _ $ cong₂ _≡_
-                                                                                  (cong (subst (λ x → u⁻¹ _ x ≡ g x) _) $
+                                                                                  (cong (subst (λ x → u⁻¹ (_ , [ _ ]) x ≡ g x) _) $
                                                                                    trans (cong (cong (_$ _)) $ cong-refl _) $
                                                                                    cong-refl _)
                                                                                   (trans (cong (cong (_$ _)) $ cong-refl _) $

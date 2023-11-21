@@ -135,15 +135,15 @@ elim-Very-stable :
   ∀ b → P b
 elim-Very-stable P t f s =
   elim P t f
-    (λ b →
-       Erased (P (erased b))  ↝⟨ Erased.map (subst P (
+    (λ { b@([ _ ]) →
+         Erased (P (erased b))  ↝⟨ Erased.map (subst P (
 
-           erased b                ≡⟨ sym $ stable-[] (erased b) ⟩∎
-           stable b                ∎)) ⟩
+             erased b                ≡⟨ sym $ stable-[] (erased b) ⟩∎
+             stable b                ∎)) ⟩
 
-       Erased (P (stable b))  ↝⟨ Very-stable→Stable 0 (s (stable b)) ⟩□
+         Erased (P (stable b))  ↝⟨ Very-stable→Stable 0 (s (stable b)) ⟩□
 
-       P (stable b)           □)
+         P (stable b)           □ })
     (λ b p →
        Very-stable→Stable 1 (Very-stable→Very-stable-≡ 0 (s b)) _ _
          [ subst P (stable-[] b)
@@ -280,7 +280,7 @@ B̃ool≃Erased-Bool = Eq.↔⇒≃ (record
           [ to (from b)                           ≡⟨⟩
             to (stable [ from-Bool (erased b) ])  ≡⟨ cong to (stable-[] _) ⟩
             to (from-Bool (erased b))             ≡⟨ lemma (erased b) ⟩
-            [ erased b ]                          ≡⟨⟩
+            [ erased b ]                          ≡⟨ Erased-η ⟩
             b                                     ∎
           ]
     }

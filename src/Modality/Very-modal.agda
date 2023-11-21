@@ -562,62 +562,62 @@ module []-cong (ax : []-cong-axiomatisation a) where
     Eq.↔→≃
       (_⇔_.to   ◯-Erased⇔Erased-◯)
       (_⇔_.from ◯-Erased⇔Erased-◯)
-      (λ (E.[ x ]) →
-         ◯-Erased→Erased-◯
-           (◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯≃◯-Modal-× _ (η E.[ x ])))                    ≡⟨ cong (λ x → ◯-Erased→Erased-◯ (◯-map _ x))
-                                                                 ◯≃◯-Modal-×-η ⟩
-         ◯-Erased→Erased-◯
-           (◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯-map (_, E.[ x ]) very-modal))                ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) $ sym
-                                                                 ◯-map-∘ ⟩
-         ◯-Erased→Erased-◯
-           (◯-map (λ m → E.[ Modal→Stable m x ]) very-modal)  ≡⟨ ◯-elim
-                                                                   {P = λ m →
-                                                                          ◯-Erased→Erased-◯ (◯-map (λ m → E.[ Modal→Stable m x ]) m) ≡
-                                                                          E.[ x ]}
-                                                                   (λ _ → Modal→Separated (Modality.Box-cong.Modal-Erased eq ax M Modal-◯) _ _)
-                                                                   (λ m →
+      (λ { E.[ x ] →
            ◯-Erased→Erased-◯
-             (◯-map (λ m → E.[ Modal→Stable m x ]) (η m))             ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) ◯-map-η ⟩
+             (◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯≃◯-Modal-× _ (η E.[ x ])))                    ≡⟨ cong (λ x → ◯-Erased→Erased-◯ (◯-map _ x))
+                                                                   ◯≃◯-Modal-×-η ⟩
+           ◯-Erased→Erased-◯
+             (◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯-map (_, E.[ x ]) very-modal))                ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) $ sym
+                                                                   ◯-map-∘ ⟩
+           ◯-Erased→Erased-◯
+             (◯-map (λ m → E.[ Modal→Stable m x ]) very-modal)  ≡⟨ ◯-elim
+                                                                     {P = λ m →
+                                                                            ◯-Erased→Erased-◯ (◯-map (λ m → E.[ Modal→Stable m x ]) m) ≡
+                                                                            E.[ x ]}
+                                                                     (λ _ → Modal→Separated (Modality.Box-cong.Modal-Erased eq ax M Modal-◯) _ _)
+                                                                     (λ m →
+             ◯-Erased→Erased-◯
+               (◯-map (λ m → E.[ Modal→Stable m x ]) (η m))             ≡⟨ cong (λ x → ◯-Erased→Erased-◯ x) ◯-map-η ⟩
 
-           ◯-Erased→Erased-◯ (η E.[ Modal→Stable m x ])               ≡⟨⟩
+             ◯-Erased→Erased-◯ (η E.[ Modal→Stable m x ])               ≡⟨⟩
 
-           E.[ ◯-map E.erased (η E.[ Modal→Stable m x ]) ]            ≡⟨ E.[]-cong₁.[]-cong ax E.[ ◯-map-η ] ⟩
+             E.[ ◯-map E.erased (η E.[ Modal→Stable m x ]) ]            ≡⟨ E.[]-cong₁.[]-cong ax E.[ ◯-map-η ] ⟩
 
-           E.[ η (Modal→Stable m x) ]                                 ≡⟨⟩
+             E.[ η (Modal→Stable m x) ]                                 ≡⟨⟩
 
-           E.[ η (η⁻¹ m x) ]                                          ≡⟨ E.[]-cong₁.[]-cong ax E.[ η-η⁻¹ ] ⟩∎
+             E.[ η (η⁻¹ m x) ]                                          ≡⟨ E.[]-cong₁.[]-cong ax E.[ η-η⁻¹ ] ⟩∎
 
-           E.[ x ]                                                    ∎)
-                                                                   very-modal ⟩∎
-         E.[ x ]                                              ∎)
+             E.[ x ]                                                    ∎)
+                                                                     very-modal ⟩∎
+           E.[ x ]                                              ∎ })
       (◯-elim
          (λ _ → Separated-◯ _ _)
-         (λ (E.[ x ]) →
-            ◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯≃◯-Modal-× _ (η (◯-Erased→Erased-◯ (η E.[ x ]))))   ≡⟨⟩
+         (λ { E.[ x ] →
+              ◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯≃◯-Modal-× _ (η (◯-Erased→Erased-◯ (η E.[ x ]))))   ≡⟨⟩
 
-            ◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯≃◯-Modal-× _ (η E.[ ◯-map E.erased (η E.[ x ]) ]))  ≡⟨ cong (◯-map _) $ cong (◯≃◯-Modal-× _ ∘ η) $
-                                                                       E.[]-cong₁.[]-cong ax E.[ ◯-map-η ] ⟩
-            ◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯≃◯-Modal-× _ (η E.[ η x ]))                         ≡⟨ cong (◯-map _) ◯≃◯-Modal-×-η ⟩
+              ◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯≃◯-Modal-× _ (η E.[ ◯-map E.erased (η E.[ x ]) ]))  ≡⟨ cong (◯-map _) $ cong (◯≃◯-Modal-× _ ∘ η) $
+                                                                         E.[]-cong₁.[]-cong ax E.[ ◯-map-η ] ⟩
+              ◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯≃◯-Modal-× _ (η E.[ η x ]))                         ≡⟨ cong (◯-map _) ◯≃◯-Modal-×-η ⟩
 
-            ◯-map (uncurry λ m → E.map (Modal→Stable m))
-              (◯-map (_, E.[ η x ]) very-modal)                     ≡⟨ sym ◯-map-∘ ⟩
+              ◯-map (uncurry λ m → E.map (Modal→Stable m))
+                (◯-map (_, E.[ η x ]) very-modal)                     ≡⟨ sym ◯-map-∘ ⟩
 
-            ◯-map (λ m → E.[ Modal→Stable m (η x) ]) very-modal     ≡⟨ ◯-elim
-                                                                         {P = λ m →
-                                                                                ◯-map (λ m → E.[ Modal→Stable m (η x) ]) m ≡
-                                                                                η E.[ x ]}
-                                                                         (λ _ → Separated-◯ _ _)
-                                                                         (λ m →
-              ◯-map (λ m → E.[ Modal→Stable m (η x) ]) (η m)                ≡⟨ ◯-map-η ⟩
-              η E.[ Modal→Stable m (η x) ]                                  ≡⟨ cong η $ E.[]-cong₁.[]-cong ax E.[ Modal→Stable-η ] ⟩∎
-              η E.[ x ]                                                     ∎)
-                                                                         very-modal ⟩∎
-            η E.[ x ]                                               ∎))
+              ◯-map (λ m → E.[ Modal→Stable m (η x) ]) very-modal     ≡⟨ ◯-elim
+                                                                           {P = λ m →
+                                                                                  ◯-map (λ m → E.[ Modal→Stable m (η x) ]) m ≡
+                                                                                  η E.[ x ]}
+                                                                           (λ _ → Separated-◯ _ _)
+                                                                           (λ m →
+                ◯-map (λ m → E.[ Modal→Stable m (η x) ]) (η m)                ≡⟨ ◯-map-η ⟩
+                η E.[ Modal→Stable m (η x) ]                                  ≡⟨ cong η $ E.[]-cong₁.[]-cong ax E.[ Modal→Stable-η ] ⟩∎
+                η E.[ x ]                                                     ∎)
+                                                                           very-modal ⟩∎
+              η E.[ x ]                                               ∎ }))
 
   private
     open module CE = Modality.Commutes-with-Erased

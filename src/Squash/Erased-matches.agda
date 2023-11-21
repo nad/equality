@@ -30,7 +30,7 @@ commutes-with-Erased =
   Eq.↔→≃
     (λ x → ◯-Erased→Erased-◯ x)
     Erased-Squash→Squash-Erased
-    (λ _ → refl _)
+    (λ { E.[ _ ] → refl _ })
     (λ _ → refl _)
   where
   open Modality modality

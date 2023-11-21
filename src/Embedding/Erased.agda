@@ -21,7 +21,8 @@ open import Equivalence.Erased eq as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
   using (_⁻¹ᴱ_)
-open import Erased.Level-1 eq using (Erased; []-cong-axiomatisation)
+open import Erased.Level-1 eq
+  using (Erased; [_]; []-cong-axiomatisation)
 open import Extensionality eq
 open import Function-universe eq hiding (id; _∘_; equivalence)
 open import H-level.Closure eq
@@ -202,7 +203,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
   Is-equivalenceᴱ→Is-embeddingᴱ-Erased :
     {A : Type ℓ} {f : Erased A → B} →
     Is-equivalenceᴱ f → Is-embeddingᴱ f
-  Is-equivalenceᴱ→Is-embeddingᴱ-Erased eq _ _ =
+  Is-equivalenceᴱ→Is-embeddingᴱ-Erased eq [ _ ] [ _ ] =
     _≃ᴱ_.is-equivalence $ inverse $
       EEq.[]-cong₁.to≡to≃ᴱ≡-Erased ax EEq.⟨ _ , eq ⟩
 

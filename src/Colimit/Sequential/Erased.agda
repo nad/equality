@@ -188,12 +188,12 @@ universal-property {P} {B} {step} =
     .∣∣≡∣∣ʳ → erased g _
 
   to∘from : ∀ p → to (from p) ≡ p
-  to∘from (f , g) =
+  to∘from (f , [ g ]) =
     cong (f ,_) $
     []-cong
       [ (⟨ext⟩ λ n → ⟨ext⟩ λ x →
            cong (rec _) (∣∣≡∣∣ x)  ≡⟨ rec-∣∣≡∣∣ ⟩∎
-           erased g n x            ∎)
+           g n x                   ∎)
       ]
 
   from∘to : ∀ h → from (to h) ≡ h

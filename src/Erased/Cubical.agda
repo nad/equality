@@ -106,11 +106,6 @@ private
     P.subst (λ x → Erased (P x)) x≡y [ p ] ≡ [ P.subst P x≡y p ]
   push-subst-[]-Path = refl _
 
-  -- Above a lemma H-level-Erased is reexported. That lemma is proved
-  -- in a certain way. The following two lemmas are included to
-  -- illustrate a somewhat different proof technique that works for
-  -- individual h-levels (given by closed natural numbers).
-
   -- Is-proposition is closed under Erased.
 
   Is-proposition-Erased :
@@ -123,22 +118,8 @@ private
     where
     Is-proposition-Erased′ :
       @0 P.Is-proposition A → P.Is-proposition (Erased A)
-    Is-proposition-Erased′ prop x y = λ i →
-      [ prop (erased x) (erased y) i ]
-
-  -- Is-set is closed under Erased.
-
-  Is-set-Erased :
-    {@0 A : Type a} →
-    @0 Is-set A → Is-set (Erased A)
-  Is-set-Erased {A} set =
-    _↔_.from (H-level↔H-level 2)
-      (Is-set-Erased′
-         (_↔_.to (H-level↔H-level 2) set))
-    where
-    Is-set-Erased′ : @0 P.Is-set A → P.Is-set (Erased A)
-    Is-set-Erased′ set p q = λ i j →
-      [ set (P.cong erased p) (P.cong erased q) i j ]
+    Is-proposition-Erased′ prop [ x ] [ y ] = λ i →
+      [ prop x y i ]
 
 ------------------------------------------------------------------------
 -- Some isomorphisms/equivalences
@@ -154,10 +135,10 @@ private
   ((x : Erased A) → P x) PB.↔ ((@0 x : A) → P [ x ])
 Π-Erased↔Π0[] = record
   { surjection = record
-    { logical-equivalence = Π-Erased⇔Π0
+    { logical-equivalence = EP.Π-Erased⇔Π0[]
     ; right-inverse-of = λ f _ → f
     }
-  ; left-inverse-of = λ f _ → f
+  ; left-inverse-of = λ { f _ [ _ ] → f _ }
   }
 
 -- There is an equivalence (with paths for equality, not _≡_) between
@@ -168,7 +149,8 @@ private
 -- Equivalence are not erased, and P can only be used in erased
 -- contexts.
 --
--- This is a strengthening of E.Π-Erased≃Π0[].
+-- Note that, unlike in the type of E.Π-Erased≃Π0[], the argument P is
+-- erased.
 
 Π-Erased≃Π0[] :
   {@0 A : Type a} {@0 P : Erased A → Type p} →
@@ -176,9 +158,9 @@ private
 Π-Erased≃Π0[] = record
   { to             = λ f x → f [ x ]
   ; is-equivalence =
-        (λ f ([ x ]) → f x)
+        (λ { f [ x ] → f x })
       , (λ f _ → f)
-      , (λ f _ → f)
+      , (λ { f _ [ _ ] → f _ })
       , (λ f _ _ x → f [ x ])
   }
 
@@ -193,7 +175,8 @@ private
 -- There is an equivalence (with paths for equality, not _≡_) between
 -- (x : Erased A) → P (erased x) and (@0 x : A) → P x.
 --
--- This is a strengthening of E.Π-Erased≃Π0.
+-- Note that, unlike in the type of E.Π-Erased≃Π0, the argument P is
+-- erased.
 
 Π-Erased≃Π0 :
   {@0 A : Type a} {@0 P : A → Type p} →

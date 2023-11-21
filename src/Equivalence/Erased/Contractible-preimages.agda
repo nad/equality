@@ -166,28 +166,6 @@ _ = refl _
 @0 _ : _≃_.from (≃≃≃ᴱ ext) p ≡ ≃ᴱ→≃ p
 _ = refl _
 
--- An isomorphism relating _⁻¹ᴱ_ to _⁻¹_.
-
-Erased-⁻¹ᴱ↔Erased-⁻¹ :
-  {@0 A : Type a} {@0 B : Type b} {@0 f : A → B} {@0 y : B} →
-  Erased (f ⁻¹ᴱ y) ↔ Erased (f ⁻¹ y)
-Erased-⁻¹ᴱ↔Erased-⁻¹ {f} {y} =
-  Erased (∃ λ x → Erased (f x ≡ y))             ↝⟨ Erased-Σ↔Σ ⟩
-  (∃ λ x → Erased (Erased (f (erased x) ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
-  (∃ λ x → Erased (f (erased x) ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
-  Erased (∃ λ x → f x ≡ y)                      □
-
--- An isomorphism relating Contractibleᴱ to Contractible.
-
-Erased-Contractibleᴱ↔Erased-Contractible :
-  {@0 A : Type a} →
-  Erased (Contractibleᴱ A) ↔ Erased (Contractible A)
-Erased-Contractibleᴱ↔Erased-Contractible =
-  Erased (∃ λ x → Erased (∀ y → x ≡ y))           ↝⟨ Erased-Σ↔Σ ⟩
-  (∃ λ x → Erased (Erased (∀ y → erased x ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
-  (∃ λ x → Erased (∀ y → erased x ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
-  Erased (∃ λ x → ∀ y → x ≡ y)                    □
-
 ------------------------------------------------------------------------
 -- Results that follow if the []-cong axioms hold for one universe
 -- level
@@ -199,6 +177,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   ----------------------------------------------------------------------
   -- Some results related to _⁻¹ᴱ_
+
+  -- An isomorphism relating _⁻¹ᴱ_ to _⁻¹_.
+  --
+  -- If the --erased-matches flag is activated, then this lemma can be
+  -- proved without the use of []-cong, see
+  -- Erased.Erased-matches.Erased-⁻¹ᴱ↔Erased-⁻¹.
+
+  Erased-⁻¹ᴱ↔Erased-⁻¹ :
+    {@0 A : Type a} {@0 B : Type ℓ} {@0 f : A → B} {@0 y : B} →
+    Erased (f ⁻¹ᴱ y) ↔ Erased (f ⁻¹ y)
+  Erased-⁻¹ᴱ↔Erased-⁻¹ {f} {y} =
+    Erased (∃ λ x → Erased (f x ≡ y))             ↝⟨ Erased-Σ↔Σ ⟩
+    (∃ λ x → Erased (Erased (f (erased x) ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
+    (∃ λ x → Erased (f (erased x) ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
+    Erased (∃ λ x → f x ≡ y)                      □
 
   -- The function _⁻¹ᴱ y respects erased extensional equality.
 
@@ -215,9 +208,10 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     {@0 B : Type ℓ} {f : A → Erased B} {@0 y : B} →
     f ⁻¹ᴱ [ y ] ↔ f ⁻¹ [ y ]
   ⁻¹ᴱ[]↔⁻¹[] {f} {y} =
-    (∃ λ x → Erased (f x ≡ [ y ]))       ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔)) ⟩
-    (∃ λ x → Erased (erased (f x) ≡ y))  ↝⟨ (∃-cong λ _ → Erased-≡↔[]≡[]) ⟩□
-    (∃ λ x → f x ≡ [ y ])                □
+    (∃ λ x → Erased (f x ≡ [ y ]))               ↔⟨ (∃-cong λ _ → Erased-cong-≃ (≡⇒↝ _ $ cong (_≡ _) $ sym Erased-η)) ⟩
+    (∃ λ x → Erased ([ erased (f x) ] ≡ [ y ]))  ↔⟨ (∃-cong λ _ → Erased-cong-≃ (Eq.≃-≡ $ Eq.↔⇒≃ $ inverse $ erased Erased↔)) ⟩
+    (∃ λ x → Erased (erased (f x) ≡ y))          ↔⟨ (∃-cong λ _ → Erased-≡≃≡) ⟩
+    (∃ λ x → f x ≡ [ y ])                        □
 
   -- Erased "commutes" with _⁻¹ᴱ_.
 
@@ -232,6 +226,21 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   ----------------------------------------------------------------------
   -- Some results related to Contractibleᴱ
+
+  -- An isomorphism relating Contractibleᴱ to Contractible.
+  --
+  -- If the --erased-matches flag is activated, then this lemma can be
+  -- proved without the use of []-cong, see
+  -- Erased.Erased-matches.Erased-Contractibleᴱ↔Erased-Contractible.
+
+  Erased-Contractibleᴱ↔Erased-Contractible :
+    {@0 A : Type ℓ} →
+    Erased (Contractibleᴱ A) ↔ Erased (Contractible A)
+  Erased-Contractibleᴱ↔Erased-Contractible =
+    Erased (∃ λ x → Erased (∀ y → x ≡ y))           ↝⟨ Erased-Σ↔Σ ⟩
+    (∃ λ x → Erased (Erased (∀ y → erased x ≡ y)))  ↝⟨ (∃-cong λ _ → Erased-Erased↔Erased) ⟩
+    (∃ λ x → Erased (∀ y → erased x ≡ y))           ↝⟨ inverse Erased-Σ↔Σ ⟩□
+    Erased (∃ λ x → ∀ y → x ≡ y)                    □
 
   -- Erased commutes with Contractibleᴱ.
 
@@ -249,7 +258,7 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     (∃ λ x → Erased ((y : A) → Erased (erased x ≡ y)))  ↝⟨ (∃-cong λ _ →
                                                             Erased-cong?
                                                               (λ ext → Π-cong ext (inverse $ erased Erased↔) λ _ →
-                                                                         from-isomorphism Erased-≡↔[]≡[])
+                                                                         from-isomorphism Erased-≡≃≡)
                                                               ext) ⟩□
     (∃ λ x → Erased ((y : Erased A) → x ≡ y))           □
 
