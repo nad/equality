@@ -27,7 +27,7 @@ private
 univ : Univalence ℓ
 univ = _≃_.from Univalence≃Univalence PU.univ
 
--- A variant of univ that does not compute at compile-time.
+-- An opaque variant of univ.
 
 opaque
 
