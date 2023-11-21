@@ -3954,6 +3954,181 @@ Is-embedding-cong {k} {a} {b} {f} {g} ext f≡g =
   (∃ λ (f : A → B) → EEq.Is-equivalenceᴱ f)  □
 
 ------------------------------------------------------------------------
+-- ΠΣ-cong-domain and _↝[_∣_]-ΠΣ-cong_
+
+-- The lemmas Π-cong and Σ-cong take arguments of type A₁ ↔[ k₁ ] A₂.
+-- However, sometimes one can get away with something weaker. Some
+-- preservation lemmas for Π- and Σ-types in Equivalence.Erased use
+-- assumptions where the Kind is ΠΣ-cong-domain k.
+
+ΠΣ-cong-domain : Kind → Kind
+ΠΣ-cong-domain implication         = surjection
+ΠΣ-cong-domain logical-equivalence = surjection
+ΠΣ-cong-domain injection           = equivalence
+ΠΣ-cong-domain embedding           = equivalence
+ΠΣ-cong-domain surjection          = equivalence
+ΠΣ-cong-domain bijection           = equivalence
+ΠΣ-cong-domain equivalence         = equivalence
+ΠΣ-cong-domain equivalenceᴱ        = equivalenceᴱ
+
+-- A variant of _↝[_∣_]_ that uses ΠΣ-cong-domain.
+
+infix 0 _↝[_∣_]-ΠΣ-cong_
+
+_↝[_∣_]-ΠΣ-cong_ :
+  Type a → (c d : Level) → Type b → Type (a ⊔ b ⊔ lsuc (c ⊔ d))
+A ↝[ c ∣ d ]-ΠΣ-cong B =
+  ∃ λ (f : A → B) →
+    ∀ {k} → Extensionality? k c d → Is (ΠΣ-cong-domain k) f
+
+-- One can convert from A ↝[ c ∣ d ]-ΠΣ-cong B to
+-- A ↝[ ΠΣ-cong-domain k ] B (assuming function extensionality).
+
+↝-ΠΣ-cong→↝ :
+  ∀ {c d} {A : Type a} {B : Type b} →
+  A ↝[ c ∣ d ]-ΠΣ-cong B →
+  Extensionality? k c d →
+  A ↝[ ΠΣ-cong-domain k ] B
+↝-ΠΣ-cong→↝ (f , is) ext = _≃_.from ↝≃∃-Is (f , is ext)
+
+-- One can convert from A ↝[ c ∣ d ]-ΠΣ-cong B to A ↝[ c ∣ d ] B.
+
+↝-ΠΣ-cong→↝[∣] :
+  ∀ {c d} {A : Type a} {B : Type b} →
+  A ↝[ c ∣ d ]-ΠΣ-cong B →
+  A ↝[ c ∣ d ] B
+↝-ΠΣ-cong→↝[∣] (f , is) {k} ext with k
+… | implication         = _≃_.from ↝≃∃-Is (f , _)
+… | logical-equivalence = _≃_.from ↝≃∃-Is
+                            (f , proj₁ ⊚ is {k = implication} _)
+… | injection           = from-equivalence $
+                          _≃_.from ↝≃∃-Is (f , is {k = equivalence} ext)
+… | embedding           = from-equivalence $
+                          _≃_.from ↝≃∃-Is (f , is {k = equivalence} ext)
+… | surjection          = from-equivalence $
+                          _≃_.from ↝≃∃-Is (f , is {k = equivalence} ext)
+… | bijection           = from-equivalence $
+                          _≃_.from ↝≃∃-Is (f , is {k = equivalence} ext)
+… | equivalence         = _≃_.from ↝≃∃-Is (f , is {k = equivalence} ext)
+… | equivalenceᴱ        = _≃_.from ↝≃∃-Is
+                            (f , is {k = equivalenceᴱ} ext)
+
+-- The forward direction of ↝-ΠΣ-cong→↝ A↝B ext is the forward
+-- direction of A↝B.
+
+to-implication-↝-ΠΣ-cong→↝ :
+  ∀ {c d} {A : Type a} {B : Type b}
+  (A↝B : A ↝[ c ∣ d ]-ΠΣ-cong B) (ext : Extensionality? k c d) →
+  to-implication (↝-ΠΣ-cong→↝ A↝B ext) ≡ A↝B .proj₁
+to-implication-↝-ΠΣ-cong→↝ {k = implication}         _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = logical-equivalence} _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = injection}           _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = embedding}           _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = surjection}          _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = bijection}           _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = equivalence}         _ _ = refl _
+to-implication-↝-ΠΣ-cong→↝ {k = equivalenceᴱ}        _ _ = refl _
+
+-- "Functions" of type A ↝[ c ∣ d ]-ΠΣ-cong B have right inverses
+-- (with erased proofs).
+
+↝-ΠΣ-cong-right-inverse :
+  ∀ {c d} {A : Type a} {B : Type b}
+  ((f , _) : A ↝[ c ∣ d ]-ΠΣ-cong B) →
+  Extensionality? k c d →
+  (∃ λ (f⁻¹ : B → A) → Erased (∀ x → f (f⁻¹ x) ≡ x))
+↝-ΠΣ-cong-right-inverse {k = implication} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _↠_ (↝-ΠΣ-cong→↝ {k = implication} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = logical-equivalence} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _↠_ (↝-ΠΣ-cong→↝ {k = logical-equivalence} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = injection} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃_ (↝-ΠΣ-cong→↝ {k = injection} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = embedding} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃_ (↝-ΠΣ-cong→↝ {k = embedding} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = surjection} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃_ (↝-ΠΣ-cong→↝ {k = surjection} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = bijection} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃_ (↝-ΠΣ-cong→↝ {k = bijection} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = equivalence} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃_ (↝-ΠΣ-cong→↝ {k = equivalence} A↝B ext)
+↝-ΠΣ-cong-right-inverse {k = equivalenceᴱ} A↝B ext =
+  from , E.[ right-inverse-of ]
+  where
+  open _≃ᴱ_ (↝-ΠΣ-cong→↝ {k = equivalenceᴱ} A↝B ext)
+
+-- A variant of generalise-ext?′ for _↝[_∣_]-ΠΣ-cong_.
+
+generalise-ext?-ΠΣ-cong :
+  ∀ {c d} {A : Type a} {B : Type b}
+  (A↠B : A ↠ B) →
+  (let open _↠_ A↠B in
+   Extensionality c d →
+   ∀ x → from (to x) ≡ x) →
+  A ↝[ c ∣ d ]-ΠΣ-cong B
+generalise-ext?-ΠΣ-cong {c} {d} {A} {B} A↠B left-inverse-of =
+  to , λ where
+    {k = implication} _ →
+      _↔_.to ↠↔∃-Split-surjective A↠B .proj₂
+    {k = logical-equivalence} _ →
+      _↔_.to ↠↔∃-Split-surjective A↠B .proj₂
+    {k = equivalenceᴱ} ext →
+      _≃ᴱ_.is-equivalence $
+      EEq.[≃]→≃ᴱ (EEq.[proofs] (A≃B′ (E.erased ext)))
+    {k = injection}   → is-equiv
+    {k = embedding}   → is-equiv
+    {k = surjection}  → is-equiv
+    {k = bijection}   → is-equiv
+    {k = equivalence} → is-equiv
+  where
+  open _↠_ A↠B
+
+  A≃B′ : Extensionality c d → A ≃ B
+  A≃B′ ext = Eq.↔⇒≃ record
+    { surjection      = A↠B
+    ; left-inverse-of = left-inverse-of ext
+    }
+
+  is-equiv : Extensionality c d → Is-equivalence to
+  is-equiv = _≃_.is-equivalence ⊚ A≃B′
+
+-- A simplification lemma for ↝-ΠΣ-cong-right-inverse and
+-- generalise-ext?-ΠΣ-cong.
+
+↝-ΠΣ-cong-right-inverse-generalise-ext?-ΠΣ-cong :
+  ∀ {c d} {A : Type a} {B : Type b} {A↠B : A ↠ B}
+  {@0 left-inverse-of :
+     let open _↠_ A↠B in
+     Extensionality c d →
+     ∀ x → from (to x) ≡ x}
+  {@0 ext : Extensionality? k c d} →
+  ↝-ΠΣ-cong-right-inverse
+    (generalise-ext?-ΠΣ-cong A↠B left-inverse-of) ext ≡
+  (_↠_.from A↠B , E.[ _↠_.right-inverse-of A↠B ])
+↝-ΠΣ-cong-right-inverse-generalise-ext?-ΠΣ-cong {k} with k
+… | implication         = refl _
+… | logical-equivalence = refl _
+… | injection           = refl _
+… | embedding           = refl _
+… | surjection          = refl _
+… | bijection           = refl _
+… | equivalence         = refl _
+… | equivalenceᴱ        = refl _
+
+------------------------------------------------------------------------
 -- Some lemmas related to _⁻¹_
 
 -- A fibre of a composition can be expressed as a pair of fibres.
