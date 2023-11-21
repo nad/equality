@@ -474,7 +474,7 @@ binary-correct f hyp m n =
     (m , n , _)
 
 -- If certain operations are defined for Nat′, then they can be
--- defined for Nat-[_] as well.
+-- defined for Nat as well.
 
 module Operations-for-Nat (o : Operations) where
 
