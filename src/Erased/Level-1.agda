@@ -485,7 +485,7 @@ cotopological-modality =
 Πᴱ-closure {P} ext n =
   (∀ (@0 x) → H-level n (P x))       →⟨ Eq._≃₀_.from (Π-Erased≃Π0 ext) ⟩
   (∀ x → H-level n (P (x .erased)))  →⟨ Π-closure ext n ⟩
-  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong {B = ∀ (@0 x) → P x} _ n (Π-Erased≃Π0 {k = equivalence} ext) ⟩□
+  H-level n (∀ x → P (x .erased))    →⟨ H-level-cong _ n (Π-Erased≃Π0 {k = equivalence} ext) ⟩□
   H-level n (∀ (@0 x) → P x)         □
 
 -- A variant of H-level.Π-closure for function spaces with erased
@@ -499,8 +499,7 @@ implicit-Πᴱ-closure :
   H-level n ({@0 x : A} → P x)
 implicit-Πᴱ-closure {A} {P} ext n =
   (∀ (@0 x) → H-level n (P x))  →⟨ Πᴱ-closure ext n ⟩
-  H-level n (∀ (@0 x) → P x)    →⟨ H-level-cong {A = ∀ (@0 x) → P x} {B = ∀ {@0 x} → P x} _ n $
-                                   inverse {A = ∀ {@0 x} → P x} {B = ∀ (@0 x) → P x}
+  H-level n (∀ (@0 x) → P x)    →⟨ H-level-cong _ n $ inverse
                                    Bijection.implicit-Πᴱ↔Πᴱ′ ⟩□
   H-level n (∀ {@0 x} → P x)    □
 
@@ -512,10 +511,10 @@ apply-extᴱ :
   Extensionality a p →
   ((@0 x : A) → f x ≡ g x) →
   f ≡ g
-apply-extᴱ {A} {P} {f} {g} ext =
+apply-extᴱ {A} {f} {g} ext =
   ((@0 x : A) → f x ≡ g x)                          →⟨ Eq._≃₀_.from (Π-Erased≃Π0 ext) ⟩
   ((x : Erased A) → f (x .erased) ≡ g (x .erased))  →⟨ apply-ext ext ⟩
-  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong {B = (@0 x : A) → P x} (Eq._≃₀_.to (Π-Erased≃Π0 ext)) ⟩□
+  (λ x → f (x .erased)) ≡ (λ x → g (x .erased))     →⟨ cong (Eq._≃₀_.to (Π-Erased≃Π0 ext)) ⟩□
   f ≡ g                                             □
 
 -- Extensionality implies extensionality for some functions with
@@ -527,9 +526,9 @@ implicit-apply-extᴱ :
   ((@0 x : A) → f {x = x} ≡ g {x = x}) →
   _≡_ {A = {@0 x : A} → P x} f g
 implicit-apply-extᴱ {A} {P} {f} {g} ext =
-  ((@0 x : A) → f {x = x} ≡ g {x = x})                            →⟨ apply-extᴱ ext ⟩
-  _≡_ {A = (@0 x : A) → P x} (λ x → f {x = x}) (λ x → g {x = x})  →⟨ cong {A = (@0 x : A) → P x} {B = {@0 x : A} → P x} (λ f {x = x} → f x) ⟩□
-  _≡_ {A = {@0 x : A} → P x} f g                                  □
+  ((@0 x : A) → f {x = x} ≡ g {x = x})             →⟨ apply-extᴱ ext ⟩
+  (λ (@0 x) → f {x = x}) ≡ (λ (@0 x) → g {x = x})  →⟨ cong {B = {@0 x : A} → P x} (λ f {x = x} → f x) ⟩□
+  _≡_ {A = {@0 x : A} → P x} f g                   □
 
 -- A variant of ∀-cong for function spaces with erased explicit
 -- domains.
@@ -540,17 +539,10 @@ implicit-apply-extᴱ {A} {P} {f} {g} ext =
   (∀ (@0 x) → P₁ x ↝[ k ] P₂ x) →
   ((@0 x : A) → P₁ x) ↝[ k ] ((@0 x : A) → P₂ x)
 ∀ᴱ-cong {p₁} {p₂} {k} {A} {P₁} {P₂} ext hyp =
-  F._∘_
-    {A = (@0 x : A) → P₁ x}
-    {C = (@0 x : A) → P₂ x}
-    (Π-Erased≃Π0 (lower-extensionality? k lzero p₁ ext))
-    (F._∘_
-       {A = (@0 x : A) → P₁ x}
-       (∀-cong ext λ ([ x ]) → hyp x)
-       (inverse-ext?
-          {B = (@0 x : A) → P₁ x}
-          Π-Erased≃Π0
-          (lower-extensionality? k lzero p₂ ext)))
+  ((@0 x : A) → P₁ x)            ↝⟨ inverse-ext? Π-Erased≃Π0 (lower-extensionality? k lzero p₂ ext) ⟩
+  ((([ x ]) : Erased A) → P₁ x)  ↝⟨ (∀-cong ext λ _ → hyp _) ⟩
+  ((([ x ]) : Erased A) → P₂ x)  ↝⟨ Π-Erased≃Π0 (lower-extensionality? k lzero p₁ ext) ⟩□
+  ((@0 x : A) → P₂ x)            □
 
 -- A variant of Π-Erased≃Π0.
 --
