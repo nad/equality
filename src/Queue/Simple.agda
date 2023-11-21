@@ -62,6 +62,8 @@ map-map {xs = []}    {ys = []} _ = _
 
 record Queue (A : Type a) : Type a where
   constructor ⟨_,_⟩
+  no-eta-equality
+  pattern
   field
     front rear     : List A
     @0 {invariant} : Invariant front rear
@@ -188,8 +190,8 @@ to-List-dequeue⁻¹ :
   (x : Maybe (A × Queue A)) →
   to-List (dequeue⁻¹ x) ≡
   _↔_.from List↔Maybe[×List] (⊎-map id (Σ-map id to-List) x)
-to-List-dequeue⁻¹ nothing  = refl _
-to-List-dequeue⁻¹ (just _) = refl _
+to-List-dequeue⁻¹ nothing                = refl _
+to-List-dequeue⁻¹ (just (_ , ⟨ _ , _ ⟩)) = refl _
 
 -- A map function.
 

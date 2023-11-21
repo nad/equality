@@ -124,6 +124,7 @@ record Univalent
          (@0 F : Structure a b)
          (@0 P : Structure-preserving-equivalence-predicate F c) :
          Type (lsuc a ⊔ b ⊔ c) where
+  no-eta-equality
   field
     -- This field is erased because it uses univalence and EEq.≃ᴱ→≃.
 
@@ -792,6 +793,7 @@ record Suitable
          {F : Structure a b}
          (@0 G : Relation-transformer-for F) :
          Type (lsuc a ⊔ b) where
+  no-eta-equality
   field
     -- F preserves Is-set.
 
@@ -855,6 +857,7 @@ record Acts-on-functions
          {F : Structure a b}
          (@0 G : Relation-transformer-for F) :
          Type (lsuc a ⊔ b) where
+  no-eta-equality
   field
     -- A map function.
 
@@ -1147,6 +1150,7 @@ record Positive
          {F : Structure a b}
          (@0 G : Relation-transformer-for F) :
          Type (lsuc a ⊔ b) where
+  no-eta-equality
   field
     -- G is suitable.
 

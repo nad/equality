@@ -514,6 +514,8 @@ private
   infix 4 _≃ᴱ′_
 
   record _≃ᴱ′_ (A : Type a) (B : Type b) : Type (a ⊔ b) where
+    no-eta-equality
+    pattern
     field
       to            : A → B
       from          : B → A
@@ -523,6 +525,28 @@ private
 
 open Dummy public using (_≃ᴱ′_) hiding (module _≃ᴱ′_)
 
+-- Some definitions used in _≃ᴱ′_.
+
+private module _≃ᴱ″_ {@0 A : Type a} {@0 B : Type b} where
+
+  -- Variants of the projections.
+
+  to : A ≃ᴱ′ B → A → B
+  to (record { to = to }) = to
+
+  from : A ≃ᴱ′ B → B → A
+  from (record { from = from }) = from
+
+  @0 to-from : ∀ A≃B x → to A≃B (from A≃B x) ≡ x
+  to-from (record { to-from = to-from }) = to-from
+
+  from-to : ∀ A≃B x → from A≃B (to A≃B x) ≡ x
+  from-to (record { from-to = from-to }) = from-to
+
+  @0 to-from-to :
+    ∀ A≃B x → cong (to A≃B) (from-to A≃B x) ≡ to-from A≃B (to A≃B x)
+  to-from-to (record { to-from-to = to-from-to }) = to-from-to
+
 -- Note that the type arguments A and B are erased. This is not the
 -- case for the record module Dummy._≃ᴱ′_.
 
@@ -531,19 +555,19 @@ module _≃ᴱ′_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ′ B) where
   -- Variants of the projections.
 
   to : A → B
-  to = let record { to = to } = A≃B in to
+  to = _≃ᴱ″_.to A≃B
 
   from : B → A
-  from = let record { from = from } = A≃B in from
+  from = _≃ᴱ″_.from A≃B
 
   @0 to-from : ∀ x → to (from x) ≡ x
-  to-from = Dummy._≃ᴱ′_.to-from A≃B
+  to-from = _≃ᴱ″_.to-from A≃B
 
   from-to : ∀ x → from (to x) ≡ x
-  from-to = let record { from-to = from-to } = A≃B in from-to
+  from-to = _≃ᴱ″_.from-to A≃B
 
   @0 to-from-to : ∀ x → cong to (from-to x) ≡ to-from (to x)
-  to-from-to = Dummy._≃ᴱ′_.to-from-to A≃B
+  to-from-to = _≃ᴱ″_.to-from-to A≃B
 
   -- Half adjoint equivalences with certain erased proofs are
   -- equivalences with erased proofs.
@@ -590,12 +614,13 @@ record Erased-proofs′
   {to : A → B} {from : B → A} {from-to : ∀ x → from (to x) ≡ x} →
   @0 Erased-proofs′ to from from-to →
   A ≃ᴱ′ B
-[≃]→≃ᴱ′ {to} {from} {from-to} ep = λ where
-  .Dummy._≃ᴱ′_.to         → to
-  .Dummy._≃ᴱ′_.from       → from
-  .Dummy._≃ᴱ′_.to-from    → ep .Erased-proofs′.to-from
-  .Dummy._≃ᴱ′_.from-to    → from-to
-  .Dummy._≃ᴱ′_.to-from-to → ep .Erased-proofs′.to-from-to
+[≃]→≃ᴱ′ {to} {from} {from-to} ep = record
+  { to         = to
+  ; from       = from
+  ; to-from    = ep .Erased-proofs′.to-from
+  ; from-to    = from-to
+  ; to-from-to = ep .Erased-proofs′.to-from-to
+  }
 
 -- A function with a quasi-inverse with one proof and one erased proof
 -- can be turned into an equivalence with certain erased proofs.

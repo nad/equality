@@ -37,6 +37,8 @@ private
 -- Note that the invariant is erased.
 
 record Queue (A : Type a) : Type a where
+  no-eta-equality
+  pattern
   field
     front rear               : List A
     length-front length-rear : ℕ
@@ -82,6 +84,7 @@ private
   -- Queues where the invariant may have been broken (slightly).
 
   record Almost-queue (A : Type a) : Type a where
+    no-eta-equality
     field
       front rear               : List A
       length-front length-rear : ℕ
