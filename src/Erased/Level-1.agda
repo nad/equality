@@ -2765,7 +2765,7 @@ Substᴱ-axiomatisation-propositional {ℓ} ext =
 ------------------------------------------------------------------------
 -- Yet another alternative to []-cong-axiomatisation
 
--- An axiomatisation of elim¹ᴱ, restricted to a fixed universe, along
+-- An axiomatisation of elimᴱ, restricted to a fixed universe, along
 -- with its computation rule.
 
 Elimᴱ-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
