@@ -310,3 +310,34 @@ Embedding→↠ {A} {B} em a A↣B = record
   from-to a with em (prop (to a))
   ... | (yes (a′ , to-a′≡to-a)) = injective is-embedding to-a′≡to-a
   ... | (no  hyp)               = ⊥-elim (hyp (a , refl _))
+
+------------------------------------------------------------------------
+-- Functions with left inverses
+
+-- If a function to a set has a left inverse, then the function is an
+-- embedding.
+
+Has-left-inverse→Is-embedding :
+  {g : B → A} →
+  Is-set B →
+  (∀ x → g (f x) ≡ x) →
+  Is-embedding f
+Has-left-inverse→Is-embedding {f} {g} B-set g-f x y =
+  _≃_.is-equivalence $
+  Eq.↔→≃
+    _
+    (f x ≡ f y          →⟨ cong g ⟩
+     g (f x) ≡ g (f y)  →⟨ trans (sym (g-f x)) ⊚ flip trans (g-f y) ⟩□
+     x ≡ y              □)
+    (λ _ → B-set _ _)
+    (elim¹
+       (λ {y = y} x≡y →
+          trans (sym (g-f x)) (trans (cong g (cong f x≡y)) (g-f y)) ≡
+          x≡y)
+       (trans (sym (g-f x)) (trans (cong g (cong f (refl x))) (g-f x))  ≡⟨ cong (trans _) $
+                                                                           trans (cong (flip trans _) $
+                                                                                  trans (cong (cong _) $ cong-refl _) $
+                                                                                  cong-refl _) $
+                                                                           trans-reflˡ _ ⟩
+        trans (sym (g-f x)) (g-f x)                                     ≡⟨ trans-symˡ _ ⟩∎
+        refl x                                                          ∎))
