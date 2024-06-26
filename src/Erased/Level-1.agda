@@ -1042,21 +1042,10 @@ module Extensionality→[]-cong-axiomatisation
   -- corresponding Coq source code.
 
   Stable-≡-Erased : {@0 A : Type a} → Stable-≡ (Erased A)
-  Stable-≡-Erased x y eq =
-    x                               ≡⟨ flip ext⁻¹ eq (
-
-      (λ (_ : Erased (x ≡ y)) → x)     ≡⟨ ∘-[]-injective ext (
-
-        (λ (_ : x ≡ y) → x)               ≡⟨ apply-ext ext (λ (eq : x ≡ y) →
-
-          x                                  ≡⟨ eq ⟩∎
-          y                                  ∎) ⟩∎
-
-        (λ (_ : x ≡ y) → y)               ∎) ⟩∎
-
-      (λ (_ : Erased (x ≡ y)) → y)     ∎) ⟩∎
-
-    y                               ∎
+  Stable-≡-Erased x y eq =                                       $⟨ apply-ext ext (λ eq → eq) ⟩
+    (λ (_ : x ≡ y) → x) ≡ (λ (_ : x ≡ y) → y)                    →⟨ ∘-[]-injective ext ⟩
+    (λ (_ : Erased (x ≡ y)) → x) ≡ (λ (_ : Erased (x ≡ y)) → y)  →⟨ flip ext⁻¹ eq ⟩
+    x ≡ y                                                        □
 
   -- A "computation rule" for Stable-≡-Erased.
 
