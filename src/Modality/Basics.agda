@@ -4468,10 +4468,10 @@ module Modality (M : Modality a) where
 
   -- A definition of what it means to be accessibility-modal.
   --
-  -- The erasure modality is both very modal and accessibility-modal,
-  -- and the zero modality is very modal but not accessibility-modal.
-  -- TODO: Is there some accessibility-modal modality that is not very
-  -- modal?
+  -- The erasure modality is both very modal and accessibility-modal
+  -- (if --erased-matches is used), and the zero modality is very
+  -- modal but not accessibility-modal. TODO: Is there some
+  -- accessibility-modal modality that is not very modal?
 
   Accessibility-modal : Type (lsuc a)
   Accessibility-modal =
