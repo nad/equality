@@ -833,6 +833,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
   to-is-an-equivalence : A → Is-equivalence to
   to-is-an-equivalence a₀ =
     Eq.respects-extensional-equality
+      {f = _≃_.to (equivalence₁ a₀)}
       (λ b →
          Σ-≡,≡→≡ (refl _) $
          Σ-≡,≡→≡

@@ -613,7 +613,7 @@ module Signature {ℓ} (sig : Signature ℓ) where
   empty-renaming :
     (@0 fs : Finite-subset-of (Var s)) →
     Renaming [] fs
-  empty-renaming _ = λ _ → inj₂ [ (λ { [ () ] }) ]
+  empty-renaming _ = λ _ → inj₂ [ _≃_.to ∈[]≃ ]
 
   -- Adds the mapping x ↦ y to the renaming.
 
@@ -784,8 +784,8 @@ module Signature {ℓ} (sig : Signature ℓ) where
                 restrict-to-sort s′ (free-Args asˢ as))
     rename-Args nil _ _ _ =
         _
-      , [ (λ { _ [ () ] })
-        , (λ { _ [ () ] })
+      , [ (λ _ → ⊥-elim ∘ _≃_.to ∈[]≃)
+        , (λ _ → ⊥-elim ∘ _≃_.to ∈[]≃)
         , (λ _ _ → refl _)
         ]
     rename-Args {s} {dom} {fs} (cons aˢ asˢ) (a , as) ρ ⊆free =
