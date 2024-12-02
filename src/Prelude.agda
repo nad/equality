@@ -185,7 +185,7 @@ f $ x = f x
 const : A → (B → A)
 const x = λ _ → x
 
-{-# DISPLAY const x y = x #-}
+{-# DISPLAY const x _ = x #-}
 
 -- Flips the first two arguments.
 
