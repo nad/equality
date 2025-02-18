@@ -216,10 +216,21 @@ syntax finally-h x y x≡y = x ≡⟨ x≡y ⟩∎h y ∎
 -- The J rule.
 
 elim :
+  ∀ {@0 a} {@0 A : Type a} {x y : A}
   (P : {x y : A} → x ≡ y → Type p) →
   (∀ x → P (refl {x = x})) →
   (x≡y : x ≡ y) → P x≡y
 elim {x} P p x≡y =
+  transport (λ i → P (λ j → x≡y (min i j))) 0̲ (p x)
+
+-- A variant of elim.
+
+elim₀ :
+  ∀ {@0 a} {@0 A : Type a} {@0 x y : A}
+  (P : {@0 x y : A} → @0 x ≡ y → Type p) →
+  (∀ (@0 x) → P (refl {x = x})) →
+  (@0 x≡y : x ≡ y) → P x≡y
+elim₀ {x} P p x≡y =
   transport (λ i → P (λ j → x≡y (min i j))) 0̲ (p x)
 
 -- Substitutivity.
