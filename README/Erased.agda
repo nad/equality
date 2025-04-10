@@ -29,12 +29,10 @@
 module README.Erased where
 
 import Agda.Builtin.Equality
-import Agda.Builtin.Cubical.Id
 import Agda.Builtin.Cubical.Path
 
 import Embedding
 import Equality
-import Equality.Id
 import Equality.Instances-related
 import Equality.Path
 import Equality.Propositional
@@ -88,12 +86,11 @@ Lemmas-4-and-5 = Erased.Π-Erased≃Π0[]
 Equality-defined-as-an-inductive-family = Agda.Builtin.Equality._≡_
 
 -- Cubical Agda paths.
+--
+-- The Cubical Agda identity type family has been removed from Cubical
+-- Agda.
 
 Path = Agda.Builtin.Cubical.Path._≡_
-
--- The Cubical Agda identity type family.
-
-Id = Agda.Builtin.Cubical.Id.Id
 
 -- The code uses an axiomatisation of "equality with J". The
 -- axiomatisation is a little convoluted in order to support using
@@ -122,14 +119,15 @@ Equality-with-J       = Equality.Equality-with-J
 
 module See-the-module-header-of = Erased
 
--- The equality type family defined as an inductive family, Cubical
--- Agda paths and the Cubical Agda identity type family can all be
--- used to instantiate the axioms.
+-- The equality type family defined as an inductive family and Cubical
+-- Agda paths can both be used to instantiate the axioms.
+--
+-- The Cubical Agda identity type family has been removed from Cubical
+-- Agda.
 
 Equality-with-J-for-equality-defined-as-an-inductive-family =
   Equality.Propositional.equality-with-J
 Equality-with-J-for-Path = Equality.Path.equality-with-J
-Equality-with-J-for-Id   = Equality.Id.equality-with-J
 
 -- Lemma 7 in Cubical Agda.
 

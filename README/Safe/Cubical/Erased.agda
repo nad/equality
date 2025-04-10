@@ -16,10 +16,6 @@ import Equality.Path
 
 import Equality.Path.Isomorphisms
 
--- The cubical identity type.
-
-import Equality.Id
-
 -- Propositional equality, with some extra bells and whistles
 -- definable in Cubical Agda.
 
@@ -29,11 +25,6 @@ import Equality.Propositional.Cubical
 -- readable for path equality.
 
 import Tactic.By.Path
-
--- Some tactics aimed at making equational reasoning proofs more
--- readable for the cubical identity type.
-
-import Tactic.By.Id
 
 -- Some theory of Erased, developed using Cubical Agda.
 

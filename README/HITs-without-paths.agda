@@ -13,7 +13,6 @@
 module README.HITs-without-paths where
 
 import Equality
-import Equality.Id
 import Equality.Instances-related
 import Equality.Path
 import Equality.Path.Isomorphisms
@@ -85,15 +84,16 @@ import Circle
 instances-isomorphic =
   Equality.Instances-related.all-equality-types-isomorphic
 
--- Cubical Agda paths, the Cubical Agda identity type family, and a
--- definition of equality as an inductive family with a single
--- constructor refl are instances of the axioms. (The last instance is
--- for Equality-with-J rather than Equality-with-paths, because the
--- latter definition is defined in Cubical Agda, and the instance is
--- not.)
+-- Cubical Agda paths and a definition of equality as an inductive
+-- family with a single constructor refl are instances of the axioms.
+-- (The last instance is for Equality-with-J rather than
+-- Equality-with-paths, because the latter definition is defined in
+-- Cubical Agda, and the instance is not.)
+--
+-- The Cubical Agda identity type family has been removed from Cubical
+-- Agda.
 
 paths-instance            = Equality.Path.equality-with-paths
-id-instance               = Equality.Id.equality-with-paths
 inductive-family-instance = Equality.Propositional.equality-with-J
 
 ------------------------------------------------------------------------
