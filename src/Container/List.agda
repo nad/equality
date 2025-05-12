@@ -417,8 +417,8 @@ Any-++ P xs ys = fold-lemma
 
   (∃ λ (n : ℕ) → Fin m ≃ Fin n × m ≡ n)       ↝⟨ inverse $ other-∃-intro _ _ ⟩
 
-  Fin m ≃ Fin m                               ↔⟨ [Fin↔Fin]↔Fin! ext₀ m ∘
-                                                 inverse (Eq.↔↔≃ ext₀ (Fin-set m)) ⟩□
+  Fin m ≃ Fin m                               ↝⟨ [Fin≃Fin]≃Fin! m ext₀ ⟩□
+
   Fin (m !)                                   □
   where
   ext₀ = lower-extensionality _ _ ext

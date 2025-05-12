@@ -344,54 +344,52 @@ Fin×Fin↔Fin* (suc m) n =
 
 -- Forming the function space between two finite sets amounts to the
 -- same thing as raising one size to the power of the other (assuming
--- extensionality).
+-- function extensionality).
 
-[Fin→Fin]↔Fin^ :
-  Extensionality (# 0) (# 0) →
-  ∀ m n → (Fin m → Fin n) ↔ Fin (n ^ m)
-[Fin→Fin]↔Fin^ ext zero n =
+[Fin→Fin]≃Fin^ :
+  ∀ m n → (Fin m → Fin n) ↝[ lzero ∣ lzero ] Fin (n ^ m)
+[Fin→Fin]≃Fin^ zero n ext =
   (Fin 0 → Fin n)  ↝⟨ id ⟩
   (⊥ → Fin n)      ↝⟨ Π⊥↔⊤ ext ⟩
-  ⊤                ↝⟨ inverse ⊎-right-identity ⟩□
+  ⊤                ↔⟨ inverse ⊎-right-identity ⟩□
   Fin 1            □
-[Fin→Fin]↔Fin^ ext (suc m) n =
+[Fin→Fin]≃Fin^ (suc m) n ext =
   (Fin (suc m) → Fin n)          ↝⟨ id ⟩
   (⊤ ⊎ Fin m → Fin n)            ↝⟨ Π⊎↔Π×Π ext ⟩
-  (⊤ → Fin n) × (Fin m → Fin n)  ↝⟨ Π-left-identity ×-cong [Fin→Fin]↔Fin^ ext m n ⟩
-  Fin n × Fin (n ^ m)            ↝⟨ Fin×Fin↔Fin* _ _ ⟩
+  (⊤ → Fin n) × (Fin m → Fin n)  ↝⟨ from-bijection Π-left-identity ×-cong [Fin→Fin]≃Fin^ m n ext ⟩
+  Fin n × Fin (n ^ m)            ↔⟨ Fin×Fin↔Fin* _ _ ⟩
   Fin (n * n ^ m)                ↝⟨ id ⟩□
   Fin (n ^ suc m)                □
 
 -- Automorphisms on Fin n are isomorphic to Fin (n !) (assuming
--- extensionality).
+-- function extensionality).
 
-[Fin↔Fin]↔Fin! :
-  Extensionality (# 0) (# 0) →
-  ∀ n → (Fin n ↔ Fin n) ↔ Fin (n !)
-[Fin↔Fin]↔Fin! ext zero =
-  Fin 0 ↔ Fin 0  ↝⟨ Eq.↔↔≃ ext (Fin-set 0) ⟩
+[Fin≃Fin]≃Fin! :
+  ∀ n → (Fin n ≃ Fin n) ↝[ lzero ∣ lzero ] Fin (n !)
+[Fin≃Fin]≃Fin! zero ext =
   Fin 0 ≃ Fin 0  ↝⟨ id ⟩
   ⊥ ≃ ⊥          ↝⟨ ≃⊥≃¬ ext ⟩
   ¬ ⊥            ↝⟨ ¬⊥↔⊤ ext ⟩
-  ⊤              ↝⟨ inverse ⊎-right-identity ⟩
+  ⊤              ↔⟨ inverse ⊎-right-identity ⟩
   ⊤ ⊎ ⊥          ↝⟨ id ⟩□
   Fin 1          □
-[Fin↔Fin]↔Fin! ext (suc n) =
+[Fin≃Fin]≃Fin! (suc n) ext =
+  Fin (suc n) ≃ Fin (suc n)      ↝⟨ inverse-ext? (↔≃≃ (Fin-set (suc n))) ext ⟩
   Fin (suc n) ↔ Fin (suc n)      ↝⟨ [⊤⊎↔⊤⊎]↔[⊤⊎×↔] Fin._≟_ ext ⟩
-  Fin (suc n) × (Fin n ↔ Fin n)  ↝⟨ id ×-cong [Fin↔Fin]↔Fin! ext n ⟩
-  Fin (suc n) × Fin (n !)        ↝⟨ Fin×Fin↔Fin* _ _ ⟩□
+  Fin (suc n) × (Fin n ↔ Fin n)  ↝⟨ id ×-cong ↔≃≃ (Fin-set n) ext ⟩
+  Fin (suc n) × (Fin n ≃ Fin n)  ↝⟨ id ×-cong [Fin≃Fin]≃Fin! n ext ⟩
+  Fin (suc n) × Fin (n !)        ↔⟨ Fin×Fin↔Fin* _ _ ⟩□
   Fin (suc n !)                  □
 
 -- A variant of the previous property.
 
-[Fin≡Fin]↔Fin! :
+[Fin≡Fin]≃Fin! :
   Extensionality (# 0) (# 0) →
   Univalence (# 0) →
-  ∀ n → (Fin n ≡ Fin n) ↔ Fin (n !)
-[Fin≡Fin]↔Fin! ext univ n =
-  Fin n ≡ Fin n  ↔⟨ ≡≃≃ univ ⟩
-  Fin n ≃ Fin n  ↝⟨ inverse $ Eq.↔↔≃ ext (Fin-set n) ⟩
-  Fin n ↔ Fin n  ↝⟨ [Fin↔Fin]↔Fin! ext n ⟩□
+  ∀ n → (Fin n ≡ Fin n) ≃ Fin (n !)
+[Fin≡Fin]≃Fin! ext univ n =
+  Fin n ≡ Fin n  ↝⟨ ≡≃≃ univ ⟩
+  Fin n ≃ Fin n  ↝⟨ [Fin≃Fin]≃Fin! n ext ⟩□
   Fin (n !)      □
 
 ------------------------------------------------------------------------

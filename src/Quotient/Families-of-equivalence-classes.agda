@@ -178,7 +178,7 @@ const-Fin-strong-equivalence⇒≡! ext univ n strong-equivalence =
     Fin n                          ↔⟨ strong-equivalence ⟩
     const (Fin n) ≡ const (Fin n)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
     (⊤ → Fin n ≡ Fin n)            ↝⟨ Π-left-identity ⟩
-    Fin n ≡ Fin n                  ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ n ⟩
+    Fin n ≡ Fin n                  ↔⟨ [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ n ⟩
     Fin (n !)                      □)
 
 -- Thus there is at least one equivalence relation that is not a
@@ -226,7 +226,7 @@ const-Fin-2-strong-equivalence :
   Univalence (# 0) →
   Strong-equivalence (λ (_ _ : ⊤) → Fin 2)
 const-Fin-2-strong-equivalence ext univ =
-  Fin 2                          ↔⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ 2 ⟩
+  Fin 2                          ↔⟨ inverse $ [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ 2 ⟩
   Fin 2 ≡ Fin 2                  ↔⟨ inverse Π-left-identity ⟩
   (⊤ → Fin 2 ≡ Fin 2)            ↝⟨ Eq.extensionality-isomorphism ext ⟩□
   const (Fin 2) ≡ const (Fin 2)  □
@@ -280,15 +280,15 @@ strong-equivalence-not-closed-under-on ext univ₁ univ₀ =
   not-strong-equivalence strong-equivalence = contradiction
     where
     3!≡3!! = _⇔_.to (isomorphic-same-size { n = 3 ! ! }) (
-      Fin (3 !)                                      ↝⟨ inverse $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3 ⟩
+      Fin (3 !)                                      ↔⟨ inverse $ [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ 3 ⟩
       Fin 3 ≡ Fin 3                                  ↔⟨ strong-equivalence ⟩
       const (Fin 3 ≡ Fin 3) ≡ const (Fin 3 ≡ Fin 3)  ↔⟨ inverse $ Eq.extensionality-isomorphism ext ⟩
       (↑ _ ⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))    ↝⟨ →-cong₁ ext Bij.↑↔ ⟩
       (⊤ → (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3))        ↝⟨ Π-left-identity ⟩
       (Fin 3 ≡ Fin 3) ≡ (Fin 3 ≡ Fin 3)              ↔⟨ ≡-preserves-≃ (lower-extensionality lzero _ ext) univ₁ univ₀
-                                                                      (Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3)
-                                                                      (Eq.↔⇒≃ $ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 3) ⟩
-      Fin (3 !) ≡ Fin (3 !)                          ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ (3 !) ⟩□
+                                                                      ([Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ 3)
+                                                                      ([Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ 3) ⟩
+      Fin (3 !) ≡ Fin (3 !)                          ↔⟨ [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ (3 !) ⟩□
       Fin (3 ! !)                                    □)
 
     contradiction : ⊥
@@ -406,9 +406,9 @@ another-negative-result ext univ₁ univ₀ =
   not-strong-equivalence strong-equivalence = contradiction
     where
     4≡2 = _⇔_.to isomorphic-same-size (
-      Fin 4                                                        ↝⟨ inverse $ [Fin→Fin]↔Fin^ (lower-extensionality _ _ ext) 2 2 ⟩
-      (Fin 2 → Fin 2)                                              ↝⟨ →-cong (lower-extensionality _ _ ext) F.id $ inverse $
-                                                                      [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩
+      Fin 4                                                        ↝⟨ inverse $ [Fin→Fin]≃Fin^ 2 2 (lower-extensionality _ _ ext) ⟩
+      (Fin 2 → Fin 2)                                              ↔⟨ →-cong (lower-extensionality _ _ ext) F.id $ inverse $
+                                                                      [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩
       (Fin 2 → Fin 2 ≡ Fin 2)                                      ↔⟨ →-cong (lower-extensionality _ lzero ext) F.id $
                                                                       equality-strong-equivalence ext univ₁ ⟩
       (Fin 2 → (λ A → Fin 2 ≡       A) ≡ (λ A → Fin 2 ≡       A))  ↔⟨ →-cong (lower-extensionality _ lzero ext) F.id $ inverse $
@@ -417,7 +417,7 @@ another-negative-result ext univ₁ univ₀ =
       (∀ A → Fin 2 → (Fin 2 ≡       A) ≡       (Fin 2 ≡       A))  ↝⟨ inverse currying ⟩
       (∀ A →         (Fin 2 ≡ proj₁ A) ≡       (Fin 2 ≡ proj₁ A))  ↔⟨ Eq.extensionality-isomorphism ext ⟩
       (λ A →          Fin 2 ≡ proj₁ A) ≡ (λ A → Fin 2 ≡ proj₁ A)   ↔⟨ inverse $ strong-equivalence {x = _ , fzero} {y = _ , fzero} ⟩
-      Fin 2 ≡ Fin 2                                                ↝⟨ [Fin≡Fin]↔Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩□
+      Fin 2 ≡ Fin 2                                                ↔⟨ [Fin≡Fin]≃Fin! (lower-extensionality _ _ ext) univ₀ 2 ⟩□
       Fin 2                                                        □)
 
     contradiction : ⊥
