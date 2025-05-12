@@ -251,6 +251,10 @@ import Integer
 
 import Fin
 
+-- Permutations.
+
+import Permutation.Jansson-Swierstra
+
 -- Some definitions related to and properties of the Maybe type.
 
 import Maybe
