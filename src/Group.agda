@@ -605,3 +605,81 @@ Abelian→Centre≃ ext G abelian = ≃ᴳ-sym λ where
                                                      Carrier-is-set
                                                      (abelian _ _)) ⟩□
     Carrier                                    □
+
+------------------------------------------------------------------------
+-- Converting to another carrier set
+
+-- Given a group and an equivalence between the group's carrier set
+-- and a type A one can form a group where the carrier set is A.
+
+with-other-carrier :
+  {A : Type a}
+  (G : Group g) → Group.Carrier G ≃ A → Group a
+with-other-carrier {a} {A} G ≃A = G′
+  where
+  open Group G
+  open _≃_ ≃A renaming (to to to′)
+
+  G′ : Group a
+  G′ .Group.Carrier         = A
+  G′ .Group.Carrier-is-set  = H-level-cong _ 2 ≃A Carrier-is-set
+  G′ .Group._∘_ x y         = to′ (from x ∘ from y)
+  G′ .Group.id              = to′ id
+  G′ .Group._⁻¹ x           = to′ (from x ⁻¹)
+  G′ .Group.left-identity x =
+    to′ (from (to′ id) ∘ from x)  ≡⟨ cong (to′ P.∘ (_∘ _)) $ left-inverse-of _ ⟩
+    to′ (id ∘ from x)             ≡⟨ cong to′ $ left-identity _ ⟩
+    to′ (from x)                  ≡⟨ right-inverse-of _ ⟩∎
+    x                             ∎
+  G′ .Group.right-identity x =
+    to′ (from x ∘ from (to′ id))  ≡⟨ cong (to′ P.∘ (_ ∘_)) $ left-inverse-of _ ⟩
+    to′ (from x ∘ id)             ≡⟨ cong to′ $ right-identity _ ⟩
+    to′ (from x)                  ≡⟨ right-inverse-of _ ⟩∎
+    x                             ∎
+  G′ .Group.assoc x y z =
+    to′ (from x ∘ from (to′ (from y ∘ from z)))  ≡⟨ cong (to′ P.∘ (_ ∘_)) $ left-inverse-of _ ⟩
+    to′ (from x ∘ (from y ∘ from z))             ≡⟨ cong to′ $ assoc _ _ _ ⟩
+    to′ ((from x ∘ from y) ∘ from z)             ≡⟨ cong (to′ P.∘ (_∘ _)) $ sym $ left-inverse-of _ ⟩
+    to′ (from (to′ (from x ∘ from y)) ∘ from z)  ∎
+  G′ .Group.left-inverse x =
+    to′ (from (to′ (from x ⁻¹)) ∘ from x)  ≡⟨ cong (to′ P.∘ (_∘ _)) $ left-inverse-of _ ⟩
+    to′ (from x ⁻¹ ∘ from x)               ≡⟨ cong to′ $ left-inverse _ ⟩
+    to′ id                                 ∎
+  G′ .Group.right-inverse x =
+    to′ (from x ∘ from (to′ (from x ⁻¹)))  ≡⟨ cong (to′ P.∘ (_ ∘_)) $ left-inverse-of _ ⟩
+    to′ (from x ∘ from x ⁻¹)               ≡⟨ cong to′ $ right-inverse _ ⟩
+    to′ id                                 ∎
+
+-- The resulting group has the correct carrier set.
+
+_ :
+  {G : Group g} {≃A : Group.Carrier G ≃ A} →
+  Group.Carrier (with-other-carrier G ≃A) ≡ A
+_ = refl _
+
+------------------------------------------------------------------------
+-- Converting groupoids to groups
+
+-- For each object x in a groupoid for which x ∼ x is a set one
+-- obtains a group.
+
+group-for :
+  (G : Groupoid g₁ g₂)
+  (x : Groupoid.Object G) →
+  Is-set (Groupoid._∼_ G x x) →
+  Group g₂
+group-for {g₂} G x set = G′
+  where
+  open Groupoid G
+
+  G′ : Group g₂
+  G′ .Group.Carrier        = x ∼ x
+  G′ .Group.Carrier-is-set = set
+  G′ .Group._∘_            = _∘_
+  G′ .Group.id             = id
+  G′ .Group._⁻¹            = _⁻¹
+  G′ .Group.left-identity  = left-identity
+  G′ .Group.right-identity = right-identity
+  G′ .Group.assoc          = assoc
+  G′ .Group.left-inverse   = left-inverse
+  G′ .Group.right-inverse  = right-inverse
