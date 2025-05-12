@@ -729,6 +729,22 @@ opaque
                 ≡⇒↝ implication (refl A)         ∎)
 
 ------------------------------------------------------------------------
+-- Conversion between _↔_ and _≃_
+
+-- If A is a set, then A ↔ B is equivalent to A ≃ B, assuming function
+-- extensionality.
+
+↔≃≃ :
+  {A : Type a} {B : Type b} →
+  Is-set A →
+  (A ↔ B) ↝[ a ⊔ b ∣ a ⊔ b ] (A ≃ B)
+↔≃≃ A-set = generalise-ext?
+  Eq.↔⇔≃
+  (λ ext →
+     let equiv = Eq.↔↔≃ ext A-set in
+     _↔_.right-inverse-of equiv , _↔_.left-inverse-of equiv)
+
+------------------------------------------------------------------------
 -- One can replace the "to" and "from" functions with extensionally
 -- equal functions
 
