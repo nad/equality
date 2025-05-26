@@ -244,7 +244,7 @@ rec-ext≡ :
   {f : ∀ x → P x → Q x}
   {r : Rec f B C}
   {g : P x → Localisation′ f B} →
-  cong (rec r) (ext≡ {y = y} {g = g}) ≡
+  cong (rec r) (ext≡ {x = x} {y = y} {g = g}) ≡
   r .ext≡ʳ (rec r ∘ g)
 rec-ext≡ = cong-≡↔≡ (refl _)
 
