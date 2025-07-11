@@ -31,6 +31,7 @@ import Modality.Has-choice
 import Modality.Left-exact
 open import Prelude
 
+open import Embedding eq using (Is-embedding; Embedding)
 open import Equivalence eq as Eq using (_≃_; Is-equivalence)
 open import Equivalence.Erased eq as EEq using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Equivalence.Erased.Contractible-preimages eq as ECP
@@ -44,6 +45,7 @@ open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level
 open import H-level.Closure eq
+open import Surjection eq using (Split-surjective; _↠_)
 
 private
   variable
@@ -175,8 +177,19 @@ private
     Modality.Has-choice.Valid-domain
       eq M (λ _ → ↑ _ ⊤) (λ _ → has-choice) _
 open C public
-  hiding (◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η;
+  hiding (◯Π◯≃◯Π; ◯Π◯≃◯Π-η; ◯Π◯≃◯Π⁻¹-η; ◯→≃◯→◯; ◯⇔≃◯⇔◯;
           module Left-exact; module []-cong)
+
+-- ◯ commutes with the non-dependent function space (assuming
+-- function extensionality).
+
+◯→≃◯→◯ : ◯ (A → B) ↝[ a ∣ a ] (◯ A → ◯ B)
+◯→≃◯→◯ = C.◯→≃◯→◯
+
+-- ◯ commutes with _⇔_ (assuming function extensionality).
+
+◯⇔≃◯⇔◯ : ◯ (A ⇔ B) ↝[ a ∣ a ] (◯ A ⇔ ◯ B)
+◯⇔≃◯⇔◯ = C.◯⇔≃◯⇔◯
 
 ------------------------------------------------------------------------
 -- The modality is left exact
@@ -187,8 +200,58 @@ left-exact-η-cong : Left-exact-η-cong
 left-exact-η-cong =
   ◯-Modal→Is-equivalence-η-cong very-modal _ _
 
-open C.Left-exact left-exact-η-cong public
 open Modality.Left-exact eq M left-exact-η-cong public
+private
+  module LE = C.Left-exact left-exact-η-cong
+open LE public
+  hiding
+    (◯-Split-surjective≃Split-surjective; H-level-◯≃◯-H-level;
+     ◯-Is-equivalence≃Is-equivalence; ◯-Is-embedding≃Is-embedding;
+     ◯≃≃◯≃◯; ◯↠≃◯↠◯; ◯-Embedding≃Embedding-◯-◯)
+
+-- ◯ (Is-equivalence f) is equivalent to Is-equivalence (◯-map f)
+-- (assuming function extensionality).
+
+◯-Is-equivalence≃Is-equivalence :
+  ◯ (Is-equivalence f) ↝[ a ∣ a ] Is-equivalence (◯-map f)
+◯-Is-equivalence≃Is-equivalence = LE.◯-Is-equivalence≃Is-equivalence
+
+-- ◯ (Is-embedding f) is equivalent to Is-embedding (◯-map f)
+-- (assuming function extensionality).
+
+◯-Is-embedding≃Is-embedding :
+  ◯ (Is-embedding f) ↝[ a ∣ a ] Is-embedding (◯-map f)
+◯-Is-embedding≃Is-embedding = LE.◯-Is-embedding≃Is-embedding
+
+-- ◯ (Split-surjective f) is equivalent to Split-surjective (◯-map f)
+-- (assuming function extensionality).
+
+◯-Split-surjective≃Split-surjective :
+  ◯ (Split-surjective f) ↝[ a ∣ a ] Split-surjective (◯-map f)
+◯-Split-surjective≃Split-surjective =
+  LE.◯-Split-surjective≃Split-surjective
+
+-- ◯ commutes with _≃_ (assuming function extensionality).
+
+◯≃≃◯≃◯ : ◯ (A ≃ B) ↝[ a ∣ a ] (◯ A ≃ ◯ B)
+◯≃≃◯≃◯ = LE.◯≃≃◯≃◯
+
+-- ◯ commutes with _↠_ (assuming function extensionality).
+
+◯↠≃◯↠◯ : ◯ (A ↠ B) ↝[ a ∣ a ] (◯ A ↠ ◯ B)
+◯↠≃◯↠◯ = LE.◯↠≃◯↠◯
+
+-- ◯ commutes with Embedding (assuming function extensionality).
+
+◯-Embedding≃Embedding-◯-◯ :
+  ◯ (Embedding A B) ↝[ a ∣ a ] Embedding (◯ A) (◯ B)
+◯-Embedding≃Embedding-◯-◯ = LE.◯-Embedding≃Embedding-◯-◯
+
+-- H-level n commutes with ◯ (assuming function extensionality).
+
+H-level-◯≃◯-H-level :
+  ∀ n → H-level n (◯ A) ↝[ a ∣ a ] ◯ (H-level n A)
+H-level-◯≃◯-H-level = LE.H-level-◯≃◯-H-level
 
 ------------------------------------------------------------------------
 -- Modal (Modal A) is equivalent to Modal A
