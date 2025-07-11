@@ -65,14 +65,7 @@ private
 
 Very-stable→Is-embedding-[] :
   Very-stable A → Is-embedding [ A ∣_]→
-Very-stable→Is-embedding-[] {A} s x y =
-  _≃_.is-equivalence ≡≃[]≡[]
-  where
-  A≃Erased-A : A ≃ Erased A
-  A≃Erased-A = Eq.⟨ _ , s ⟩
-
-  ≡≃[]≡[] : (x ≡ y) ≃ ([ x ] ≡ [ y ])
-  ≡≃[]≡[] = inverse $ Eq.≃-≡ A≃Erased-A
+Very-stable→Is-embedding-[] = Emb.Is-equivalence→Is-embedding
 
 -- If A is very stable, then [_]→ {A = A} is split surjective.
 
