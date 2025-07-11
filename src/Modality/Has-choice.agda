@@ -1766,7 +1766,7 @@ module Valid-domain (v : {A : Type a} → Valid-domain A) where
   module Left-exact (lex : Left-exact-η-cong) where
 
     private
-      open module L₁ {A}   = V₁.Left-exact {A = A}             public
+      open module L₁ {A}   = V₁.Left-exact {A = A}         lex public
       open module L₂ {A}   = V₆.Left-exact {A = A}         lex public
       open module L₃ {A B} = V₇.Left-exact {A = A} {B = B} lex public
 
