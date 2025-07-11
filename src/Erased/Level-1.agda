@@ -2503,6 +2503,76 @@ private
        (lower-extensionality _ lzero ext))
 
 ------------------------------------------------------------------------
+-- A minor variant of []-cong-axiomatisation
+
+-- A variant of []-cong-axiomatisation.
+
+[]-cong-axiomatisation₀ : (ℓ : Level) → Type (lsuc ℓ)
+[]-cong-axiomatisation₀ ℓ =
+  ∃ λ ([]-cong :
+         {@0 A : Type ℓ} {@0 x y : A} → @0 x ≡ y → [ x ] ≡ [ y ]) →
+    {@0 A : Type ℓ} {@0 x : A} → []-cong (refl x) ≡ refl [ x ]
+
+opaque
+
+  -- The type []-cong-axiomatisation₀ ℓ is propositional (assuming
+  -- function extensionality).
+
+  []-cong-axiomatisation₀-propositional :
+    Extensionality (lsuc ℓ) ℓ →
+    Is-proposition ([]-cong-axiomatisation₀ ℓ)
+  []-cong-axiomatisation₀-propositional {ℓ} ext =
+    flip (H-level-cong _ 1) ([]-cong-axiomatisation-propositional ext)
+      ([]-cong-axiomatisation ℓ                                         ↝⟨ []-cong-axiomatisation≃ ext ⟩
+
+       ((([ A ]) : Erased (Type ℓ)) →
+        ∃ λ (c : (([ x , y , _ ]) : Erased (A ²/≡)) → [ x ] ≡ [ y ]) →
+          (([ x ]) : Erased A) → c [ x , x , refl x ] ≡ refl [ x ])     ↝⟨ Π-Erased≃Π0 ext F.∘
+                                                                           (∀-cong ext λ _ →
+                                                                            Σ-cong
+                                                                              ((∀ᴱ-cong ext′ λ _ → ∀ᴱ-cong ext′ λ _ →
+                                                                                Π-Erased≃Π0 {k = equivalence} ext′) F.∘
+                                                                               inverse (≃Erased²/≡ {k = equivalence} ext′)) λ _ →
+                                                                            Π-Erased≃Π0 ext′) ⟩
+       ((@0 A : Type ℓ) →
+        Σ ((@0 x y : A) → @0 x ≡ y → [ x ] ≡ [ y ]) λ c →
+          (@0 x : A) → c x x (refl x) ≡ refl [ x ])                     ↝⟨ Eq.↔→≃
+                                                                             (λ f → f _ .proj₁ _ _ , f _ .proj₂ _)
+                                                                             (λ (c , r) _ → (λ _ _ → c) , (λ _ → r))
+                                                                             refl
+                                                                             refl ⟩□
+       []-cong-axiomatisation₀ ℓ                                        □)
+    where
+    ext′ : Extensionality ℓ ℓ
+    ext′ = lower-extensionality _ lzero ext
+
+opaque
+
+  -- []-cong-axiomatisation ℓ is equivalent to
+  -- []-cong-axiomatisation₀ ℓ (assuming function extensionality).
+
+  []-cong-axiomatisation≃[]-cong-axiomatisation₀ :
+    []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+    []-cong-axiomatisation₀ ℓ
+  []-cong-axiomatisation≃[]-cong-axiomatisation₀ {ℓ} =
+    generalise-ext?-prop
+      {B = []-cong-axiomatisation₀ ℓ}
+      (record
+         { to =
+             λ ax →
+               let open []-cong-axiomatisation ax in
+               (λ eq → []-cong [ eq ]) , []-cong-[refl]
+         ; from =
+             λ ([]-cong , []-cong-refl) →
+               record
+                 { []-cong        = λ eq → []-cong (erased eq)
+                 ; []-cong-[refl] = []-cong-refl
+                 }
+         })
+      []-cong-axiomatisation-propositional
+      []-cong-axiomatisation₀-propositional
+
+------------------------------------------------------------------------
 -- An alternative to []-cong-axiomatisation
 
 -- An axiomatisation of "the inverse of []-cong".

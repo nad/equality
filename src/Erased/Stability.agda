@@ -3087,6 +3087,112 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
     Very-stable-≡-Erased-axiomatisation-propositional
 
 ------------------------------------------------------------------------
+-- Another alternative to []-cong-axiomatisation
+
+-- This axiomatisation states that, for every type A in a certain
+-- universe, Erased A is very stable, and if A is very stable, then
+-- equality is very stable for A.
+
+Modal→Separated-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+Modal→Separated-axiomatisation ℓ =
+  {A : Type ℓ} →
+  Very-stable (Erased A) × (Very-stable A → Very-stable-≡ A)
+
+opaque
+
+  -- Modal→Separated-axiomatisation-propositional ℓ is propositional
+  -- (assuming function extensionality).
+
+  Modal→Separated-axiomatisation-propositional :
+    Extensionality (lsuc ℓ) ℓ →
+    Is-proposition (Modal→Separated-axiomatisation ℓ)
+  Modal→Separated-axiomatisation-propositional ext =
+    let ext′ = lower-extensionality _ lzero ext in
+    implicit-Π-closure ext 1 λ _ →
+    ×-closure 1
+      (Very-stable-propositional ext′)
+      (Π-closure ext′ 1 λ _ →
+       For-iterated-equality-Very-stable-propositional ext′ 1)
+
+opaque
+
+  -- []-cong-axiomatisation ℓ is equivalent to
+  -- Modal→Separated-axiomatisation ℓ (assuming function
+  -- extensionality).
+
+  []-cong-axiomatisation≃Modal→Separated-axiomatisation :
+    []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+    Modal→Separated-axiomatisation ℓ
+  []-cong-axiomatisation≃Modal→Separated-axiomatisation {ℓ} =
+    generalise-ext?-prop
+      (record
+         { to =
+             λ ax {_} →
+               let open []-cong₁ ax in
+               Very-stable-Erased , Very-stable→Very-stable-≡ 0
+         ; from =
+             Modal→Separated-axiomatisation ℓ       →⟨ (λ hyp → hyp .proj₂ (hyp .proj₁)) ⟩
+             Very-stable-≡-Erased-axiomatisation ℓ  →⟨ inverse-ext? []-cong-axiomatisation≃Very-stable-≡-Erased-axiomatisation _ ⟩
+             []-cong-axiomatisation ℓ               □
+         })
+      []-cong-axiomatisation-propositional
+      Modal→Separated-axiomatisation-propositional
+
+------------------------------------------------------------------------
+-- Another alternative to []-cong-axiomatisation
+
+-- This axiomatisation states that, for every type A in a certain
+-- universe, Erased A is very stable, and if λ (x : A) → [ x ] is an
+-- embedding, then equality is very stable for A.
+
+Is-embedding-[]→Separated-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
+Is-embedding-[]→Separated-axiomatisation ℓ =
+  {A : Type ℓ} →
+  Very-stable (Erased A) ×
+  (Is-embedding (λ (x : A) → [ x ]) → Very-stable-≡ A)
+
+opaque
+
+  -- Is-embedding-[]→Separated-axiomatisation ℓ is propositional
+  -- (assuming function extensionality).
+
+  Is-embedding-[]→Separated-axiomatisation-propositional :
+    Extensionality (lsuc ℓ) ℓ →
+    Is-proposition (Is-embedding-[]→Separated-axiomatisation ℓ)
+  Is-embedding-[]→Separated-axiomatisation-propositional ext =
+    let ext′ = lower-extensionality _ lzero ext in
+    implicit-Π-closure ext 1 λ _ →
+    ×-closure 1
+      (Very-stable-propositional ext′)
+      (Π-closure ext′ 1 λ _ →
+       For-iterated-equality-Very-stable-propositional ext′ 1)
+
+opaque
+
+  -- []-cong-axiomatisation ℓ is equivalent to
+  -- Is-embedding-[]→Separated-axiomatisation ℓ (assuming function
+  -- extensionality).
+
+  []-cong-axiomatisation≃Is-embedding-[]→Separated-axiomatisation :
+    []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+    Is-embedding-[]→Separated-axiomatisation ℓ
+  []-cong-axiomatisation≃Is-embedding-[]→Separated-axiomatisation {ℓ} =
+    generalise-ext?-prop
+      (record
+         { to =
+             λ ax {_} →
+               let open []-cong₁ ax in
+               Very-stable-Erased ,
+               inverse-ext? Very-stable-≡↔Is-embedding-[] _
+         ; from =
+             Is-embedding-[]→Separated-axiomatisation ℓ  →⟨ (λ hyp → hyp .proj₁ , hyp .proj₂ ∘ Very-stable→Is-embedding-[]) ⟩
+             Modal→Separated-axiomatisation ℓ            →⟨ inverse-ext? []-cong-axiomatisation≃Modal→Separated-axiomatisation _ ⟩
+             []-cong-axiomatisation ℓ                    □
+         })
+      []-cong-axiomatisation-propositional
+      Is-embedding-[]→Separated-axiomatisation-propositional
+
+------------------------------------------------------------------------
 -- Yet another alternative to []-cong-axiomatisation
 
 -- For the universe level ℓ this axiomatisation states that there is a
@@ -3315,6 +3421,28 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 ------------------------------------------------------------------------
 -- Some lemmas related to []-cong-axiomatisation′
 
+private opaque
+
+  -- A lemma used below.
+
+  []-cong-axiomatisation′≃ :
+    []-cong-axiomatisation′ a ≃
+    ((A : Type a) →
+     ∃ λ (c : ((x y : A) → Erased (x ≡ y) → [ x ] ≡ [ y ])) →
+       ((x : A) → c x x [ refl x ] ≡ refl [ x ]))
+  []-cong-axiomatisation′≃ =
+    Eq.↔→≃
+      (λ (record { []-cong        = c
+                 ; []-cong-[refl] = r
+                 })
+         _ → (λ _ _ → c) , (λ _ → r))
+      (λ f → record
+         { []-cong        = f _ .proj₁ _ _
+         ; []-cong-[refl] = f _ .proj₂ _
+         })
+      refl
+      refl
+
 -- The type []-cong-axiomatisation′ a is propositional (assuming
 -- extensionality).
 
@@ -3336,17 +3464,8 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
       s₂ = BC.Very-stable→Very-stable-≡ 1 s₁
   in
   _⇔_.from contractible⇔↔⊤
-    ([]-cong-axiomatisation′ a                                            ↔⟨ Eq.↔→≃
-                                                                               (λ (record { []-cong        = c
-                                                                                          ; []-cong-[refl] = r
-                                                                                          })
-                                                                                  _ → (λ _ _ → c) , (λ _ → r))
-                                                                               (λ f → record
-                                                                                  { []-cong        = f _ .proj₁ _ _
-                                                                                  ; []-cong-[refl] = f _ .proj₂ _
-                                                                                  })
-                                                                               refl
-                                                                               refl ⟩
+    ([]-cong-axiomatisation′ a                                            ↔⟨ []-cong-axiomatisation′≃ ⟩
+
      ((A : Type a) →
       ∃ λ (c : ((x y : A) → Erased (x ≡ y) → [ x ] ≡ [ y ])) →
         ((x : A) → c x x [ refl x ] ≡ refl [ x ]))                        ↝⟨ (∀-cong ext λ _ → inverse $
@@ -3415,6 +3534,85 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
        })
     []-cong-axiomatisation-propositional
     []-cong-axiomatisation′-propositional
+
+------------------------------------------------------------------------
+-- A minor variant of []-cong-axiomatisation′
+
+-- A variant of []-cong-axiomatisation′.
+
+[]-cong-axiomatisation′₀ : (ℓ : Level) → Type (lsuc ℓ)
+[]-cong-axiomatisation′₀ ℓ =
+  ∃ λ ([]-cong : {A : Type ℓ} {x y : A} → @0 x ≡ y → [ x ] ≡ [ y ]) →
+    {A : Type ℓ} {x : A} → []-cong (refl x) ≡ refl [ x ]
+
+opaque
+
+  -- The type []-cong-axiomatisation′₀ ℓ is propositional (assuming
+  -- function extensionality).
+
+  []-cong-axiomatisation′₀-propositional :
+    Extensionality (lsuc ℓ) ℓ →
+    Is-proposition ([]-cong-axiomatisation′₀ ℓ)
+  []-cong-axiomatisation′₀-propositional {ℓ} ext =
+    flip (H-level-cong _ 1) ([]-cong-axiomatisation′-propositional ext)
+      ([]-cong-axiomatisation′ ℓ                                  ↝⟨ []-cong-axiomatisation′≃ ⟩
+
+       ((A : Type ℓ) →
+        ∃ λ (c : ((x y : A) → Erased (x ≡ y) → [ x ] ≡ [ y ])) →
+          ((x : A) → c x x [ refl x ] ≡ refl [ x ]))              ↝⟨ (∀-cong ext λ _ →
+                                                                      Σ-cong
+                                                                        (∀-cong ext′ λ _ → ∀-cong ext′ λ _ →
+                                                                         Π-Erased≃Π0 {k = equivalence} ext′) λ _ →
+                                                                      F.id) ⟩
+       ((A : Type ℓ) →
+        ∃ λ (c : ((x y : A) → @0 x ≡ y → [ x ] ≡ [ y ])) →
+          ((x : A) → c x x (refl x) ≡ refl [ x ]))                ↝⟨ Eq.↔→≃
+                                                                       (λ f → f _ .proj₁ _ _ , f _ .proj₂ _)
+                                                                       (λ (c , r) _ → (λ _ _ → c) , (λ _ → r))
+                                                                       refl
+                                                                       refl ⟩□
+       []-cong-axiomatisation′₀ ℓ                                 □)
+    where
+    ext′ : Extensionality ℓ ℓ
+    ext′ = lower-extensionality _ lzero ext
+
+opaque
+
+  -- []-cong-axiomatisation′ ℓ is equivalent to
+  -- []-cong-axiomatisation′₀ ℓ (assuming function extensionality).
+
+  []-cong-axiomatisation′≃[]-cong-axiomatisation′₀ :
+    []-cong-axiomatisation′ ℓ ↝[ lsuc ℓ ∣ ℓ ]
+    []-cong-axiomatisation′₀ ℓ
+  []-cong-axiomatisation′≃[]-cong-axiomatisation′₀ {ℓ} =
+    generalise-ext?-prop
+      {B = []-cong-axiomatisation′₀ ℓ}
+      (record
+         { to =
+             λ ax →
+               let open []-cong-axiomatisation′ ax in
+               (λ eq → []-cong [ eq ]) , []-cong-[refl]
+         ; from =
+             λ ([]-cong , []-cong-refl) → record
+               { []-cong        = λ eq → []-cong (erased eq)
+               ; []-cong-[refl] = []-cong-refl
+               }
+         })
+      []-cong-axiomatisation′-propositional
+      []-cong-axiomatisation′₀-propositional
+
+opaque
+
+  -- []-cong-axiomatisation ℓ is equivalent to
+  -- []-cong-axiomatisation′₀ ℓ (assuming function extensionality).
+
+  []-cong-axiomatisation≃[]-cong-axiomatisation′₀ :
+    []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ]
+    []-cong-axiomatisation′₀ ℓ
+  []-cong-axiomatisation≃[]-cong-axiomatisation′₀ {ℓ} ext =
+    []-cong-axiomatisation ℓ    ↝⟨ []-cong-axiomatisation≃[]-cong-axiomatisation′ ext ⟩
+    []-cong-axiomatisation′ ℓ   ↝⟨ []-cong-axiomatisation′≃[]-cong-axiomatisation′₀ ext ⟩□
+    []-cong-axiomatisation′₀ ℓ  □
 
 ------------------------------------------------------------------------
 -- Some lemmas related to []-cong-axiomatisation
