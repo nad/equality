@@ -134,6 +134,13 @@ Zero-topological {ℓ} =
     inh : A
     inh = ext _ 1 .proj₁ ⊥-elim .proj₁ _
 
+opaque
+
+  -- The zero modality is left exact.
+
+  Zero-left-exact : Left-exact (Zero {ℓ = ℓ})
+  Zero-left-exact = id
+
 -- The zero modality is very modal.
 
 Zero-very-modal : Very-modal (Zero-modality {ℓ = ℓ})
