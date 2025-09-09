@@ -11,6 +11,7 @@ module Integer.Quotient
 
 open P.Derived-definitions-and-properties eq hiding (elim)
 
+open import Dec
 open import Prelude as P hiding (suc; _*_; _^_) renaming (_+_ to _⊕_)
 
 open import Bijection equality-with-J using (_↔_)
@@ -650,103 +651,72 @@ i - j = i + - j
 ------------------------------------------------------------------------
 -- Some lemmas related to equality
 
--- The Same-difference relation is pointwise equivalent to equality
--- under [_] (assuming propositional extensionality).
+opaque
 
-Same-difference≃[]≡[] :
-  Propositional-extensionality lzero →
-  Same-difference i j ≃ ([ i ] ≡ [ j ])
-Same-difference≃[]≡[] prop-ext =
-  related≃[equal]
-    prop-ext
-    Same-difference-is-equivalence-relation
-    (λ {p} → Same-difference-propositional {p = p})
+  -- The Same-difference relation is pointwise equivalent to equality
+  -- under [_].
+
+  Same-difference≃[]≡[] :
+    Same-difference i j ≃ (_≡_ {A = ℤ} [ i ] [ j ])
+  Same-difference≃[]≡[] =
+    Stable→≃[]≡[]
+      Same-difference-is-equivalence-relation
+      (λ {p} → Same-difference-propositional {p = p})
+      (Dec→Stable (_ Nat.≟ _))
 
 -- Non-negative integers are not equal to negative integers.
 
 +≢-[1+] : + m ≢ -[ P.suc n ]
 +≢-[1+] {m} {n} =
-  Stable-¬
-    [ + m ≡ -[ P.suc n ]                     ↔⟨⟩
-      [ (m , 0) ] ≡ [ (0 , P.suc n) ]        ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
-      Same-difference (m , 0) (0 , P.suc n)  ↔⟨⟩
-      m ⊕ P.suc n ≡ 0                        ↝⟨ trans (Nat.suc+≡+suc m) ⟩
-      P.suc (m ⊕ n) ≡ 0                      ↝⟨ Nat.0≢+ ∘ sym ⟩□
-      ⊥                                      □
-    ]
+  + m ≡ -[ P.suc n ]                     ↔⟨⟩
+  [ (m , 0) ] ≡ [ (0 , P.suc n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
+  Same-difference (m , 0) (0 , P.suc n)  ↔⟨⟩
+  m ⊕ P.suc n ≡ 0                        ↝⟨ trans (Nat.suc+≡+suc m) ⟩
+  P.suc (m ⊕ n) ≡ 0                      ↝⟨ Nat.0≢+ ∘ sym ⟩□
+  ⊥                                      □
 
 -- Non-positive integers are not equal to positive integers.
 
 +[1+]≢- : + P.suc m ≢ -[ n ]
 +[1+]≢- {m} {n} =
-  Stable-¬
-    [ + P.suc m ≡ -[ n ]                     ↔⟨⟩
-      [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
-      Same-difference (P.suc m , 0) (0 , n)  ↔⟨⟩
-      P.suc m ⊕ n ≡ 0                        ↝⟨ Nat.0≢+ ∘ sym ⟩□
-      ⊥                                      □
-    ]
+  + P.suc m ≡ -[ n ]                     ↔⟨⟩
+  [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
+  Same-difference (P.suc m , 0) (0 , n)  ↔⟨⟩
+  P.suc m ⊕ n ≡ 0                        ↝⟨ Nat.0≢+ ∘ sym ⟩□
+  ⊥                                      □
 
--- The +_ "constructor" is cancellative (assuming propositional
--- extensionality).
+-- The +_ "constructor" is cancellative.
 
-+-cancellative :
-  Propositional-extensionality lzero →
-  + m ≡ + n → m ≡ n
-+-cancellative {m} {n} prop-ext =
++-cancellative : + m ≡ + n → m ≡ n
++-cancellative {m} {n} =
   + m ≡ + n                  ↔⟨⟩
-  [ (m , 0) ] ≡ [ (n , 0) ]  ↔⟨ inverse $ Same-difference≃[]≡[] prop-ext ⟩
+  [ (m , 0) ] ≡ [ (n , 0) ]  ↔⟨ inverse Same-difference≃[]≡[] ⟩
   m ⊕ 0 ≡ 0 ⊕ n              ↝⟨ trans (sym Nat.+-right-identity) ⟩□
   m ≡ n                      □
 
--- The -[_] "constructor" is cancellative (assuming propositional
--- extensionality).
+-- The -[_] "constructor" is cancellative.
 
--[]-cancellative :
-  Propositional-extensionality lzero →
-  -[ m ] ≡ -[ n ] → m ≡ n
--[]-cancellative {m} {n} prop-ext =
+-[]-cancellative : -[ m ] ≡ -[ n ] → m ≡ n
+-[]-cancellative {m} {n} =
   -[ m ] ≡ -[ n ]  ↝⟨ cong (-_) ⟩
-  + m ≡ + n        ↝⟨ +-cancellative prop-ext ⟩□
+  + m ≡ + n        ↝⟨ +-cancellative ⟩□
   m ≡ n            □
 
--- Equality of integers is decidable (assuming propositional
--- extensionality).
+-- Equality of integers is decidable.
 
-infix 4 [_]_≟_
+infix 4 _≟_
 
-[_]_≟_ :
-  Propositional-extensionality lzero →
-  Decidable-equality ℤ
-[_]_≟_ prop-ext = Q.elim-prop λ where
+_≟_ : Decidable-equality ℤ
+_≟_ = Q.elim-prop λ where
   .[]ʳ i → Q.elim-prop λ where
      .[]ʳ _ →
-       ⊎-map (_≃_.to $ Same-difference≃[]≡[] prop-ext)
-             (_∘ _≃_.from (Same-difference≃[]≡[] prop-ext))
-             (Same-difference-decidable i)
+       Dec-map (_≃_.logical-equivalence Same-difference≃[]≡[])
+         (Same-difference-decidable i)
      .is-propositionʳ _ →
        Dec-closure-propositional ext ℤ-set
   .is-propositionʳ _ →
     Π-closure ext 1 λ _ →
     Dec-closure-propositional ext ℤ-set
-
--- Erased equality of integers is decidable.
-
-infix 4 _≟_
-
-_≟_ : Decidable-erased-equality ℤ
-_≟_ = Q.elim-prop λ where
-  .[]ʳ i → Q.elim-prop λ where
-     .[]ʳ _ →
-       Dec-Erased-map
-         (from-equivalence $ Same-difference≃[]≡[] prop-ext) $
-       Dec→Dec-Erased $
-       Same-difference-decidable i
-     .is-propositionʳ _ →
-       Is-proposition-Dec-Erased ext ℤ-set
-  .is-propositionʳ _ →
-    Π-closure ext 1 λ _ →
-    Is-proposition-Dec-Erased ext ℤ-set
 
 ------------------------------------------------------------------------
 -- The successor and predecessor functions
