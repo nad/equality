@@ -193,6 +193,23 @@ record Groupoid o ℓ : Type (lsuc (o ⊔ ℓ)) where
     ; left-inverse-of = involutive
     }
 
+  -- "Subtraction".
+
+  infixr 7 _⊖_
+
+  _⊖_ : y ∼ z → y ∼ x → x ∼ z
+  p ⊖ q = p ∘ q ⁻¹
+
+  opaque
+
+    -- A property related to _⊖_ and _⁻¹.
+
+    ⊖⁻¹ : (p ⊖ q) ⁻¹ ≡ q ⊖ p
+    ⊖⁻¹ {p} {q} =
+      (p ∘ q ⁻¹) ⁻¹   ≡⟨ ∘⁻¹ ⟩
+      q ⁻¹ ⁻¹ ∘ p ⁻¹  ≡⟨ cong (_∘ _) $ involutive _ ⟩
+      q ∘ p ⁻¹        ∎
+
   -- Exponentiation.
 
   infixl 8 _^+_
