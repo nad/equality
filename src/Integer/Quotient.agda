@@ -12,7 +12,9 @@ module Integer.Quotient
 open P.Derived-definitions-and-properties eq hiding (elim)
 
 open import Dec
-open import Prelude as P hiding (suc; _*_; _^_) renaming (_+_ to _⊕_)
+open import Prelude as P
+  hiding (suc; _^_)
+  renaming (_+_ to _⊕_; _*_ to _⊛_)
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
@@ -949,3 +951,226 @@ Negative-propositional _ = Data.Negative-propositional
   ℤ-group ≡ (ℤ-group G.× ℤ-group)   ↝⟨ flip (subst (ℤ-group ≃ᴳ_)) G.↝ᴳ-refl ⟩
   ℤ-group ≃ᴳ (ℤ-group G.× ℤ-group)  ↝⟨ ℤ≄ᴳℤ×ℤ ⟩□
   ⊥                                 □
+
+------------------------------------------------------------------------
+-- Multiplication
+
+-- Multiplication.
+
+infixl 7 _*_
+
+_*_ : ℤ → ℤ → ℤ
+_*_ = binary-operator mul (λ {i₁ = i₁} → mul-resp i₁ _ _ _)
+  where
+  mul : ℕ × ℕ → ℕ × ℕ → ℕ × ℕ
+  mul (m₁ , m₂) (n₁ , n₂) = m₁ ⊛ n₁ ⊕ m₂ ⊛ n₂ , m₁ ⊛ n₂ ⊕ m₂ ⊛ n₁
+
+  opaque
+
+    lemma₁ :
+      ∀ a {b} c {d} →
+      + (a ⊛ b ⊕ c ⊛ d) - + (a ⊛ d ⊕ c ⊛ b) ≡
+      (+ (a ⊛ b) - + (a ⊛ d)) - (+ (c ⊛ b) - + (c ⊛ d))
+    lemma₁ a {b} c {d} =
+      cong₂ (λ m n → [ (m , n) ])
+        ((a ⊛ b ⊕ c ⊛ d) ⊕ 0  ≡⟨ Nat.+-right-identity ⟩
+         a ⊛ b ⊕ c ⊛ d        ≡⟨ cong (_⊕ c ⊛ d) $ sym Nat.+-right-identity ⟩
+         (a ⊛ b ⊕ 0) ⊕ c ⊛ d  ∎)
+        (a ⊛ d ⊕ c ⊛ b        ≡⟨ cong (a ⊛ d ⊕_) $ sym Nat.+-right-identity ⟩
+         a ⊛ d ⊕ (c ⊛ b ⊕ 0)  ∎)
+
+    lemma₂ :
+      ∀ a b c {d} →
+      (a + - b) + - (c + - d) ≡
+      a + ((- b + - c) + d)
+    lemma₂ a b c {d} =
+      (a + - b) + - (c + - d)  ≡⟨ cong (_+_ (a + _)) $ ⊖⁻¹ {p = c} {q = d} ⟩
+      (a + - b) + (d + - c)    ≡⟨ cong (_+_ (a + _)) $ ℤ-abelian d _ ⟩
+      (a + - b) + (- c + d)    ≡⟨ sym $ assoc a _ _ ⟩
+      a + (- b + (- c + d))    ≡⟨ cong (_+_ a) $ assoc (- b) _ _ ⟩
+      a + ((- b + - c) + d)    ∎
+      where
+      open Group ℤ-group
+
+    lemma₃ :
+      ∀ a b c d →
+      (a - b) - (c - d) ≡
+      (a - c) - (b - d)
+    lemma₃ a b c d =
+      (a + - b) + - (c + - d)  ≡⟨ lemma₂ a b c ⟩
+      a + ((- b + - c) + d)    ≡⟨ cong (_+_ a) $ cong {x = - b + _} (_+ _) $
+                                  ℤ-abelian (- b) _ ⟩
+      a + ((- c + - b) + d)    ≡⟨ sym $ lemma₂ a c b ⟩
+      (a + - c) + - (b + - d)  ∎
+
+    lemma₄ :
+      ∀ {a b c d} e →
+      Same-difference (a , b) (c , d) →
+      + (e ⊛ a) - + (e ⊛ b) ≡ + (e ⊛ c) - + (e ⊛ d)
+    lemma₄ {a} {b} {c} {d} e hyp =
+      _≃_.to Same-difference≃-≡-
+        (e ⊛ a ⊕ e ⊛ d  ≡⟨ sym $ Nat.*-+-distribˡ e ⟩
+         e ⊛ (a ⊕ d)    ≡⟨ cong (e ⊛_) hyp ⟩
+         e ⊛ (b ⊕ c)    ≡⟨ Nat.*-+-distribˡ e ⟩
+         e ⊛ b ⊕ e ⊛ c  ∎)
+
+    lemma₅ :
+      ∀ a b {c d e} →
+      Same-difference (a , b) (c , d) →
+      + (a ⊛ e) - + (b ⊛ e) ≡ + (c ⊛ e) - + (d ⊛ e)
+    lemma₅ a b {c} {d} {e} hyp =
+      + (a ⊛ e) - + (b ⊛ e)  ≡⟨ cong₂ (λ m n → + m - + n) (Nat.*-comm a) (Nat.*-comm b) ⟩
+      + (e ⊛ a) - + (e ⊛ b)  ≡⟨ lemma₄ e hyp ⟩
+      + (e ⊛ c) - + (e ⊛ d)  ≡⟨ cong₂ (λ m n → + m - + n) (Nat.*-comm e) (Nat.*-comm e) ⟩
+      + (c ⊛ e) - + (d ⊛ e)  ∎
+
+    mul-resp :
+      ∀ i₁ i₂ j₁ j₂ →
+      Same-difference i₁ i₂ →
+      Same-difference j₁ j₂ →
+      Same-difference (mul i₁ j₁) (mul i₂ j₂)
+    mul-resp (k₁ , k₂) (ℓ₁ , ℓ₂) (m₁ , m₂) (n₁ , n₂) hyp₁ hyp₂ =
+      _≃_.from Same-difference≃-≡-
+        (+ (k₁ ⊛ m₁ ⊕ k₂ ⊛ m₂) - + (k₁ ⊛ m₂ ⊕ k₂ ⊛ m₁)              ≡⟨ lemma₁ k₁ k₂ ⟩
+         (+ (k₁ ⊛ m₁) - + (k₁ ⊛ m₂)) - (+ (k₂ ⊛ m₁) - + (k₂ ⊛ m₂))  ≡⟨ cong₂ _-_ (lemma₄ k₁ hyp₂) (lemma₄ k₂ hyp₂) ⟩
+         (+ (k₁ ⊛ n₁) - + (k₁ ⊛ n₂)) - (+ (k₂ ⊛ n₁) - + (k₂ ⊛ n₂))  ≡⟨ lemma₃ (+ _) (+ _) (+ (k₂ ⊛ _)) (+ (k₂ ⊛ _)) ⟩
+         (+ (k₁ ⊛ n₁) - + (k₂ ⊛ n₁)) - (+ (k₁ ⊛ n₂) - + (k₂ ⊛ n₂))  ≡⟨ cong₂ _-_ (lemma₅ k₁ k₂ hyp₁) (lemma₅ k₁ k₂ hyp₁) ⟩
+         (+ (ℓ₁ ⊛ n₁) - + (ℓ₂ ⊛ n₁)) - (+ (ℓ₁ ⊛ n₂) - + (ℓ₂ ⊛ n₂))  ≡⟨ sym $ lemma₃ (+ _) (+ _) (+ (ℓ₂ ⊛ _)) (+ (ℓ₂ ⊛ _)) ⟩
+         (+ (ℓ₁ ⊛ n₁) - + (ℓ₁ ⊛ n₂)) - (+ (ℓ₂ ⊛ n₁) - + (ℓ₂ ⊛ n₂))  ≡⟨ sym $ lemma₁ ℓ₁ ℓ₂ ⟩
+         + (ℓ₁ ⊛ n₁ ⊕ ℓ₂ ⊛ n₂) - + (ℓ₁ ⊛ n₂ ⊕ ℓ₂ ⊛ n₁)              ∎)
+
+opaque
+
+  -- Multiplication is commutative.
+
+  *-comm : ∀ i → i * j ≡ j * i
+  *-comm {j} =
+    elim _
+      (λ i₁ i₂ →
+         elim (λ j → [ (i₁ , i₂) ] * j ≡ j * [ (i₁ , i₂) ])
+           (λ j₁ j₂ →
+              cong₂ (λ m n → [ (m , n) ])
+                (i₁ ⊛ j₁ ⊕ i₂ ⊛ j₂  ≡⟨ cong₂ _⊕_ (Nat.*-comm i₁) (Nat.*-comm i₂) ⟩
+                 j₁ ⊛ i₁ ⊕ j₂ ⊛ i₂  ∎)
+                (i₁ ⊛ j₂ ⊕ i₂ ⊛ j₁  ≡⟨ cong₂ _⊕_ (Nat.*-comm i₁) (Nat.*-comm i₂) ⟩
+                 j₂ ⊛ i₁ ⊕ j₁ ⊛ i₂  ≡⟨ Nat.+-comm (j₂ ⊛ _) ⟩
+                 j₁ ⊛ i₂ ⊕ j₂ ⊛ i₁  ∎))
+           j)
+
+opaque
+
+  -- + 0 is a left zero for multiplication.
+
+  *-left-zero : ∀ i → + 0 * i ≡ + 0
+  *-left-zero = elim _ (λ _ _ → refl _)
+
+opaque
+
+  -- + 0 is a right zero for multiplication.
+
+  *-right-zero : ∀ i → i * + 0 ≡ + 0
+  *-right-zero i =
+    i * + 0  ≡⟨ *-comm i ⟩
+    + 0 * i  ≡⟨ *-left-zero i ⟩
+    + 0      ∎
+
+opaque
+
+  -- A lemma relating multiplication and negation.
+
+  *-≡-* : ∀ i → i * - j ≡ - i * j
+  *-≡-* {j} =
+    elim _
+      (λ i₁ i₂ →
+         elim (λ j → [ (i₁ , i₂) ] * - j ≡ - [ (i₁ , i₂) ] * j)
+           (λ _ _ →
+              cong₂ (λ m n → [ (m , n) ])
+                (Nat.+-comm (i₁ ⊛ _))
+                (Nat.+-comm (i₁ ⊛ _)))
+           j)
+
+opaque
+
+  -- A "computation rule" for multiplication.
+
+  suc-* : ∀ i → suc i * j ≡ j + i * j
+  suc-* {j} =
+    elim _
+      (λ i₁ i₂ →
+         elim (λ j → suc [ (i₁ , i₂) ] * j ≡ j + [ (i₁ , i₂) ] * j)
+           (λ j₁ j₂ →
+              cong₂ (λ m n → [ (m , n) ])
+                ((j₁ ⊕ i₁ ⊛ j₁) ⊕ i₂ ⊛ j₂  ≡⟨ sym $ Nat.+-assoc j₁ ⟩
+                 j₁ ⊕ (i₁ ⊛ j₁ ⊕ i₂ ⊛ j₂)  ∎)
+                ((j₂ ⊕ i₁ ⊛ j₂) ⊕ i₂ ⊛ j₁  ≡⟨ sym $ Nat.+-assoc j₂ ⟩
+                 j₂ ⊕ (i₁ ⊛ j₂ ⊕ i₂ ⊛ j₁)  ∎))
+           j)
+
+opaque
+
+  -- A "computation rule" for multiplication.
+
+  *-suc : ∀ i → i * suc j ≡ i + i * j
+  *-suc {j} i =
+    i * suc j  ≡⟨ *-comm i ⟩
+    suc j * i  ≡⟨ suc-* j ⟩
+    i + j * i  ≡⟨ cong (_+_ i) $ *-comm j ⟩
+    i + i * j  ∎
+
+opaque
+
+  -- A "computation rule" for multiplication.
+
+  neg-suc-* : ∀ i → - suc i * j ≡ - j + - i * j
+  neg-suc-* {j} i =
+    - suc i * j    ≡⟨ sym $ *-≡-* (suc i) ⟩
+    suc i * - j    ≡⟨ suc-* i ⟩
+    - j + i * - j  ≡⟨ cong (_+_ (- j)) $ *-≡-* i ⟩
+    - j + - i * j  ∎
+
+opaque
+
+  -- A "computation rule" for multiplication.
+
+  *-neg-suc : ∀ i j → i * - suc j ≡ - i + i * - j
+  *-neg-suc i j =
+    i * - suc j    ≡⟨ *-comm i ⟩
+    - suc j * i    ≡⟨ neg-suc-* j ⟩
+    - i + - j * i  ≡⟨ cong (_+_ (- i)) $ *-comm (- j) ⟩
+    - i + i * - j  ∎
+
+private opaque
+
+  -- A lemma used in the implementation of *≡*.
+
+  *+≡*+ :
+    ∀ {i} n →
+    _↔_.from ℤ↔ℤ i * + n ≡
+    _↔_.from ℤ↔ℤ (i Data.*+ n)
+  *+≡*+ {i} zero =
+    _↔_.from ℤ↔ℤ i * + 0  ≡⟨ *-right-zero (_↔_.from ℤ↔ℤ i) ⟩
+    + 0                   ∎
+  *+≡*+ {i} (P.suc n) =
+    _↔_.from ℤ↔ℤ i * suc (+ n)                   ≡⟨ *-suc (_↔_.from ℤ↔ℤ i) ⟩
+    _↔_.from ℤ↔ℤ i + _↔_.from ℤ↔ℤ i * + n        ≡⟨ cong (_+_ (_↔_.from ℤ↔ℤ i)) $ *+≡*+ n ⟩
+    _↔_.from ℤ↔ℤ i + _↔_.from ℤ↔ℤ (i Data.*+ n)  ≡⟨ +≡+ i ⟩
+    _↔_.from ℤ↔ℤ (i Data.+ i Data.*+ n)          ∎
+
+opaque
+
+  -- The implementation of multiplication given here matches the one
+  -- in Integer.
+
+  *≡* :
+    ∀ j →
+    _↔_.from ℤ↔ℤ i * _↔_.from ℤ↔ℤ j ≡ _↔_.from ℤ↔ℤ (i Data.* j)
+  *≡* (Data.+ n) =
+    *+≡*+ n
+  *≡* {i} Data.-[1+ n ] =
+    _↔_.from ℤ↔ℤ i * - suc (+ n)                                 ≡⟨ *-neg-suc (_↔_.from ℤ↔ℤ i) (+ n) ⟩
+    - _↔_.from ℤ↔ℤ i + _↔_.from ℤ↔ℤ i * - + n                    ≡⟨ cong (_+_ (- _↔_.from ℤ↔ℤ i)) $ *-≡-* (_↔_.from ℤ↔ℤ i) ⟩
+    - _↔_.from ℤ↔ℤ i + - _↔_.from ℤ↔ℤ i * + n                    ≡⟨ cong (_+_ (- _↔_.from ℤ↔ℤ i)) $ cong (_* _) $ -₁≡-₁ i ⟩
+    - _↔_.from ℤ↔ℤ i + _↔_.from ℤ↔ℤ (Data.- i) * + n             ≡⟨ cong₂ _+_ (-₁≡-₁ i) (*+≡*+ n) ⟩
+    _↔_.from ℤ↔ℤ (Data.- i) + _↔_.from ℤ↔ℤ (Data.- i Data.*+ n)  ≡⟨ +≡+ (Data.- i) ⟩
+    _↔_.from ℤ↔ℤ (Data.- i Data.+ Data.- i Data.*+ n)            ≡⟨⟩
+    _↔_.from ℤ↔ℤ (Data.- i Data.*+ P.suc n)                      ∎
