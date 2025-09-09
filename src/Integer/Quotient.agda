@@ -664,6 +664,21 @@ opaque
       (λ {p} → Same-difference-propositional {p = p})
       (Dec→Stable (_ Nat.≟ _))
 
+opaque
+
+  -- Same-difference can be stated using subtraction.
+
+  Same-difference≃-≡- :
+    Same-difference (m₁ , m₂) (n₁ , n₂) ≃
+    (+ m₁ - + m₂ ≡ + n₁ - + n₂)
+  Same-difference≃-≡- {m₁} {m₂} {n₁} {n₂} =
+    Same-difference (m₁ , m₂) (n₁ , n₂)  ↝⟨ Same-difference≃[]≡[] ⟩
+    [ (m₁ , m₂) ] ≡ [ (n₁ , n₂) ]        ↝⟨ ≡⇒↝ _ $ sym $
+                                            cong₂ (λ m₁ n₁ → _≡_ {A = ℤ} [ (m₁ , _) ] [ (n₁ , _) ])
+                                              Nat.+-right-identity
+                                              Nat.+-right-identity ⟩
+    + m₁ - + m₂ ≡ + n₁ - + n₂            □
+
 -- Non-negative integers are not equal to negative integers.
 
 +≢-[1+] : + m ≢ -[ P.suc n ]
