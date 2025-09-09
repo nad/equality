@@ -30,6 +30,7 @@ open import Prelude
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Decidable-UIP equality-with-J
 open import Equality.Path.Isomorphisms eq
+open import Equality.Path.Isomorphisms.Univalence eq
 open import Equivalence equality-with-J as Eq using (_≃_)
 open import Equivalence-relation equality-with-J
 open import Erased.Cubical eq as E
@@ -477,6 +478,20 @@ related≃[equal] {A} {r} {R} prop-ext R-equiv R-prop {x} {y} =
     .[]ʳ y                 → R x y , R-prop
     .[]-respects-relationʳ → lemma
     .is-setʳ               → Is-set-∃-Is-proposition ext prop-ext
+
+-- A variant of related≃[equal].
+
+Stable→≃[]≡[] :
+  Is-equivalence-relation R →
+  (∀ {x y} → Is-proposition (R x y)) →
+  (∀ {x y} → Stable (R x y)) →
+  ∀ {x y} → R x y ≃ _≡_ {A = A / R} [ x ] [ y ]
+Stable→≃[]≡[] R-equiv R-prop R-stable =
+  Eq.⇔→≃ R-prop /-is-set []-respects-relation
+    (λ [x]≡[y] →
+       R-stable
+         E.[ _≃_.from (related≃[equal] prop-ext R-equiv R-prop) [x]≡[y]
+           ])
 
 -- A variant of related≃[equal].
 
