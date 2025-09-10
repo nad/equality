@@ -9,10 +9,11 @@ open import Equality
 module Vec.Data
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
-open import Prelude
+open import Prelude hiding (Fin)
 
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
+open import Fin.Data eq
 open import Function-universe eq hiding (_∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
@@ -38,18 +39,18 @@ data Vec (A : Type a) : @0 ℕ → Type a where
 
 -- Finds the element at the given position.
 
-index : ∀ {n} → Vec A n → Fin n → A
-index {n = suc _} (x ∷ _)  fzero    = x
-index {n = suc _} (_ ∷ xs) (fsuc i) = index xs i
+index : Vec A n → Fin n → A
+index (x ∷ _)  zero    = x
+index (_ ∷ xs) (suc i) = index xs i
 
 -- Updates the element at the given position.
 
 infix 3 _[_≔_]
 
-_[_≔_] : ∀ {n} → Vec A n → Fin n → A → Vec A n
-_[_≔_] {n = zero}  []       ()       _
-_[_≔_] {n = suc _} (x ∷ xs) fzero    y = y ∷ xs
-_[_≔_] {n = suc _} (x ∷ xs) (fsuc i) y = x ∷ (xs [ i ≔ y ])
+_[_≔_] : Vec A n → Fin n → A → Vec A n
+_[_≔_] []       ()      _
+_[_≔_] (x ∷ xs) zero    y = y ∷ xs
+_[_≔_] (x ∷ xs) (suc i) y = x ∷ (xs [ i ≔ y ])
 
 -- Applies the function to every element in the vector.
 
