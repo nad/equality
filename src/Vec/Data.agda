@@ -17,6 +17,11 @@ open import Function-universe eq hiding (_∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
 
+private variable
+  a   : Level
+  A B : Type _
+  n   : ℕ
+
 ------------------------------------------------------------------------
 -- The type
 
@@ -24,16 +29,16 @@ open import Surjection eq using (_↠_; ↠-≡)
 
 infixr 5 _∷_
 
-data Vec {a} (A : Type a) : ℕ → Type a where
+data Vec (A : Type a) : ℕ → Type a where
   []  : Vec A zero
-  _∷_ : ∀ {n} → A → Vec A n → Vec A (suc n)
+  _∷_ : A → Vec A n → Vec A (suc n)
 
 ------------------------------------------------------------------------
 -- Some simple functions
 
 -- Finds the element at the given position.
 
-index : ∀ {n} {a} {A : Type a} → Vec A n → Fin n → A
+index : Vec A n → Fin n → A
 index (x ∷ _)  fzero    = x
 index (_ ∷ xs) (fsuc i) = index xs i
 
@@ -41,32 +46,32 @@ index (_ ∷ xs) (fsuc i) = index xs i
 
 infix 3 _[_≔_]
 
-_[_≔_] : ∀ {n} {a} {A : Type a} → Vec A n → Fin n → A → Vec A n
+_[_≔_] : Vec A n → Fin n → A → Vec A n
 _[_≔_] []       ()       _
 _[_≔_] (x ∷ xs) fzero    y = y ∷ xs
 _[_≔_] (x ∷ xs) (fsuc i) y = x ∷ (xs [ i ≔ y ])
 
 -- Applies the function to every element in the vector.
 
-map : ∀ {n a b} {A : Type a} {B : Type b} → (A → B) → Vec A n → Vec B n
+map : (A → B) → Vec A n → Vec B n
 map f []       = []
 map f (x ∷ xs) = f x ∷ map f xs
 
 -- Constructs a vector containing a certain number of copies of the
 -- given element.
 
-replicate : ∀ {n a} {A : Type a} → A → Vec A n
+replicate : A → Vec A n
 replicate {n = zero}  _ = []
 replicate {n = suc _} x = x ∷ replicate x
 
 -- The head of the vector.
 
-head : ∀ {n a} {A : Type a} → Vec A (suc n) → A
+head : Vec A (suc n) → A
 head (x ∷ _) = x
 
 -- The tail of the vector.
 
-tail : ∀ {n a} {A : Type a} → Vec A (suc n) → Vec A n
+tail : Vec A (suc n) → Vec A n
 tail (_ ∷ xs) = xs
 
 ------------------------------------------------------------------------
@@ -74,19 +79,19 @@ tail (_ ∷ xs) = xs
 
 -- Vectors can be converted to lists.
 
-to-list : ∀ {n} {a} {A : Type a} → Vec A n → List A
+to-list : Vec A n → List A
 to-list  []        = []
 to-list (x ∷ xs) = x ∷ to-list xs
 
 -- Lists can be converted to vectors.
 
-from-list : ∀ {a} {A : Type a} (xs : List A) → Vec A (length xs)
+from-list : (xs : List A) → Vec A (length xs)
 from-list []       = []
 from-list (x ∷ xs) = x ∷ from-list xs
 
 -- ∃ (Vec A) is isomorphic to List A.
 
-∃Vec↔List : ∀ {a} {A : Type a} → ∃ (Vec A) ↔ List A
+∃Vec↔List : ∃ (Vec A) ↔ List A
 ∃Vec↔List {A} = record
   { surjection = record
     { logical-equivalence = record
