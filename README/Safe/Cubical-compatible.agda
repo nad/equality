@@ -251,6 +251,10 @@ import Integer
 
 import Fin
 
+-- Fin, defined using an inductive family.
+
+import Fin.Data
+
 -- Some definitions related to and properties of the Maybe type.
 
 import Maybe
