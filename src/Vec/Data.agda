@@ -18,9 +18,9 @@ open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
 
 private variable
-  a   : Level
-  A B : Type _
-  n   : ℕ
+  a    : Level
+  A B  : Type _
+  @0 n : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -29,7 +29,7 @@ private variable
 
 infixr 5 _∷_
 
-data Vec (A : Type a) : ℕ → Type a where
+data Vec (A : Type a) : @0 ℕ → Type a where
   []  : Vec A zero
   _∷_ : A → Vec A n → Vec A (suc n)
 
@@ -38,18 +38,18 @@ data Vec (A : Type a) : ℕ → Type a where
 
 -- Finds the element at the given position.
 
-index : Vec A n → Fin n → A
-index (x ∷ _)  fzero    = x
-index (_ ∷ xs) (fsuc i) = index xs i
+index : ∀ {n} → Vec A n → Fin n → A
+index {n = suc _} (x ∷ _)  fzero    = x
+index {n = suc _} (_ ∷ xs) (fsuc i) = index xs i
 
 -- Updates the element at the given position.
 
 infix 3 _[_≔_]
 
-_[_≔_] : Vec A n → Fin n → A → Vec A n
-_[_≔_] []       ()       _
-_[_≔_] (x ∷ xs) fzero    y = y ∷ xs
-_[_≔_] (x ∷ xs) (fsuc i) y = x ∷ (xs [ i ≔ y ])
+_[_≔_] : ∀ {n} → Vec A n → Fin n → A → Vec A n
+_[_≔_] {n = zero}  []       ()       _
+_[_≔_] {n = suc _} (x ∷ xs) fzero    y = y ∷ xs
+_[_≔_] {n = suc _} (x ∷ xs) (fsuc i) y = x ∷ (xs [ i ≔ y ])
 
 -- Applies the function to every element in the vector.
 
@@ -60,7 +60,7 @@ map f (x ∷ xs) = f x ∷ map f xs
 -- Constructs a vector containing a certain number of copies of the
 -- given element.
 
-replicate : A → Vec A n
+replicate : ∀ {n} → A → Vec A n
 replicate {n = zero}  _ = []
 replicate {n = suc _} x = x ∷ replicate x
 
@@ -91,7 +91,7 @@ from-list (x ∷ xs) = x ∷ from-list xs
 
 -- ∃ (Vec A) is isomorphic to List A.
 
-∃Vec↔List : ∃ (Vec A) ↔ List A
+∃Vec↔List : ∃ (λ n → Vec A n) ↔ List A
 ∃Vec↔List {A} = record
   { surjection = record
     { logical-equivalence = record
@@ -107,7 +107,7 @@ from-list (x ∷ xs) = x ∷ from-list xs
   to∘from []       = refl _
   to∘from (x ∷ xs) = cong (x ∷_) (to∘from xs)
 
-  tail′ : A → ∃ (Vec A) ↠ ∃ (Vec A)
+  tail′ : A → ∃ (λ n → Vec A n) ↠ ∃ (λ n → Vec A n)
   tail′ y = record
     { logical-equivalence = record
       { to   = λ where
