@@ -12,7 +12,7 @@ module Erased.Stability
 open Derived-definitions-and-properties eq
 
 open import Logical-equivalence as LE using (_⇔_)
-open import Prelude as P
+open import Prelude as P hiding ([_,_])
 
 open import Bijection eq as Bijection using (_↔_; Has-quasi-inverse)
 open import Double-negation eq as DN
@@ -3630,6 +3630,190 @@ consequences-of-[]-cong-axiomatisation-do-not-not-hold :
   ([]-cong-axiomatisation ℓ → A) → ¬¬ A
 consequences-of-[]-cong-axiomatisation-do-not-not-hold f =
   DN.map′ f ¬¬-[]-cong-axiomatisation
+
+------------------------------------------------------------------------
+-- A variant of Substᴱ-axiomatisation
+
+-- A variant of Substᴱ-axiomatisation in which the function only takes
+-- two erased arguments.
+
+Substᴱ-axiomatisation₂ : (ℓ : Level) → Type (lsuc ℓ)
+Substᴱ-axiomatisation₂ ℓ =
+  ∃ λ (substᴱ :
+         {A : Type ℓ} {x : A} {@0 y : A}
+         (P : @0 A → Type ℓ) → @0 x ≡ y → P x → P y) →
+    {A : Type ℓ} {x : A} {P : @0 A → Type ℓ} {p : P x} →
+    substᴱ P (refl x) p ≡ p
+
+private
+
+  -- The type []-cong-axiomatisation′ ℓ is logically equivalent to
+  -- Substᴱ-axiomatisation₂ ℓ.
+
+  []-cong-axiomatisation′⇔Substᴱ-axiomatisation₂ :
+    []-cong-axiomatisation′ ℓ ⇔ Substᴱ-axiomatisation₂ ℓ
+  []-cong-axiomatisation′⇔Substᴱ-axiomatisation₂ {ℓ} =
+    record { to = to; from = from }
+    where
+    to : []-cong-axiomatisation′ ℓ → Substᴱ-axiomatisation₂ ℓ
+    to ax =
+      let ax = []-cong-axiomatisation′→[]-cong-axiomatisation ax in
+      E₁.[]-cong₁.substᴱ ax , E₁.[]-cong₁.substᴱ-refl ax
+
+    from : Substᴱ-axiomatisation₂ ℓ → []-cong-axiomatisation′ ℓ
+    from (substᴱ , substᴱ-refl) = λ where
+        .[]-cong-axiomatisation′.[]-cong →
+          []-cong
+        .[]-cong-axiomatisation′.[]-cong-[refl] →
+          substᴱ-refl
+      where
+      []-cong :
+        {A : Type ℓ} {x y : A} →
+        Erased (x ≡ y) → [ x ] ≡ [ y ]
+      []-cong {x} ([ x≡y ]) =
+        substᴱ (λ y → [ x ] ≡ [ y ]) x≡y (refl [ x ])
+
+-- The type Substᴱ-axiomatisation₂ ℓ is propositional (assuming
+-- extensionality).
+--
+-- The proof is based on a proof due to Nicolai Kraus that shows that
+-- "J + its computation rule" is contractible, see
+-- Equality.Instances-related.Equality-with-J-contractible.
+
+Substᴱ-axiomatisation₂-propositional :
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Is-proposition (Substᴱ-axiomatisation₂ ℓ)
+Substᴱ-axiomatisation₂-propositional {ℓ} ext =
+  [inhabited⇒contractible]⇒propositional λ ax →
+  let ax′ = []-cong-axiomatisation′→[]-cong-axiomatisation $
+            _⇔_.from []-cong-axiomatisation′⇔Substᴱ-axiomatisation₂ ax
+
+      module EC = Erased-cong ax′ (lower-[]-cong-axiomatisation _ ax′)
+  in
+  _⇔_.from contractible⇔↔⊤
+    (Substᴱ-axiomatisation₂ ℓ                                         ↔⟨ Eq.↔→≃
+                                                                           (λ (substᴱ , substᴱ-refl) _ P _ _ →
+                                                                              (λ _ x≡y → substᴱ P x≡y _) ,
+                                                                              substᴱ-refl)
+                                                                           (λ hyp →
+                                                                              (λ P _ _ → hyp _ P _ _ .proj₁ _ _) ,
+                                                                              hyp _ _ _ _ .proj₂)
+                                                                           refl
+                                                                           refl ⟩
+     ((A : Type ℓ) (P : @0 A → Type ℓ) (x : A) (p : P x) →
+      Σ ((@0 y : A) → @0 x ≡ y → P y) λ s → s x (refl x) ≡ p)         ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ → ∀-cong ext″ λ _ → ∀-cong ext″ λ _ →
+                                                                          Σ-cong (lemma {k = equivalence} ext″) λ _ → F.id) ⟩
+     ((A : Type ℓ) (P : @0 A → Type ℓ) (x : A) (p : P x) →
+      ∃ λ (s : (([ y , _ ]) : Erased (∃ λ y → x ≡ y)) → P y) →
+        s [ x , refl x ] ≡ p)                                         ↝⟨ (∀-cong ext λ _ → ∀-cong ext′ λ _ → ∀-cong ext″ λ _ → ∀-cong ext″ λ _ →
+                                                                          Σ-cong
+                                                                            (drop-⊤-left-Π {k = equivalence} ext″ $
+                                                                             Erased-⊤↔⊤ F.∘
+                                                                             EC.Erased-cong-↔
+                                                                               (_⇔_.to contractible⇔↔⊤ $
+                                                                                other-singleton-contractible _)) λ _ →
+                                                                          F.id) ⟩
+     ((A : Type ℓ) (P : @0 A → Type ℓ) (x : A) (p : P x) →
+      ∃ λ (s : P x) → s ≡ p)                                          ↔⟨⟩
+
+     ((A : Type ℓ) (P : @0 A → Type ℓ) (x : A) (p : P x) →
+      Singleton p)                                                    ↝⟨ (_⇔_.to contractible⇔↔⊤ $
+                                                                          Π-closure ext  0 λ _ →
+                                                                          Π-closure ext′ 0 λ _ →
+                                                                          Π-closure ext″ 0 λ _ →
+                                                                          Π-closure ext″ 0 λ _ →
+                                                                          singleton-contractible _) ⟩□
+     ⊤                                                                □)
+  where
+  ext′ : Extensionality (lsuc ℓ) ℓ
+  ext′ = lower-extensionality lzero _ ext
+
+  ext″ : Extensionality ℓ ℓ
+  ext″ = lower-extensionality _ _ ext
+
+  lemma :
+    {A : Type a} {x : A} {P : {@0 y : A} → @0 x ≡ y → Type p} →
+    ((@0 y : A) (@0 x≡y : x ≡ y) → P x≡y) ↝[ a ∣ a ⊔ p ]
+    ((([ _ , x≡y ]) : Erased (∃ λ y → x ≡ y)) → P x≡y)
+  lemma {a} = generalise-ext?
+    (record
+       { to   = λ f ([ _ , x≡y ]) → f _ x≡y
+       ; from = λ f (@0 _ x≡y) → f [ _ , x≡y ]
+       })
+    (λ ext →
+       let ext′ = lower-extensionality lzero a ext in
+         (λ _ → apply-ext ext′ λ { [ _ , _ ] → refl _ })
+       , (λ _ →
+            apply-extᴱ ext λ _ →
+            apply-extᴱ ext′ λ _ →
+            refl _))
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- Substᴱ-axiomatisation₂ ℓ (assuming function extensionality).
+
+[]-cong-axiomatisation≃Substᴱ-axiomatisation₂ :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ lsuc ℓ ] Substᴱ-axiomatisation₂ ℓ
+[]-cong-axiomatisation≃Substᴱ-axiomatisation₂ {ℓ} =
+  generalise-ext?-prop
+    ([]-cong-axiomatisation ℓ   ↝⟨ []-cong-axiomatisation≃[]-cong-axiomatisation′ _ ⟩
+     []-cong-axiomatisation′ ℓ  ↝⟨ []-cong-axiomatisation′⇔Substᴱ-axiomatisation₂ ⟩□
+     Substᴱ-axiomatisation₂ ℓ   □)
+    ([]-cong-axiomatisation-propositional ∘
+     lower-extensionality lzero _)
+    Substᴱ-axiomatisation₂-propositional
+
+------------------------------------------------------------------------
+-- Another variant of Substᴱ-axiomatisation
+
+-- A variant of Substᴱ-axiomatisation in which the function only takes
+-- one erased argument.
+
+Substᴱ-axiomatisation₁ : (ℓ : Level) → Type (lsuc ℓ)
+Substᴱ-axiomatisation₁ ℓ =
+  ∃ λ (substᴱ :
+         {A : Type ℓ} {x y : A}
+         (P : @0 A → Type ℓ) → @0 x ≡ y → P x → P y) →
+    {A : Type ℓ} {x : A} {P : @0 A → Type ℓ} {p : P x} →
+    substᴱ P (refl x) p ≡ p
+
+private
+
+  -- The type []-cong-axiomatisation′ ℓ is logically equivalent to
+  -- Substᴱ-axiomatisation₁ ℓ.
+
+  []-cong-axiomatisation′⇔Substᴱ-axiomatisation₁ :
+    []-cong-axiomatisation′ ℓ ⇔ Substᴱ-axiomatisation₁ ℓ
+  []-cong-axiomatisation′⇔Substᴱ-axiomatisation₁ {ℓ} =
+    record { to = to; from = from }
+    where
+    to : []-cong-axiomatisation′ ℓ → Substᴱ-axiomatisation₁ ℓ
+    to ax =
+      let ax = []-cong-axiomatisation′→[]-cong-axiomatisation ax in
+      E₁.[]-cong₁.substᴱ ax , E₁.[]-cong₁.substᴱ-refl ax
+
+    from : Substᴱ-axiomatisation₁ ℓ → []-cong-axiomatisation′ ℓ
+    from (substᴱ , substᴱ-refl) = λ where
+        .[]-cong-axiomatisation′.[]-cong →
+          []-cong
+        .[]-cong-axiomatisation′.[]-cong-[refl] →
+          substᴱ-refl
+      where
+      []-cong :
+        {A : Type ℓ} {x y : A} →
+        Erased (x ≡ y) → [ x ] ≡ [ y ]
+      []-cong {x} ([ x≡y ]) =
+        substᴱ (λ y → [ x ] ≡ [ y ]) x≡y (refl [ x ])
+
+-- The type []-cong-axiomatisation ℓ is logically equivalent to
+-- Substᴱ-axiomatisation₁ ℓ. It is unclear to me whether the two types
+-- are equivalent (in the presence of function extensionality).
+
+[]-cong-axiomatisation⇔Substᴱ-axiomatisation₁ :
+  []-cong-axiomatisation ℓ ⇔ Substᴱ-axiomatisation₁ ℓ
+[]-cong-axiomatisation⇔Substᴱ-axiomatisation₁ {ℓ} =
+  []-cong-axiomatisation ℓ   ↝⟨ []-cong-axiomatisation≃[]-cong-axiomatisation′ _ ⟩
+  []-cong-axiomatisation′ ℓ  ↝⟨ []-cong-axiomatisation′⇔Substᴱ-axiomatisation₁ ⟩□
+  Substᴱ-axiomatisation₁ ℓ   □
 
 ------------------------------------------------------------------------
 -- A negative result
