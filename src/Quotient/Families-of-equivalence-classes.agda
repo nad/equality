@@ -320,7 +320,7 @@ strong-equivalence-with-closed-under-on
   f   = _≃_.to   B≃A
   f⁻¹ = _≃_.from B≃A
 
-  lemma = λ x z →
+  lemma = λ (@ω x z) →
     R (f x) z            ≡⟨ cong (R (f x)) $ sym $ _≃_.right-inverse-of B≃A _ ⟩∎
     R (f x) (f (f⁻¹ z))  ∎
 

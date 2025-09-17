@@ -306,7 +306,7 @@ Path-split-2≃Split-surjective×Split-surjective-∆ {a} {b} {f} {k} ext =
   ext′ = lower-extensionality? k b lzero ext
   ext″ = lower-extensionality? k a lzero ext
 
-  lemma₂ = λ x y p →
+  lemma₂ = λ (@ω x y p) →
     (∃ λ (q : x ≡ y) → cong f q ≡ p)                                      ↝⟨ (∃-cong λ q → ≡⇒↝ _ $ cong (_≡ _) (
 
       cong f q                                                                  ≡⟨ sym $

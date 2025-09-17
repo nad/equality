@@ -36,7 +36,7 @@ Precategory-with-Obj :
 Precategory-with-Obj Obj ℓ₂ =
   -- Morphisms (a /set/).
   ∃ λ (HOM : Obj → Obj → Set ℓ₂) →
-  let Hom = λ X Y → proj₁ (HOM X Y) in
+  let Hom = λ (@ω X Y) → proj₁ (HOM X Y) in
 
   -- Identity.
   ∃ λ (id : ∀ {X} → Hom X X) →
@@ -381,7 +381,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                      (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : ∀ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y) ≡ D.HOM X Y) →
-     let eqH′ = λ X Y → proj₁ (Σ-≡,≡←≡ (eqH X Y))
+     let eqH′ = λ (@ω X Y) → proj₁ (Σ-≡,≡←≡ (eqH X Y))
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -397,7 +397,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                       proj₁-Σ-≡,≡←≡ _)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : ∀ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y) ≡ D.HOM X Y) →
-     let eqH′ = λ X Y → cong proj₁ (eqH X Y)
+     let eqH′ = λ (@ω X Y) → cong proj₁ (eqH X Y)
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -409,7 +409,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                       (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : ∀ X → (λ Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y)) ≡ D.HOM X) →
-     let eqH′ = λ X Y → cong proj₁ (ext⁻¹ (eqH X) Y)
+     let eqH′ = λ (@ω X Y) → cong proj₁ (ext⁻¹ (eqH X) Y)
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -420,7 +420,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                       (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : (λ X Y → C.HOM (≡⇒← eqO X) (≡⇒← eqO Y)) ≡ D.HOM) →
-     let eqH′ = λ X Y → cong proj₁ (ext⁻¹ (ext⁻¹ eqH X) Y)
+     let eqH′ = λ (@ω X Y) → cong proj₁ (ext⁻¹ (ext⁻¹ eqH X) Y)
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -431,7 +431,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                      (λ _ → F.id)) ⟩
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
-     let eqH′ = λ X Y →
+     let eqH′ = λ (@ω X Y) →
                   cong proj₁
                     (ext⁻¹ (ext⁻¹ (≡⇒← (HOM-lemma eqO) eqH) X) Y)
      in
@@ -453,7 +453,8 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
   (∃ λ (eqO : C.Obj ≡ D.Obj) →
    ∃ λ (eqH : subst (λ Obj → Obj → Obj → Set _) eqO C.HOM ≡ D.HOM) →
-     let eqH′ = λ X Y → cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
+     let eqH′ = λ (@ω X Y) →
+                  cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
      in
      (∀ X → ≡⇒→ (eqH′ X X) C.id ≡ D.id)
        ×
@@ -509,37 +510,38 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
      (∀ X Y →
-        (λ {_} → subst (uncurry Q) eq C._∙_ {X = X} {Y = Y}) ≡ D._∙_))   ↝⟨ ∃-cong (λ _ → ∃-cong λ _ → ∀-cong ext₁₁₂ λ _ →
+        (λ {@ω _} → subst (uncurry Q) eq C._∙_ {X = X} {Y = Y}) ≡
+        D._∙_))                                                          ↝⟨ ∃-cong (λ _ → ∃-cong λ _ → ∀-cong ext₁₁₂ λ _ →
                                                                               implicit-extensionality-isomorphism ext₁₁₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
      (∀ X → subst (uncurry P) eq C.id {X = X} ≡ D.id)
        ×
-     (∀ X → (λ {_ _} → subst (uncurry Q) eq C._∙_ {X = X}) ≡ D._∙_))     ↝⟨ ∃-cong (λ _ →
+     (∀ X → (λ {@ω _ _} → subst (uncurry Q) eq C._∙_ {X = X}) ≡ D._∙_))  ↝⟨ ∃-cong (λ _ →
                                                                               implicit-extensionality-isomorphism ext₁₂
                                                                                 ×-cong
                                                                               implicit-extensionality-isomorphism ext₁₁₂) ⟩
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
-     (λ {_} → subst (uncurry P) eq (λ {_} → C.id)) ≡
-     (λ {_} → D.id)
+     (λ {@ω _} → subst (uncurry P) eq (λ {@ω _} → C.id)) ≡
+     (λ {@ω _} → D.id)
        ×
-     (λ {_ _ _} → subst (uncurry Q) eq (λ {_ _ _} → C._∙_)) ≡
-     (λ {_ _ _} → D._∙_))                                                ↝⟨ ∃-cong (λ _ → ≡×≡↔≡) ⟩
+     (λ {@ω _ _ _} → subst (uncurry Q) eq (λ {@ω _ _ _} → C._∙_)) ≡
+     (λ {@ω _ _ _} → D._∙_))                                             ↝⟨ ∃-cong (λ _ → ≡×≡↔≡) ⟩
 
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
-     ( (λ {_}     → subst (uncurry P) eq (λ {_}     → C.id))
-     , (λ {_ _ _} → subst (uncurry Q) eq (λ {_ _ _} → C._∙_))
+     ( (λ {@ω _}     → subst (uncurry P) eq (λ {@ω _}     → C.id))
+     , (λ {@ω _ _ _} → subst (uncurry Q) eq (λ {@ω _ _ _} → C._∙_))
      ) ≡
-     ((λ {_} → D.id) , λ {_ _ _} → D._∙_))                               ↝⟨ ∃-cong (λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym $ push-subst-, _ _) ⟩
+     ((λ {@ω _} → D.id) , λ {@ω _ _ _} → D._∙_))                         ↝⟨ ∃-cong (λ _ → ≡⇒↝ _ $ cong (_≡ _) $ sym $ push-subst-, _ _) ⟩
 
   (∃ λ (eq : (C.Obj , C.HOM) ≡ (D.Obj , D.HOM)) →
-     subst _ eq ((λ {_} → C.id) , λ {_ _ _} → C._∙_) ≡
-     ((λ {_} → D.id) , λ {_ _ _} → D._∙_))                               ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
+     subst _ eq ((λ {@ω _} → C.id) , λ {@ω _ _ _} → C._∙_) ≡
+     ((λ {@ω _} → D.id) , λ {@ω _ _ _} → D._∙_))                         ↝⟨ Bijection.Σ-≡,≡↔≡ ⟩
 
-  ((C.Obj , C.HOM) , (λ {_} → C.id) , λ {_ _ _} → C._∙_) ≡
-  ((D.Obj , D.HOM) , (λ {_} → D.id) , λ {_ _ _} → D._∙_)                 ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Σ-assoc) ⟩
+  ((C.Obj , C.HOM) , (λ {@ω _} → C.id) , λ {@ω _ _ _} → C._∙_) ≡
+  ((D.Obj , D.HOM) , (λ {@ω _} → D.id) , λ {@ω _ _ _} → D._∙_)           ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ Σ-assoc) ⟩
 
-  (C.Obj , C.HOM , (λ {_} → C.id) , λ {_ _ _} → C._∙_) ≡
-  (D.Obj , D.HOM , (λ {_} → D.id) , λ {_ _ _} → D._∙_)                   ↝⟨ ignore-propositional-component (
+  (C.Obj , C.HOM , (λ {@ω _} → C.id) , λ {@ω _ _ _} → C._∙_) ≡
+  (D.Obj , D.HOM , (λ {@ω _} → D.id) , λ {@ω _ _ _} → D._∙_)             ↝⟨ ignore-propositional-component (
                                                                               ×-closure 1 (implicit-Π-closure ext₁₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₁₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
@@ -556,8 +558,8 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
                                                                                            implicit-Π-closure ext₂₂ 1 λ _ →
                                                                                            D.Hom-is-set)) ⟩
-  ((C.Obj , C.HOM , (λ {_} → C.id) , λ {_ _ _} → C._∙_) , _) ≡
-  ((D.Obj , D.HOM , (λ {_} → D.id) , λ {_ _ _} → D._∙_) , _)             ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
+  ((C.Obj , C.HOM , (λ {@ω _} → C.id) , λ {@ω _ _ _} → C._∙_) , _) ≡
+  ((D.Obj , D.HOM , (λ {@ω _} → D.id) , λ {@ω _ _ _} → D._∙_) , _)       ↔⟨ Eq.≃-≡ (Eq.↔⇒≃ rearrange) ⟩□
 
   C ≡ D                                                                  □
   where
@@ -671,27 +673,27 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
     _
   expand-≡⇒←-subst {C} {X} {Y} {F} {eqH} {f} =
     subst (λ H → ⌞ H X Y ⌟) eqH
-      (subst (λ H → ⌞ H X Y ⌟) (≡⇒←-subst (refl C)) f)      ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eqH $ subst (λ H → ⌞ H X Y ⌟) eq f)
-                                                                 ≡⇒←-subst-refl ⟩
+      (subst (λ H → ⌞ H X Y ⌟) (≡⇒←-subst (refl C)) f)          ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eqH $ subst (λ H → ⌞ H X Y ⌟) eq f)
+                                                                     ≡⇒←-subst-refl ⟩
     subst (λ H → ⌞ H X Y ⌟) eqH
       (subst (λ H → ⌞ H X Y ⌟)
-         (trans (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
+         (trans (cong (λ (@ω f X Y) → F (f X) (f Y)) ≡⇒←-refl)
                 (sym $ subst-refl _ _))
-         f)                                                 ≡⟨ cong (subst (λ H → ⌞ H X Y ⌟) eqH) $ sym $
-                                                                 subst-subst _ _ _ _ ⟩
+         f)                                                     ≡⟨ cong (subst (λ H → ⌞ H X Y ⌟) eqH) $ sym $
+                                                                     subst-subst _ _ _ _ ⟩
     subst (λ H → ⌞ H X Y ⌟) eqH
       (subst (λ H → ⌞ H X Y ⌟)
          (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
          (subst (λ H → ⌞ H X Y ⌟)
-                (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)
-                f))                                         ≡⟨ cong (λ f → subst (λ H → ⌞ H X Y ⌟) eqH $
-                                                                             subst (λ H → ⌞ H X Y ⌟)
-                                                                               (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _) f) $ sym $
-                                                                 subst-∘ (λ H → ⌞ H X Y ⌟) (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩∎
+                (cong (λ (@ω f X Y) → F (f X) (f Y)) ≡⇒←-refl)
+                f))                                             ≡⟨ cong (λ f → subst (λ H → ⌞ H X Y ⌟) eqH $
+                                                                                 subst (λ H → ⌞ H X Y ⌟)
+                                                                                   (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _) f) $ sym $
+                                                                     subst-∘ (λ H → ⌞ H X Y ⌟) (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩∎
     subst (λ H → ⌞ H X Y ⌟) eqH
       (subst (λ H → ⌞ H X Y ⌟)
          (sym $ subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
-         (subst (λ f → ⌞ F (f X) (f Y) ⌟) ≡⇒←-refl f))      ∎
+         (subst (λ f → ⌞ F (f X) (f Y) ⌟) ≡⇒←-refl f))          ∎
 
   expand-sym-≡⇒←-subst :
     ∀ {C : Type ℓ₁} {X Y}
@@ -709,14 +711,14 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                     (sym $ subst-refl _ _))
        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟) eq $
                                                                                  subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $
-                                                                    sym-trans (cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl) _ ⟩
+                                                                    sym-trans (cong (λ (@ω f X Y) → F (f X) (f Y)) ≡⇒←-refl) _ ⟩
      subst (λ H → ⌞ H X Y ⌟)
        (trans (sym $ sym $
                  subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
               (sym $ cong (λ f X Y → F (f X) (f Y))
                           ≡⇒←-refl))
        (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f)                   ≡⟨ cong (λ eq → subst (λ H → ⌞ H X Y ⌟)
-                                                                                 (trans eq (sym $ cong (λ f X Y → F (f X) (f Y)) ≡⇒←-refl)) $
+                                                                                 (trans eq (sym $ cong (λ (@ω f X Y) → F (f X) (f Y)) ≡⇒←-refl)) $
                                                                                  subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $
                                                                     sym-sym _ ⟩
      subst (λ H → ⌞ H X Y ⌟)
@@ -733,9 +735,9 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
                                                                                  subst (λ H → ⌞ H X Y ⌟)
                                                                                        (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _) $
                                                                                    subst (λ H → ⌞ H X Y ⌟) (sym eqH) f) $ sym $
-                                                                    cong-sym (λ f X Y → F (f X) (f Y)) ≡⇒←-refl ⟩
+                                                                    cong-sym (λ (@ω f X Y) → F (f X) (f Y)) ≡⇒←-refl ⟩
      subst (λ H → ⌞ H X Y ⌟)
-       (cong (λ f X Y → F (f X) (f Y)) $ sym ≡⇒←-refl)
+       (cong (λ (@ω f X Y) → F (f X) (f Y)) $ sym ≡⇒←-refl)
        (subst (λ H → ⌞ H X Y ⌟)
           (subst-refl (λ Obj → Obj → Obj → Set ℓ₂) _)
           (subst (λ H → ⌞ H X Y ⌟) (sym eqH) f))               ≡⟨ sym $ subst-∘ _ _ _ ⟩∎
@@ -823,7 +825,7 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
       subst₂ (uncurry P) eqO eqH C.id                                 ∎
 
-  Q = λ Obj (HOM : Obj → Obj → Set _) →
+  Q = λ (@ω Obj) (HOM : Obj → Obj → Set _) →
         ∀ {X Y Z} → ⌞ HOM Y Z ⌟ → ⌞ HOM X Y ⌟ → ⌞ HOM X Z ⌟
 
   push-Q :
@@ -861,14 +863,14 @@ equality-characterisation-Precategory′ {ℓ₁} {ℓ₂} {C} {D}
 
     Q-lemma :
       ∀ {eqO eqH X Y Z f g} →
-      let eqH′ = λ X Y →
+      let eqH′ = λ (@ω X Y) →
                    cong (λ H → ⌞ H X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
       in
       ≡⇒→ (eqH′ X Z) (≡⇒← (eqH′ Y Z) f C.∙ ≡⇒← (eqH′ X Y) g) ≡
       subst₂ (uncurry Q) eqO eqH C._∙_ f g
     Q-lemma {eqO} {eqH} {X} {Y} {Z} {f} {g} =
 
-      let eqH′ = λ X Y →
+      let eqH′ = λ (@ω X Y) →
                    cong (λ F → ⌞ F X Y ⌟) (≡⇒← (HOM-lemma eqO) eqH)
       in
 

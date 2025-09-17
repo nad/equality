@@ -298,14 +298,14 @@ Final-coalgebra-propositional {I} {C = C@(S ◁ P)}
     apply-ext ext₁ λ i →
     ≃⇒≡ univ (lemma₀ b i)
 
-  lemma₁-lemma₁ = λ b i →
+  lemma₁-lemma₁ = λ (@ω b i) →
     sym $ Σ-≡,≡→≡ (sym (lemma₁ b)) (subst-const _)   ≡⟨ cong sym Σ-≡,≡→≡-subst-const-refl ⟩
     sym $ cong₂ _,_ (sym (lemma₁ b)) (refl _)        ≡⟨ sym cong₂-sym ⟩
     cong₂ _,_ (sym (sym (lemma₁ b))) (sym (refl _))  ≡⟨ cong₂ (cong₂ _) (sym-sym _) sym-refl ⟩
     cong₂ _,_ (lemma₁ b) (refl i)                    ≡⟨ cong₂-reflʳ _ ⟩∎
     cong (_, i) (lemma₁ b)                           ∎
 
-  lemma₁-lemma₂ = λ b i x →
+  lemma₁-lemma₂ = λ (@ω b i x) →
     subst (_$ i) (sym (lemma₁ b)) x                                    ≡⟨⟩
     subst (_$ i) (sym (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i))) x  ≡⟨ cong (flip (subst (_$ i)) _) $ sym $
                                                                           ext-sym ext₁ ⟩
@@ -324,7 +324,7 @@ Final-coalgebra-propositional {I} {C = C@(S ◁ P)}
                                                                           _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
     _≃_.to (lemma₀ b i) (f i p)                                        ∎
 
-  lemma₂ = λ b →
+  lemma₂ = λ (@ω b) →
     apply-ext (lower-extensionality _ _ ext) λ i →
     apply-ext (lower-extensionality _ _ ext) λ x →
 

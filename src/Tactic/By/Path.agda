@@ -178,7 +178,7 @@ private
       test₉ f = by (lemma 40)
 
       test₁₀ : (f : ℕ → ℕ) → f 42 ≡ f 48
-      test₁₀ f = by (λ (_ : ⊤) → assumption)
+      test₁₀ f = by (λ (@ω _ : ⊤) → assumption)
 
       test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡′ x) →
                fst (f (12 , 73)) ≡ fst {B = λ _ → ℕ} (12 , 73)
@@ -268,7 +268,7 @@ private
       test₉ f = ⟨by⟩ (lemma 40)
 
       test₁₀ : (f : ℕ → ℕ) → f ⟨ 42 ⟩ ≡ f 48
-      test₁₀ f = ⟨by⟩ (λ (_ : ⊤) → assumption)
+      test₁₀ f = ⟨by⟩ (λ (@ω _ : ⊤) → assumption)
 
       test₁₁ : (f : ℕ × ℕ → ℕ × ℕ) → (∀ x → f x ≡′ x) →
                fst ⟨ f (12 , 73) ⟩ ≡ fst {B = λ _ → ℕ} (12 , 73)

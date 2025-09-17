@@ -191,9 +191,9 @@ record Uniquely-eliminating-modality a : Type (lsuc a) where
 
     η⁻¹-η : η⁻¹ ∘ η ≡ id
     η⁻¹-η =
-      _≃_.from Π◯◯≃Π◯η id ∘ η       ≡⟨⟩
-      (_∘ η) (_≃_.from Π◯◯≃Π◯η id)  ≡⟨ _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩∎
-      id                            ∎
+      _≃_.from Π◯◯≃Π◯η id ∘ η                   ≡⟨⟩
+      (λ (@ω f) → f ∘ η) (_≃_.from Π◯◯≃Π◯η id)  ≡⟨ _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩∎
+      id                                        ∎
 
   -- If P : ◯ A → Type a is pointwise modal, then it is ∞-extendable
   -- along η (assuming function extensionality).
@@ -244,15 +244,15 @@ record Uniquely-eliminating-modality a : Type (lsuc a) where
     ◯-elim m f (η x) ≡ f x
   ◯-elim-η {x} {P} {f} m =
     _≃_.from (Modal→≃◯ (m _))
-      (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f) (η x))         ≡⟨⟩
+      (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f) (η x))                     ≡⟨⟩
 
     _≃_.from (Modal→≃◯ (m _))
-      (((_∘ η) (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f))) x)  ≡⟨ cong (_≃_.from (Modal→≃◯ (m _))) $ cong (_$ x) $
-                                                            _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩
+      (((λ (@ω f) → f ∘ η) (_≃_.from (Π◯◯≃Π◯η {P = P}) (η ∘ f))) x)  ≡⟨ cong (_≃_.from (Modal→≃◯ (m _))) $ cong (_$ x) $
+                                                                        _≃_.right-inverse-of Π◯◯≃Π◯η _ ⟩
 
-    _≃_.from (Modal→≃◯ (m _)) (η (f x))                  ≡⟨ _≃_.left-inverse-of (Modal→≃◯ (m _)) _ ⟩∎
+    _≃_.from (Modal→≃◯ (m _)) (η (f x))                              ≡⟨ _≃_.left-inverse-of (Modal→≃◯ (m _)) _ ⟩∎
 
-    f x                                                  ∎
+    f x                                                              ∎
 
   -- A non-dependent eliminator for ◯.
 
@@ -1754,7 +1754,7 @@ module Modality (M : Modality a) where
     ext₀⁺ = lower-extensionality _ lzero ext
     ext₀₀ = lower-extensionality _ _ ext
 
-    lemma = λ P f → apply-ext ext₀₀ λ x →
+    lemma = λ (@ω P f) → apply-ext ext₀₀ λ x →
       ◯-map (_$ _≃_.from A≃B x) $
       ◯-map
         (λ f x →
@@ -3326,7 +3326,7 @@ module Modality (M : Modality a) where
     (∀ z → Contractible (◯ (f ⁻¹ z)))      ↝⟨ (∀-cong ext λ z → H-level-cong ext 0 $ lemma z) ⟩□
     (∀ z → Contractible (◯ (f ∘ g ⁻¹ z)))  □
     where
-    lemma = λ z →
+    lemma = λ (@ω z) →
       ◯ (f ⁻¹ z)                               ↝⟨ (◯-cong-≃ $ inverse $ Eq.↔⇒≃ $
                                                    drop-⊤-right λ _ →
                                                    _⇔_.to contractible⇔↔⊤ $
@@ -4800,7 +4800,7 @@ module Modality (M : Modality a) where
     []-cong-axiomatisation a →
     ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
   ◯Wη→W◯-η {A} {P} {x} acc ext ax =
-    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc .proj₂ a))
+    (λ (@ω (x , a)) → ◯Wη→W◯-Acc ext x (acc .proj₂ a))
       (◯Ση≃Σ◯◯ _
          (◯-map (Σ-map id (acc .proj₁))
             (◯-map (λ x → x , A.Well-founded-W x) (η x))))  ≡⟨ cong (λ (x , a) → ◯Wη→W◯-Acc ext x (acc .proj₂ a)) $
@@ -4808,7 +4808,7 @@ module Modality (M : Modality a) where
                                                                       trans (cong (◯-map _) ◯-map-η)
                                                                       ◯-map-η)
                                                                ◯-rec-η ⟩
-    (λ (x , a) → ◯Wη→W◯-Acc ext x (acc .proj₂ a))
+    (λ (@ω (x , a)) → ◯Wη→W◯-Acc ext x (acc .proj₂ a))
       (η x , η (acc .proj₁ (A.Well-founded-W x)))           ≡⟨⟩
 
     ◯Wη→W◯-Acc ext (η x)
@@ -5315,7 +5315,7 @@ Modal⇔Modal≃◯≃◯ {a} ext M₁ M₂ =
                 id x                                            ∎))
       , (λ _ → c₁₂ .proj₁ .proj₂)
 
-  equiv = λ ext′ →
+  equiv = λ (@ω ext′) →
 
     (∃ λ (eq : ∀ A → M₁.◯ A ≃ M₂.◯ A) →
        ∀ A → _≃_.to (eq A) ∘ M₁.η ≡ M₂.η)                            ↝⟨ inverse ΠΣ-comm ⟩

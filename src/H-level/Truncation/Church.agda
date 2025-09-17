@@ -553,7 +553,7 @@ coherently-constant-function≃∥inhabited∥⇒inhabited {a} {b} ℓ {A} {B}
   where
   ℓ′ = a ⊔ b ⊔ ℓ
 
-  rearrangement-lemma = λ a₀ →
+  rearrangement-lemma = λ (@ω a₀) →
     (∃ λ (f₁ : B) →
      ∃ λ (f : A → B) → ∃ λ (c₁ : (a : A) → f a ≡ f₁) →
      ∃ λ (c : Constant f) →

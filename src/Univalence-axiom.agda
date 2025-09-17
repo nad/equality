@@ -736,7 +736,7 @@ Pow↔Fam ℓ {A} ext univ = record
         I                         , f      ∎ }
     }
   ; left-inverse-of = λ P →
-      let lemma = λ a →
+      let lemma = λ (@ω a) →
             (∃ λ (i : ∃ P) → proj₁ i ≡ a)  ↔⟨ inverse Σ-assoc ⟩
             (∃ λ a′ → P a′ × a′ ≡ a)       ↔⟨ inverse $ ∃-intro _ _ ⟩□
             P a                            □
@@ -1115,13 +1115,13 @@ opaque
   ; left-inverse-of = from∘to
   })
   where
-  to = λ A₁≡B₁ → ≃⇒≡ univ₂ (
+  to = λ (@ω A₁≡B₁) → ≃⇒≡ univ₂ (
     A₂  ↝⟨ inverse A₁≃A₂ ⟩
     A₁  ↝⟨ ≡⇒≃ A₁≡B₁ ⟩
     B₁  ↝⟨ B₁≃B₂ ⟩□
     B₂  □)
 
-  from = λ A₂≡B₂ → ≃⇒≡ univ₁ (
+  from = λ (@ω A₂≡B₂) → ≃⇒≡ univ₁ (
     A₁  ↝⟨ A₁≃A₂ ⟩
     A₂  ↝⟨ ≡⇒≃ A₂≡B₂ ⟩
     B₂  ↝⟨ inverse B₁≃B₂ ⟩□

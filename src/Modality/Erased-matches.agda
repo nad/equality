@@ -193,7 +193,7 @@ private
   []-cong-axiomatisation a →
   ◯Wη→W◯ {P = P} acc ext (η x) ≡ W-map η id x
 ◯Wη→W◯-η {A} {P} {x} acc ext ext′ ax =
-  (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
+  (λ (@ω (x , a)) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
     (◯Ση≃Σ◯◯ _
        (◯-map (Σ-map id (acc′ .proj₁))
           (◯-map (λ x → x , A.Well-founded-W x) (η x))))  ≡⟨ cong (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a)) $
@@ -201,7 +201,7 @@ private
                                                                     trans (cong (◯-map _) ◯-map-η)
                                                                     ◯-map-η)
                                                              ◯-rec-η ⟩
-  (λ (x , a) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
+  (λ (@ω (x , a)) → ◯Wη→W◯-Acc ext x (acc′ .proj₂ a))
     (η x , η (acc′ .proj₁ (A.Well-founded-W x)))          ≡⟨⟩
 
   ◯Wη→W◯-Acc ext (η x)

@@ -260,9 +260,9 @@ module Valid-domain₁ (v : Valid-domain A) where
 
              p                                                      ∎)))
     where
-    eq′ = λ f x → ◯→⇔◯→◯-◯→⇔◯→◯ {x = x} f
+    eq′ = λ (@ω f x) → ◯→⇔◯→◯-◯→⇔◯→◯ {x = x} f
 
-    lemma = λ ext f p →
+    lemma = λ (@ω ext f p) →
       let eq = apply-ext ext (eq′ f) in
 
       subst P eq (P-resp (sym ∘ eq′ f) p)                   ≡⟨ cong (λ eq′ → subst P eq (P-resp (sym ∘ eq′) p)) $ sym $

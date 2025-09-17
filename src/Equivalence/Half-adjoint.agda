@@ -128,12 +128,12 @@ composition-equivalence
 
   [f-g]⁻¹ = g⁻¹ ∘ f⁻¹
 
-  [f-g]-[f-g]⁻¹ = λ x →
+  [f-g]-[f-g]⁻¹ = λ (@ω x) →
     f (g (g⁻¹ (f⁻¹ x)))  ≡⟨ cong f $ g-g⁻¹ _ ⟩
     f (f⁻¹ x)            ≡⟨ f-f⁻¹ _ ⟩∎
     x                    ∎
 
-  [f-g]⁻¹-[f-g] = λ x →
+  [f-g]⁻¹-[f-g] = λ (@ω x) →
     g⁻¹ (f⁻¹ (f (g x)))  ≡⟨ cong g⁻¹ $ f⁻¹-f _ ⟩
     g⁻¹ (g x)            ≡⟨ g⁻¹-g _ ⟩∎
     x                    ∎

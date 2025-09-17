@@ -103,7 +103,7 @@ mutual
        ((f : ℕ → Bool) → ¬ P f ⊎ P f)                                 ↝⟨ (∀-cong _ λ _ → from-bijection ⊎-comm) ⟩□
        ((f : ℕ → Bool) → P f ⊎ ¬ P f)                                 □)
     where
-    P = λ (f : ℕ → Bool) →
+    P = λ (@ω f : ℕ → Bool) →
           ∃ λ n → f n ≡ true × ∀ {m} → m < n → f m ≡ false
 
     P-prop : ∀ f → Is-proposition (P f)

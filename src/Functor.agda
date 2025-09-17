@@ -162,7 +162,7 @@ opaque
                                                                               ignore-propositional-component
                                                                                 (functor-properties-propositional ext G)) ⟩□
     (∃ λ (⊚F≡⊚G : _⊚_ F ≡ _⊚_ G) →
-         (λ {_ _} → subst P ⊚F≡⊚G (_⊙_ F)) ≡ _⊙_ G)                      □
+         (λ {@ω _ _} → subst P ⊚F≡⊚G (_⊙_ F)) ≡ _⊙_ G)                   □
 
     where open Precategory
 
@@ -381,28 +381,28 @@ opaque
              _⇾_.transformation δ {X = X})
 
   equality-characterisation⇾ {ℓ₁} {ℓ₂} ext {F} {G} {γ} {δ} =
-    γ ≡ δ                                                          ↝⟨ inverse $ Eq.≃-≡ $ ↔⇒≃ record
-                                                                        { surjection = record
-                                                                          { logical-equivalence = record
-                                                                            { to   = _⇾_.natural-transformation
-                                                                            ; from = λ γ → record { natural-transformation = γ }
-                                                                            }
-                                                                          ; right-inverse-of = refl
-                                                                          }
-                                                                        ; left-inverse-of = refl
-                                                                        } ⟩
-    _⇾_.natural-transformation γ ≡ _⇾_.natural-transformation δ    ↔⟨ inverse $ ignore-propositional-component
+    γ ≡ δ                                                             ↝⟨ inverse $ Eq.≃-≡ $ ↔⇒≃ record
+                                                                           { surjection = record
+                                                                             { logical-equivalence = record
+                                                                               { to   = _⇾_.natural-transformation
+                                                                               ; from = λ γ → record { natural-transformation = γ }
+                                                                               }
+                                                                             ; right-inverse-of = refl
+                                                                             }
+                                                                           ; left-inverse-of = refl
+                                                                           } ⟩
+    _⇾_.natural-transformation γ ≡ _⇾_.natural-transformation δ       ↔⟨ inverse $ ignore-propositional-component
                                                                                   (naturality-propositional ext F G) ⟩
-    (λ {X} → _⇾_.transformation γ {X = X}) ≡ _⇾_.transformation δ  ↝⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ implicit-Π↔Π) ⟩
+    (λ {@ω X} → _⇾_.transformation γ {X = X}) ≡ _⇾_.transformation δ  ↝⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ implicit-Π↔Π) ⟩
 
     (λ X → _⇾_.transformation γ {X = X}) ≡
-    (λ X → _⇾_.transformation δ {X = X})                           ↝⟨ inverse $ Eq.extensionality-isomorphism
-                                                                                  (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) ⟩
+    (λ X → _⇾_.transformation δ {X = X})                              ↝⟨ inverse $ Eq.extensionality-isomorphism
+                                                                                     (lower-extensionality ℓ₂ (ℓ₁ ⊔ ℓ₂) ext) ⟩
     (∀ X → _⇾_.transformation γ {X = X} ≡
-           _⇾_.transformation δ {X = X})                           ↔⟨ inverse implicit-Π↔Π ⟩□
+           _⇾_.transformation δ {X = X})                              ↔⟨ inverse implicit-Π↔Π ⟩□
 
     (∀ {X} → _⇾_.transformation γ {X = X} ≡
-             _⇾_.transformation δ {X = X})                         □
+             _⇾_.transformation δ {X = X})                            □
 
   -- Natural transformations form sets (assuming extensionality).
 

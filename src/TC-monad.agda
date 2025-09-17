@@ -495,8 +495,9 @@ is-dependent (suc n) skip t = do
   t ← reduce t
   case t of λ where
     (pi a@(arg (arg-info v _) _) (abs x b)) →
-      let cont skip = extendContext x a $ is-dependent n skip b
-          check     = case bound? 0 b of λ where
+      let cont  = λ (@ω skip) →
+                    extendContext x a $ is-dependent n skip b
+          check = case bound? 0 b of λ where
             (definitely false) → cont false
             is-bound           → return is-bound
       in case skip of λ where

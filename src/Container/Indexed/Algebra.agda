@@ -304,14 +304,14 @@ Initial-algebra-propositional {I} {C}
     apply-ext ext₁ λ i →
     ≃⇒≡ univ (lemma₀ b i)
 
-  lemma₁-lemma₁ = λ b i →
+  lemma₁-lemma₁ = λ (@ω b i) →
     sym $ Σ-≡,≡→≡ (sym (lemma₁ b)) (subst-const _)   ≡⟨ cong sym Σ-≡,≡→≡-subst-const-refl ⟩
     sym $ cong₂ _,_ (sym (lemma₁ b)) (refl _)        ≡⟨ sym cong₂-sym ⟩
     cong₂ _,_ (sym (sym (lemma₁ b))) (sym (refl _))  ≡⟨ cong₂ (cong₂ _) (sym-sym _) sym-refl ⟩
     cong₂ _,_ (lemma₁ b) (refl i)                    ≡⟨ cong₂-reflʳ _ ⟩∎
     cong (_, i) (lemma₁ b)                           ∎
 
-  lemma₁-lemma₂ = λ b i x →
+  lemma₁-lemma₂ = λ (@ω b i x) →
     subst (_$ i) (lemma₁ b) x                                    ≡⟨⟩
     subst (_$ i) (apply-ext ext₁ λ i → ≃⇒≡ univ (lemma₀ b i)) x  ≡⟨ subst-ext ext₁ ⟩
     subst id (≃⇒≡ univ (lemma₀ b i)) x                           ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence ⟩
@@ -319,7 +319,7 @@ Initial-algebra-propositional {I} {C}
                                                                     _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
     _≃_.to (lemma₀ b i) x                                        ∎
 
-  lemma₁-lemma₃ = λ b _ _ f p →
+  lemma₁-lemma₃ = λ (@ω b _ _ f p) →
     subst (λ P → P (index C p)) (sym (lemma₁ b)) (f p)          ≡⟨⟩
 
     subst (λ P → P (index C p))
@@ -334,7 +334,7 @@ Initial-algebra-propositional {I} {C}
                                                                    _≃_.right-inverse-of (≡≃≃ univ) _ ⟩∎
     _≃_.from (lemma₀ b (index C p)) (f p)                       ∎
 
-  lemma₁-lemma₄ = λ b i x@(s , f) →
+  lemma₁-lemma₄ = λ (@ω b i x@(s , f)) →
     subst (λ P → ⟦ C ⟧ P i) (sym (lemma₁ b)) x                           ≡⟨⟩
 
     subst (λ P → ∃ λ (s : Shape C i) → ∀ p → P (index C p))
@@ -350,7 +350,7 @@ Initial-algebra-propositional {I} {C}
 
     map C (_≃_.from ∘ lemma₀ b) i x                                      ∎
 
-  lemma₂ = λ b →
+  lemma₂ = λ (@ω b) →
     apply-ext (lower-extensionality _ _ ext) λ i →
     apply-ext (lower-extensionality _ _ ext) λ x →
 

@@ -319,7 +319,8 @@ record Extension-with-resp (c : Code) : P.Type₂ where
                       (refl x))
     resp-refl-lemma ass I x =
       let rfl    = reflexivity ass c I
-          iso≃eq = λ {I J} → isomorphism≃equality ass c {I = I} {J = J}
+          iso≃eq = λ {@ω I J} →
+                     isomorphism≃equality ass c {I = I} {J = J}
           rio    = right-inverse-of iso≃eq (refl I)
           lio    = left-inverse-of (inverse iso≃eq) (refl I)
           sx≡x   = subst (λ eq → subst Ext eq x ≡ x) (sym rio) (refl x)

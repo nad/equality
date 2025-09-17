@@ -206,7 +206,7 @@ opaque
 implicit-extensionality :
   Extensionality a p →
   {A : Type a} {P : A → Type p} {f g : {x : A} → P x} →
-  (∀ x → f {x} ≡ g {x}) → (λ {x} → f {x}) ≡ g
+  (∀ x → f {x} ≡ g {x}) → (λ {@ω x} → f {x}) ≡ g
 implicit-extensionality ext f≡g =
   cong (λ f {x} → f x) $ apply-ext ext f≡g
 

@@ -245,13 +245,13 @@ Is-equivalence-∆ {f} f-eq =
   where
   equiv = Eq.⟨ _ , f-eq ⟩
 
-  lemma₁ = λ x y p →
+  lemma₁ = λ (@ω x y p) →
     x                     ≡⟨ sym $ _≃_.left-inverse-of equiv _ ⟩
     _≃_.from equiv (f x)  ≡⟨ cong (_≃_.from equiv) p ⟩
     _≃_.from equiv (f y)  ≡⟨ _≃_.left-inverse-of equiv _ ⟩∎
     y                     ∎
 
-  lemma₂ = λ x y p →
+  lemma₂ = λ (@ω x y p) →
     subst (λ y → f x ≡ f y) (lemma₁ x y p) (refl (f x))  ≡⟨ subst-in-terms-of-trans-and-cong ⟩
 
     trans (sym (cong (const (f x)) (lemma₁ x y p)))

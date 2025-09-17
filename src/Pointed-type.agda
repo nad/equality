@@ -328,7 +328,7 @@ proj₁-Ω-cong-≃ᴮ-↝ᴮ-refl = proj₁-Ω-cong-→ᴮ-↝ᴮ-refl
     (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to p))
     (≡⇒→ (cong₂ _≡_ to≡ to≡) (cong to q))                  ∎
   where
-  lemma = λ p →
+  lemma = λ (@ω p) →
     ≡⇒→ (cong₂ _≡_ to≡ to≡) p                          ≡⟨⟩
     ≡⇒→ (trans (cong (_≡ _) to≡) (cong (_ ≡_) to≡)) p  ≡⟨ cong (_$ p) $ ≡⇒↝-trans equivalence ⟩
     ≡⇒→ (cong (_ ≡_) to≡) (≡⇒→ (cong (_≡ _) to≡) p)    ≡⟨ sym $ subst-in-terms-of-≡⇒↝ equivalence _ _ _ ⟩

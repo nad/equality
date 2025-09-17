@@ -1330,7 +1330,7 @@ drop-⊥-left {A} {B} A↔⊥ =
        subst B₂ (refl (to A₁↣A₂ z₁)) (to (B₁↣B₂ z₁) x₂)         ≡⟨ cong (λ eq → subst B₂ eq _) (sym $ cong-refl _) ⟩∎
        subst B₂ (cong (to A₁↣A₂) (refl z₁)) (to (B₁↣B₂ z₁) x₂)  ∎)
 
-  lemma₂ = λ x y →
+  lemma₂ = λ (@ω x y) →
     let eq₁ = cong (flip (subst B₂) _) (sym (cong-refl _))
         eq₂ = cong (to (B₁↣B₂ x)) (subst-refl B₁ y)
     in
@@ -3125,11 +3125,11 @@ implicit-extensionality-isomorphism :
   ∀ {k a b} →
   Extensionality a b →
   {A : Type a} {B : A → Type b} {f g : {x : A} → B x} →
-  (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {x} → f {x}) ≡ g)
+  (∀ x → f {x} ≡ g {x}) ↔[ k ] ((λ {@ω x} → f {x}) ≡ g)
 implicit-extensionality-isomorphism ext {f} {g} =
   (∀ x → f {x} ≡ g {x})            ↔⟨ Eq.extensionality-isomorphism ext ⟩
   ((λ x → f {x}) ≡ (λ x → g {x}))  ↔⟨ inverse $ Eq.≃-≡ (Eq.↔⇒≃ (inverse Bijection.implicit-Π↔Π)) ⟩□
-  ((λ {x} → f {x}) ≡ g)            □
+  ((λ {@ω x} → f {x}) ≡ g)         □
 
 private
 

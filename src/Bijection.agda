@@ -283,7 +283,7 @@ private
   ; left-inverse-of = from∘to
   }
   where
-  from-P = λ {p₁ p₂ : Σ A B} (_ : p₁ ≡ p₂) →
+  from-P = λ {@ω p₁ p₂ : Σ A B} (@ω _ : p₁ ≡ p₂) →
              ∃ λ (p : proj₁ p₁ ≡ proj₁ p₂) →
                subst B p (proj₂ p₁) ≡ proj₂ p₂
 
