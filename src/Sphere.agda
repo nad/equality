@@ -2,7 +2,7 @@
 -- Spheres
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- This module follows the HoTT book rather closely (unless otherwise
 -- noted).

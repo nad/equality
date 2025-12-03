@@ -2,7 +2,7 @@
 -- The nullification modality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- Based on "Modalities in Homotopy Type Theory" by Rijke, Shulman and
 -- Spitters.

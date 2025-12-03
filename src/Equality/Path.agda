@@ -2,7 +2,7 @@
 -- Paths and extensionality
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 module Equality.Path where
 

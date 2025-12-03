@@ -2,7 +2,7 @@
 -- Queue instances for the queues in Queue.Truncated
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 open import Prelude

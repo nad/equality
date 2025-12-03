@@ -8,11 +8,11 @@
 -- A membership relation, and a number of definitions that make use of
 -- the membership relation, can be found in
 -- Finite-subset.Listed.Membership. That module uses --cubical rather
--- than --erased-cubical. However, definitions from that module can be
--- used in erased contexts in modules that use --erased-cubical. That
--- approach is taken in Finite-subset.Listed.Membership.Erased.
+-- than --cubical=no-glue. However, definitions from that module can
+-- be used in erased contexts in modules that use --cubical=erased.
+-- That approach is taken in Finite-subset.Listed.Membership.Erased.
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

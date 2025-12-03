@@ -3,7 +3,7 @@
 -- definable in Cubical Agda
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 module Equality.Propositional.Cubical where
 

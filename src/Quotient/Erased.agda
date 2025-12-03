@@ -2,7 +2,7 @@
 -- A variant of set quotients with erased higher constructors
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 -- Partly following the HoTT book, but adapted for erasure.
 --

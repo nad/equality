@@ -5,7 +5,7 @@
 -- the corresponding list operations
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

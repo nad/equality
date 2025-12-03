@@ -8,7 +8,7 @@
 -- TODO: Define α-equivalence, prove that key operations respect
 -- α-equivalence.
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 import Equality.Path as P
 

@@ -2,7 +2,7 @@
 -- An example of how Abstract-binding-tree can be used
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 module README.Abstract-binding-tree where
 

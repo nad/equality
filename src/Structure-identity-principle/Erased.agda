@@ -16,7 +16,7 @@
 -- initial experiments Andrea Vezzosi encouraged me to include more in
 -- the formalisation.
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 import Equality.Path as P
 

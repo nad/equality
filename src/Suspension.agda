@@ -2,7 +2,7 @@
 -- Suspensions
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- The beginning of this module follows the HoTT book rather closely.
 

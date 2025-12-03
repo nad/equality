@@ -2,7 +2,7 @@
 -- Quotients (set-quotients), defined using a higher inductive type
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 -- Partly following the HoTT book.
 --

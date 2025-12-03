@@ -7,7 +7,7 @@
 -- Doorn's "Constructing the Propositional Truncation using
 -- Non-recursive HITs".
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

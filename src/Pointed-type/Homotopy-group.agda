@@ -2,7 +2,7 @@
 -- Homotopy groups of pointed types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

@@ -2,7 +2,7 @@
 -- Cyclic groups
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 import Equality.Path as P
 

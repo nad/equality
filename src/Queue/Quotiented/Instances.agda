@@ -2,7 +2,7 @@
 -- Queue instances for the queues in Queue.Quotiented
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 import Equality.Path as P
 open import Prelude

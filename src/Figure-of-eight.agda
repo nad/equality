@@ -2,7 +2,7 @@
 -- The figure of eight
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining the circle uses path equality, but

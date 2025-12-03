@@ -2,7 +2,7 @@
 -- The "interval"
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- Partly based on the HoTT book.
 

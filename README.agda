@@ -28,17 +28,21 @@ import README.Safe.Cubical-compatible.Prop
 
 import README.Safe.Cubical-compatible.Prop.Erased-matches
 
--- "Safe" code that uses --erased-cubical.
+-- "Safe" code that uses --cubical=no-glue.
+
+import README.Safe.Cubical.No-glue
+
+-- "Safe" code that uses --cubical=no-glue and --guardedness.
+
+import README.Safe.Cubical.No-glue.Guardedness
+
+-- "Safe" code that uses --cubical=no-glue and --prop.
+
+import README.Safe.Cubical.No-glue.Prop
+
+-- "Safe" code that uses --cubical=erased.
 
 import README.Safe.Cubical.Erased
-
--- "Safe" code that uses --erased-cubical and --guardedness.
-
-import README.Safe.Cubical.Erased.Guardedness
-
--- "Safe" code that uses --erased-cubical and --prop.
-
-import README.Safe.Cubical.Erased.Prop
 
 -- "Safe" code that uses --cubical.
 

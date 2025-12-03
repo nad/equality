@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------
--- Safe modules that use --erased-cubical and --guardedness
+-- Safe modules that use --cubical=no-glue and --guardedness
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --erased-cubical --guardedness #-}
+{-# OPTIONS --safe --cubical=no-glue --guardedness #-}
 
-module README.Safe.Cubical.Erased.Guardedness where
+module README.Safe.Cubical.No-glue.Guardedness where
 
 -- Conatural numbers defined using --guardedness rather than
 -- --sized-types.

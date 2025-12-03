@@ -2,7 +2,7 @@
 -- A variant of the set quotients from Quotient
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 -- Partly following the HoTT book.
 --

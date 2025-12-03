@@ -2,7 +2,7 @@
 -- Propositional truncation
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- Partly following the HoTT book.
 

@@ -2,7 +2,7 @@
 -- Localisation
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- Following "Modalities in Homotopy Type Theory" by Rijke, Shulman
 -- and Spitters.

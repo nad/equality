@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------
--- Code related to Squash that uses --erased-cubical
+-- Code related to Squash that uses --cubical=no-glue
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --prop --safe #-}
+{-# OPTIONS --cubical=no-glue --prop --safe #-}
 
 import Equality.Path as P
 

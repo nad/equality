@@ -2,7 +2,7 @@
 -- Nullification
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe --save-metas #-}
+{-# OPTIONS --cubical=no-glue --safe --save-metas #-}
 
 -- Partly based on "Modalities in Homotopy Type Theory" by Rijke,
 -- Shulman and Spitters.

@@ -2,7 +2,7 @@
 -- The sequential colimit HIT with an erased higher constructor
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- The definition of sequential colimits and the statement of the
 -- non-dependent universal property are based on those in van Doorn's

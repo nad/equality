@@ -4,7 +4,7 @@
 
 -- This module instantiates and reexports code from Erased.
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

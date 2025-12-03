@@ -3,7 +3,7 @@
 -- --sized-types
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --erased-cubical --guardedness #-}
+{-# OPTIONS --safe --cubical=no-glue --guardedness #-}
 
 import Equality.Path as P
 

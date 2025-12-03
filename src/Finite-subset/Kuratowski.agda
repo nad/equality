@@ -7,9 +7,9 @@
 
 -- A membership relation can be found in
 -- Finite-subset.Kuratowski.Membership (which uses --cubical rather
--- than --erased-cubical).
+-- than --cubical=no-glue).
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 import Equality.Path as P
 

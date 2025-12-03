@@ -5,7 +5,7 @@
 
 -- Partly following the HoTT book, but adapted for erasure.
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- The module is parametrised by a notion of equality. The higher
 -- constructor of the HIT defining the propositional truncation

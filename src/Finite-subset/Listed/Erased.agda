@@ -6,7 +6,7 @@
 -- Based on Frumin, Geuvers, Gondelman and van der Weide's "Finite
 -- Sets in Homotopy Type Theory".
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 import Equality.Path as P
 

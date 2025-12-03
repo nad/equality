@@ -1,8 +1,8 @@
 ------------------------------------------------------------------------
--- A variant of Nat.Wrapper.Cubical, defined using --erased-cubical
+-- A variant of Nat.Wrapper.Cubical, defined using --cubical=erased
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 open import Equality.Path as P
 open import Prelude hiding (zero; suc; _+_)

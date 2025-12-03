@@ -2,7 +2,7 @@
 -- The circle with an erased higher constructor
 ------------------------------------------------------------------------
 
-{-# OPTIONS --erased-cubical --safe #-}
+{-# OPTIONS --cubical=erased --safe #-}
 
 -- Partly following the HoTT book.
 
