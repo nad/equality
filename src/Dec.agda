@@ -56,3 +56,9 @@ Dec-⊎ =
        , (λ ¬b → no [ ¬a , ¬b ])
        ])
   ]
+
+-- If A is decided, then ¬ ¬ A implies A.
+
+decided-stable : Dec A → @0 ¬ ¬ A → A
+decided-stable (yes x) _ = x
+decided-stable (no f)  g = ⊥-elim₀ (g f)
