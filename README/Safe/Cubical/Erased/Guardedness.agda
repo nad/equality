@@ -6,6 +6,11 @@
 
 module README.Safe.Cubical.Erased.Guardedness where
 
+-- Conatural numbers defined using --guardedness rather than
+-- --sized-types.
+
+import Conat.Guardedness
+
 -- M-types for indexed containers, defined coinductively (in Cubical
 -- Agda).
 
