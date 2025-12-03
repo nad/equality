@@ -19,7 +19,6 @@ open import Agda.Builtin.String
 open import Logical-equivalence using (_⇔_)
 open import Prelude as P hiding (Type)
 
-import Maybe eq as _
 open import Monad eq
 open import Nat eq
 
