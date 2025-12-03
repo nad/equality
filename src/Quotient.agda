@@ -45,6 +45,8 @@ open import Preimage equality-with-J using (_⁻¹_)
 open import Quotient.Erased.Basics eq as QE using (_/ᴱ_)
 import Quotient.Families-of-equivalence-classes equality-with-J
   as Quotient
+import Quotient.Higher-constructors-if-propositional eq as QH
+import Quotient.Set-truncated-if-propositional eq as QS
 open import Surjection equality-with-J using (_↠_)
 open import Univalence-axiom equality-with-J
 
@@ -763,6 +765,65 @@ private
   (∃ λ (P : A → Type a) → Trunc.∥ (∃ λ x → R x ≡ P) ∥ 1 (lsuc a))  ↝⟨ (∃-cong λ _ → inverse $ TruncP.∥∥↔∥∥ lzero) ⟩
   (∃ λ (P : A → Type a) →       ∥ (∃ λ x → R x ≡ P) ∥)             ↝⟨ inverse $ /↔ univ univ₀ R-equiv R-prop ⟩□
   A / R                                                            □
+
+-- If the quotient relation is propositional, then the definition of
+-- quotients given in Quotient.Set-truncated-if-propositional is
+-- equivalent to the one given here.
+
+/ˢ≃/ :
+  (∀ {x y} → Is-proposition (R x y)) →
+  A QS./ R ≃ A / R
+/ˢ≃/ R-prop = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to = QS.rec λ where
+          .QS.[]ʳ                   → [_]
+          .QS.[]-respects-relationʳ → []-respects-relation
+          .QS.is-setʳ _             → /-is-set
+      ; from = rec λ where
+          .[]ʳ                   → QS.[_]
+          .[]-respects-relationʳ → QS.[]-respects-relation
+          .is-setʳ               → QS./-is-set λ _ _ → R-prop
+      }
+    ; right-inverse-of = elim-prop λ where
+        .[]ʳ _             → refl _
+        .is-propositionʳ _ → /-is-set
+    }
+  ; left-inverse-of = QS.elim-prop λ where
+      .QS.[]ʳ _             → refl _
+      .QS.is-propositionʳ _ → QS./-is-set λ _ _ → R-prop
+  })
+
+-- If the quotient relation is propositional, then the definition of
+-- quotients given in Quotient.Higher-constructors-if-propositional is
+-- equivalent to the one given here.
+
+/ʰ≃/ :
+  (∀ {x y} → Is-proposition (R x y)) →
+  A QH./ R ≃ A / R
+/ʰ≃/ R-prop = Eq.↔⇒≃ (record
+  { surjection = record
+    { logical-equivalence = record
+      { to = QH.rec (λ where
+          .QH.[]ʳ                     → [_]
+          .QH.[]-respects-relationʳ _ → []-respects-relation
+          .QH.is-setʳ _               → /-is-set)
+      ; from = rec λ where
+          .[]ʳ →
+            QH.[_]
+          .[]-respects-relationʳ →
+            QH.[]-respects-relation λ _ _ → R-prop
+          .is-setʳ →
+            QH./-is-set λ _ _ → R-prop
+      }
+    ; right-inverse-of = elim-prop λ where
+        .[]ʳ _             → refl _
+        .is-propositionʳ _ → /-is-set
+    }
+  ; left-inverse-of = QH.elim-prop λ where
+        .QH.[]ʳ _                  → refl _
+        .QH.is-propositionʳ prop _ → QH./-is-set prop
+  })
 
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients

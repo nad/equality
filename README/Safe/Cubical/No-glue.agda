@@ -127,6 +127,11 @@ import Pointed-type.Connected
 
 import Quotient.Erased.Basics
 
+-- Two variants of the set quotients from Quotient.
+
+import Quotient.Set-truncated-if-propositional
+import Quotient.Higher-constructors-if-propositional
+
 -- Listed finite subsets.
 
 import Finite-subset.Listed

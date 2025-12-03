@@ -2,7 +2,7 @@
 -- A variant of the set quotients from Quotient
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical=erased --safe #-}
+{-# OPTIONS --cubical=no-glue --safe #-}
 
 -- Partly following the HoTT book.
 --
@@ -41,7 +41,6 @@ import H-level.Truncation.Church equality-with-J as Trunc
 open import H-level.Truncation.Propositional eq as TruncP
   using (∥_∥; ∣_∣; Surjective; Axiom-of-countable-choice)
 open import Preimage equality-with-J using (_⁻¹_)
-import Quotient eq as Quotient
 import Quotient.Families-of-equivalence-classes equality-with-J as QF
 open import Sum equality-with-J
 open import Surjection equality-with-J using (_↠_)
@@ -805,43 +804,6 @@ private
     R₂ (_≃_.to A₁≃A₂ x) (_≃_.to A₁≃A₂ y)                  □
   where
   A₁≃A₂ = from-isomorphism A₁↔A₂
-
-------------------------------------------------------------------------
--- The quotients defined here can be related to the ones defined in
--- Quotient
-
--- If the quotient relation is propositional, then the definition of
--- quotients given in Quotient is equivalent to the one given here.
-
-/≃/ :
-  (∀ {x y} → Is-proposition (R x y)) →
-  A / R ≃ A Quotient./ R
-/≃/ R-prop = Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { to = rec (λ where
-          .[]ʳ → Quotient.[_]
-
-          .[]-respects-relationʳ → Quotient.[]-respects-relation
-
-          .is-setʳ _ → Quotient./-is-set)
-      ; from = Quotient.rec λ where
-          .Quotient.Rec.[]ʳ → [_]
-
-          .Quotient.Rec.[]-respects-relationʳ → []-respects-relation
-
-          .Quotient.Rec.is-setʳ → /-is-set λ _ _ → R-prop
-      }
-    ; right-inverse-of = Quotient.elim-prop λ where
-        .Quotient.Elim-prop.[]ʳ _ → refl _
-
-        .Quotient.Elim-prop.is-propositionʳ _ → Quotient./-is-set
-    }
-  ; left-inverse-of = elim-prop λ where
-        .Elim-prop.[]ʳ _ → refl _
-
-        .Elim-prop.is-propositionʳ _ → /-is-set λ _ _ → R-prop
-  })
 
 ------------------------------------------------------------------------
 -- The quotients defined here can be related to the ones defined in

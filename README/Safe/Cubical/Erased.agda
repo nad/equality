@@ -10,11 +10,6 @@ module README.Safe.Cubical.Erased where
 
 import Quotient
 
--- Two variants of the set quotients from Quotient.
-
-import Quotient.Set-truncated-if-propositional
-import Quotient.Higher-constructors-if-propositional
-
 -- A variant of set quotients with erased higher constructors.
 
 import Quotient.Erased
