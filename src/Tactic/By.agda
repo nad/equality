@@ -461,7 +461,7 @@ module _
             arguments [] []                             = return []
             arguments (arg (arg-info visible _) y ∷ ys)
                       (arg (arg-info visible _) z ∷ zs) = do
-                       -- Relevance is ignored.
+                       -- Modalities are ignored.
 
               goal ← checkType unknown (equality y z)
               t    ← by-tactic′ n t goal
