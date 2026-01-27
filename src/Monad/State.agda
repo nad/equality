@@ -101,7 +101,7 @@ get : ∀ {s} {S : Type s} {M} ⦃ is-monad : Raw-monad M ⦄ →
       StateT S M S
 run get = λ s → return (s , s)
 
--- Types the state.
+-- Sets the state.
 
 set : ∀ {s} {S : Type s} {M} ⦃ is-monad : Raw-monad M ⦄ →
       S → StateT S M (↑ _ ⊤)
