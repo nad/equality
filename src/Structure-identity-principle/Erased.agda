@@ -228,7 +228,7 @@ R ⟵ = R ;ᴱ R ⁻¹
 _⟶ : {A : Type a} → (A → B → Type c) → B → B → Type (a ⊔ c)
 R ⟶ = R ⁻¹ ;ᴱ R
 
--- If R is a propositional equivalence relation targetting a certain
+-- If R is a propositional equivalence relation targeting a certain
 -- universe, then R ⟵ is pointwise logically equivalent (with erased
 -- proofs) to R.
 
