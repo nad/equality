@@ -10,3 +10,7 @@ module README.Safe.With-K where
 -- equality.
 
 import Erased.With-K
+
+-- Erased univalence is incompatible with certain features.
+
+import Univalence-axiom.Incompatible
