@@ -612,22 +612,20 @@ private
      .[]ʳ _             → refl _)
 
 -- If R is a propositional equivalence relation that is pointwise
--- stable, then equality is very stable for A / R (assuming
--- propositional extensionality).
+-- stable, then equality is very stable for A / R.
 
 Very-stable-≡-/ :
   {R : A → A → Type r} →
-  Propositional-extensionality r →
   Is-equivalence-relation R →
   (∀ x y → Is-proposition (R x y)) →
   (∀ x y → Stable (R x y)) →
   Very-stable-≡ (A / R)
-Very-stable-≡-/ {A} {R} prop-ext equiv prop s =
+Very-stable-≡-/ {A} {R} equiv prop s =
   elim-prop λ where
     .[]ʳ x → elim-prop λ where
        .[]ʳ y →                       $⟨ s _ _ ⟩
          Stable (R x y)               ↝⟨ flip E.Stable-proposition→Very-stable (prop _ _) ⟩
-         Very-stable (R x y)          ↝⟨ E.Very-stable-cong _ (related≃[equal] prop-ext equiv (prop _ _)) ⟩□
+         Very-stable (R x y)          ↝⟨ E.Very-stable-cong _ (Stable→≃[]≡[] equiv (prop _ _) (s _ _)) ⟩□
          Very-stable ([ x ] ≡ [ y ])  □
        .is-propositionʳ _ → E.Very-stable-propositional ext
     .is-propositionʳ _ →
