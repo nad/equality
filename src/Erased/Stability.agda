@@ -3022,11 +3022,11 @@ Stable-≡-Erased-axiomatisation′-propositional {ℓ} ext =
 -- Another alternative to []-cong-axiomatisation
 
 -- This axiomatisation states that equality is very stable for
--- Erased A, for every type A in a certain universe.
+-- Erased A, for every (erased) type A in a certain universe.
 
 Very-stable-≡-Erased-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
 Very-stable-≡-Erased-axiomatisation ℓ =
-  {A : Type ℓ} → Very-stable-≡ (Erased A)
+  {@0 A : Type ℓ} → Very-stable-≡ (Erased A)
 
 -- The type Very-stable-≡-Erased-axiomatisation ℓ is propositional
 -- (assuming extensionality).
@@ -3035,7 +3035,7 @@ Very-stable-≡-Erased-axiomatisation-propositional :
   Extensionality (lsuc ℓ) ℓ →
   Is-proposition (Very-stable-≡-Erased-axiomatisation ℓ)
 Very-stable-≡-Erased-axiomatisation-propositional ext =
-  implicit-Π-closure ext 1 λ _ →
+  implicit-Πᴱ-closure ext 1 λ _ →
   For-iterated-equality-Very-stable-propositional
     (lower-extensionality _ lzero ext)
     1
@@ -3089,14 +3089,14 @@ Stable-≡-Erased-axiomatisation′≃Very-stable-≡-Erased-axiomatisation
 ------------------------------------------------------------------------
 -- Another alternative to []-cong-axiomatisation
 
--- This axiomatisation states that, for every type A in a certain
--- universe, Erased A is very stable, and if A is very stable, then
--- equality is very stable for A.
+-- This axiomatisation states that Erased A is very stable for every
+-- erased type A in a certain universe, and if a type A in that
+-- universe is very stable, then equality is very stable for A.
 
 Modal→Separated-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
 Modal→Separated-axiomatisation ℓ =
-  {A : Type ℓ} →
-  Very-stable (Erased A) × (Very-stable A → Very-stable-≡ A)
+  ({@0 A : Type ℓ} → Very-stable (Erased A)) ×
+  ({A : Type ℓ} → Very-stable A → Very-stable-≡ A)
 
 opaque
 
@@ -3108,10 +3108,11 @@ opaque
     Is-proposition (Modal→Separated-axiomatisation ℓ)
   Modal→Separated-axiomatisation-propositional ext =
     let ext′ = lower-extensionality _ lzero ext in
-    implicit-Π-closure ext 1 λ _ →
     ×-closure 1
-      (Very-stable-propositional ext′)
-      (Π-closure ext′ 1 λ _ →
+      (implicit-Πᴱ-closure ext 1 λ _ →
+       Very-stable-propositional ext′)
+      (implicit-Π-closure ext 1 λ _ →
+       Π-closure ext′ 1 λ _ →
        For-iterated-equality-Very-stable-propositional ext′ 1)
 
 opaque
@@ -3125,9 +3126,10 @@ opaque
     Modal→Separated-axiomatisation ℓ
   []-cong-axiomatisation≃Modal→Separated-axiomatisation {ℓ} =
     generalise-ext?-prop
+      {B = Modal→Separated-axiomatisation _}
       (record
          { to =
-             λ ax {_} →
+             λ ax →
                let open []-cong₁ ax in
                Very-stable-Erased , Very-stable→Very-stable-≡ 0
          ; from =
@@ -3141,15 +3143,15 @@ opaque
 ------------------------------------------------------------------------
 -- Another alternative to []-cong-axiomatisation
 
--- This axiomatisation states that, for every type A in a certain
--- universe, Erased A is very stable, and if λ (x : A) → [ x ] is an
--- embedding, then equality is very stable for A.
+-- This axiomatisation states that Erased A is very stable for every
+-- erased type A in a certain universe, and if λ (x : A) → [ x ] is an
+-- embedding for a type A in that universe, then equality is very
+-- stable for A.
 
 Is-embedding-[]→Separated-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
 Is-embedding-[]→Separated-axiomatisation ℓ =
-  {A : Type ℓ} →
-  Very-stable (Erased A) ×
-  (Is-embedding (λ (x : A) → [ x ]) → Very-stable-≡ A)
+  ({@0 A : Type ℓ} → Very-stable (Erased A)) ×
+  ({A : Type ℓ} → Is-embedding (λ (x : A) → [ x ]) → Very-stable-≡ A)
 
 opaque
 
@@ -3161,10 +3163,11 @@ opaque
     Is-proposition (Is-embedding-[]→Separated-axiomatisation ℓ)
   Is-embedding-[]→Separated-axiomatisation-propositional ext =
     let ext′ = lower-extensionality _ lzero ext in
-    implicit-Π-closure ext 1 λ _ →
     ×-closure 1
-      (Very-stable-propositional ext′)
-      (Π-closure ext′ 1 λ _ →
+      (implicit-Πᴱ-closure ext 1 λ _ →
+       Very-stable-propositional ext′)
+      (implicit-Π-closure ext 1 λ _ →
+       Π-closure ext′ 1 λ _ →
        For-iterated-equality-Very-stable-propositional ext′ 1)
 
 opaque
@@ -3178,9 +3181,10 @@ opaque
     Is-embedding-[]→Separated-axiomatisation ℓ
   []-cong-axiomatisation≃Is-embedding-[]→Separated-axiomatisation {ℓ} =
     generalise-ext?-prop
+      {B = Is-embedding-[]→Separated-axiomatisation _}
       (record
          { to =
-             λ ax {_} →
+             λ ax →
                let open []-cong₁ ax in
                Very-stable-Erased ,
                inverse-ext? Very-stable-≡↔Is-embedding-[] _

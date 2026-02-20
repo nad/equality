@@ -833,7 +833,7 @@ H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1
 -- Erased (erased x ≡ erased y).
 
 ≡→Erased[erased≡erased] :
-  {x y : Erased A} →
+  {@0 A : Type a} {x y : Erased A} →
   x ≡ y → Erased (erased x ≡ erased y)
 ≡→Erased[erased≡erased] eq = [ cong erased eq ]
 
@@ -847,7 +847,7 @@ H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1
 
 ≡→Erased[erased≡erased]-axiomatisation : (ℓ : Level) → Type (lsuc ℓ)
 ≡→Erased[erased≡erased]-axiomatisation ℓ =
-  {A : Type ℓ} {x y : Erased A} →
+  {@0 A : Type ℓ} {x y : Erased A} →
   Is-equivalence
     (≡→Erased[erased≡erased] ⦂ (x ≡ y → Erased (erased x ≡ erased y)))
 
@@ -858,7 +858,7 @@ H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1
   Extensionality (lsuc ℓ) ℓ →
   Is-proposition (≡→Erased[erased≡erased]-axiomatisation ℓ)
 ≡→Erased[erased≡erased]-axiomatisation-propositional {ℓ} ext =
-  implicit-Π-closure ext 1 λ _ →
+  implicit-Πᴱ-closure ext 1 λ _ →
   implicit-Π-closure ext′ 1 λ _ →
   implicit-Π-closure ext′ 1 λ _ →
   Is-equivalence-propositional ext′
