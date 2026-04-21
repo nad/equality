@@ -5,4 +5,5 @@ flags:
   --no-import-sorts
   --erasure
   --hidden-argument-puns
+  --warning=noShouldBeEtaRecordPattern
   --warning=noUnsupportedIndexedMatch
