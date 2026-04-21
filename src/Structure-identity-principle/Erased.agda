@@ -53,7 +53,7 @@ open import Quotient.Erased eq as Q using (_/ᴱ_; [_])
 open import Univalence-axiom equality-with-J
 
 open import
-  Nat.Binary equality-with-J instance-of-[]-cong-axiomatisation
+  Nat.Wrapper.Binary equality-with-J instance-of-[]-cong-axiomatisation
   as Bin using (Bin)
 
 private

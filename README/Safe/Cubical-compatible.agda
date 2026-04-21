@@ -380,6 +380,10 @@ import Quotient.Families-of-equivalence-classes
 import Erased
 import Erased.Without-box-cong
 
+-- A binary representation of natural numbers.
+
+import Nat.Binary
+
 -- A wrapper that turns a representation of natural numbers (with a
 -- unique representative for every number) into a representation that
 -- computes roughly like the unary natural numbers (at least for some
@@ -387,9 +391,9 @@ import Erased.Without-box-cong
 
 import Nat.Wrapper
 
--- A binary representation of natural numbers.
+-- An instantiation of Nat.Wrapper with binary natural numbers.
 
-import Nat.Binary
+import Nat.Wrapper.Binary
 
 -- Specifications of output-restricted deques (single-ended queues
 -- with cons).

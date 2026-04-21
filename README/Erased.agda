@@ -497,6 +497,7 @@ Lemma-101 = Erased.Σ-Erased-Erased-singleton↔
 -- that there are no trailing zeros.
 
 import Nat.Binary
+import Nat.Wrapper.Binary
 
 -- Nat-[_].
 
