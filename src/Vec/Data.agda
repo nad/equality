@@ -15,11 +15,14 @@ open import Prelude hiding (Fin)
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Equivalence eq as Eq using (_≃_)
+open import Equivalence.Erased eq as EEq using (_≃ᴱ_)
 open import Erased.Level-1 eq as Erased hiding (map)
+open import Erased.Stability eq
 open import Fin.Data eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level.Closure eq
 open import List eq using (length)
+import Nat eq as Nat
 open import Surjection eq using (_↠_; ↠-≡)
 
 private variable
@@ -184,3 +187,44 @@ Vec≃∃List-Erased {n} {A} ax =
    Erased (m ≡ n))                                                  ↝⟨ (Σ-cong-contra (inverse ∃Erased-Vec≃List) λ _ → F.id) ⟩
 
   (∃ λ (xs : List A) → Erased (length xs ≡ n))                      □
+
+-- If n is not erased, then Vec A n is equivalent, with erased proofs,
+-- to ∃ λ (xs : List A) → Erased (length xs ≡ n).
+
+Vec≃ᴱ∃List-Erased :
+  ∀ {A : Type a} {n} →
+  Vec A n ≃ᴱ ∃ λ (xs : List A) → Erased (length xs ≡ n)
+Vec≃ᴱ∃List-Erased {A} {n} = EEq.↔→≃ᴱ
+  (λ xs → to-list xs , [ length-to-list xs ])
+  (λ (xs , eq) →
+     subst (λ n → Vec A n) (Dec→Stable (length xs Nat.≟ n) eq)
+       (from-list xs))
+  (λ (xs , eq) →
+     _↔_.to
+       (ignore-propositional-component $
+        Erased.[]-cong₁.H-level-Erased
+          erased-instance-of-[]-cong-axiomatisation 1 ℕ-set)
+       (elim¹
+          (λ eq →
+             to-list (subst (λ n → Vec A n) eq (from-list xs)) ≡ xs)
+          (to-list
+             (subst (λ n → Vec A n) (refl (length xs)) (from-list xs))  ≡⟨ cong to-list (subst-refl _ _) ⟩
+
+           to-list (from-list xs)                                       ≡⟨ _↔_.right-inverse-of ∃Vec↔List _ ⟩∎
+
+           xs                                                           ∎)
+          (Dec→Stable (length xs Nat.≟ n) eq)))
+  (λ xs →
+     let eq = _↔_.left-inverse-of ∃Vec↔List _ in
+
+     subst (λ n → Vec A n)
+       (Dec→Stable (length (to-list xs) Nat.≟ n) [ length-to-list xs ])
+       (from-list (to-list xs))                                          ≡⟨ cong (λ eq → subst (λ n → Vec A n) eq (from-list (to-list xs))) $
+                                                                                 ℕ-set _ _ ⟩
+
+     subst (λ n → Vec A n) (cong proj₁ eq) (from-list (to-list xs))      ≡⟨ sym (subst-∘ _ _ _) ⟩
+
+     subst (λ (n , _) → Vec A n) eq (from-list (to-list xs))             ≡⟨ elim₁ (λ {p} eq → subst (λ (n , _) → Vec A n) eq (proj₂ p) ≡ xs)
+                                                                                   (subst-refl _ _)
+                                                                                   _ ⟩∎
+     xs                                                                  ∎)
