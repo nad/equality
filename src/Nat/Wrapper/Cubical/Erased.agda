@@ -194,7 +194,7 @@ module _ (o : Operations) where
           m {n = n}
       ]
 
-  -- Addition is associative (in erased contexts).
+  -- Addition is associative.
 
   +-assoc-cubical : ∀ m {n o} → m + (n + o) ≡ (m + n) + o
   +-assoc-cubical m {n} {o} =
