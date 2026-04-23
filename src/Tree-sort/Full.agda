@@ -59,14 +59,14 @@ record _≤[_]≤_ (l : Extended) (x : A) (u : Extended) : Type where
 ------------------------------------------------------------------------
 -- Ordered lists
 
-data Ordered-list (l u : Extended) : Type where
-  nil  : (l≤u : l ≤ u) → Ordered-list l u
-  cons : (x : A) (xs : Ordered-list [ x ] u) (l≤x : l ≤ [ x ]) →
+data Ordered-list (@0 l u : Extended) : Type where
+  nil  : (@0 l≤u : l ≤ u) → Ordered-list l u
+  cons : (x : A) (xs : Ordered-list [ x ] u) (@0 l≤x : l ≤ [ x ]) →
          Ordered-list l u
 
 -- Conversion to ordinary lists.
 
-to-list : ∀ {l u} → Ordered-list l u → List A
+to-list : ∀ {@0 l u} → Ordered-list l u → List A
 to-list (nil l≤u)       = []
 to-list (cons x xs l≤x) = x ∷ to-list xs
 
@@ -77,14 +77,14 @@ infix 5 node
 
 syntax node x lx xu = lx -[ x ]- xu
 
-data Search-tree (l u : Extended) : Type where
-  leaf : (l≤u : l ≤ u) → Search-tree l u
+data Search-tree (@0 l u : Extended) : Type where
+  leaf : (@0 l≤u : l ≤ u) → Search-tree l u
   node : (x : A) (lx : Search-tree l [ x ]) (xu : Search-tree [ x ] u) →
          Search-tree l u
 
 -- Any.
 
-AnyT : ∀ {l u} → (A → Type) → Search-tree l u → Type
+AnyT : ∀ {@0 l u} → (A → Type) → Search-tree l u → Type
 AnyT P (leaf _)     = ⊥
 AnyT P (node x l r) = AnyT P l ⊎ P x ⊎ AnyT P r
 
@@ -139,7 +139,7 @@ xs ≈-bag ys = ∀ z → (z ∈ xs) ≃ (z ∈ ys)
 ------------------------------------------------------------------------
 -- Singleton trees
 
-singleton : ∀ {l u} (x : A) → l ≤[ x ]≤ u → Search-tree l u
+singleton : ∀ {@0 l u} (x : A) → @0 l ≤[ x ]≤ u → Search-tree l u
 singleton x (l≤x , x≤u) = leaf l≤x -[ x ]- leaf x≤u
 
 -- Any lemma for singleton.
@@ -155,7 +155,7 @@ Any-singleton P {x} l≤x≤u =
 ------------------------------------------------------------------------
 -- Insertion into a search tree
 
-insert : ∀ {l u} (x : A) → Search-tree l u → l ≤[ x ]≤ u →
+insert : ∀ {@0 l u} (x : A) → Search-tree l u → @0 l ≤[ x ]≤ u →
          Search-tree l u
 insert x (leaf _)        l≤x≤u       = singleton x l≤x≤u
 insert x (ly -[ y ]- yu) (l≤x , x≤u) with total x y
@@ -221,7 +221,7 @@ infixr 5 append
 
 syntax append x lx xu = lx -⁅ x ⁆- xu
 
-append : ∀ {l u} (x : A) →
+append : ∀ {@0 l u} (x : A) →
          Ordered-list l [ x ] → Ordered-list [ x ] u → Ordered-list l u
 nil l≤x       -⁅ x ⁆- xu = cons x xu l≤x
 cons y yx l≤y -⁅ x ⁆- xu = cons y (yx -⁅ x ⁆- xu) l≤y
@@ -242,7 +242,7 @@ Any-append P x (cons y yx l≤y) xu =
 ------------------------------------------------------------------------
 -- Inorder flattening of a tree
 
-flatten : ∀ {l u} → Search-tree l u → Ordered-list l u
+flatten : ∀ {@0 l u} → Search-tree l u → Ordered-list l u
 flatten (leaf l≤u)    = nil l≤u
 flatten (l -[ x ]- r) = flatten l -⁅ x ⁆- flatten r
 
