@@ -26,9 +26,10 @@ import Nat eq as Nat
 open import Surjection eq using (_↠_; ↠-≡)
 
 private variable
-  a    : Level
-  A B  : Type _
-  @0 n : ℕ
+  a      : Level
+  A B    : Type _
+  x      : A
+  @0 m n : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -40,6 +41,9 @@ infixr 5 _∷_
 data Vec (A : Type a) : @0 ℕ → Type a where
   []  : Vec A zero
   _∷_ : A → Vec A n → Vec A (suc n)
+
+private variable
+  xs : Vec _ _
 
 ------------------------------------------------------------------------
 -- Some simple functions
@@ -228,3 +232,75 @@ Vec≃ᴱ∃List-Erased {A} {n} = EEq.↔→≃ᴱ
                                                                                    (subst-refl _ _)
                                                                                    _ ⟩∎
      xs                                                                  ∎)
+
+------------------------------------------------------------------------
+-- Some rearrangement lemmas
+
+-- A rearrangement lemma for subst and _∷_.
+
+push-subst-∷ :
+  ∀ {m n} {xs} {eq : m ≡ n} →
+  subst (λ n → Vec A (suc n)) eq (x ∷ xs) ≡
+  x ∷ subst (λ n → Vec A n) eq xs
+push-subst-∷ {A} {x} {m} {xs} {eq} =
+  elim¹
+    (λ eq →
+       ∀ xs →
+       subst (λ n → Vec A (suc n)) eq (x ∷ xs) ≡
+       x ∷ subst (λ n → Vec A n) eq xs)
+    (λ xs →
+       subst (λ n → Vec A (suc n)) (refl m) (x ∷ xs)  ≡⟨ subst-refl _ _ ⟩
+       x ∷ xs                                         ≡⟨ sym (cong (_ ∷_) (subst-refl (λ _ → Vec _ _) _)) ⟩∎
+       x ∷ subst (λ n → Vec A n) (refl m) xs          ∎)
+    eq _
+
+-- A variant of push-subst-∷.
+
+push-subst-∷′ :
+  ∀ {m n} {xs} {eq₁ : suc m ≡ suc n} {eq₂ : m ≡ n} →
+  subst (λ n → Vec A n) eq₁ (x ∷ xs) ≡
+  x ∷ subst (λ n → Vec A n) eq₂ xs
+push-subst-∷′ {A} {x} {xs} {eq₁} {eq₂} =
+  subst (λ n → Vec A n) eq₁ (x ∷ xs)             ≡⟨ cong (λ eq → subst (λ n → Vec A n) eq _) (ℕ-set _ _) ⟩
+  subst (λ n → Vec A n) (cong suc eq₂) (x ∷ xs)  ≡⟨ sym (subst-∘ _ _ _) ⟩
+  subst (λ n → Vec A (suc n)) eq₂ (x ∷ xs)       ≡⟨ push-subst-∷ ⟩∎
+  x ∷ subst (λ n → Vec A n) eq₂ xs               ∎
+
+-- A rearrangement lemma for substᴱ and _∷_.
+
+push-substᴱ-∷ :
+  {@0 eq : m ≡ n}
+  (ax : []-cong-axiomatisation lzero) →
+  let open Erased.[]-cong₁ ax in
+  substᴱ (λ n → Vec A (suc n)) eq (x ∷ xs) ≡
+  x ∷ substᴱ (Vec A) eq xs
+push-substᴱ-∷ {m} {A} {x} {xs} {eq} ax =
+  elim¹ᴱ
+    (λ eq →
+       ∀ xs →
+       substᴱ (λ n → Vec A (suc n)) eq (x ∷ xs) ≡
+       x ∷ substᴱ (Vec A) eq xs)
+    (λ xs →
+       substᴱ (λ n → Vec A (suc n)) (refl m) (x ∷ xs)  ≡⟨ substᴱ-refl ⟩
+       x ∷ xs                                          ≡⟨ sym (cong (_ ∷_) (substᴱ-refl {P = Vec _})) ⟩∎
+       x ∷ substᴱ (Vec A) (refl m) xs                  ∎)
+    eq _
+  where
+  open Erased.[]-cong₁ ax
+
+-- A variant of push-substᴱ-∷.
+
+push-substᴱ-∷′ :
+  {@0 eq₁ : suc m ≡ suc n} {@0 eq₂ : m ≡ n}
+  (ax : []-cong-axiomatisation lzero) →
+  let open Erased.[]-cong₁ ax in
+  substᴱ (Vec A) eq₁ (x ∷ xs) ≡
+  x ∷ substᴱ (Vec A) eq₂ xs
+push-substᴱ-∷′ {A} {x} {xs} {eq₁} {eq₂} ax =
+  substᴱ (Vec A) eq₁ (x ∷ xs)                ≡⟨ congᴱ (λ eq → substᴱ (Vec A) eq (x ∷ xs)) (ℕ-set _ _) ⟩
+  substᴱ (Vec A) (cong suc eq₂) (x ∷ xs)     ≡⟨ sym (substᴱ-∘ (Vec _)) ⟩
+  substᴱ (λ n → Vec A (suc n)) eq₂ (x ∷ xs)  ≡⟨ push-substᴱ-∷ ax ⟩∎
+  x ∷ substᴱ (Vec A) eq₂ xs                  ∎
+  where
+  open Erased.[]-cong₁ ax
+  open Erased.[]-cong₂ ax ax
