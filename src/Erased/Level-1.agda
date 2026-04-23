@@ -1849,6 +1849,24 @@ module []-cong₂
        cong (map f) (BC₁.[]-cong [ refl x ])  ∎)
       _
 
+  -- A rearrangement lemma for substᴱ.
+
+  substᴱ-∘ :
+    ∀ {@0 A : Type ℓ₁} {@0 B : Type ℓ₂} {@0 f : A → B}
+      {@0 x y : A} {@0 x≡y : x ≡ y}
+    (P : @0 B → Type p) {p : P (f x)} →
+    BC₁.substᴱ (λ x → P (f x)) x≡y p ≡ BC₂.substᴱ P (cong f x≡y) p
+  substᴱ-∘ {f} {y} {x≡y} P {p} =
+    BC₁.elim₁ᴱ
+      (λ x≡y →
+         ∀ p → BC₁.substᴱ (λ x → P (f x)) x≡y p ≡ BC₂.substᴱ P (cong f x≡y) p)
+      (λ p →
+         BC₁.substᴱ (λ x → P (f x)) (refl y) p  ≡⟨ BC₁.substᴱ-refl ⟩
+         p                                      ≡⟨ sym (BC₂.substᴱ-refl {P = P}) ⟩
+         BC₂.substᴱ P (refl (f y)) p            ≡⟨ BC₂.congᴱ (λ eq → BC₂.substᴱ P eq p) (sym (cong-refl _)) ⟩∎
+         BC₂.substᴱ P (cong f (refl y)) p       ∎)
+      _ _
+
   ----------------------------------------------------------------------
   -- Erased "commutes" with various things
 
