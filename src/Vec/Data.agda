@@ -22,13 +22,13 @@ open import Fin.Data eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level.Closure eq
 open import List eq using (length)
-import Nat eq as Nat
+open import Nat eq as Nat using (pred)
 open import Surjection eq using (_↠_; ↠-≡)
 
 private variable
   a      : Level
   A B    : Type _
-  x      : A
+  x y    : A
   @0 m n : ℕ
 
 ------------------------------------------------------------------------
@@ -43,7 +43,7 @@ data Vec (A : Type a) : @0 ℕ → Type a where
   _∷_ : A → Vec A n → Vec A (suc n)
 
 private variable
-  xs : Vec _ _
+  xs ys : Vec _ _
 
 ------------------------------------------------------------------------
 -- Some simple functions
@@ -304,3 +304,135 @@ push-substᴱ-∷′ {A} {x} {xs} {eq₁} {eq₂} ax =
   where
   open Erased.[]-cong₁ ax
   open Erased.[]-cong₂ ax ax
+
+------------------------------------------------------------------------
+-- Some equality tests
+
+-- An equality test for vectors of equal length.
+--
+-- Note that the length is erased.
+
+decidable-erased-equality₁ :
+  Decidable-erased-equality A →
+  Decidable-erased-equality (Vec A n)
+decidable-erased-equality₁ _ [] [] =
+  yes [ refl _ ]
+decidable-erased-equality₁ dec (x ∷ xs) (y ∷ ys) with dec x y
+… | no [ x≢y ]  = no [ x≢y ∘ cong head ]
+… | yes [ x≡y ] with decidable-erased-equality₁ dec xs ys
+…   | yes [ xs≡ys ] = yes [ cong₂ _∷_ x≡y xs≡ys ]
+…   | no [ xs≢ys ]  = no [ xs≢ys ∘ cong tail ]
+
+private
+
+  -- A lemma used below.
+
+  @0 decidable-erased-equality-lemma :
+    (eq : suc m ≡ suc n) →
+    subst (λ n → Vec A n) eq (x ∷ xs) ≡ y ∷ ys →
+    x ∷ subst (λ n → Vec A n) (cong pred eq) xs ≡ y ∷ ys
+  decidable-erased-equality-lemma {A} {x} {xs} {y} {ys} eq₁ eq₂ =
+    x ∷ subst (λ n → Vec A n) (cong pred eq₁) xs  ≡⟨ sym push-subst-∷′ ⟩
+    subst (λ n → Vec A n) eq₁ (x ∷ xs)            ≡⟨ eq₂ ⟩∎
+    y ∷ ys                                        ∎
+
+-- An equality test for vectors of possibly different, erased lengths.
+--
+-- Note that the lengths are erased.
+
+decidable-erased-equality :
+  Decidable-erased-equality A →
+  (xs : Vec A m) (ys : Vec A n) →
+  Dec-Erased (∃ λ (eq : m ≡ n) → subst (λ n → Vec A n) eq xs ≡ ys)
+decidable-erased-equality _ [] [] =
+  yes [ (refl _ , subst-refl _ _) ]
+decidable-erased-equality _ [] (_ ∷ _) =
+  no [ Nat.0≢+ ∘ proj₁ ]
+decidable-erased-equality _ (_ ∷ _) [] =
+  no [ Nat.0≢+ ∘ sym ∘ proj₁ ]
+decidable-erased-equality {A} dec (x ∷ xs) (y ∷ ys) with dec x y
+… | no [ x≢y ] =
+  no [ (λ (eq₁ , eq₂) →
+          x≢y $ cong head (decidable-erased-equality-lemma eq₁ eq₂))
+     ]
+… | yes [ x≡y ] with decidable-erased-equality dec xs ys
+…   | yes [ (m≡n , xs≡ys) ] =
+      yes [ ( cong suc m≡n
+            , (subst (λ n → Vec A n) (cong suc m≡n) (x ∷ xs)  ≡⟨ push-subst-∷′ ⟩
+               x ∷ subst (λ n → Vec A n) m≡n xs               ≡⟨ cong₂ _∷_ x≡y xs≡ys ⟩∎
+               y ∷ ys                                         ∎)
+            )
+          ]
+…   | no [ xs≢ys ] =
+      no [ (λ (eq₁ , eq₂) →
+              xs≢ys
+                (cong pred eq₁ ,
+                 cong tail (decidable-erased-equality-lemma eq₁ eq₂)))
+         ]
+
+-- An equality test for vectors of equal length.
+--
+-- Note that the length is erased.
+
+decidable-equality₁ :
+  Decidable-equality A →
+  Decidable-equality (Vec A n)
+decidable-equality₁ _ [] [] =
+  yes (refl _)
+decidable-equality₁ dec (x ∷ xs) (y ∷ ys) with dec x y
+… | no x≢y  = no (x≢y ∘ cong head)
+… | yes x≡y with decidable-equality₁ dec xs ys
+…   | yes xs≡ys = yes (cong₂ _∷_ x≡y xs≡ys)
+…   | no xs≢ys  = no (xs≢ys ∘ cong tail)
+
+private
+
+  -- A lemma used below.
+
+  decidable-equality-lemma :
+    ∀ {A : Type a} {x xs y ys}
+    (ax : []-cong-axiomatisation lzero) →
+    let open Erased.[]-cong₁ ax in
+    (@0 eq : suc m ≡ suc n) →
+    substᴱ (Vec A) eq (x ∷ xs) ≡ y ∷ ys →
+    x ∷ substᴱ (Vec A) (cong pred eq) xs ≡ y ∷ ys
+  decidable-equality-lemma {A} {x} {xs} {y} {ys} ax eq₁ eq₂ =
+    x ∷ substᴱ (Vec A) (cong pred eq₁) xs  ≡⟨ sym (push-substᴱ-∷′ ax) ⟩
+    substᴱ (Vec A) eq₁ (x ∷ xs)            ≡⟨ eq₂ ⟩∎
+    y ∷ ys                                 ∎
+    where
+    open Erased.[]-cong₁ ax
+
+-- An equality test for vectors of possibly different lengths.
+--
+-- Note that the lengths are erased.
+
+decidable-equality :
+  (ax : []-cong-axiomatisation lzero) →
+  let open Erased.[]-cong₁ ax in
+  Decidable-equality A →
+  (xs : Vec A m) (ys : Vec A n) →
+  Dec (∃ λ (([ eq ]) : Erased (m ≡ n)) → substᴱ (Vec A) eq xs ≡ ys)
+decidable-equality ax _ [] [] =
+  yes ([ refl _ ] , []-cong₁.substᴱ-refl ax {P = Vec _})
+decidable-equality _ _ [] (_ ∷ _) =
+  no (λ { ([ eq ] , _) → ⊥-elim₀ (Nat.0≢+ eq) })
+decidable-equality _ _ (_ ∷ _) [] =
+  no (λ { ([ eq ] , _) → ⊥-elim₀ (Nat.0≢+ (sym eq)) })
+decidable-equality {A} ax dec (x ∷ xs) (y ∷ ys) with dec x y
+… | no x≢y =
+  no (λ ([ eq₁ ] , eq₂) →
+        x≢y (cong head (decidable-equality-lemma ax eq₁ eq₂)))
+… | yes x≡y with decidable-equality ax dec xs ys
+…   | yes ([ m≡n ] , xs≡ys) =
+      yes ( [ cong suc m≡n ]
+          , (let open Erased.[]-cong₁ ax in
+             substᴱ (Vec A) (cong suc m≡n) (x ∷ xs)  ≡⟨ push-substᴱ-∷′ ax ⟩
+             x ∷ substᴱ (Vec A) m≡n xs               ≡⟨ cong₂ _∷_ x≡y xs≡ys ⟩∎
+             y ∷ ys                                  ∎)
+          )
+…   | no xs≢ys =
+      no (λ ([ eq₁ ] , eq₂) →
+            xs≢ys
+              ([ cong pred eq₁ ] ,
+               cong tail (decidable-equality-lemma ax eq₁ eq₂)))
