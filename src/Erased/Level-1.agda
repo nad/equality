@@ -1801,6 +1801,28 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       decA
       (λ eq → decP (substᴱ P eq x₂) y₂)
 
+  ----------------------------------------------------------------------
+  -- An equivalence
+
+  -- A variant of Σ-≡,≡↔≡.
+
+  Σ-Erased-≡-≡≃≡ :
+    {@0 A : Type ℓ} {P : @0 A → Type p}
+    {p₁ p₂ : ∃ λ (([ x ]) : Erased A) → P x} →
+    (∃ λ (([ eq ]) : Erased (proj₁ p₁ .erased ≡ proj₁ p₂ .erased)) →
+       substᴱ P eq (proj₂ p₁) ≡ proj₂ p₂) ≃
+    (p₁ ≡ p₂)
+  Σ-Erased-≡-≡≃≡ {P} {p₁ = [ x₁ ] , y₁} {p₂ = [ x₂ ] , y₂} =
+    (∃ λ (([ eq ]) : Erased (x₁ ≡ x₂)) → substᴱ P eq y₁ ≡ y₂)  ↝⟨ (∃-cong λ { ([ _ ]) → F.id }) ⟩
+
+    (∃ λ (eq : Erased (x₁ ≡ x₂)) →
+       subst (λ x → P (x .erased)) ([]-cong eq) y₁ ≡ y₂)       ↝⟨ (Σ-cong Erased-≡≃≡ λ _ → F.id) ⟩
+
+    (∃ λ (eq : [ x₁ ] ≡ [ x₂ ]) →
+       subst (λ x → P (x .erased)) eq y₁ ≡ y₂)                 ↔⟨ Bijection.Σ-≡,≡↔≡ ⟩□
+
+    ([ x₁ ] , y₁) ≡ ([ x₂ ] , y₂)                              □
+
 ------------------------------------------------------------------------
 -- Some results that follow if the []-cong axioms hold for two
 -- universe levels
