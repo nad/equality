@@ -11,6 +11,7 @@ module Erased.Stability
 
 open Derived-definitions-and-properties eq
 
+open import Dec
 open import Logical-equivalence as LE using (_⇔_)
 open import Prelude as P hiding ([_,_])
 
@@ -315,6 +316,15 @@ Stable-≡→≃ᴱ→≃ sA sB A≃ᴱB = Eq.↔→≃
   (_≃ᴱ_.from A≃ᴱB)
   (λ x → sB _ _ [ _≃ᴱ_.right-inverse-of A≃ᴱB x ])
   (λ x → sA _ _ [ _≃ᴱ_.left-inverse-of  A≃ᴱB x ])
+
+-- If equality is stable for A, then Decidable-erased-equality A
+-- implies Decidable-equality A.
+
+Decidable-erased-equality→Decidable-equality :
+  Stable-≡ A →
+  Decidable-erased-equality A → Decidable-equality A
+Decidable-erased-equality→Decidable-equality s dec x y =
+  Dec-map₀ (s _ _) [_]→ (Dec-Erased↔Dec-Erased _ (dec x y))
 
 -- If A is stable, with an erased proof showing that [_]→ is a right
 -- inverse of the proof of stability, then A is very stable with
