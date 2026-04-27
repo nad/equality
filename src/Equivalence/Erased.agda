@@ -519,6 +519,421 @@ to≡to≃≡ {p} {q} ext =
   p ≡ q                                                            □
 
 ------------------------------------------------------------------------
+-- Some definitions related to Dec-Erased
+
+-- A preservation lemma for Dec-Erased.
+
+Dec-Erased-cong-≃ᴱ :
+  {A : Type a} {B : Type b} →
+  @0 Extensionality (a ⊔ b) lzero →
+  @0 A ≃ᴱ B → Dec-Erased A ≃ᴱ Dec-Erased B
+Dec-Erased-cong-≃ᴱ ext A≃B =
+  Erased-cong-≃ᴱ A≃B ⊎-cong Erased-cong-≃ᴱ (→-cong [ ext ] A≃B F.id)
+
+-- A rearrangement lemma for subst and Dec-Erased-map.
+
+subst-Dec-Erased-map :
+  {A⇔B : A ⇔ B} {B≡C : B ≡ C}
+  (x : Dec-Erased A) →
+  subst (λ A → Dec-Erased A) B≡C (Dec-Erased-map A⇔B x) ≡
+  Dec-Erased-map (subst (_⇔_ _) B≡C A⇔B) x
+subst-Dec-Erased-map {A⇔B} {B≡C} x =
+  elim¹
+    (λ B≡C →
+       subst (λ A → Dec-Erased A) B≡C (Dec-Erased-map A⇔B x) ≡
+       Dec-Erased-map (subst (_⇔_ _) B≡C A⇔B) x)
+    (trans (subst-refl _ _) $
+     sym (cong (λ A⇔B → Dec-Erased-map A⇔B x) (subst-refl _ _)))
+    B≡C
+
+-- A map function for Decidable-erased-equality.
+
+Decidable-erased-equality-map-≃ᴱ :
+  A ≃ᴱ B →
+  Decidable-erased-equality A → Decidable-erased-equality B
+Decidable-erased-equality-map-≃ᴱ A≃ᴱB _≟_ x y =     F.$⟨ _≃ᴱ_.from A≃ᴱB x ≟ _≃ᴱ_.from A≃ᴱB y ⟩
+  Dec-Erased (_≃ᴱ_.from A≃ᴱB x ≡ _≃ᴱ_.from A≃ᴱB y)  F.↝⟨ Dec-Erased-map (_≃ᴱ_.logical-equivalence (to≡to≃ᴱ≡ (inverse A≃ᴱB))) ⟩□
+  Dec-Erased (x ≡ y)                                □
+
+private
+
+  -- A lemma used below.
+
+  subst-⇔ :
+    {A : Type a} {B C : Type ℓ}
+    {A⇔B : A ⇔ B} {B≡C : B ≡ C} →
+    Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+    subst (A ⇔_) B≡C A⇔B ≡
+    record
+      { to   = subst P.id B≡C ⊚ _⇔_.to A⇔B
+      ; from = _⇔_.from A⇔B ⊚ subst P.id (sym B≡C)
+      }
+  subst-⇔ {a} {ℓ} {A} {A⇔B} {B≡C} ext =
+    elim¹
+      (λ B≡C →
+         subst (A ⇔_) B≡C A⇔B ≡
+         record
+           { to   = subst P.id B≡C ⊚ _⇔_.to A⇔B
+           ; from = _⇔_.from A⇔B ⊚ subst P.id (sym B≡C)
+           })
+      (trans (subst-refl _ _) $ sym $
+       cong₂ (λ f g → record { to = f; from = g })
+         (apply-ext (lower-extensionality ℓ a ext) λ _ →
+          subst-refl _ _)
+         (apply-ext (lower-extensionality a ℓ ext) λ _ →
+          cong (_⇔_.from A⇔B) $
+          trans (cong (flip (subst P.id) _) sym-refl) $
+          subst-refl _ _))
+      B≡C
+
+-- A preservation lemma for Decidable-erased-equality.
+--
+-- Perhaps this proof could be simplified. A proof below, implemented
+-- using []-cong, is arguably much nicer.
+
+Decidable-erased-equality-cong-≃ᴱ :
+  {A : Type a} {B : Type b} →
+  @0 Extensionality (a ⊔ b) (a ⊔ b) →
+  A ≃ᴱ B →
+  Decidable-erased-equality A ≃ᴱ Decidable-erased-equality B
+Decidable-erased-equality-cong-≃ᴱ {a} {b} {A} {B} ext A≃ᴱB =
+  [≃]→≃ᴱ
+    ([proofs]
+       (Eq.with-other-function
+          (Π-cong ext (≃ᴱ→≃ A≃ᴱB) λ _ →
+           Π-cong ext (≃ᴱ→≃ A≃ᴱB) λ _ →
+           let eq = Eq.≃-≡ (≃ᴱ→≃ A≃ᴱB) in
+           F.inverse $
+           Erased-cong-≃ eq
+             ⊎-cong
+           Erased-cong-≃
+             (→-cong (lower-extensionality lzero _ ext) eq F.id))
+          (Decidable-erased-equality-map-≃ᴱ A≃ᴱB)
+          (λ f →
+             apply-ext extᵇᵇ λ x →
+             apply-ext extᵇᵇ λ y →
+
+             subst (λ x → ∀ y → Dec-Erased (x ≡ y))
+               (_≃ᴱ_.right-inverse-of A≃ᴱB x)
+               (λ y →
+                  subst
+                    (λ y →
+                       Dec-Erased (_≃ᴱ_.to A≃ᴱB (_≃ᴱ_.from A≃ᴱB x) ≡ y))
+                    (_≃ᴱ_.right-inverse-of A≃ᴱB y)
+                    (Dec-Erased-map
+                       (F.inverse $ _≃ᴱ_.logical-equivalence $
+                        to≡to≃ᴱ≡ A≃ᴱB)
+                       (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))
+               y                                                          ≡⟨ sym $ push-subst-application _ _ ⟩
+
+             subst (λ x → Dec-Erased (x ≡ y))
+               (_≃ᴱ_.right-inverse-of A≃ᴱB x)
+               (subst
+                  (λ y →
+                     Dec-Erased (_≃ᴱ_.to A≃ᴱB (_≃ᴱ_.from A≃ᴱB x) ≡ y))
+                  (_≃ᴱ_.right-inverse-of A≃ᴱB y)
+                  (Dec-Erased-map
+                     (F.inverse $ _≃ᴱ_.logical-equivalence $
+                      to≡to≃ᴱ≡ A≃ᴱB)
+                     (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))          ≡⟨ cong₂
+                                                                               (λ eq₁ eq₂ →
+                                                                                  subst (λ x → Dec-Erased (x ≡ y))
+                                                                                    eq₁
+                                                                                    (subst
+                                                                                       (λ y →
+                                                                                          Dec-Erased (_≃ᴱ_.to A≃ᴱB (_≃ᴱ_.from A≃ᴱB x) ≡ y))
+                                                                                       eq₂
+                                                                                       (Dec-Erased-map
+                                                                                          (F.inverse $ _≃ᴱ_.logical-equivalence $
+                                                                                           to≡to≃ᴱ≡ A≃ᴱB)
+                                                                                          (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))))
+                                                                               (sym $ cong (_$ x) $
+                                                                                _≃_.left-inverse-of (Eq.extensionality-isomorphism extᵇᵇ) _)
+                                                                               (sym $ cong (_$ y) $
+                                                                                _≃_.left-inverse-of (Eq.extensionality-isomorphism extᵇᵇ) _) ⟩
+             subst (λ x → Dec-Erased (x ≡ y))
+               (ext⁻¹ (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB)) x)
+               (subst
+                  (λ y →
+                     Dec-Erased (_≃ᴱ_.to A≃ᴱB (_≃ᴱ_.from A≃ᴱB x) ≡ y))
+                  (ext⁻¹ (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+                     y)
+                  (Dec-Erased-map
+                     (F.inverse $ _≃ᴱ_.logical-equivalence $
+                      to≡to≃ᴱ≡ A≃ᴱB)
+                     (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))          ≡⟨ elim₁
+                                                                               (λ {x = g} eq →
+                                                                                  (z : Dec-Erased (g x ≡ g y)) →
+                                                                                  subst (λ x → Dec-Erased (x ≡ y))
+                                                                                    (ext⁻¹ eq x)
+                                                                                    (subst (λ y → Dec-Erased (g x ≡ y))
+                                                                                       (ext⁻¹ eq y)
+                                                                                       z) ≡
+                                                                                  subst (λ g → Dec-Erased (g x ≡ g y)) eq z)
+                                                                               (λ z →
+               subst (λ x → Dec-Erased (x ≡ y)) (ext⁻¹ (refl F.id) x)
+                 (subst (λ y → Dec-Erased (x ≡ y))
+                    (ext⁻¹ (refl F.id) y) z)                                      ≡⟨ cong₂
+                                                                                       (λ eq₁ eq₂ →
+                                                                                          subst (λ x → Dec-Erased (x ≡ y)) eq₁
+                                                                                            (subst (λ y → Dec-Erased (x ≡ y)) eq₂ z))
+                                                                                       (ext⁻¹-refl _)
+                                                                                       (ext⁻¹-refl _) ⟩
+               subst (λ x → Dec-Erased (x ≡ y)) (refl x)
+                 (subst (λ y → Dec-Erased (x ≡ y)) (refl y) z)                    ≡⟨ trans (subst-refl _ _) (subst-refl _ _) ⟩
+
+               z                                                                  ≡⟨ sym (subst-refl _ _) ⟩∎
+
+               subst (λ g → Dec-Erased (g x ≡ g y)) (refl F.id) z                 ∎)
+                                                                               (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+                                                                               (Dec-Erased-map
+                                                                                  (F.inverse $ _≃ᴱ_.logical-equivalence $ to≡to≃ᴱ≡ A≃ᴱB)
+                                                                                  (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))) ⟩
+             subst (λ g → Dec-Erased (g x ≡ g y))
+               (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+               (Dec-Erased-map
+                  (F.inverse (_≃ᴱ_.logical-equivalence (to≡to≃ᴱ≡ A≃ᴱB)))
+                  (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))              ≡⟨⟩
+
+             subst (λ g → Dec-Erased (g x ≡ g y))
+               (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+               (Dec-Erased-map
+                  (record
+                     { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                     ; from =
+                         λ eq →
+                           trans
+                             (sym $
+                              _≃ᴱ_.left-inverse-of A≃ᴱB
+                                (_≃ᴱ_.from A≃ᴱB x))
+                             (trans (cong (_≃ᴱ_.from A≃ᴱB) eq)
+                                (_≃ᴱ_.left-inverse-of A≃ᴱB
+                                   (_≃ᴱ_.from A≃ᴱB y)))
+                     })
+                  (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))              ≡⟨ cong₂
+                                                                               (λ eq₁ eq₂ →
+                                                                                  subst (λ g → Dec-Erased (g x ≡ g y))
+                                                                                    (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+                                                                                    (Dec-Erased-map
+                                                                                       (record
+                                                                                          { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                                                                                          ; from =
+                                                                                              λ eq →
+                                                                                                trans (sym eq₁)
+                                                                                                  (trans (cong (_≃ᴱ_.from A≃ᴱB) eq) eq₂)
+                                                                                          })
+                                                                                       (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))
+                                                                               (sym (_≃ᴱ_.right-left-lemma A≃ᴱB _))
+                                                                               (sym (_≃ᴱ_.right-left-lemma A≃ᴱB _)) ⟩
+             subst (λ g → Dec-Erased (g x ≡ g y))
+               (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+               (Dec-Erased-map
+                  (record
+                     { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                     ; from =
+                         λ eq →
+                           trans
+                             (sym $ cong (_≃ᴱ_.from A≃ᴱB) $
+                              _≃ᴱ_.right-inverse-of A≃ᴱB x)
+                             (trans (cong (_≃ᴱ_.from A≃ᴱB) eq)
+                                (cong (_≃ᴱ_.from A≃ᴱB) $
+                                 _≃ᴱ_.right-inverse-of A≃ᴱB y))
+                     })
+                  (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))              ≡⟨ cong
+                                                                               (λ eq →
+                                                                                  subst (λ g → Dec-Erased (g x ≡ g y))
+                                                                                    (apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB))
+                                                                                    (Dec-Erased-map
+                                                                                       (record
+                                                                                          { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                                                                                          ; from = eq
+                                                                                          })
+                                                                                       (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))
+                                                                               (apply-ext (lower-extensionality a b ext) λ eq →
+                                                                                trans
+                                                                                  (cong₂ trans
+                                                                                     (sym (cong-sym _ _))
+                                                                                     (sym (cong-trans _ _ _))) $
+                                                                                trans (sym (cong-trans _ _ _)) $
+                                                                                cong₂
+                                                                                  (λ eq₁ eq₂ →
+                                                                                     cong (_≃ᴱ_.from A≃ᴱB) $
+                                                                                     trans (sym eq₁) (trans eq eq₂))
+                                                                                  (sym $ cong (_$ x) $
+                                                                                   _≃_.left-inverse-of
+                                                                                     (Eq.extensionality-isomorphism extᵇᵇ) _)
+                                                                                  (sym $ cong (_$ y) $
+                                                                                   _≃_.left-inverse-of
+                                                                                     (Eq.extensionality-isomorphism extᵇᵇ) _)) ⟩
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              subst (λ g → Dec-Erased (g x ≡ g y)) eq
+                (Dec-Erased-map
+                   (record
+                      { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                      ; from =
+                          λ eq′ →
+                            cong (_≃ᴱ_.from A≃ᴱB) $
+                            trans (sym (ext⁻¹ eq x))
+                              (trans eq′ (ext⁻¹ eq y))
+                      })
+                   (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))            ≡⟨ subst-∘ _ _ _ ⟩
+
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              subst (λ A → Dec-Erased A) (cong (λ g → g x ≡ g y) eq)
+                (Dec-Erased-map
+                   (record
+                      { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                      ; from =
+                          λ eq′ →
+                            cong (_≃ᴱ_.from A≃ᴱB) $
+                            trans (sym (ext⁻¹ eq x))
+                              (trans eq′ (ext⁻¹ eq y))
+                      })
+                   (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))))            ≡⟨ subst-Dec-Erased-map (f _ _) ⟩
+
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              Dec-Erased-map
+                (subst (_⇔_ _) (cong (λ g → g x ≡ g y) eq) $
+                 record
+                   { to   = cong (_≃ᴱ_.to A≃ᴱB)
+                   ; from =
+                       λ eq′ →
+                         cong (_≃ᴱ_.from A≃ᴱB) $
+                         trans (sym (ext⁻¹ eq x))
+                           (trans eq′ (ext⁻¹ eq y))
+                   })
+                (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))                ≡⟨ cong
+                                                                               (λ eq →
+                                                                                  Dec-Erased-map eq
+                                                                                    (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))) $
+                                                                             subst-⇔ ext ⟩
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              Dec-Erased-map
+                (record
+                   { to =
+                       subst P.id (cong (λ g → g x ≡ g y) eq) ⊚
+                       cong (_≃ᴱ_.to A≃ᴱB)
+                   ; from =
+                       λ eq′ →
+                         cong (_≃ᴱ_.from A≃ᴱB) $
+                         trans (sym (ext⁻¹ eq x))
+                           (trans
+                              (subst P.id
+                                 (sym (cong (λ g → g x ≡ g y) eq)) eq′)
+                              (ext⁻¹ eq y))
+                   })
+                (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))                ≡⟨ (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+                                                                              cong₂
+                                                                                (λ g h →
+                                                                                   Dec-Erased-map (record { to = g; from = h })
+                                                                                     (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))
+                                                                                (apply-ext extᵃᵇ λ eq′ →
+                                                                                 sym (subst-∘ _ _ _ {p = cong (_≃ᴱ_.to A≃ᴱB) eq′}))
+                                                                                (apply-ext extᵇᵃ λ eq′ →
+                                                                                   cong (cong (_≃ᴱ_.from A≃ᴱB)) $
+                                                                                   elim₁
+                                                                                     (λ {x = x} eq′ →
+                                                                                        trans (sym (ext⁻¹ eq x))
+                                                                                          (trans (subst P.id (sym (cong (λ g → g x ≡ g y) eq)) eq′)
+                                                                                             (ext⁻¹ eq y)) ≡
+                                                                                        eq′)
+                                                                                     (
+               trans (sym (ext⁻¹ eq y))
+                 (trans
+                    (subst P.id (sym (cong (λ g → g y ≡ g y) eq))
+                       (refl y))
+                    (ext⁻¹ eq y))                                                     ≡⟨ cong (trans _) $
+                                                                                         trans
+                                                                                           (cong (flip trans _) $
+                                                                                            elim₁
+                                                                                              (λ {x = f} eq →
+                                                                                                 subst P.id
+                                                                                                   (sym (cong (λ g → g y ≡ g y) eq)) (refl y) ≡
+                                                                                                 refl (f y))
+                                                                                              (trans
+                                                                                                 (cong (flip (subst P.id) _) $
+                                                                                                  trans (cong sym (cong-refl _))
+                                                                                                  sym-refl) $
+                                                                                               subst-refl _ _)
+                                                                                              eq) $
+                                                                                         trans-reflˡ _ ⟩
+
+               trans (sym (ext⁻¹ eq y)) (ext⁻¹ eq y)                                  ≡⟨ trans-symˡ _ ⟩∎
+
+               refl y                                                                 ∎)
+                                                                                     eq′)) ⟩
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              Dec-Erased-map
+                (record
+                   { to =
+                       subst (λ g → g x ≡ g y) eq ⊚ cong (_≃ᴱ_.to A≃ᴱB)
+                   ; from = cong (_≃ᴱ_.from A≃ᴱB)
+                   })
+                (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))                ≡⟨ cong
+                                                                               (λ g →
+                                                                                  Dec-Erased-map
+                                                                                    (record
+                                                                                       { to   = g
+                                                                                       ; from = cong (_≃ᴱ_.from A≃ᴱB)
+                                                                                       })
+                                                                                    (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))
+                                                                               (apply-ext extᵃᵇ λ eq →
+                                                                                subst-in-terms-of-trans-and-cong {fx≡gx = cong (_≃ᴱ_.to A≃ᴱB) eq}) ⟩
+             (let eq = apply-ext extᵇᵇ (_≃ᴱ_.right-inverse-of A≃ᴱB) in
+              Dec-Erased-map
+                (record
+                   { to =
+                       λ eq′ →
+                         trans (sym (ext⁻¹ eq x))
+                           (trans (cong (_≃ᴱ_.to A≃ᴱB) eq′)
+                              (ext⁻¹ eq y))
+                   ; from = cong (_≃ᴱ_.from A≃ᴱB)
+                   })
+                (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))                ≡⟨ cong₂
+                                                                               (λ eq₁ eq₂ →
+                                                                                  Dec-Erased-map
+                                                                                    (record
+                                                                                       { to =
+                                                                                           λ eq →
+                                                                                             trans (sym eq₁)
+                                                                                               (trans (cong (_≃ᴱ_.to A≃ᴱB) eq)
+                                                                                                  eq₂)
+                                                                                       ; from = cong (_≃ᴱ_.from A≃ᴱB)
+                                                                                       })
+                                                                                    (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y)))
+                                                                               (cong (_$ x) $
+                                                                                _≃_.left-inverse-of (Eq.extensionality-isomorphism extᵇᵇ) _)
+                                                                               (cong (_$ y) $
+                                                                                _≃_.left-inverse-of (Eq.extensionality-isomorphism extᵇᵇ) _) ⟩
+             Dec-Erased-map
+               (record
+                  { to =
+                      λ eq →
+                        trans (sym (_≃ᴱ_.right-inverse-of A≃ᴱB x))
+                          (trans (cong (_≃ᴱ_.to A≃ᴱB) eq)
+                             (_≃ᴱ_.right-inverse-of A≃ᴱB y))
+                  ; from = cong (_≃ᴱ_.from A≃ᴱB)
+                  })
+               (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))                  ≡⟨⟩
+
+             Dec-Erased-map
+               (_≃ᴱ_.logical-equivalence (to≡to≃ᴱ≡ (inverse A≃ᴱB)))
+               (f (_≃ᴱ_.from A≃ᴱB x) (_≃ᴱ_.from A≃ᴱB y))                  ∎)))
+  where
+  open module @0 E =
+         Erased-cong erased-instance-of-[]-cong-axiomatisation
+           erased-instance-of-[]-cong-axiomatisation
+
+  @0 extᵃᵇ : Extensionality a b
+  extᵃᵇ = lower-extensionality b a ext
+
+  @0 extᵇᵃ : Extensionality b a
+  extᵇᵃ = lower-extensionality a b ext
+
+  @0 extᵇᵇ : Extensionality b b
+  extᵇᵇ = lower-extensionality a a ext
+
+------------------------------------------------------------------------
 -- A variant of _≃ᴱ_
 
 -- Half adjoint equivalences with certain erased proofs.
@@ -1809,6 +2224,26 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     ((x : A) → P x)                  ≃ᴱ⟨ Π-cong-contra-≃ᴱ-Erased ext (inverse A≃⊤) (λ _ → F.id) ⟩
     ((x : ⊤) → P (_≃ᴱ_.from A≃⊤ x))  ↔⟨ Π-left-identity ⟩□
     P (_≃ᴱ_.from A≃⊤ tt)             □
+
+  ----------------------------------------------------------------------
+  -- A definition related to Decidable-erased-equality
+
+  private
+
+    -- A preservation lemma for Decidable-erased-equality.
+    --
+    -- Compare to Decidable-erased-equality-cong-≃ᴱ above.
+
+    Decidable-erased-equality-cong-≃ᴱ′ :
+      {A : Type a} {B : Type ℓ} →
+      @0 Extensionality (a ⊔ ℓ) (a ⊔ ℓ) →
+      A ≃ᴱ B →
+      Decidable-erased-equality A ≃ᴱ Decidable-erased-equality B
+    Decidable-erased-equality-cong-≃ᴱ′ ext A≃ᴱB =
+      Π-cong-≃ᴱ-Erased ext A≃ᴱB λ _ →
+      Π-cong-≃ᴱ-Erased ext A≃ᴱB λ _ →
+      Dec-Erased-cong-≃ᴱ (lower-extensionality lzero _ ext)
+        (inverse (to≡to≃ᴱ≡ A≃ᴱB))
 
   ----------------------------------------------------------------------
   -- A variant of a lemma proved above
