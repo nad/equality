@@ -471,6 +471,10 @@ import Tree-sort.Partial
 import Tree-sort.Full
 import Tree-sort.Examples
 
+-- Braun trees.
+
+import Braun-tree
+
 -- Containers, including a definition of bag equivalence.
 
 import Container
