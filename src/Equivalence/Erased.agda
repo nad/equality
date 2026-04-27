@@ -475,6 +475,21 @@ drop-⊤-left-Π-≃ᴱ {A} {P} ext A≃⊤ P≃P =
   P (_≃ᴱ_.from A≃⊤ tt)             □
 
 ------------------------------------------------------------------------
+-- A lemma related to Eq.≃-≡
+
+-- A variant of Eq.≃-≡.
+--
+-- See also to≡to≃ᴱ≡-Erased below.
+
+@0 to≡to≃ᴱ≡ :
+  (A≃ᴱB : A ≃ᴱ B) →
+  (_≃ᴱ_.to A≃ᴱB x ≡ _≃ᴱ_.to A≃ᴱB y) ≃ᴱ (x ≡ y)
+to≡to≃ᴱ≡ {x} {y} A≃ᴱB =
+  _≃ᴱ_.to A≃ᴱB x ≡ _≃ᴱ_.to A≃ᴱB y              F.↔⟨⟩
+  _≃_.to (≃ᴱ→≃ A≃ᴱB) x ≡ _≃_.to (≃ᴱ→≃ A≃ᴱB) y  F.↔⟨ Eq.≃-≡ (≃ᴱ→≃ A≃ᴱB) ⟩□
+  x ≡ y                                        □
+
+------------------------------------------------------------------------
 -- Lemmas relating equality between equivalences (with erased proofs)
 -- to equality between the forward directions of the equivalences
 
