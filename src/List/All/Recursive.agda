@@ -19,6 +19,7 @@ open import Bijection eq as Bijection using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
 open import Equivalence-relation eq
+open import Erased.Level-1 eq as E using (Erased)
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq
@@ -163,6 +164,18 @@ All-const-replicate     {n = zero}  = F.id
 All-const-replicate {A} {n = suc n} =
   A × All (const A) (L.replicate n tt)  ↝⟨ (∃-cong λ _ → All-const-replicate) ⟩□
   A × Vec A n                           □
+
+All-Erased :
+  {@0 P : A → Type p} →
+  All (λ x → Erased (P x)) xs ≃ Erased (All P xs)
+All-Erased {xs = []}     =
+  ↑ _ ⊤           ↔⟨ ↑-cong (inverse E.Erased-⊤↔⊤) ⟩
+  ↑ _ (Erased ⊤)  ↔⟨ inverse E.Erased-↑↔↑ ⟩□
+  Erased (↑ _ ⊤)  □
+All-Erased {xs = x ∷ xs} {P} =
+  Erased (P x) × All (λ x → Erased (P x)) xs  ↝⟨ (∃-cong λ _ → All-Erased) ⟩
+  Erased (P x) × Erased (All P xs)            ↔⟨ inverse E.Erased-Σ↔Σ ⟩□
+  Erased (P x × All P xs)                     □
 
 All-Σ :
   {A : Type a} {P : A → Type p} {Q : ∃ P → Type q} {xs : List A} →
