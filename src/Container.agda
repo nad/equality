@@ -15,8 +15,10 @@ open import Prelude hiding (id; List)
 
 open import Bag-equivalence eq using (Kind); open Kind
 open import Bijection eq as Bijection using (_↔_; module _↔_)
+open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq
   using (Is-equivalence; _≃_; ⟨_,_⟩; module _≃_)
+open import Erased.Level-1 eq hiding (map)
 open import Extensionality eq
 open import Function-universe eq as F
   hiding (inverse; Kind) renaming (_∘_ to _⟨∘⟩_)
@@ -627,3 +629,26 @@ _∼[_∣_]″_ {a} {A} xs k ℓ ys =
         (h (subst (Position C) (trans eq₁ eq₂) p))                    ↝⟨ uncurry r ⟩□
 
       R (f p) (h (subst (Position C) (trans eq₁ eq₂) p))              □
+
+------------------------------------------------------------------------
+-- Decidable equality
+
+-- Decidable equality for containers.
+
+decidable-equality :
+  ∀ {a c} {A : Type a} {C : Container c} →
+  Decidable-equality (Shape C) →
+  (∀ {s} → Decidable-equality (Position C s → A)) →
+  Decidable-equality (⟦ C ⟧ A)
+decidable-equality = Σ.Dec._≟_
+
+-- Decidable erased equality for containers. Note that equality for
+-- shapes should be decidable.
+
+decidable-erased-equality :
+  ∀ {a c} {A : Type a} {C : Container c} →
+  Decidable-equality (Shape C) →
+  (∀ {s} → Decidable-erased-equality (Position C s → A)) →
+  Decidable-erased-equality (⟦ C ⟧ A)
+decidable-erased-equality =
+  decidable⇒decidable-erased⇒Σ-decidable-erased
