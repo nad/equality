@@ -16,15 +16,19 @@ open import Prelude as P hiding (List; []; _∷_; id; _∘_)
 
 import Bag-equivalence eq as BE
 open import Bijection eq using (_↔_; module _↔_; Σ-≡,≡↔≡)
-open import Container eq
+open import Container eq as C
+  hiding (decidable-equality; decidable-erased-equality)
 open import Equivalence eq as Eq using (_≃_)
+open import Erased.Level-1 eq using (Decidable-erased-equality)
 open import Extensionality eq
 open import Fin eq
 open import Function-universe eq
 open import H-level eq
 open import H-level.Closure eq
+import Nat eq as Nat
 import List eq as L
 open import Surjection eq using (_↠_)
+import Vec.Dependent eq as Vec
 
 open BE.Kind
 
@@ -437,3 +441,28 @@ Any-++ P xs ys = fold-lemma
   Fin (L.length xs !)                                       □
   where
   ext′ = lower-extensionality _ lzero ext
+
+------------------------------------------------------------------------
+-- Decidable equality
+
+-- Decidable equality for lists.
+
+decidable-equality :
+  {A : Type a} →
+  Extensionality lzero a →
+  Decidable-equality A →
+  Decidable-equality (⟦ List ⟧ A)
+decidable-equality ext dec =
+  C.decidable-equality Nat._≟_
+    (Vec.decidable-equality-Π-Fin ext (λ _ → dec))
+
+-- Decidable erased equality for lists.
+
+decidable-erased-equality :
+  {A : Type a} →
+  @0 Extensionality lzero a →
+  Decidable-erased-equality A →
+  Decidable-erased-equality (⟦ List ⟧ A)
+decidable-erased-equality ext dec =
+  C.decidable-erased-equality Nat._≟_
+    (Vec.decidable-erased-equality-Π-Fin ext (λ _ → dec))
