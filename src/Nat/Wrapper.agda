@@ -31,6 +31,7 @@ import Erased.Level-1 eq as E₁
 import Erased.Stability eq as ES
 open import Logical-equivalence using (_⇔_)
 
+open import Equivalence.Erased eq using (_≃ᴱ_)
 open import Erased.Without-box-cong eq
 open import Function-universe eq as F hiding (_∘_)
 open import H-level eq
@@ -87,13 +88,14 @@ Nat-[]↔Σℕ {n} =
   (∃ λ (m : Nat′) → Erased (to-ℕ m ≡ n))  ↝⟨ (Σ-cong Nat′↔ℕ λ _ → F.id) ⟩□
   (∃ λ m → Erased (m ≡ n))                □
 
--- Nat is logically equivalent to the type of unary natural numbers.
+-- Nat is equivalent (with erased proofs) to the type of unary natural
+-- numbers.
 
-Nat⇔ℕ : Nat ⇔ ℕ
-Nat⇔ℕ =
+Nat≃ᴱℕ : Nat ≃ᴱ ℕ
+Nat≃ᴱℕ =
   Nat                                                   ↔⟨⟩
   (∃ λ (n : Erased ℕ) → Nat-[ erased n ])               ↔⟨ (∃-cong λ _ → Nat-[]↔Σℕ) ⟩
-  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton⇔ ⟩□
+  (∃ λ (n : Erased ℕ) → ∃ λ m → Erased (m ≡ erased n))  ↝⟨ Σ-Erased-Erased-singleton-≃ᴱ ⟩□
   ℕ                                                     □
 
 -- Converts from Nat to ℕ.
@@ -101,15 +103,15 @@ Nat⇔ℕ =
 Nat→ℕ : Nat → ℕ
 Nat→ℕ (_ , n′ , _) = to-ℕ n′
 
--- Nat→ℕ is definitionally equal to the forward direction of Nat⇔ℕ.
+-- Nat→ℕ is definitionally equal to the forward direction of Nat≃ᴱℕ.
 
-_ : Nat→ℕ ≡ _⇔_.to Nat⇔ℕ
+_ : Nat→ℕ ≡ _≃ᴱ_.to Nat≃ᴱℕ
 _ = refl _
 
 -- Converts from ℕ to Nat.
 
 ⌈_⌉ : ℕ → Nat
-⌈_⌉ = _⇔_.from Nat⇔ℕ
+⌈_⌉ = _≃ᴱ_.from Nat≃ᴱℕ
 
 -- The index matches the result of Nat→ℕ.
 
@@ -640,9 +642,9 @@ module []-cong (ax : []-cong-axiomatisation lzero) where
     ℕ                                                     □
 
   -- The logical equivalence underlying Nat↔ℕ is definitionally equal
-  -- to Nat⇔ℕ.
+  -- to that underlying Nat≃ᴱℕ.
 
-  _ : _↔_.logical-equivalence Nat↔ℕ ≡ Nat⇔ℕ
+  _ : _↔_.logical-equivalence Nat↔ℕ ≡ _≃ᴱ_.logical-equivalence Nat≃ᴱℕ
   _ = refl _
 
   ----------------------------------------------------------------------

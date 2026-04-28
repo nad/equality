@@ -1266,16 +1266,18 @@ inspectᴱ :
 inspectᴱ x = x , [ refl x ]
 
 -- The type of triples consisting of two values of type A, one erased,
--- and an erased proof of equality of the two values is logically
--- equivalent to A.
+-- and an erased proof of equality of the two values is equivalent
+-- (with erased proofs) to A.
+--
+-- See also Σ-Erased-Erased-singleton↔ below.
 
-Σ-Erased-Erased-singleton⇔ :
+Σ-Erased-Erased-singleton-≃ᴱ :
   {A : Type ℓ} →
-  (∃ λ (x : Erased A) → Erased-singleton (erased x)) ⇔ A
-Σ-Erased-Erased-singleton⇔ {A} =
+  (∃ λ (x : Erased A) → Erased-singleton (erased x)) ≃ᴱ A
+Σ-Erased-Erased-singleton-≃ᴱ {A} =
   (∃ λ (x : Erased A) → ∃ λ y → Erased (y ≡ erased x))  ↔⟨ ∃-comm ⟩
   (∃ λ y → ∃ λ (x : Erased A) → Erased (y ≡ erased x))  ↔⟨ (∃-cong λ _ → inverse Erased-Σ↔Σ) ⟩
-  (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong-⇔ (from-isomorphism $ _⇔_.to contractible⇔↔⊤ $
+  (∃ λ y → Erased (∃ λ (x : A) → y ≡ x))                ↝⟨ (∃-cong λ _ → Erased-cong-≃ᴱ (from-isomorphism $ _⇔_.to contractible⇔↔⊤ $
                                                             other-singleton-contractible _)) ⟩
   A × Erased ⊤                                          ↔⟨ drop-⊤-right (λ _ → Erased-⊤↔⊤) ⟩□
   A                                                     □
@@ -2195,11 +2197,11 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   -- The logical equivalence underlying
   -- Σ-Erased-Erased-singleton↔ {A = A} is definitionally equal to
-  -- Σ-Erased-Erased-singleton⇔.
+  -- that underlying Σ-Erased-Erased-singleton-≃ᴱ.
 
   _ :
     _↔_.logical-equivalence (Σ-Erased-Erased-singleton↔ {A = A}) ≡
-    Σ-Erased-Erased-singleton⇔
+    _≃ᴱ_.logical-equivalence Σ-Erased-Erased-singleton-≃ᴱ
   _ = refl _
 
   -- A variant of erased-singleton-contractible.
