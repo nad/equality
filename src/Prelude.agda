@@ -14,7 +14,7 @@ module Prelude where
 -- Basic type universes and universe levels.
 
 open import Agda.Primitive public
-  renaming (Set to Type)
+  renaming (Set to Type; Setω to Typeω)
   using (Prop; Level; _⊔_; lzero; lsuc)
 
 private
