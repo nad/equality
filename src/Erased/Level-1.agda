@@ -1132,7 +1132,7 @@ module Erased-cong
 -- Some results that follow if the []-cong axioms hold for a single
 -- universe level
 
-module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
+private module []-cong₁′ (ax : []-cong-axiomatisation ℓ) where
 
   open []-cong-axiomatisation ax public
   open Erased-cong ax ax
@@ -1833,8 +1833,8 @@ module []-cong₂
   where
 
   private
-    module BC₁ = []-cong₁ ax₁
-    module BC₂ = []-cong₁ ax₂
+    module BC₁ = []-cong₁′ ax₁
+    module BC₂ = []-cong₁′ ax₂
 
   ----------------------------------------------------------------------
   -- Some equalities
@@ -2032,9 +2032,9 @@ module []-cong₂-⊔
 
   private
     module EC  = Erased-cong ax ax
-    module BC₁ = []-cong₁ ax₁
-    module BC₂ = []-cong₁ ax₂
-    module BC  = []-cong₁ ax
+    module BC₁ = []-cong₁′ ax₁
+    module BC₂ = []-cong₁′ ax₂
+    module BC  = []-cong₁′ ax
 
   ----------------------------------------------------------------------
   -- A property related to "Modalities in Homotopy Type Theory" by
@@ -2179,25 +2179,6 @@ module []-cong₂-⊔
     }
 
 ------------------------------------------------------------------------
--- Some results that follow if the []-cong axioms hold for all
--- universe levels
-
-module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
-
-  private
-    open module EC {ℓ₁ ℓ₂} =
-      Erased-cong (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
-      public
-    open module BC₁ {ℓ} =
-      []-cong₁ (ax {ℓ = ℓ})
-      public
-    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
-      public
-    open module BC₂-⊔ {ℓ₁ ℓ₂} =
-      []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
-      public
-
-------------------------------------------------------------------------
 -- Some results that were proved assuming extensionality and also that
 -- one or more instances of the []-cong axioms can be implemented,
 -- reproved without the latter assumptions
@@ -2211,7 +2192,7 @@ module Extensionality where
     Extensionality a a →
     ∀ n → Erased (H-level′ n A) ≃ H-level′ n (Erased A)
   Erased-H-level′≃H-level′ ext n =
-    []-cong₁.Erased-H-level′↔H-level′
+    []-cong₁′.Erased-H-level′↔H-level′
       (Extensionality→[]-cong-axiomatisation ext)
       n
       ext
@@ -2223,7 +2204,7 @@ module Extensionality where
     Extensionality a a →
     ∀ n → Erased (H-level n A) ≃ H-level n (Erased A)
   Erased-H-level≃H-level ext n =
-    []-cong₁.Erased-H-level↔H-level
+    []-cong₁′.Erased-H-level↔H-level
       (Extensionality→[]-cong-axiomatisation ext)
       n
       ext
@@ -2237,7 +2218,7 @@ module Extensionality where
     @0 Is-set A →
     Is-proposition (Decidable-erased-equality A)
   Is-proposition-Decidable-erased-equality′ ext =
-    []-cong₁.Is-proposition-Decidable-erased-equality
+    []-cong₁′.Is-proposition-Decidable-erased-equality
       (Extensionality→[]-cong-axiomatisation ext)
       ext
 
@@ -2248,7 +2229,7 @@ module Extensionality where
     Extensionality b (a ⊔ b) →
     Erased (Split-surjective f) ≃ Split-surjective (map f)
   Erased-Split-surjective≃Split-surjective {a} ext =
-    []-cong₁.Erased-Split-surjective↔Split-surjective
+    []-cong₁′.Erased-Split-surjective↔Split-surjective
       (Extensionality→[]-cong-axiomatisation
          (lower-extensionality lzero a ext))
       ext
@@ -2371,7 +2352,7 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
     .[]-cong-axiomatisation.[]-cong        → []-cong′
     .[]-cong-axiomatisation.[]-cong-[refl] → []-cong′-[refl]
   where
-  open []-cong₁ ax
+  open []-cong₁′ ax
 
   lemma :
     {@0 A : Type a} {@0 x y : A} →
@@ -2413,8 +2394,8 @@ lower-[]-cong-axiomatisation {a} a′ ax = λ where
      BC₂.[]-cong [ refl x ]  ∎)
     x≡y
   where
-  module BC₁ = []-cong₁ ax₁
-  module BC₂ = []-cong₁ ax₂
+  module BC₁ = []-cong₁′ ax₁
+  module BC₂ = []-cong₁′ ax₂
 
 private
 
@@ -2498,7 +2479,7 @@ private
   Is-proposition ([]-cong-axiomatisation a)
 []-cong-axiomatisation-propositional {a} ext =
   [inhabited⇒contractible]⇒propositional λ ax →
-  let module BC = []-cong₁ ax
+  let module BC = []-cong₁′ ax
       module EC = Erased-cong ax ax
   in
   _⇔_.from contractible⇔↔⊤
@@ -2656,7 +2637,7 @@ opaque
     Is-equivalence ([]-cong⁻¹ {x = x} {y = y})                    →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
     Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])  □
     where
-    open []-cong₁ ax
+    open []-cong₁′ ax
 
   module _ (ax : []-cong⁻¹-axiomatisation ℓ) where
 
@@ -2726,7 +2707,7 @@ opaque
     Is-equivalence ([]-cong⁻¹ {x = erased x} {y = erased y})  →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
     Is-equivalence (≡→Erased[erased≡erased] {x = x} {y = y})  □
     where
-    open []-cong₁
+    open []-cong₁′
       (_⇔_.from ([]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation _) ax)
 
 -- The type []-cong-axiomatisation ℓ is equivalent to
@@ -2766,7 +2747,7 @@ private
     record { to = to; from = from }
     where
     to : []-cong-axiomatisation ℓ → Substᴱ-axiomatisation ℓ
-    to ax = []-cong₁.substᴱ ax , []-cong₁.substᴱ-refl ax
+    to ax = []-cong₁′.substᴱ ax , []-cong₁′.substᴱ-refl ax
 
     from : Substᴱ-axiomatisation ℓ → []-cong-axiomatisation ℓ
     from (substᴱ , substᴱ-refl) = λ where
@@ -2897,7 +2878,7 @@ private
     to ax = elimᴱ , λ {_ _} {P = P} → elimᴱ-refl P
       where
       open
-        []-cong₁
+        []-cong₁′
           (_⇔_.from []-cong-axiomatisation⇔Substᴱ-axiomatisation ax)
 
     from : Elimᴱ-axiomatisation ℓ → Substᴱ-axiomatisation ℓ
@@ -3035,7 +3016,7 @@ private
     to ax = elim¹ᴱ , elim¹ᴱ-refl
       where
       open
-        []-cong₁
+        []-cong₁′
           (_⇔_.from []-cong-axiomatisation⇔Substᴱ-axiomatisation ax)
 
     from : Elim¹ᴱ-axiomatisation ℓ → Substᴱ-axiomatisation ℓ
@@ -3150,3 +3131,45 @@ Substᴱ-axiomatisation≃Elim¹ᴱ-axiomatisation =
   []-cong-axiomatisation ℓ  ↝⟨ []-cong-axiomatisation≃Substᴱ-axiomatisation ext ⟩
   Substᴱ-axiomatisation ℓ   ↝⟨ Substᴱ-axiomatisation≃Elim¹ᴱ-axiomatisation ext ⟩□
   Elim¹ᴱ-axiomatisation ℓ   □
+
+------------------------------------------------------------------------
+-- Results that follow if the []-cong axioms hold for a single
+-- universe level
+
+module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
+
+  open []-cong₁′ ax public
+
+  -- A variant of ∃-intro.
+
+  ∃-introᴱ :
+    {@0 A : Type ℓ} {@0 x : A} {P : @0 A → Type p} →
+    P x ≃ ∃ λ (([ y ]) : Erased A) → P y × Erased (y ≡ x)
+  ∃-introᴱ {A} {x} {P} =
+    P x                                                 ↔⟨ inverse $ drop-⊤-left-Σ $
+                                                           Erased-⊤↔⊤ F.∘
+                                                           Erased-cong.Erased-cong-↔
+                                                             ax (lower-[]-cong-axiomatisation ℓ ax)
+                                                             (_⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
+    (∃ λ (([ y , _ ]) : Erased (∃ λ y → y ≡ x)) → P y)  ↔⟨ inverse Σ-assoc F.∘ (Σ-cong Erased-Σ↔Σ λ { ([ _ ]) → F.id }) ⟩
+    (∃ λ (([ y ]) : Erased A) → Erased (y ≡ x) × P y)   ↔⟨ (∃-cong λ _ → ×-comm) ⟩□
+    (∃ λ (([ y ]) : Erased A) → P y × Erased (y ≡ x))   □
+
+------------------------------------------------------------------------
+-- Some results that follow if the []-cong axioms hold for all
+-- universe levels
+
+module []-cong (ax : ∀ {ℓ} → []-cong-axiomatisation ℓ) where
+
+  private
+    open module EC {ℓ₁ ℓ₂} =
+      Erased-cong (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
+    open module BC₁ {ℓ} =
+      []-cong₁ (ax {ℓ = ℓ})
+      public
+    open module BC₂ {ℓ₁ ℓ₂} = []-cong₂ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂})
+      public
+    open module BC₂-⊔ {ℓ₁ ℓ₂} =
+      []-cong₂-⊔ (ax {ℓ = ℓ₁}) (ax {ℓ = ℓ₂}) (ax {ℓ = ℓ₁ ⊔ ℓ₂})
+      public
