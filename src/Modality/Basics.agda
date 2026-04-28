@@ -48,7 +48,7 @@ open import Monad eq-J
 open import Preimage eq-J as Preimage using (_⁻¹_)
 open import Surjection eq-J using (_↠_; Split-surjective)
 open import Univalence-axiom eq-J
-open import Vec.Dependent eq-J as Vec using (Vec)
+open import Vec.Dependent.Basics eq-J as Vec using (Vec)
 
 private
   variable

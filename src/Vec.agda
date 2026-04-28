@@ -16,7 +16,7 @@ open Derived-definitions-and-properties eq
 open import Function-universe eq hiding (id; _∘_)
 open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
-import Vec.Dependent eq as DVec
+import Vec.Dependent.Basics eq as DVec
 
 private
 

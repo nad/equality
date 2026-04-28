@@ -195,7 +195,7 @@ import List
 -- Vectors for which the element types depend on the position, defined
 -- using a recursive function.
 
-import Vec.Dependent
+import Vec.Dependent.Basics
 
 -- Some results related to the For-iterated-equality predicate
 -- transformer.
@@ -270,6 +270,11 @@ import Vec.Data
 -- Vectors, defined as functions from finite sets.
 
 import Vec.Function
+
+-- Vectors for which the element types depend on the position, defined
+-- using a recursive function.
+
+import Vec.Dependent
 
 -- Some properties related to the const function.
 
