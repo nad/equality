@@ -21,6 +21,8 @@ open import Logical-equivalence using (_⇔_)
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
+open import Equivalence.Erased.Contractible-preimages eq-J as ECP
+  using (Contractibleᴱ)
 open import Equivalence.Erased eq-J as EEq
   using (_≃ᴱ_; Is-equivalenceᴱ)
 open import Extensionality eq-J
@@ -248,7 +250,7 @@ module []-cong₂-⊔
     Erased-cong A↝B ⊎-cong Erased-cong (→-cong ext A↝B F.id)
 
 ------------------------------------------------------------------------
--- A variant of Erased-cong
+-- A variant of Erased-cong, along with a related lemma
 
 private
   module []-cong′
@@ -276,6 +278,29 @@ Erased-cong-ext {k = surjection}          ext = []-cong′.Erased-cong ext
 Erased-cong-ext {k = bijection}           ext = []-cong′.Erased-cong ext
 Erased-cong-ext {k = equivalence}         ext = []-cong′.Erased-cong ext
 Erased-cong-ext {k = equivalenceᴱ}        _   = Erased-cong-≃ᴱ
+
+-- Erased commutes with Contractibleᴱ.
+--
+-- See also
+-- Equivalence.Erased.Contractible-preimages.[]-cong₁.Erased-Contractibleᴱ↔Contractibleᴱ-Erased.
+
+Erased-Contractibleᴱ≃Contractibleᴱ-Erased :
+  {@0 A : Type a} →
+  Erased (Contractibleᴱ A) ↝[ a ∣ a ] Contractibleᴱ (Erased A)
+Erased-Contractibleᴱ≃Contractibleᴱ-Erased {A} ext =
+  Erased (∃ λ x → Erased ((y : A) → x ≡ y))           ↝⟨ Erased-cong-ext ext (∃-cong λ _ → from-isomorphism (erased Erased↔)) ⟩
+  Erased (∃ λ x → (y : A) → x ≡ y)                    ↔⟨ Erased-Σ↔Σ ⟩
+  (∃ λ x → Erased ((y : A) → erased x ≡ y))           ↝⟨ (∃-cong λ _ →
+                                                          Erased-cong-ext ext
+                                                            (∀-cong ext λ _ →
+                                                             from-isomorphism (F.inverse $ erased Erased↔))) ⟩
+  (∃ λ x → Erased ((y : A) → Erased (erased x ≡ y)))  ↝⟨ (∃-cong λ _ →
+                                                          Erased-cong-ext ext
+                                                            (Π-cong ext (F.inverse $ erased Erased↔) λ _ →
+                                                             from-isomorphism $
+                                                             E₁.[]-cong₁.Erased-≡≃≡
+                                                               erased-instance-of-[]-cong-axiomatisation)) ⟩□
+  (∃ λ x → Erased ((y : Erased A) → x ≡ y))           □
 
 ------------------------------------------------------------------------
 -- Results that depend on three instances of the axiomatisation of

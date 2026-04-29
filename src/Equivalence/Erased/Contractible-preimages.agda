@@ -243,6 +243,9 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
     Erased (∃ λ x → ∀ y → x ≡ y)                    □
 
   -- Erased commutes with Contractibleᴱ.
+  --
+  -- See also
+  -- Erased.Level-2.Erased-Contractibleᴱ≃Contractibleᴱ-Erased.
 
   Erased-Contractibleᴱ↔Contractibleᴱ-Erased :
     {@0 A : Type ℓ} →
