@@ -248,6 +248,36 @@ module []-cong₂-⊔
     Erased-cong A↝B ⊎-cong Erased-cong (→-cong ext A↝B F.id)
 
 ------------------------------------------------------------------------
+-- A variant of Erased-cong
+
+private
+  module []-cong′
+           {ℓ₁} {ℓ₂} (ext : Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂)) =
+    []-cong₂-⊔ {ℓ₁ = ℓ₁} {ℓ₂ = ℓ₂}
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality ℓ₂ ℓ₂ ext))
+      (Extensionality→[]-cong-axiomatisation
+         (lower-extensionality ℓ₁ ℓ₁ ext))
+      (Extensionality→[]-cong-axiomatisation ext)
+
+-- A variant of Erased-cong without "[]-cong-axiomatisation" as an
+-- assumption.
+
+Erased-cong-ext :
+  {@0 A : Type a} {@0 B : Type b} →
+  Extensionality? k (a ⊔ b) (a ⊔ b) →
+  @0 A ↝[ k ] B →
+  Erased A ↝[ k ] Erased B
+Erased-cong-ext {k = implication}         _   = map
+Erased-cong-ext {k = logical-equivalence} _   = Erased-cong-⇔
+Erased-cong-ext {k = injection}           ext = []-cong′.Erased-cong ext
+Erased-cong-ext {k = embedding}           ext = []-cong′.Erased-cong ext
+Erased-cong-ext {k = surjection}          ext = []-cong′.Erased-cong ext
+Erased-cong-ext {k = bijection}           ext = []-cong′.Erased-cong ext
+Erased-cong-ext {k = equivalence}         ext = []-cong′.Erased-cong ext
+Erased-cong-ext {k = equivalenceᴱ}        _   = Erased-cong-≃ᴱ
+
+------------------------------------------------------------------------
 -- Results that depend on three instances of the axiomatisation of
 -- []-cong, all for the same universe level
 
