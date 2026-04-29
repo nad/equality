@@ -1140,6 +1140,18 @@ record Erased-proofs′
   (x ≡ y) ≃ᴱ (_≃ᴱ′_.to A≃ᴱ′B x ≡ _≃ᴱ′_.to A≃ᴱ′B y)
 ≡≃ᴱto≡to = _≃ᴱ′_.equivalence-with-erased-proofs ⊚ ≡≃ᴱ′to≡to
 
+-- A preservation lemma related to Σ.
+
+Σ-cong-contra-≃ᴱ′-≃ᴱ :
+  {@0 B : Type b} {@0 Q : B → Type q}
+  (A≃ᴱB : A ≃ᴱ′ B) →
+  (∀ x → P (_≃ᴱ′_.from A≃ᴱB x) ≃ᴱ Q x) →
+  Σ A P ≃ᴱ Σ B Q
+Σ-cong-contra-≃ᴱ′-≃ᴱ A≃B P≃Q =
+  Σ-cong-contra-≃ᴱ from to from-to to-from P≃Q
+  where
+  open _≃ᴱ′_ A≃B
+
 -- Two preservation lemmas related to Π.
 
 Π-cong-≃ᴱ′-≃ᴱ :
