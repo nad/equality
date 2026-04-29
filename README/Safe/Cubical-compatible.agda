@@ -360,6 +360,11 @@ import Erased.Stability
 
 import H-level.Truncation.Church
 
+-- An axiomatised variant of the propositional truncation operator
+-- with an erased truncation constructor.
+
+import H-level.Truncation.Propositional.Erased.Axiomatised
+
 -- Some omniscience principles.
 
 import Omniscience
