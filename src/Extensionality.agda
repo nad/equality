@@ -81,6 +81,11 @@ record Extensionality (a p : Level) : Type (lsuc (a ⊔ p)) where
 
 open Extensionality public using (apply-ext)
 
+-- Extensionality for all (finite) universe levels.
+
+Extensionality-ω : Typeω
+Extensionality-ω = ∀ {a p} → Extensionality a p
+
 ------------------------------------------------------------------------
 -- A different (logically equivalent) statement of function
 -- extensionality
