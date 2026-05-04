@@ -365,6 +365,11 @@ import H-level.Truncation.Church
 
 import H-level.Truncation.Propositional.Erased.Axiomatised
 
+-- An axiomatised variant of set quotients with erased higher
+-- constructors.
+
+import Quotient.Erased.Axiomatised
+
 -- Some omniscience principles.
 
 import Omniscience
