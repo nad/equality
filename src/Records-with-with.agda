@@ -61,6 +61,8 @@ mutual
   -- Record is a record type to ensure that the signature can be
   -- inferred from a value of type Record Sig.
 
+  {-# ETA_EQUALITY #-}
+
   record Record {s} (Sig : Signature s) : Type s where
     eta-equality
     inductive

@@ -403,6 +403,7 @@ Initial-algebra-propositional {I} {C = C@(S ◁ P)}
 record W {I : Type iℓ} (C : Container I s p) (i : I) :
          Type (iℓ ⊔ s ⊔ p) where
   inductive
+  no-eta-equality
   pattern
   constructor in-W
   field
