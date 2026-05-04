@@ -534,7 +534,7 @@ Maybe/ᴱ {A} {R} =
   ⊤ ⊎ A /ᴱ R             ↔⟨⟩
   Maybe (A /ᴱ R)         □
 
--- A simplification lemma for Maybe/-comm.
+-- A simplification lemma for Maybe/ᴱ.
 
 Maybe/ᴱ-[] :
   {@0 R : A → A → Type r} →
