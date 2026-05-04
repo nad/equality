@@ -1177,7 +1177,18 @@ record Truncationᴱ : Typeω where
             Erased (Is-embedding f)     □))
 
   ----------------------------------------------------------------------
-  -- Another lemma
+  -- More lemmas
+
+  opaque
+
+    -- Unique choice.
+
+    unique-choice :
+      @0 ((x : A) → Is-proposition (P x)) →
+      ((x : A) → ∥ P x ∥ᴱ) →
+      ((x : A) → P x)
+    unique-choice prop p x =
+      _≃_.to (∥∥ᴱ≃ (prop x)) (p x)
 
   opaque
 
