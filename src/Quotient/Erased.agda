@@ -309,7 +309,7 @@ effective :
   _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
 effective {R} {x} {y} eq prop Rxx =
   [ x ] ≡ [ y ]  ↝⟨ weakly-effective eq ∣ Rxx ∣ ⟩
-  ∥ R x y ∥ᴱ     ↔⟨ PTᴱ.∥∥ᴱ↔ prop ⟩□
+  ∥ R x y ∥ᴱ     ↔⟨ PTᴱ.∥∥ᴱ≃ prop ⟩□
   R x y          □
 
 -- If R is an equivalence relation, and R is propositional (for x
@@ -365,35 +365,38 @@ related≃[equal] eq prop =
       .is-propositionʳ _ → /ᴱ-is-set
   }
 
--- Quotienting with a trivial relation amounts to the same thing as
--- using the propositional truncation (with erased proofs).
+opaque
+  unfolding PTᴱ.rec
 
-/ᴱtrivial↔∥∥ᴱ : @0 (∀ x y → R x y) → A /ᴱ R ↔ ∥ A ∥ᴱ
-/ᴱtrivial↔∥∥ᴱ {A} {R} trivial = record
-  { surjection = record
-    { logical-equivalence = record
-      { to = rec-prop λ where
-          .[]ʳ             → ∣_∣
-          .is-propositionʳ → PTᴱ.truncation-is-proposition
-      ; from = PTᴱ.rec λ where
-          .PTᴱ.∣∣ʳ                        → [_]
-          .PTᴱ.truncation-is-propositionʳ → elim-prop λ @0 where
-            .is-propositionʳ _ →
-              Π-closure ext 1 λ _ →
-              /ᴱ-is-set
-            .[]ʳ x → elim-prop λ @0 where
-              .is-propositionʳ _ → /ᴱ-is-set
-              .[]ʳ y             → []-respects-relation (trivial x y)
+  -- Quotienting with a trivial relation amounts to the same thing as
+  -- using the propositional truncation (with erased proofs).
+
+  /ᴱtrivial↔∥∥ᴱ : @0 (∀ x y → R x y) → A /ᴱ R ↔ ∥ A ∥ᴱ
+  /ᴱtrivial↔∥∥ᴱ {A} {R} trivial = record
+    { surjection = record
+      { logical-equivalence = record
+        { to = rec-prop λ where
+            .[]ʳ             → ∣_∣
+            .is-propositionʳ → PTᴱ.truncation-is-proposition
+        ; from = PTᴱ.rec λ where
+            .PTᴱ.∣∣ʳ                        → [_]
+            .PTᴱ.truncation-is-propositionʳ → elim-prop λ @0 where
+              .is-propositionʳ _ →
+                Π-closure ext 1 λ _ →
+                /ᴱ-is-set
+              .[]ʳ x → elim-prop λ @0 where
+                .is-propositionʳ _ → /ᴱ-is-set
+                .[]ʳ y             → []-respects-relation (trivial x y)
+        }
+      ; right-inverse-of = PTᴱ.elim λ where
+          .PTᴱ.∣∣ʳ _                        → refl _
+          .PTᴱ.truncation-is-propositionʳ _ →
+            ⇒≡ 1 PTᴱ.truncation-is-proposition
       }
-    ; right-inverse-of = PTᴱ.elim λ where
-        .PTᴱ.∣∣ʳ _                        → refl _
-        .PTᴱ.truncation-is-propositionʳ _ →
-          ⇒≡ 1 PTᴱ.truncation-is-proposition
+    ; left-inverse-of = elim-prop λ where
+        .[]ʳ _             → refl _
+        .is-propositionʳ _ → /ᴱ-is-set
     }
-  ; left-inverse-of = elim-prop λ where
-      .[]ʳ _             → refl _
-      .is-propositionʳ _ → /ᴱ-is-set
-  }
 
 ------------------------------------------------------------------------
 -- A property related to ∥_∥ᴱ, proved using _/ᴱ_
@@ -439,18 +442,21 @@ related≃[equal] eq prop =
            _ _)
     }
 
--- The two directions of the proposition above compute in the
--- "right" way.
+opaque
+  unfolding /ᴱtrivial↔∥∥ᴱ
 
-_ :
-  (@0 B-set : Is-set B) →
-  _≃_.to (Σ→Erased-Constant≃∥∥ᴱ→ B-set) f ∣ x ∣ ≡ proj₁ f x
-_ = λ _ → refl _
+  -- The two directions of the proposition above compute in the
+  -- "right" way.
 
-_ :
-  (@0 B-set : Is-set B) →
-  proj₁ (_≃_.from (Σ→Erased-Constant≃∥∥ᴱ→ B-set) f) x ≡ f ∣ x ∣
-_ = λ _ → refl _
+  _ :
+    {@0 B-set : Is-set B} →
+    _≃_.to (Σ→Erased-Constant≃∥∥ᴱ→ B-set) f ∣ x ∣ ≡ proj₁ f x
+  _ = refl _
+
+  _ :
+    {@0 B-set : Is-set B} →
+    proj₁ (_≃_.from (Σ→Erased-Constant≃∥∥ᴱ→ B-set) f) x ≡ f ∣ x ∣
+  _ = refl _
 
 ------------------------------------------------------------------------
 -- Various type formers commute with quotients

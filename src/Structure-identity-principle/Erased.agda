@@ -483,11 +483,14 @@ Is-QER≃Is-QERᴱ = Eq.↔⇒≃ $ inverse $
   (∀-cong ext λ x →
    T.∥∥ᴱ-cong $ ∃-cong λ _ → Erased↔ .erased)
 
--- The forward direction of Is-QER≃Is-QERᴱ {R = R} is definitionally
--- equal to Is-QER→Is-QERᴱ.
+opaque
+  unfolding T.∥∥ᴱ-cong
 
-_ : _≃_.to (Is-QER≃Is-QERᴱ {R = R}) ≡ Is-QER→Is-QERᴱ
-_ = refl _
+  -- The forward direction of Is-QER≃Is-QERᴱ {R = R} is definitionally
+  -- equal to Is-QER→Is-QERᴱ.
+
+  _ : _≃_.to (Is-QER≃Is-QERᴱ {R = R}) ≡ Is-QER→Is-QERᴱ
+  _ = refl _
 
 -- If Is-QER R holds, then R ⟵ is an equivalence relation.
 
@@ -549,171 +552,174 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R} =
   Is-QER R                       ↝⟨ Is-QER→Is-equivalence-relation-⟶ ⟩□
   Is-equivalence-relation (R ⟶)  □
 
--- A propositional QER R can be turned into an equivalence (with
--- erased proofs) satisfying a certain (partly erased) condition.
---
--- This is a variant of Lemma 5.4 from "Internalizing Representation
--- Independence with Univalence".
+opaque
+  unfolding Q./ᴱtrivial↔∥∥ᴱ
 
-/ᴱ⟵≃ᴱ/ᴱ⟶ :
-  Is-QER R →
-  @0 (∀ x y → Is-proposition (R x y)) →
-  ∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
-    ∀ x y →
-    ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → R x y) →
-      Erased (Is-equivalence f)
-/ᴱ⟵≃ᴱ/ᴱ⟶ {A} {B} {R} qer@(qper , lr , rl) prop =
-    EEq.↔→≃ᴱ to from to-from from-to
-  , (λ _ _ →
-         to″
-       , [ _≃_.is-equivalence $
-           Eq.⇔→≃ Q./ᴱ-is-set (prop _ _) to″ from″
-         ])
-  where
-  to′ : ∥ ∃ (R x) ∥ᴱ → B /ᴱ R ⟶
-  to′ =
-    _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
-      ( [_] ∘ proj₁
-      , [ (λ (_ , r₁) (_ , r₂) →
-             Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
-        ]
-      )
+  -- A propositional QER R can be turned into an equivalence (with
+  -- erased proofs) satisfying a certain (partly erased) condition.
+  --
+  -- This is a variant of Lemma 5.4 from "Internalizing Representation
+  -- Independence with Univalence".
 
-  @0 to′-lemma :
-    R x y → R x′ y →
-    (p  : ∥ ∃ (R x) ∥ᴱ)
-    (p′ : ∥ ∃ (R x′) ∥ᴱ) →
-    to′ p ≡ to′ p′
-  to′-lemma Rxy Rx′y = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ →
-      Π-closure ext 1 λ _ →
-      Q./ᴱ-is-set
-    .T.∣∣ʳ (y₁ , Rxy₁) → T.elim λ @0 where
+  /ᴱ⟵≃ᴱ/ᴱ⟶ :
+    Is-QER R →
+    @0 (∀ x y → Is-proposition (R x y)) →
+    ∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
+      ∀ x y →
+      ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → R x y) →
+        Erased (Is-equivalence f)
+  /ᴱ⟵≃ᴱ/ᴱ⟶ {A} {B} {R} qer@(qper , lr , rl) prop =
+      EEq.↔→≃ᴱ to from to-from from-to
+    , (λ _ _ →
+           to″
+         , [ _≃_.is-equivalence $
+             Eq.⇔→≃ Q./ᴱ-is-set (prop _ _) to″ from″
+           ])
+    where
+    to′ : ∥ ∃ (R x) ∥ᴱ → B /ᴱ R ⟶
+    to′ =
+      _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
+        ( [_] ∘ proj₁
+        , [ (λ (_ , r₁) (_ , r₂) →
+               Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
+          ]
+        )
+
+    @0 to′-lemma :
+      R x y → R x′ y →
+      (p  : ∥ ∃ (R x) ∥ᴱ)
+      (p′ : ∥ ∃ (R x′) ∥ᴱ) →
+      to′ p ≡ to′ p′
+    to′-lemma Rxy Rx′y = T.elim λ @0 where
+      .T.truncation-is-propositionʳ _ →
+        Π-closure ext 1 λ _ →
+        Q./ᴱ-is-set
+      .T.∣∣ʳ (y₁ , Rxy₁) → T.elim λ @0 where
+        .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
+        .T.∣∣ʳ (y₂ , Rx′y₂)             →
+          [ y₁ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rxy₁ , qper Rxy Rx′y Rx′y₂ ∣ ⟩∎
+          [ y₂ ]  ∎
+
+    to : A /ᴱ R ⟵ → B /ᴱ R ⟶
+    to = Q.rec λ where
+      .Q.is-setʳ → Q./ᴱ-is-set
+
+      .Q.[]ʳ → to′ ∘ lr
+
+      .Q.[]-respects-relationʳ {x} {y = x′} → T.elim λ @0 where
+        .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
+        .T.∣∣ʳ (_ , Rxy , Rx′y)         →
+          to′ (lr x)   ≡⟨ to′-lemma Rxy Rx′y (lr x) (lr x′) ⟩∎
+          to′ (lr x′)  ∎
+
+    from′ : ∥ ∃ ((R ⁻¹) y) ∥ᴱ → A /ᴱ R ⟵
+    from′ =
+      _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
+        ( [_] ∘ proj₁
+        , [ (λ (_ , r₁) (_ , r₂) →
+               Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
+          ]
+        )
+
+    @0 from′-lemma :
+      R x y → R x y′ →
+      (p  : ∥ ∃ ((R ⁻¹) y) ∥ᴱ)
+      (p′ : ∥ ∃ ((R ⁻¹) y′) ∥ᴱ) →
+      from′ p ≡ from′ p′
+    from′-lemma Rxy Rxy′ = T.elim λ @0 where
+      .T.truncation-is-propositionʳ _ →
+        Π-closure ext 1 λ _ →
+        Q./ᴱ-is-set
+      .T.∣∣ʳ (x₁ , Rx₁y) → T.elim λ @0 where
+        .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
+        .T.∣∣ʳ (x₂ , Rx₂y′)             →
+          [ x₁ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rx₁y , qper Rx₂y′ Rxy′ Rxy ∣ ⟩∎
+          [ x₂ ]  ∎
+
+    from : B /ᴱ R ⟶ → A /ᴱ R ⟵
+    from = Q.rec λ where
+      .Q.is-setʳ → Q./ᴱ-is-set
+
+      .Q.[]ʳ → from′ ∘ rl
+
+      .Q.[]-respects-relationʳ {x = y} {y = y′} → T.elim λ @0 where
+        .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
+        .T.∣∣ʳ (_ , Rxy , Rxy′)         →
+          from′ (rl y)   ≡⟨ from′-lemma Rxy Rxy′ (rl y) (rl y′) ⟩∎
+          from′ (rl y′)  ∎
+
+    @0 to′≡[] :
+      R x y → (p : ∥ ∃ (R x) ∥ᴱ) →
+      to′ p ≡ [ y ]
+    to′≡[] {x} {y} Rxy = T.elim λ @0 where
       .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-      .T.∣∣ʳ (y₂ , Rx′y₂)             →
-        [ y₁ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rxy₁ , qper Rxy Rx′y Rx′y₂ ∣ ⟩∎
-        [ y₂ ]  ∎
+      .T.∣∣ʳ (y′ , Rxy′)              →
+        [ y′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rxy′ , Rxy ∣ ⟩∎
+        [ y ]   ∎
 
-  to : A /ᴱ R ⟵ → B /ᴱ R ⟶
-  to = Q.rec λ where
-    .Q.is-setʳ → Q./ᴱ-is-set
-
-    .Q.[]ʳ → to′ ∘ lr
-
-    .Q.[]-respects-relationʳ {x} {y = x′} → T.elim λ @0 where
+    @0 to-from′ :
+      ∀ y (p : ∥ ∃ ((R ⁻¹) y) ∥ᴱ) →
+      to (from′ p) ≡ [ y ]
+    to-from′ y = T.elim λ @0 where
       .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-      .T.∣∣ʳ (_ , Rxy , Rx′y)         →
-        to′ (lr x)   ≡⟨ to′-lemma Rxy Rx′y (lr x) (lr x′) ⟩∎
-        to′ (lr x′)  ∎
+      .T.∣∣ʳ (x , Rxy)                →
+        to′ (lr x)  ≡⟨ to′≡[] Rxy (lr x) ⟩∎
+        [ y ]       ∎
 
-  from′ : ∥ ∃ ((R ⁻¹) y) ∥ᴱ → A /ᴱ R ⟵
-  from′ =
-    _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
-      ( [_] ∘ proj₁
-      , [ (λ (_ , r₁) (_ , r₂) →
-             Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
-        ]
-      )
+    @0 to-from : ∀ y → to (from y) ≡ y
+    to-from = Q.elim-prop λ @0 where
+      .Q.is-propositionʳ _ → Q./ᴱ-is-set
+      .Q.[]ʳ y             →
+        to (from′ (rl y))  ≡⟨ to-from′ y (rl y) ⟩∎
+        [ y ]              ∎
 
-  @0 from′-lemma :
-    R x y → R x y′ →
-    (p  : ∥ ∃ ((R ⁻¹) y) ∥ᴱ)
-    (p′ : ∥ ∃ ((R ⁻¹) y′) ∥ᴱ) →
-    from′ p ≡ from′ p′
-  from′-lemma Rxy Rxy′ = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ →
-      Π-closure ext 1 λ _ →
-      Q./ᴱ-is-set
-    .T.∣∣ʳ (x₁ , Rx₁y) → T.elim λ @0 where
+    @0 from′≡[] :
+      R x y → (p : ∥ ∃ ((R ⁻¹) y) ∥ᴱ) →
+      from′ p ≡ [ x ]
+    from′≡[] {x} {y} Rxy = T.elim λ @0 where
       .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-      .T.∣∣ʳ (x₂ , Rx₂y′)             →
-        [ x₁ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rx₁y , qper Rx₂y′ Rxy′ Rxy ∣ ⟩∎
-        [ x₂ ]  ∎
+      .T.∣∣ʳ (x′ , Rx′y)              →
+        [ x′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rx′y , Rxy ∣ ⟩∎
+        [ x ]   ∎
 
-  from : B /ᴱ R ⟶ → A /ᴱ R ⟵
-  from = Q.rec λ where
-    .Q.is-setʳ → Q./ᴱ-is-set
-
-    .Q.[]ʳ → from′ ∘ rl
-
-    .Q.[]-respects-relationʳ {x = y} {y = y′} → T.elim λ @0 where
+    @0 from-to′ :
+      ∀ x (p : ∥ ∃ (R x) ∥ᴱ) →
+      from (to′ p) ≡ [ x ]
+    from-to′ x = T.elim λ @0 where
       .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-      .T.∣∣ʳ (_ , Rxy , Rxy′)         →
-        from′ (rl y)   ≡⟨ from′-lemma Rxy Rxy′ (rl y) (rl y′) ⟩∎
-        from′ (rl y′)  ∎
+      .T.∣∣ʳ (y , Rxy)                →
+        from′ (rl y)  ≡⟨ from′≡[] Rxy (rl y) ⟩∎
+        [ x ]         ∎
 
-  @0 to′≡[] :
-    R x y → (p : ∥ ∃ (R x) ∥ᴱ) →
-    to′ p ≡ [ y ]
-  to′≡[] {x} {y} Rxy = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-    .T.∣∣ʳ (y′ , Rxy′)              →
-      [ y′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rxy′ , Rxy ∣ ⟩∎
-      [ y ]   ∎
+    @0 from-to : ∀ x → from (to x) ≡ x
+    from-to = Q.elim-prop λ @0 where
+      .Q.is-propositionʳ _ → Q./ᴱ-is-set
+      .Q.[]ʳ x             →
+        from (to′ (lr x))  ≡⟨ from-to′ x (lr x) ⟩∎
+        [ x ]              ∎
 
-  @0 to-from′ :
-    ∀ y (p : ∥ ∃ ((R ⁻¹) y) ∥ᴱ) →
-    to (from′ p) ≡ [ y ]
-  to-from′ y = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-    .T.∣∣ʳ (x , Rxy)                →
+    to″ : to [ x ] ≡ [ y ] → R x y
+    to″ {x} {y} =
+      to′ (lr x) ≡ [ y ]  ↝⟨ flip (T.elim {P = λ p → to′ p ≡ [ y ] → R x y}) (lr x) (λ where
+                               .T.truncation-is-propositionʳ _ →
+                                 Π-closure ext 1 λ _ →
+                                 prop _ _
+                               .T.∣∣ʳ (y′ , Rxy′) →
+                                 [ y′ ] ≡ [ y ]  ↝⟨ Q.effective
+                                                      (Is-QER→Is-equivalence-relation-⟶ qer)
+                                                      T.truncation-is-proposition
+                                                      ∣ _ , Rxy′ , Rxy′ ∣ ⟩
+                                 (R ⟶) y′ y      ↝⟨ T.rec (λ where
+                                                      .T.truncation-is-propositionʳ → prop _ _
+                                                      .T.∣∣ʳ (_ , Rx′y′ , Rx′y)     →
+                                                        qper Rxy′ Rx′y′ Rx′y) ⟩□
+                                 R x y           □) ⟩□
+      R x y               □
+
+    @0 from″ : R x y → to [ x ] ≡ [ y ]
+    from″ {x} {y} Rxy =
       to′ (lr x)  ≡⟨ to′≡[] Rxy (lr x) ⟩∎
       [ y ]       ∎
-
-  @0 to-from : ∀ y → to (from y) ≡ y
-  to-from = Q.elim-prop λ @0 where
-    .Q.is-propositionʳ _ → Q./ᴱ-is-set
-    .Q.[]ʳ y             →
-      to (from′ (rl y))  ≡⟨ to-from′ y (rl y) ⟩∎
-      [ y ]              ∎
-
-  @0 from′≡[] :
-    R x y → (p : ∥ ∃ ((R ⁻¹) y) ∥ᴱ) →
-    from′ p ≡ [ x ]
-  from′≡[] {x} {y} Rxy = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-    .T.∣∣ʳ (x′ , Rx′y)              →
-      [ x′ ]  ≡⟨ Q.[]-respects-relation ∣ _ , Rx′y , Rxy ∣ ⟩∎
-      [ x ]   ∎
-
-  @0 from-to′ :
-    ∀ x (p : ∥ ∃ (R x) ∥ᴱ) →
-    from (to′ p) ≡ [ x ]
-  from-to′ x = T.elim λ @0 where
-    .T.truncation-is-propositionʳ _ → Q./ᴱ-is-set
-    .T.∣∣ʳ (y , Rxy)                →
-      from′ (rl y)  ≡⟨ from′≡[] Rxy (rl y) ⟩∎
-      [ x ]         ∎
-
-  @0 from-to : ∀ x → from (to x) ≡ x
-  from-to = Q.elim-prop λ @0 where
-    .Q.is-propositionʳ _ → Q./ᴱ-is-set
-    .Q.[]ʳ x             →
-      from (to′ (lr x))  ≡⟨ from-to′ x (lr x) ⟩∎
-      [ x ]              ∎
-
-  to″ : to [ x ] ≡ [ y ] → R x y
-  to″ {x} {y} =
-    to′ (lr x) ≡ [ y ]  ↝⟨ flip (T.elim {P = λ p → to′ p ≡ [ y ] → R x y}) (lr x) (λ where
-                             .T.truncation-is-propositionʳ _ →
-                               Π-closure ext 1 λ _ →
-                               prop _ _
-                             .T.∣∣ʳ (y′ , Rxy′) →
-                               [ y′ ] ≡ [ y ]  ↝⟨ Q.effective
-                                                    (Is-QER→Is-equivalence-relation-⟶ qer)
-                                                    T.truncation-is-proposition
-                                                    ∣ _ , Rxy′ , Rxy′ ∣ ⟩
-                               (R ⟶) y′ y      ↝⟨ T.rec (λ where
-                                                    .T.truncation-is-propositionʳ → prop _ _
-                                                    .T.∣∣ʳ (_ , Rx′y′ , Rx′y)     →
-                                                      qper Rxy′ Rx′y′ Rx′y) ⟩□
-                               R x y           □) ⟩□
-    R x y               □
-
-  @0 from″ : R x y → to [ x ] ≡ [ y ]
-  from″ {x} {y} Rxy =
-    to′ (lr x)  ≡⟨ to′≡[] Rxy (lr x) ⟩∎
-    [ y ]       ∎
 
 -- A propositional QER R (with erased proofs) can be turned into an
 -- equivalence (with erased proofs) satisfying a certain (erased)
@@ -1337,39 +1343,42 @@ Idᴿ-acts-on-functions = λ where
   .Acts-on-functions.map-id    → refl _
   .Acts-on-functions.map-map f → f
 
--- Idᴿ is positive.
+opaque
+  unfolding T.rec
 
-Idᴿ-positive : Positive (Idᴿ {a = a})
-Idᴿ-positive = λ where
-  .Positive.suitable → Idᴿ-suitable
+  -- Idᴿ is positive.
 
-  .Positive.acts-on-functions → Idᴿ-acts-on-functions
+  Idᴿ-positive : Positive (Idᴿ {a = a})
+  Idᴿ-positive = λ where
+    .Positive.suitable → Idᴿ-suitable
 
-  .Positive.reflexive-∥≡∥ᴱ → ∣ refl _ ∣
+    .Positive.acts-on-functions → Idᴿ-acts-on-functions
 
-  .Positive.transitive-;ᴱ⁻¹ {R} {S} R-prop S-prop x z →
-    _≃_.is-equivalence $
-    Eq.with-other-function
-      ((Idᴿ R ;ᴱ Idᴿ S) x z  ↔⟨⟩
-       (R ;ᴱ S) x z          ↔⟨⟩
-       Idᴿ (R ;ᴱ S) x z      □)
-      (Suitable.transitive-;ᴱ Idᴿ-suitable R-prop S-prop x z)
-      (T.elim λ @0 where
-         .T.truncation-is-propositionʳ _ →
-           H-level.⇒≡ 1 T.truncation-is-proposition
-         .T.∣∣ʳ _ →
-           refl _)
+    .Positive.reflexive-∥≡∥ᴱ → ∣ refl _ ∣
 
-  .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
-    _≃ᴱ_.is-equivalence $
-    EEq.with-other-function
-      (Id A /ᴱ Idᴿ R  ↔⟨⟩
-       A /ᴱ R         ↔⟨⟩
-       Id (A /ᴱ R)    □)
-      (/ᴱ→/ᴱ Idᴿ Idᴿ-suitable Idᴿ-acts-on-functions prop equiv)
-      (Q.elim-prop λ @0 where
-         .Q.is-propositionʳ _ → Q./ᴱ-is-set
-         .Q.[]ʳ _             → refl _)
+    .Positive.transitive-;ᴱ⁻¹ {R} {S} R-prop S-prop x z →
+      _≃_.is-equivalence $
+      Eq.with-other-function
+        ((Idᴿ R ;ᴱ Idᴿ S) x z  ↔⟨⟩
+         (R ;ᴱ S) x z          ↔⟨⟩
+         Idᴿ (R ;ᴱ S) x z      □)
+        (Suitable.transitive-;ᴱ Idᴿ-suitable R-prop S-prop x z)
+        (T.elim λ @0 where
+           .T.truncation-is-propositionʳ _ →
+             H-level.⇒≡ 1 T.truncation-is-proposition
+           .T.∣∣ʳ _ →
+             refl _)
+
+    .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
+      _≃ᴱ_.is-equivalence $
+      EEq.with-other-function
+        (Id A /ᴱ Idᴿ R  ↔⟨⟩
+         A /ᴱ R         ↔⟨⟩
+         Id (A /ᴱ R)    □)
+        (/ᴱ→/ᴱ Idᴿ Idᴿ-suitable Idᴿ-acts-on-functions prop equiv)
+        (Q.elim-prop λ @0 where
+           .Q.is-propositionʳ _ → Q./ᴱ-is-set
+           .Q.[]ʳ _             → refl _)
 
 ------------------------------------------------------------------------
 -- Combinators related to Cartesian products
@@ -1514,102 +1523,107 @@ Productᴿ-acts-on-functions {S} {T} a-S a-T = λ where
     T R₂ (a-T .Acts-on-functions.map f x₂)
          (a-T .Acts-on-functions.map g y₂)    □
 
--- If S and T are positive, then Productᴿ S T is positive.
+opaque
+  unfolding T.rec
 
-Productᴿ-positive :
-  {@0 S : Relation-transformer-for F}
-  {@0 T : Relation-transformer-for G} →
-  Positive S →
-  Positive T →
-  Positive (Productᴿ S T)
-Productᴿ-positive {F} {G} {S} {T} p-S p-T = λ where
-    .Positive.suitable → suitable
+  -- If S and T are positive, then Productᴿ S T is positive.
 
-    .Positive.acts-on-functions → acts-on-functions
+  Productᴿ-positive :
+    {@0 S : Relation-transformer-for F}
+    {@0 T : Relation-transformer-for G} →
+    Positive S →
+    Positive T →
+    Positive (Productᴿ S T)
+  Productᴿ-positive {F} {G} {S} {T} p-S p-T = λ where
+      .Positive.suitable → suitable
 
-    .Positive.reflexive-∥≡∥ᴱ → SP.reflexive-∥≡∥ᴱ , TP.reflexive-∥≡∥ᴱ
+      .Positive.acts-on-functions → acts-on-functions
 
-    .Positive.transitive-;ᴱ⁻¹
-      {R = R₁} {S = R₂} R₁-prop R₂-prop x@(x₁ , x₂) z@(z₁ , z₂) →
+      .Positive.reflexive-∥≡∥ᴱ → SP.reflexive-∥≡∥ᴱ , TP.reflexive-∥≡∥ᴱ
 
-      _≃_.is-equivalence $
-      Eq.with-other-function
-        ((Productᴿ S T R₁ ;ᴱ Productᴿ S T R₂) x z     ↝⟨ lemma ⟩
-         (S R₁ ;ᴱ S R₂) x₁ z₁ × (T R₁ ;ᴱ T R₂) x₂ z₂  ↝⟨ Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩
-                                                           ×-cong
-                                                         Eq.⟨ _ , TP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩
-         S (R₁ ;ᴱ R₂) x₁ z₁ × T (R₁ ;ᴱ R₂) x₂ z₂      ↔⟨⟩
+      .Positive.transitive-;ᴱ⁻¹
+        {R = R₁} {S = R₂} R₁-prop R₂-prop x@(x₁ , x₂) z@(z₁ , z₂) →
 
-         Productᴿ S T (R₁ ;ᴱ R₂) x z                  □)
-        _
-        (T.elim λ @0 where
-           .T.truncation-is-propositionʳ _ →
-             H-level.mono₁ 1 $
-             ×-closure 1
-               (SS.preserves-is-proposition
-                  (λ _ _ → T.truncation-is-proposition) _ _)
-               (TS.preserves-is-proposition
-                  (λ _ _ → T.truncation-is-proposition) _ _)
-           .T.∣∣ʳ _ →
-             refl _)
+        _≃_.is-equivalence $
+        Eq.with-other-function
+          ((Productᴿ S T R₁ ;ᴱ Productᴿ S T R₂) x z     ↝⟨ lemma ⟩
+           (S R₁ ;ᴱ S R₂) x₁ z₁ × (T R₁ ;ᴱ T R₂) x₂ z₂  ↝⟨ Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩
+                                                             ×-cong
+                                                           Eq.⟨ _ , TP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩
+           S (R₁ ;ᴱ R₂) x₁ z₁ × T (R₁ ;ᴱ R₂) x₂ z₂      ↔⟨⟩
 
-    .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
-      _≃ᴱ_.is-equivalence $
-      EEq.with-other-function
-        (Product F G A /ᴱ Productᴿ S T R  ↔⟨⟩
-         (F A × G A) /ᴱ Productᴿ S T R    ↔⟨ Q.×/ᴱ (SP.reflexive prop equiv _) (TP.reflexive prop equiv _) ⟩
-         F A /ᴱ S R × G A /ᴱ T R          ↝⟨ EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩
-                                               ×-cong
-                                             EEq.⟨ _ , TP.commutes-with-/ᴱ prop equiv ⟩ ⟩
-         F (A /ᴱ R) × G (A /ᴱ R)          ↔⟨⟩
-         Product F G (A /ᴱ R)             □)
-        _
-        (Q.elim-prop λ @0 where
-           .Q.is-propositionʳ _ →
-             ×-closure 2
-               (SS.preserves-is-set Q./ᴱ-is-set)
-               (TS.preserves-is-set Q./ᴱ-is-set)
-           .Q.[]ʳ _ → refl _)
-  where
-  module SP = Positive p-S
-  module SS = Suitable SP.suitable
-  module TP = Positive p-T
-  module TS = Suitable TP.suitable
+           Productᴿ S T (R₁ ;ᴱ R₂) x z                  □)
+          _
+          (T.elim λ @0 where
+             .T.truncation-is-propositionʳ _ →
+               H-level.mono₁ 1 $
+               ×-closure 1
+                 (SS.preserves-is-proposition
+                    (λ _ _ → T.truncation-is-proposition) _ _)
+                 (TS.preserves-is-proposition
+                    (λ _ _ → T.truncation-is-proposition) _ _)
+             .T.∣∣ʳ _ →
+               refl _)
 
-  suitable =
-    Productᴿ-suitable
-      SP.suitable
-      TP.suitable
+      .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
+        _≃ᴱ_.is-equivalence $
+        EEq.with-other-function
+          (Product F G A /ᴱ Productᴿ S T R  ↔⟨⟩
+           (F A × G A) /ᴱ Productᴿ S T R    ↔⟨ Q.×/ᴱ (SP.reflexive prop equiv _) (TP.reflexive prop equiv _) ⟩
+           F A /ᴱ S R × G A /ᴱ T R          ↝⟨ EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩
+                                                 ×-cong
+                                               EEq.⟨ _ , TP.commutes-with-/ᴱ prop equiv ⟩ ⟩
+           F (A /ᴱ R) × G (A /ᴱ R)          ↔⟨⟩
+           Product F G (A /ᴱ R)             □)
+          _
+          (Q.elim-prop λ @0 where
+             .Q.is-propositionʳ _ →
+               ×-closure 2
+                 (SS.preserves-is-set Q./ᴱ-is-set)
+                 (TS.preserves-is-set Q./ᴱ-is-set)
+             .Q.[]ʳ _ → refl _)
+    where
+    module SP = Positive p-S
+    module SS = Suitable SP.suitable
+    module TP = Positive p-T
+    module TS = Suitable TP.suitable
 
-  acts-on-functions =
-    Productᴿ-acts-on-functions
-      SP.acts-on-functions
-      TP.acts-on-functions
+    suitable : Suitable (Productᴿ S T)
+    suitable =
+      Productᴿ-suitable
+        SP.suitable
+        TP.suitable
 
-  @0 lemma :
-    (Productᴿ S T R₁ ;ᴱ Productᴿ S T R₂) (x₁ , x₂) (z₁ , z₂) ≃
-    ((S R₁ ;ᴱ S R₂) x₁ z₁ × (T R₁ ;ᴱ T R₂) x₂ z₂)
-  lemma = Eq.⇔→≃
-    T.truncation-is-proposition
-    (×-closure 1
-       T.truncation-is-proposition
-       T.truncation-is-proposition)
-    (T.rec λ @0 where
-       .T.truncation-is-propositionʳ →
-         ×-closure 1
-           T.truncation-is-proposition
-           T.truncation-is-proposition
-       .T.∣∣ʳ (_ , (SR₁x₁y₁ , TR₁x₂y₂) , (SR₂y₁z₁ , TR₂y₂z₂)) →
-           ∣ _ , SR₁x₁y₁ , SR₂y₁z₁ ∣
-         , ∣ _ , TR₁x₂y₂ , TR₂y₂z₂ ∣)
-    (uncurry $ T.rec λ @0 where
-       .T.truncation-is-propositionʳ →
-         Π-closure ext 1 λ _ →
+    acts-on-functions : Acts-on-functions (Productᴿ S T)
+    acts-on-functions =
+      Productᴿ-acts-on-functions
+        SP.acts-on-functions
+        TP.acts-on-functions
+
+    @0 lemma :
+      (Productᴿ S T R₁ ;ᴱ Productᴿ S T R₂) (x₁ , x₂) (z₁ , z₂) ≃
+      ((S R₁ ;ᴱ S R₂) x₁ z₁ × (T R₁ ;ᴱ T R₂) x₂ z₂)
+    lemma = Eq.⇔→≃
+      T.truncation-is-proposition
+      (×-closure 1
          T.truncation-is-proposition
-       .T.∣∣ʳ (_ , SR₁x₁y₁ , SR₂y₁z₁) →
-         T.∥∥ᴱ-map
-           λ (_ , TR₁x₂y₂ , TR₂y₂z₂) →
-             _ , (SR₁x₁y₁ , TR₁x₂y₂) , (SR₂y₁z₁ , TR₂y₂z₂))
+         T.truncation-is-proposition)
+      (T.rec λ @0 where
+         .T.truncation-is-propositionʳ →
+           ×-closure 1
+             T.truncation-is-proposition
+             T.truncation-is-proposition
+         .T.∣∣ʳ (_ , (SR₁x₁y₁ , TR₁x₂y₂) , (SR₂y₁z₁ , TR₂y₂z₂)) →
+             ∣ _ , SR₁x₁y₁ , SR₂y₁z₁ ∣
+           , ∣ _ , TR₁x₂y₂ , TR₂y₂z₂ ∣)
+      (uncurry $ T.rec λ @0 where
+         .T.truncation-is-propositionʳ →
+           Π-closure ext 1 λ _ →
+           T.truncation-is-proposition
+         .T.∣∣ʳ (_ , SR₁x₁y₁ , SR₂y₁z₁) →
+           T.∥∥ᴱ-map
+             λ (_ , TR₁x₂y₂ , TR₂y₂z₂) →
+               _ , (SR₁x₁y₁ , TR₁x₂y₂) , (SR₂y₁z₁ , TR₂y₂z₂))
 
 ------------------------------------------------------------------------
 -- Combinators related to Maybe
@@ -1779,118 +1793,124 @@ Maybeᴿ-acts-on-functions {G} a-G = λ where
   where
   module A = Acts-on-functions a-G
 
--- If G is positive, then Maybeᴿ G is positive.
+opaque
+  unfolding T.∥∥ᴱ-map
 
-Maybeᴿ-positive :
-  {@0 G : Relation-transformer-for F} →
-  Positive G →
-  Positive (Maybeᴿ G)
-Maybeᴿ-positive {F} {G} p-G = λ where
-    .Positive.suitable → suitable
+  -- If G is positive, then Maybeᴿ G is positive.
 
-    .Positive.acts-on-functions → acts-on-functions
+  Maybeᴿ-positive :
+    {@0 G : Relation-transformer-for F} →
+    Positive G →
+    Positive (Maybeᴿ G)
+  Maybeᴿ-positive {F} {G} p-G = λ where
+      .Positive.suitable → suitable
 
-    .Positive.reflexive-∥≡∥ᴱ {x = nothing} → _
-    .Positive.reflexive-∥≡∥ᴱ {x = just _}  → SP.reflexive-∥≡∥ᴱ
+      .Positive.acts-on-functions → acts-on-functions
 
-    .Positive.transitive-;ᴱ⁻¹ R₁-prop R₂-prop x z →
-      _≃_.is-equivalence $
-      Eq.with-other-function
-        (lemma R₁-prop R₂-prop x z .proj₁)
-        _
-        (lemma R₁-prop R₂-prop x z .proj₂)
+      .Positive.reflexive-∥≡∥ᴱ {x = nothing} → _
+      .Positive.reflexive-∥≡∥ᴱ {x = just _}  → SP.reflexive-∥≡∥ᴱ
 
-    .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
-      _≃ᴱ_.is-equivalence $
-      EEq.with-other-function
-        (Maybe (F A) /ᴱ Maybeᴿ G R  ↔⟨ Q.Maybe/ᴱ ⟩
-         Maybe (F A /ᴱ G R)         ↝⟨ F.id ⊎-cong EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩ ⟩□
-         Maybe (F (A /ᴱ R))         □)
-        (/ᴱ→/ᴱ (Maybeᴿ G) suitable acts-on-functions prop equiv)
-        (Q.elim-prop λ @0 where
-           .Q.is-propositionʳ _ →
-             Maybe-closure 0 (SS.preserves-is-set Q./ᴱ-is-set)
-           .Q.[]ʳ nothing  → refl _
-           .Q.[]ʳ (just _) → refl _)
-  where
-  module SP = Positive p-G
-  module SS = Suitable SP.suitable
+      .Positive.transitive-;ᴱ⁻¹ R₁-prop R₂-prop x z →
+        _≃_.is-equivalence $
+        Eq.with-other-function
+          (lemma R₁-prop R₂-prop x z .proj₁)
+          _
+          (lemma R₁-prop R₂-prop x z .proj₂)
 
-  suitable          = Maybeᴿ-suitable SP.suitable
-  acts-on-functions = Maybeᴿ-acts-on-functions SP.acts-on-functions
+      .Positive.commutes-with-/ᴱ {A} {R} prop equiv →
+        _≃ᴱ_.is-equivalence $
+        EEq.with-other-function
+          (Maybe (F A) /ᴱ Maybeᴿ G R  ↔⟨ Q.Maybe/ᴱ ⟩
+           Maybe (F A /ᴱ G R)         ↝⟨ F.id ⊎-cong EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩ ⟩□
+           Maybe (F (A /ᴱ R))         □)
+          (/ᴱ→/ᴱ (Maybeᴿ G) suitable acts-on-functions prop equiv)
+          (Q.elim-prop λ @0 where
+             .Q.is-propositionʳ _ →
+               Maybe-closure 0 (SS.preserves-is-set Q./ᴱ-is-set)
+             .Q.[]ʳ nothing  → refl _
+             .Q.[]ʳ (just _) → refl _)
+    where
+    module SP = Positive p-G
+    module SS = Suitable SP.suitable
 
-  @0 lemma :
-    (R₁-prop : ∀ x y → Is-proposition (R₁ x y)) →
-    (R₂-prop : ∀ x y → Is-proposition (R₂ x y)) →
-    ∀ x z →
-    ∃ λ (eq : (Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) x z ≃
-              Maybeᴿ G (R₁ ;ᴱ R₂) x z) →
-      ∀ p →
-      _≃_.to eq p ≡
-      Suitable.transitive-;ᴱ suitable R₁-prop R₂-prop x z p
-  lemma {R₁} {R₂} R₁-prop R₂-prop = λ @0 where
-    nothing nothing →
-        ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) nothing nothing  ↝⟨ Eq.⇔→≃
-                                                            T.truncation-is-proposition
-                                                            (H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
-                                                            _
-                                                            (λ _ → ∣ nothing , _ ∣) ⟩□
-         ↑ _ ⊤                                         □)
-      , (λ _ → refl _)
+    suitable : Suitable (Maybeᴿ G)
+    suitable = Maybeᴿ-suitable SP.suitable
 
-    nothing (just z) →
-        ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) nothing (just z)  ↝⟨ Eq.⇔→≃
-                                                             T.truncation-is-proposition
-                                                             ⊥-propositional
-                                                             (T.rec λ @0 where
-                                                                .T.truncation-is-propositionʳ →
-                                                                  ⊥-propositional
-                                                                .T.∣∣ʳ (nothing , _ , ())
-                                                                .T.∣∣ʳ (just _ , () , _))
-                                                             ⊥-elim ⟩□
-         ⊥                                              □)
-      , (T.elim λ @0 where
-           .T.truncation-is-propositionʳ _ →
-             H-level.⇒≡ 1 $
-             ⊥-propositional
-           .T.∣∣ʳ (nothing , _ , ())
-           .T.∣∣ʳ (just _ , () , _))
+    acts-on-functions : Acts-on-functions (Maybeᴿ G)
+    acts-on-functions = Maybeᴿ-acts-on-functions SP.acts-on-functions
 
-    (just x) nothing →
-         ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) (just x) nothing  ↝⟨ Eq.⇔→≃
+    @0 lemma :
+      (R₁-prop : ∀ x y → Is-proposition (R₁ x y)) →
+      (R₂-prop : ∀ x y → Is-proposition (R₂ x y)) →
+      ∀ x z →
+      ∃ λ (eq : (Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) x z ≃
+                Maybeᴿ G (R₁ ;ᴱ R₂) x z) →
+        ∀ p →
+        _≃_.to eq p ≡
+        Suitable.transitive-;ᴱ suitable R₁-prop R₂-prop x z p
+    lemma {R₁} {R₂} R₁-prop R₂-prop = λ @0 where
+      nothing nothing →
+          ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) nothing nothing  ↝⟨ Eq.⇔→≃
                                                               T.truncation-is-proposition
-                                                              ⊥-propositional
-                                                              (T.rec λ @0 where
-                                                                 .T.truncation-is-propositionʳ →
-                                                                   ⊥-propositional
-                                                                 .T.∣∣ʳ (nothing , () , _)
-                                                                 .T.∣∣ʳ (just _ , _ , ()))
-                                                              ⊥-elim ⟩□
-          ⊥                                              □)
-      , (T.elim λ @0 where
-           .T.truncation-is-propositionʳ _ →
-             H-level.⇒≡ 1 $
-             ⊥-propositional
-           .T.∣∣ʳ (nothing , () , _)
-           .T.∣∣ʳ (just _ , _ , ()))
+                                                              (H-level.mono₁ 0 $ ↑-closure 0 ⊤-contractible)
+                                                              _
+                                                              (λ _ → ∣ nothing , _ ∣) ⟩□
+           ↑ _ ⊤                                         □)
+        , (λ _ → refl _)
 
-    (just x) (just z) →
-        ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) (just x) (just z)  ↝⟨ Eq.⇔→≃
-                                                             T.truncation-is-proposition
-                                                             T.truncation-is-proposition
-                                                             (T.∥∥ᴱ-map λ where
-                                                                (nothing , () , ())
-                                                                (just _ , p)        → _ , p)
-                                                             (T.∥∥ᴱ-map (Σ-map just id)) ⟩
-         (G R₁ ;ᴱ G R₂) x z                              ↝⟨ Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩□
-         G (R₁ ;ᴱ R₂) x z                                □)
-      , (T.elim λ @0 where
-           .T.truncation-is-propositionʳ _ →
-             H-level.⇒≡ 1 $
-             SS.preserves-is-proposition
-               (λ _ _ → T.truncation-is-proposition) _ _
-           .T.∣∣ʳ (nothing , () , ())
-           .T.∣∣ʳ (just _ , _)        → refl _)
+      nothing (just z) →
+          ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) nothing (just z)  ↝⟨ Eq.⇔→≃
+                                                               T.truncation-is-proposition
+                                                               ⊥-propositional
+                                                               (T.rec λ @0 where
+                                                                  .T.truncation-is-propositionʳ →
+                                                                    ⊥-propositional
+                                                                  .T.∣∣ʳ (nothing , _ , ())
+                                                                  .T.∣∣ʳ (just _ , () , _))
+                                                               ⊥-elim ⟩□
+           ⊥                                              □)
+        , (T.elim λ @0 where
+             .T.truncation-is-propositionʳ _ →
+               H-level.⇒≡ 1 $
+               ⊥-propositional
+             .T.∣∣ʳ (nothing , _ , ())
+             .T.∣∣ʳ (just _ , () , _))
+
+      (just x) nothing →
+           ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) (just x) nothing  ↝⟨ Eq.⇔→≃
+                                                                T.truncation-is-proposition
+                                                                ⊥-propositional
+                                                                (T.rec λ @0 where
+                                                                   .T.truncation-is-propositionʳ →
+                                                                     ⊥-propositional
+                                                                   .T.∣∣ʳ (nothing , () , _)
+                                                                   .T.∣∣ʳ (just _ , _ , ()))
+                                                                ⊥-elim ⟩□
+            ⊥                                              □)
+        , (T.elim λ @0 where
+             .T.truncation-is-propositionʳ _ →
+               H-level.⇒≡ 1 $
+               ⊥-propositional
+             .T.∣∣ʳ (nothing , () , _)
+             .T.∣∣ʳ (just _ , _ , ()))
+
+      (just x) (just z) →
+          ((Maybeᴿ G R₁ ;ᴱ Maybeᴿ G R₂) (just x) (just z)  ↝⟨ Eq.⇔→≃
+                                                               T.truncation-is-proposition
+                                                               T.truncation-is-proposition
+                                                               (T.∥∥ᴱ-map λ where
+                                                                  (nothing , () , ())
+                                                                  (just _ , p)        → _ , p)
+                                                               (T.∥∥ᴱ-map (Σ-map just id)) ⟩
+           (G R₁ ;ᴱ G R₂) x z                              ↝⟨ Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩□
+           G (R₁ ;ᴱ R₂) x z                                □)
+        , (T.elim λ @0 where
+             .T.truncation-is-propositionʳ _ →
+               H-level.⇒≡ 1 $
+               SS.preserves-is-proposition
+                 (λ _ _ → T.truncation-is-proposition) _ _
+             .T.∣∣ʳ (nothing , () , ())
+             .T.∣∣ʳ (just _ , _)        → refl _)
 
 ------------------------------------------------------------------------
 -- The Function and Functionᴿ combinators, along with some properties
@@ -2863,24 +2883,30 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
   List-bag≃ᴱAssoc-list-bag =
     /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ (Is-QER→Is-QERᴱ ∼-QER) ∼-propositional .proj₁
 
-  -- Lists that are related by List-bag≃ᴱAssoc-list-bag (in a
-  -- certain way) are also related by _∼_.
-  --
-  -- Note that this definition is not erased: it uses /ᴱ⟵≃ᴱ/ᴱ⟶
-  -- instead of /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ, and ∼-QER instead of
-  -- Is-QER→Is-QERᴱ ∼-QER.
+  opaque
+    unfolding /ᴱ⟵≃ᴱ/ᴱ⟶ T.∥∥ᴱ-map
 
-  →∼ :
-    ∀ xs ys →
-    _≃ᴱ_.to List-bag≃ᴱAssoc-list-bag [ xs ] ≡ [ ys ] →
-    xs ∼ ys
-  →∼ xs ys = /ᴱ⟵≃ᴱ/ᴱ⟶ ∼-QER ∼-propositional .proj₂ xs ys .proj₁
+    -- Lists that are related by List-bag≃ᴱAssoc-list-bag (in a
+    -- certain way) are also related by _∼_.
+    --
+    -- Note that this definition is not erased: it uses /ᴱ⟵≃ᴱ/ᴱ⟶
+    -- instead of /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ, and ∼-QER instead of
+    -- Is-QER→Is-QERᴱ ∼-QER.
 
-  -- The function →∼ is an equivalence (in erased contexts).
+    →∼ :
+      ∀ xs ys →
+      _≃ᴱ_.to List-bag≃ᴱAssoc-list-bag [ xs ] ≡ [ ys ] →
+      xs ∼ ys
+    →∼ xs ys = /ᴱ⟵≃ᴱ/ᴱ⟶ ∼-QER ∼-propositional .proj₂ xs ys .proj₁
 
-  @0 →∼-equivalence : ∀ xs ys → Is-equivalence (→∼ xs ys)
-  →∼-equivalence xs ys =
-    /ᴱ⟵≃ᴱ/ᴱ⟶ ∼-QER ∼-propositional .proj₂ xs ys .proj₂ .erased
+  opaque
+    unfolding →∼
+
+    -- The function →∼ is an equivalence (in erased contexts).
+
+    @0 →∼-equivalence : ∀ xs ys → Is-equivalence (→∼ xs ys)
+    →∼-equivalence xs ys =
+      /ᴱ⟵≃ᴱ/ᴱ⟶ ∼-QER ∼-propositional .proj₂ xs ys .proj₂ .erased
 
   -- The relation _∼_ can be expressed using
   -- List-bag≃ᴱAssoc-list-bag (in erased contexts).
@@ -2961,48 +2987,51 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
       List-bag∼Assoc-list-bag
       .proj₂ .proj₂ .erased .proj₂ .proj₂
 
-  -- For List-bag /ᴱ _∼_ ⟵ equality of two lists can be expressed in
-  -- terms of the induced count function (in erased contexts).
+  opaque
+    unfolding Idᴿ-positive
 
-  @0 List-≡≃ :
-    let count = Raw-bag-structure-List-bag-/ᴱ .proj₂ .proj₂ .proj₂ in
-    (xs ys : List-bag /ᴱ _∼_ ⟵) →
-    (xs ≡ ys) ≃ (∀ z → count z xs ≡ count z ys)
-  List-≡≃ = Q.elim-prop λ @0 where
-    .Q.is-propositionʳ _ →
-      Π-closure ext 1 λ _ →
-      Eq.left-closure ext 0 $
-      Q./ᴱ-is-set
-    .Q.[]ʳ xs → Q.elim-prop λ @0 where
+    -- For List-bag /ᴱ _∼_ ⟵ equality of two lists can be expressed in
+    -- terms of the induced count function (in erased contexts).
+
+    @0 List-≡≃ :
+      let count = Raw-bag-structure-List-bag-/ᴱ .proj₂ .proj₂ .proj₂ in
+      (xs ys : List-bag /ᴱ _∼_ ⟵) →
+      (xs ≡ ys) ≃ (∀ z → count z xs ≡ count z ys)
+    List-≡≃ = Q.elim-prop λ @0 where
       .Q.is-propositionʳ _ →
+        Π-closure ext 1 λ _ →
         Eq.left-closure ext 0 $
         Q./ᴱ-is-set
-      .Q.[]ʳ ys →
-        ([ xs ] ≡ [ ys ])                  ↝⟨ inverse $
-                                              Q.related≃[equal]
-                                                (Is-QER→Is-equivalence-relation-⟵ ∼-QER)
-                                                T.truncation-is-proposition ⟩
-        (_∼_ ⟵) xs ys                      ↝⟨ Eq.⇔→≃
-                                                T.truncation-is-proposition
-                                                (Π-closure ext 1 λ _ → ℕ-set)
-                                                (T.rec λ @0 where
-                                                   .T.truncation-is-propositionʳ →
-                                                     Π-closure ext 1 λ _ → ℕ-set
-                                                   .T.∣∣ʳ (zs , xs∼zs , ys∼zs) z →
-                                                     count₁ z xs  ≡⟨ xs∼zs z ⟩
-                                                     count₂ z zs  ≡⟨ sym $ ys∼zs z ⟩∎
-                                                     count₁ z ys  ∎)
-                                                (λ xs∼ys →
-                                                   T.∥∥ᴱ-map
-                                                     (λ (zs , xs∼zs) →
-                                                          zs
-                                                        , xs∼zs
-                                                        , λ z →
-                                                            count₁ z ys  ≡⟨ sym $ xs∼ys z ⟩
-                                                            count₁ z xs  ≡⟨ xs∼zs z ⟩∎
-                                                            count₂ z zs  ∎)
-                                                     (∼-QER .proj₂ .proj₁ xs)) ⟩□
-        (∀ z → count₁ z xs ≡ count₁ z ys)  □
+      .Q.[]ʳ xs → Q.elim-prop λ @0 where
+        .Q.is-propositionʳ _ →
+          Eq.left-closure ext 0 $
+          Q./ᴱ-is-set
+        .Q.[]ʳ ys →
+          ([ xs ] ≡ [ ys ])                  ↝⟨ inverse $
+                                                Q.related≃[equal]
+                                                  (Is-QER→Is-equivalence-relation-⟵ ∼-QER)
+                                                  T.truncation-is-proposition ⟩
+          (_∼_ ⟵) xs ys                      ↝⟨ Eq.⇔→≃
+                                                  T.truncation-is-proposition
+                                                  (Π-closure ext 1 λ _ → ℕ-set)
+                                                  (T.rec λ @0 where
+                                                     .T.truncation-is-propositionʳ →
+                                                       Π-closure ext 1 λ _ → ℕ-set
+                                                     .T.∣∣ʳ (zs , xs∼zs , ys∼zs) z →
+                                                       count₁ z xs  ≡⟨ xs∼zs z ⟩
+                                                       count₂ z zs  ≡⟨ sym $ ys∼zs z ⟩∎
+                                                       count₁ z ys  ∎)
+                                                  (λ xs∼ys →
+                                                     T.∥∥ᴱ-map
+                                                       (λ (zs , xs∼zs) →
+                                                            zs
+                                                          , xs∼zs
+                                                          , λ z →
+                                                              count₁ z ys  ≡⟨ sym $ xs∼ys z ⟩
+                                                              count₁ z xs  ≡⟨ xs∼zs z ⟩∎
+                                                              count₂ z zs  ∎)
+                                                       (∼-QER .proj₂ .proj₁ xs)) ⟩□
+          (∀ z → count₁ z xs ≡ count₁ z ys)  □
 
   -- This property can easily be transported to
   -- Assoc-list-bag /ᴱ _∼_ ⟶.
