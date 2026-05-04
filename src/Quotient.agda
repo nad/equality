@@ -42,7 +42,7 @@ open import H-level.Truncation.Propositional eq as TruncP
   using (∥_∥; ∣_∣; Surjective; Axiom-of-countable-choice)
 open import Monad equality-with-J
 open import Preimage equality-with-J using (_⁻¹_)
-open import Quotient.Erased.Basics eq as QE using (_/ᴱ_)
+open import Quotient.Erased eq as QE using (_/ᴱ_)
 import Quotient.Families-of-equivalence-classes equality-with-J
   as Quotient
 import Quotient.Higher-constructors-if-propositional eq as QH

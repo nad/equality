@@ -123,10 +123,6 @@ import Pointed-type.Homotopy-group
 
 import Pointed-type.Connected
 
--- A variant of set quotients with erased higher constructors.
-
-import Quotient.Erased.Basics
-
 -- Two variants of the set quotients from Quotient.
 
 import Quotient.Set-truncated-if-propositional

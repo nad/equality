@@ -6,13 +6,13 @@
 
 module README.Safe.Cubical.Erased where
 
--- Quotients (set-quotients), defined using a higher inductive type.
-
-import Quotient
-
 -- A variant of set quotients with erased higher constructors.
 
 import Quotient.Erased
+
+-- Quotients (set-quotients), defined using a higher inductive type.
+
+import Quotient
 
 -- A membership relation for listed finite subsets (defined using
 -- erased univalence).
