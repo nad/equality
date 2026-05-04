@@ -1794,93 +1794,99 @@ from-List = L.foldr _∷_ []
 ------------------------------------------------------------------------
 -- Some definitions related to the definitions in Bag-equivalence
 
--- Finite subsets can be expressed as lists quotiented by set
--- equivalence.
+opaque
+  unfolding Q._/ᴱ-map_ Q.rec
 
-≃List/ᴱ∼ : Finite-subset-of A ≃ List A /ᴱ _∼[ set ]_
-≃List/ᴱ∼ = from-bijection (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = to
-      ; from = from
+  -- Finite subsets can be expressed as lists quotiented by set
+  -- equivalence.
+
+  ≃List/ᴱ∼ : Finite-subset-of A ≃ List A /ᴱ _∼[ set ]_
+  ≃List/ᴱ∼ = from-bijection (record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = to
+        ; from = from
+        }
+      ; right-inverse-of = to∘from
       }
-    ; right-inverse-of = to∘from
-    }
-  ; left-inverse-of = from∘to
-  })
-  where
-  cons : A → List A /ᴱ _∼[ set ]_ → List A /ᴱ _∼[ set ]_
-  cons x = (x ∷_) Q./ᴱ-map λ _ _ → refl _ BE.∷-cong_
-
-  to : Finite-subset-of A → List A /ᴱ _∼[ set ]_
-  to = rec r
+    ; left-inverse-of = from∘to
+    })
     where
-    r : Rec _ _
-    r .[]ʳ       = Q.[ [] ]
-    r .∷ʳ x _ y  = cons x y
-    r .is-setʳ   = Q./ᴱ-is-set
-    r .dropʳ x _ = Q.elim-prop λ @0 where
-      .Q.[]ʳ xs → Q.[]-respects-relation λ z →
-        z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = P.[ inj₁ , id ]; from = inj₂ } ⟩□
-        z BE.∈ x ∷ xs          □
-      .Q.is-propositionʳ _ → Q./ᴱ-is-set
+    cons : A → List A /ᴱ _∼[ set ]_ → List A /ᴱ _∼[ set ]_
+    cons x = (x ∷_) Q./ᴱ-map λ _ _ → refl _ BE.∷-cong_
 
-    r .swapʳ x y _ = Q.elim-prop λ @0 where
-      .Q.[]ʳ xs → Q.[]-respects-relation λ z →
-        z BE.∈ x ∷ y ∷ xs  ↔⟨ BE.swap-first-two z ⟩□
-        z BE.∈ y ∷ x ∷ xs  □
-      .Q.is-propositionʳ _ → Q./ᴱ-is-set
+    to : Finite-subset-of A → List A /ᴱ _∼[ set ]_
+    to = rec r
+      where
+      r : Rec A (List A /ᴱ _∼[ set ]_)
+      r .[]ʳ       = Q.[ [] ]
+      r .∷ʳ x _ y  = cons x y
+      r .is-setʳ   = Q./ᴱ-is-set
+      r .dropʳ x _ = Q.elim-prop λ @0 where
+        .Q.[]ʳ xs → Q.[]-respects-relation λ z →
+          z BE.∈ x ∷ x ∷ xs      ↝⟨ record { to = P.[ inj₁ , id ]; from = inj₂ } ⟩□
+          z BE.∈ x ∷ xs          □
+        .Q.is-propositionʳ _ → Q./ᴱ-is-set
 
-  from : List A /ᴱ _∼[ set ]_ → Finite-subset-of A
-  from {A} = Q.rec λ where
-    .Q.[]ʳ → from-List
+      r .swapʳ x y _ = Q.elim-prop λ @0 where
+        .Q.[]ʳ xs → Q.[]-respects-relation λ z →
+          z BE.∈ x ∷ y ∷ xs  ↔⟨ BE.swap-first-two z ⟩□
+          z BE.∈ y ∷ x ∷ xs  □
+        .Q.is-propositionʳ _ → Q./ᴱ-is-set
 
-    .Q.[]-respects-relationʳ {x = xs} {y = ys} xs∼ys →
-      _≃_.from extensionality λ z →
-        z ∈ from-List xs  ↔⟨ inverse ∥∈∥≃∈-from-List ⟩
-        ∥ z BE.∈ xs ∥     ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
-        ∥ z BE.∈ ys ∥     ↔⟨ ∥∈∥≃∈-from-List ⟩□
-        z ∈ from-List ys  □
+    from : List A /ᴱ _∼[ set ]_ → Finite-subset-of A
+    from {A} = Q.rec λ where
+      .Q.[]ʳ → from-List
 
-    .Q.is-setʳ → is-set
+      .Q.[]-respects-relationʳ {x = xs} {y = ys} xs∼ys →
+        _≃_.from extensionality λ z →
+          z ∈ from-List xs  ↔⟨ inverse ∥∈∥≃∈-from-List ⟩
+          ∥ z BE.∈ xs ∥     ↔⟨ Trunc.∥∥-cong-⇔ {k = bijection} (xs∼ys z) ⟩
+          ∥ z BE.∈ ys ∥     ↔⟨ ∥∈∥≃∈-from-List ⟩□
+          z ∈ from-List ys  □
 
-  to∘from : ∀ x → to (from x) ≡ x
-  to∘from = Q.elim-prop λ where
-      .Q.[]ʳ               → lemma
-      .Q.is-propositionʳ _ → Q./ᴱ-is-set
-    where
-    lemma : ∀ xs → to (from-List xs) ≡ Q.[ xs ]
-    lemma []       = refl _
-    lemma (x ∷ xs) =
-      to (from-List (x ∷ xs))                               ≡⟨⟩
-      ((x ∷_) Q./ᴱ-map _) (to (from-List xs))               ≡⟨ cong ((x ∷_) Q./ᴱ-map _) (lemma xs) ⟩
-      ((x ∷_) Q./ᴱ-map λ _ _ → refl _ BE.∷-cong_) Q.[ xs ]  ≡⟨⟩
-      Q.[ x ∷ xs ]                                          ∎
+      .Q.is-setʳ → is-set
 
-  from∘to : ∀ x → from (to x) ≡ x
-  from∘to = elim-prop e
-    where
-    e : Elim-prop _
-    e .[]ʳ = refl _
+    to∘from : (x : List A /ᴱ _∼[ set ]_) → to (from x) ≡ x
+    to∘from = Q.elim-prop λ where
+        .Q.[]ʳ               → lemma
+        .Q.is-propositionʳ _ → Q./ᴱ-is-set
+      where
+      lemma : (xs : List A) → to (from-List xs) ≡ Q.[ xs ]
+      lemma []       = refl _
+      lemma (x ∷ xs) =
+        to (from-List (x ∷ xs))                               ≡⟨⟩
+        ((x ∷_) Q./ᴱ-map _) (to (from-List xs))               ≡⟨ cong ((x ∷_) Q./ᴱ-map _) (lemma xs) ⟩
+        ((x ∷_) Q./ᴱ-map λ _ _ → refl _ BE.∷-cong_) Q.[ xs ]  ≡⟨⟩
+        Q.[ x ∷ xs ]                                          ∎
 
-    e .∷ʳ {y} x hyp =
-      from (to (x ∷ y))     ≡⟨⟩
-      from (cons x (to y))  ≡⟨ Q.elim-prop
-                                 {P = λ y → from (cons x y) ≡ x ∷ from y}
-                                 (λ where
-                                    .Q.[]ʳ _             → refl _
-                                    .Q.is-propositionʳ _ → is-set)
-                                 (to y) ⟩
-      x ∷ from (to y)       ≡⟨ cong (x ∷_) hyp ⟩∎
-      x ∷ y                 ∎
+    from∘to : (x : Finite-subset-of A) → from (to x) ≡ x
+    from∘to = elim-prop e
+      where
+      e : Elim-prop (λ (x : Finite-subset-of A) → from (to x) ≡ x)
+      e .[]ʳ = refl _
 
-    e .is-propositionʳ _ = is-set
+      e .∷ʳ {y} x hyp =
+        from (to (x ∷ y))     ≡⟨⟩
+        from (cons x (to y))  ≡⟨ Q.elim-prop
+                                   {P = λ y → from (cons x y) ≡ x ∷ from y}
+                                   (λ where
+                                      .Q.[]ʳ _             → refl _
+                                      .Q.is-propositionʳ _ → is-set)
+                                   (to y) ⟩
+        x ∷ from (to y)       ≡⟨ cong (x ∷_) hyp ⟩∎
+        x ∷ y                 ∎
 
--- A truncated variant of the proof-relevant membership relation from
--- Bag-equivalence can be expressed in terms of _∈_.
+      e .is-propositionʳ _ = is-set
 
-∥∈∥≃∈ : ∥ x BE.∈ ys ∥ ≃ (x ∈ _≃_.from ≃List/ᴱ∼ Q.[ ys ])
-∥∈∥≃∈ = ∥∈∥≃∈-from-List
+opaque
+  unfolding ≃List/ᴱ∼
+
+  -- A truncated variant of the proof-relevant membership relation from
+  -- Bag-equivalence can be expressed in terms of _∈_.
+
+  ∥∈∥≃∈ : ∥ x BE.∈ ys ∥ ≃ (x ∈ _≃_.from ≃List/ᴱ∼ Q.[ ys ])
+  ∥∈∥≃∈ = ∥∈∥≃∈-from-List
 
 ------------------------------------------------------------------------
 -- Fresh numbers

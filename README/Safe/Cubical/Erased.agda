@@ -6,10 +6,6 @@
 
 module README.Safe.Cubical.Erased where
 
--- A variant of set quotients with erased higher constructors.
-
-import Quotient.Erased
-
 -- Quotients (set-quotients), defined using a higher inductive type.
 
 import Quotient

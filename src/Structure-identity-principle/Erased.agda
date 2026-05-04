@@ -332,7 +332,7 @@ Graph-[]-⟵≡ {R} prop equiv =
   in
   ≃⇒≡ univ
     ((Graph [_] ⟵) x y  ↝⟨ lemma ⟩
-     [ x ] ≡ [ y ]      ↔⟨ inverse $ Q.related≃[equal] equiv (prop _ _) ⟩□
+     [ x ] ≡ [ y ]      ↔⟨ inverse $ Q.related≃[equal] ext univ equiv (prop _ _) ⟩□
      R x y              □)
 
 -- If R is a propositional equivalence relation, then
@@ -368,7 +368,7 @@ Graph-[]-⟵≡ {R} prop equiv =
                [ x ]  ≡⟨ Q.[]-respects-relation Rxz ⟩
                [ z ]  ≡⟨ [z]≡[y] ⟩∎
                [ y ]  ∎)
-          ([ x ] ≡ [ y ]             ↔⟨ inverse $ Q.related≃[equal] equiv (prop _ _) ⟩
+          ([ x ] ≡ [ y ]             ↔⟨ inverse $ Q.related≃[equal] ext univ equiv (prop _ _) ⟩
            R x y                     ↝⟨ (λ Rxy → ∣ _ , Rxy , refl _ ∣) ⟩
            (R ;ᴱ Graph [_]) x [ y ]  □)
 
@@ -553,7 +553,7 @@ Is-QERᴱ→Is-equivalence-relation-⟶ {R} =
   Is-equivalence-relation (R ⟶)  □
 
 opaque
-  unfolding Q./ᴱtrivial↔∥∥ᴱ
+  unfolding Q.Σ→Erased-Constant≃ᴱ∥∥ᴱ→ Q./ᴱtrivial≃∥∥ᴱ Q.rec T.rec
 
   -- A propositional QER R can be turned into an equivalence (with
   -- erased proofs) satisfying a certain (partly erased) condition.
@@ -578,7 +578,7 @@ opaque
     where
     to′ : ∥ ∃ (R x) ∥ᴱ → B /ᴱ R ⟶
     to′ =
-      _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
+      _≃ᴱ_.to (Q.Σ→Erased-Constant≃ᴱ∥∥ᴱ→ ext Q./ᴱ-is-set)
         ( [_] ∘ proj₁
         , [ (λ (_ , r₁) (_ , r₂) →
                Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
@@ -614,7 +614,7 @@ opaque
 
     from′ : ∥ ∃ ((R ⁻¹) y) ∥ᴱ → A /ᴱ R ⟵
     from′ =
-      _≃_.to (Q.Σ→Erased-Constant≃∥∥ᴱ→ Q./ᴱ-is-set)
+      _≃ᴱ_.to (Q.Σ→Erased-Constant≃ᴱ∥∥ᴱ→ ext Q./ᴱ-is-set)
         ( [_] ∘ proj₁
         , [ (λ (_ , r₁) (_ , r₂) →
                Q.[]-respects-relation ∣ _ , r₁ , r₂ ∣)
@@ -705,7 +705,7 @@ opaque
                                  Π-closure ext 1 λ _ →
                                  prop _ _
                                .T.∣∣ʳ (y′ , Rxy′) →
-                                 [ y′ ] ≡ [ y ]  ↝⟨ Q.effective
+                                 [ y′ ] ≡ [ y ]  ↝⟨ Q.effective ext univ
                                                       (Is-QER→Is-equivalence-relation-⟶ qer)
                                                       T.truncation-is-proposition
                                                       ∣ _ , Rxy′ , Rxy′ ∣ ⟩
@@ -721,67 +721,71 @@ opaque
       to′ (lr x)  ≡⟨ to′≡[] Rxy (lr x) ⟩∎
       [ y ]       ∎
 
--- A propositional QER R (with erased proofs) can be turned into an
--- equivalence (with erased proofs) satisfying a certain (erased)
--- condition.
---
--- This is another variant of Lemma 5.4 from "Internalizing
--- Representation Independence with Univalence".
+opaque
+  unfolding Q._/ᴱ-cong_ Q.rec
 
-/ᴱ⟵≃ᴱ/ᴱ⟶ᴱ :
-  {@0 R : A → B → Type c} →
-  Is-QERᴱ R →
-  @0 (∀ x y → Is-proposition (R x y)) →
-  ∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
-    Erased (∀ x y → (_≃ᴱ_.to eq [ x ] ≡ [ y ]) ≃ R x y)
-/ᴱ⟵≃ᴱ/ᴱ⟶ᴱ {A} {B} {R} qer prop =                          $⟨ [ prop ] ⟩
+  -- A propositional QER R (with erased proofs) can be turned into an
+  -- equivalence (with erased proofs) satisfying a certain (erased)
+  -- condition.
+  --
+  -- This is another variant of Lemma 5.4 from "Internalizing
+  -- Representation Independence with Univalence".
 
-  Erased (∀ x y → Is-proposition (R x y))                 ↝⟨ (λ ([ hyp ]) x y → H-level-Erased 1 (hyp x y)) ⦂ (_ → _) ⟩
+  /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ :
+    {@0 R : A → B → Type c} →
+    Is-QERᴱ R →
+    @0 (∀ x y → Is-proposition (R x y)) →
+    ∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
+      Erased (∀ x y → (_≃ᴱ_.to eq [ x ] ≡ [ y ]) ≃ R x y)
+  /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ {A} {B} {c} {R} qer prop =                      $⟨ [ prop ] ⟩
 
-  (∀ x y → Is-proposition (Rᴱ x y))                       ↝⟨ (λ prop → /ᴱ⟵≃ᴱ/ᴱ⟶ (_≃_.to Is-QERᴱ≃Is-QER-Erased qer) prop) ⟩
+    Erased (∀ x y → Is-proposition (R x y))                 ↝⟨ (λ ([ hyp ]) x y → H-level-Erased 1 (hyp x y)) ⦂ (_ → _) ⟩
 
-  (∃ λ (eq : A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶) →
-     ∀ x y →
-     ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → Rᴱ x y) →
-       Erased (Is-equivalence f))                         ↝⟨ (λ (eq , ok) → drop-ᴱ eq , [ drop-ᴱ-ok eq ok ]) ⟩□
+    (∀ x y → Is-proposition (Rᴱ x y))                       ↝⟨ (λ prop → /ᴱ⟵≃ᴱ/ᴱ⟶ (_≃_.to Is-QERᴱ≃Is-QER-Erased qer) prop) ⟩
 
-  (∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
-    Erased (∀ x y → (_≃ᴱ_.to eq [ x ] ≡ [ y ]) ≃ R x y))  □
-  where
-  Rᴱ = λ x y → Erased (R x y)
+    (∃ λ (eq : A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶) →
+       ∀ x y →
+       ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → Rᴱ x y) →
+         Erased (Is-equivalence f))                         ↝⟨ (λ (eq , ok) → drop-ᴱ eq , [ drop-ᴱ-ok eq ok ]) ⟩□
 
-  @0 lemma :
-    ∀ x y →
-    ((λ x y → Erased (R₁ x y)) ;ᴱ (λ x y → Erased (R₂ x y))) x y ⇔
-    (R₁ ;ᴱ R₂) x y
-  lemma {R₁} {R₂} x z =
-    ∥ (∃ λ y → Erased (R₁ x y) × Erased (R₂ y z)) ∥ᴱ  ↔⟨ (T.∥∥ᴱ-cong $ ∃-cong λ _ →
-                                                          Erased↔ .erased
-                                                            ×-cong
-                                                          Erased↔ .erased) ⟩□
-    ∥ (∃ λ y → R₁ x y × R₂ y z) ∥ᴱ                    □
+    (∃ λ (eq : A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶) →
+      Erased (∀ x y → (_≃ᴱ_.to eq [ x ] ≡ [ y ]) ≃ R x y))  □
+    where
+    Rᴱ : A → B → Type c
+    Rᴱ x y = Erased (R x y)
 
-  drop-ᴱ :
-    A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶ →
-    A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶
-  drop-ᴱ eq =
-    A /ᴱ R ⟵   ↔⟨ Eq.id Q./ᴱ-cong (λ x y → inverse (lemma {R₁ = R} {R₂ = R ⁻¹} x y)) ⟩
-    A /ᴱ Rᴱ ⟵  ↝⟨ eq ⟩
-    B /ᴱ Rᴱ ⟶  ↔⟨ Eq.id Q./ᴱ-cong lemma ⟩□
-    B /ᴱ R ⟶   □
+    @0 lemma :
+      ∀ x y →
+      ((λ x y → Erased (R₁ x y)) ;ᴱ (λ x y → Erased (R₂ x y))) x y ⇔
+      (R₁ ;ᴱ R₂) x y
+    lemma {R₁} {R₂} x z =
+      ∥ (∃ λ y → Erased (R₁ x y) × Erased (R₂ y z)) ∥ᴱ  ↔⟨ (T.∥∥ᴱ-cong $ ∃-cong λ _ →
+                                                            Erased↔ .erased
+                                                              ×-cong
+                                                            Erased↔ .erased) ⟩□
+      ∥ (∃ λ y → R₁ x y × R₂ y z) ∥ᴱ                    □
 
-  @0 drop-ᴱ-ok :
-    (eq : A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶) →
-    (∀ x y →
-     ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → Rᴱ x y) →
-       Erased (Is-equivalence f)) →
-    ∀ x y → (_≃ᴱ_.to (drop-ᴱ eq) [ x ] ≡ [ y ]) ≃ R x y
-  drop-ᴱ-ok eq ok x y =
-    _≃ᴱ_.to (drop-ᴱ eq) [ x ] ≡ [ y ]                          ↔⟨⟩
-    _≃_.to (Eq.id Q./ᴱ-cong lemma) (_≃ᴱ_.to eq [ x ]) ≡ [ y ]  ↝⟨ Eq.≃-≡ (Eq.id Q./ᴱ-cong lemma) ⟩
-    _≃ᴱ_.to eq [ x ] ≡ [ y ]                                   ↝⟨ (let f , [ eq ] = ok x y in Eq.⟨ f , eq ⟩) ⟩
-    Rᴱ x y                                                     ↔⟨ Erased↔ .erased ⟩□
-    R x y                                                      □
+    drop-ᴱ :
+      A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶ →
+      A /ᴱ R ⟵ ≃ᴱ B /ᴱ R ⟶
+    drop-ᴱ eq =
+      A /ᴱ R ⟵   ↔⟨ Eq.id Q./ᴱ-cong (λ x y → inverse (lemma {R₁ = R} {R₂ = R ⁻¹} x y)) ⟩
+      A /ᴱ Rᴱ ⟵  ↝⟨ eq ⟩
+      B /ᴱ Rᴱ ⟶  ↔⟨ Eq.id Q./ᴱ-cong lemma ⟩□
+      B /ᴱ R ⟶   □
+
+    @0 drop-ᴱ-ok :
+      (eq : A /ᴱ Rᴱ ⟵ ≃ᴱ B /ᴱ Rᴱ ⟶) →
+      (∀ x y →
+       ∃ λ (f : _≃ᴱ_.to eq [ x ] ≡ [ y ] → Rᴱ x y) →
+         Erased (Is-equivalence f)) →
+      ∀ x y → (_≃ᴱ_.to (drop-ᴱ eq) [ x ] ≡ [ y ]) ≃ R x y
+    drop-ᴱ-ok eq ok x y =
+      _≃ᴱ_.to (drop-ᴱ eq) [ x ] ≡ [ y ]                          ↔⟨⟩
+      _≃_.to (Eq.id Q./ᴱ-cong lemma) (_≃ᴱ_.to eq [ x ]) ≡ [ y ]  ↝⟨ Eq.≃-≡ (Eq.id Q./ᴱ-cong lemma) ⟩
+      _≃ᴱ_.to eq [ x ] ≡ [ y ]                                   ↝⟨ (let f , [ eq ] = ok x y in Eq.⟨ f , eq ⟩) ⟩
+      Rᴱ x y                                                     ↔⟨ Erased↔ .erased ⟩□
+      R x y                                                      □
 
 ------------------------------------------------------------------------
 -- Relation transformers
@@ -1004,7 +1008,7 @@ Suitable→/ᴱ⟵×/ᴱ⟶ {F} (A , x) (B , y) {R} {G}
             let R⟵x′x : (R ⟵) x′ x
                 R⟵x′x =
                   _≃_.from
-                    (Q.related≃[equal]
+                    (Q.related≃[equal] ext univ
                        (Is-QERᴱ→Is-equivalence-relation-⟵ qer)
                        T.truncation-is-proposition)
                     [x′]≡[x]
@@ -1012,7 +1016,7 @@ Suitable→/ᴱ⟵×/ᴱ⟶ {F} (A , x) (B , y) {R} {G}
                 R⟶y′y : (R ⟶) y′ y
                 R⟶y′y =
                   _≃_.from
-                    (Q.related≃[equal]
+                    (Q.related≃[equal] ext univ
                        (Is-QERᴱ→Is-equivalence-relation-⟶ qer)
                        T.truncation-is-proposition)
                     [y′]≡[y]
@@ -1260,36 +1264,39 @@ Constᴿ-acts-on-functions = λ where
   .Acts-on-functions.map-id    → refl _
   .Acts-on-functions.map-map _ → id
 
--- Constᴿ is positive for sets.
+opaque
+  unfolding Q./ᴱ≡≃ Q.rec
 
-Constᴿ-positive : @0 Is-set B → Positive (Constᴿ {a = a} B)
-Constᴿ-positive {B} set = λ where
-  .Positive.suitable → Constᴿ-suitable set
+  -- Constᴿ is positive for sets.
 
-  .Positive.acts-on-functions → Constᴿ-acts-on-functions
+  Constᴿ-positive : @0 Is-set B → Positive (Constᴿ {a = a} B)
+  Constᴿ-positive {B} set = λ where
+    .Positive.suitable → Constᴿ-suitable set
 
-  .Positive.reflexive-∥≡∥ᴱ → refl _
+    .Positive.acts-on-functions → Constᴿ-acts-on-functions
 
-  .Positive.transitive-;ᴱ⁻¹ {R} {S} _ _ x z →
-    _≃_.is-equivalence
-      ((Constᴿ B R ;ᴱ Constᴿ B S) x z  ↔⟨⟩
-       ∥ (∃ λ y → x ≡ y × y ≡ z) ∥ᴱ    ↝⟨ Eq.⇔→≃ T.truncation-is-proposition set _
-                                            (λ x≡z → ∣ _ , x≡z , refl _ ∣) ⟩
-       x ≡ z                           ↔⟨⟩
-       Constᴿ B (R ;ᴱ S) x z           □)
+    .Positive.reflexive-∥≡∥ᴱ → refl _
 
-  .Positive.commutes-with-/ᴱ {A = C} {R} prop equiv →
-    _≃ᴱ_.is-equivalence $
-    EEq.with-other-function
-      (Const B C /ᴱ Constᴿ B R  ↔⟨⟩
-       B /ᴱ _≡_                 ↔⟨ Q./ᴱ≡↔ set ⟩
-       B                        ↔⟨⟩
-       Const B (C /ᴱ R)         □)
-      (/ᴱ→/ᴱ (Constᴿ B) (Constᴿ-suitable set) Constᴿ-acts-on-functions
-         prop equiv)
-      (Q.elim-prop λ @0 where
-         .Q.is-propositionʳ _ → set
-         .Q.[]ʳ _             → refl _)
+    .Positive.transitive-;ᴱ⁻¹ {R} {S} _ _ x z →
+      _≃_.is-equivalence
+        ((Constᴿ B R ;ᴱ Constᴿ B S) x z  ↔⟨⟩
+         ∥ (∃ λ y → x ≡ y × y ≡ z) ∥ᴱ    ↝⟨ Eq.⇔→≃ T.truncation-is-proposition set _
+                                              (λ x≡z → ∣ _ , x≡z , refl _ ∣) ⟩
+         x ≡ z                           ↔⟨⟩
+         Constᴿ B (R ;ᴱ S) x z           □)
+
+    .Positive.commutes-with-/ᴱ {A = C} {R} prop equiv →
+      _≃ᴱ_.is-equivalence $
+      EEq.with-other-function
+        (Const B C /ᴱ Constᴿ B R  ↔⟨⟩
+         B /ᴱ _≡_                 ↔⟨ Q./ᴱ≡≃ set ⟩
+         B                        ↔⟨⟩
+         Const B (C /ᴱ R)         □)
+        (/ᴱ→/ᴱ (Constᴿ B) (Constᴿ-suitable set) Constᴿ-acts-on-functions
+           prop equiv)
+        (Q.elim-prop λ @0 where
+           .Q.is-propositionʳ _ → set
+           .Q.[]ʳ _             → refl _)
 
 ------------------------------------------------------------------------
 -- The Id and Idᴿ combinators, along with some properties
@@ -1344,7 +1351,7 @@ Idᴿ-acts-on-functions = λ where
   .Acts-on-functions.map-map f → f
 
 opaque
-  unfolding T.rec
+  unfolding Q.rec T.rec
 
   -- Idᴿ is positive.
 
@@ -1524,7 +1531,7 @@ Productᴿ-acts-on-functions {S} {T} a-S a-T = λ where
          (a-T .Acts-on-functions.map g y₂)    □
 
 opaque
-  unfolding T.rec
+  unfolding Q.×/ᴱ Q.rec T.rec
 
   -- If S and T are positive, then Productᴿ S T is positive.
 
@@ -1569,7 +1576,7 @@ opaque
         _≃ᴱ_.is-equivalence $
         EEq.with-other-function
           (Product F G A /ᴱ Productᴿ S T R  ↔⟨⟩
-           (F A × G A) /ᴱ Productᴿ S T R    ↔⟨ Q.×/ᴱ (SP.reflexive prop equiv _) (TP.reflexive prop equiv _) ⟩
+           (F A × G A) /ᴱ Productᴿ S T R    ↔⟨ Q.×/ᴱ ext (SP.reflexive prop equiv _) (TP.reflexive prop equiv _) ⟩
            F A /ᴱ S R × G A /ᴱ T R          ↝⟨ EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩
                                                  ×-cong
                                                EEq.⟨ _ , TP.commutes-with-/ᴱ prop equiv ⟩ ⟩
@@ -1794,7 +1801,7 @@ Maybeᴿ-acts-on-functions {G} a-G = λ where
   module A = Acts-on-functions a-G
 
 opaque
-  unfolding T.∥∥ᴱ-map
+  unfolding Q.Maybe/ᴱ Q.rec T.∥∥ᴱ-map
 
   -- If G is positive, then Maybeᴿ G is positive.
 
@@ -2063,148 +2070,153 @@ Function-univalent′
                                                                             subst-→) ⟩□
   subst (Function F G) (≃⇒≡ univ (EEq.≃ᴱ→≃ eq)) f ≡ g                   □
 
--- If S is positive and T is suitable, then Functionᴿ S T is suitable.
---
--- This is a variant of Theorem 5.12 from "Internalizing
--- Representation Independence with Univalence".
+opaque
+  unfolding Q.rec
 
-Functionᴿ-suitable :
-  {@0 S : Relation-transformer-for F} →
-  {@0 T : Relation-transformer-for G} →
-  Positive S →
-  Suitable T →
-  Suitable (Functionᴿ S T)
-Functionᴿ-suitable {F} {G} {S} {T} p-S s-T = λ where
-    .Suitable.preserves-is-set set →
-      Π-closure ext 2 λ _ →
-      TS.preserves-is-set set
+  -- If S is positive and T is suitable, then Functionᴿ S T is
+  -- suitable.
+  --
+  -- This is a variant of Theorem 5.12 from "Internalizing
+  -- Representation Independence with Univalence".
 
-    .Suitable.preserves-is-proposition prop _ _ →
-      implicit-Π-closure ext 1 λ _ →
-      implicit-Π-closure ext 1 λ _ →
-      Π-closure ext 1 λ _ →
-      TS.preserves-is-proposition prop _ _
+  Functionᴿ-suitable :
+    {@0 S : Relation-transformer-for F} →
+    {@0 T : Relation-transformer-for G} →
+    Positive S →
+    Suitable T →
+    Suitable (Functionᴿ S T)
+  Functionᴿ-suitable {F} {G} {S} {T} p-S s-T = λ where
+      .Suitable.preserves-is-set set →
+        Π-closure ext 2 λ _ →
+        TS.preserves-is-set set
 
-    .Suitable.symmetric {R} {x = f} {y = g} prop S→T {x} {y} →
-      S (R ⁻¹) x y          ↝⟨ SS.symmetric (flip prop) ⟩
-      S R y x               ↝⟨ S→T ⟩
-      T R (f y) (g x)       ↝⟨ TS.symmetric prop ⟩□
-      T (R ⁻¹) (g x) (f y)  □
+      .Suitable.preserves-is-proposition prop _ _ →
+        implicit-Π-closure ext 1 λ _ →
+        implicit-Π-closure ext 1 λ _ →
+        Π-closure ext 1 λ _ →
+        TS.preserves-is-proposition prop _ _
 
-    .Suitable.transitive
-      {R = R₁} {S = R₂} {x = f} {y = g} {z = h}
-      R₁-prop R₂-prop S→T₁ S→T₂ {x} {y} →
+      .Suitable.symmetric {R} {x = f} {y = g} prop S→T {x} {y} →
+        S (R ⁻¹) x y          ↝⟨ SS.symmetric (flip prop) ⟩
+        S R y x               ↝⟨ S→T ⟩
+        T R (f y) (g x)       ↝⟨ TS.symmetric prop ⟩□
+        T (R ⁻¹) (g x) (f y)  □
 
-      S (R₁ ;ᴱ R₂) x y            ↔⟨ inverse Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩
-      (S R₁ ;ᴱ S R₂) x y          ↝⟨ T.∥∥ᴱ-map (Σ-map _ (Σ-map S→T₁ S→T₂)) ⟩
-      (T R₁ ;ᴱ T R₂) (f x) (h y)  ↝⟨ TS.transitive-;ᴱ R₁-prop R₂-prop _ _ ⟩□
-      T (R₁ ;ᴱ R₂) (f x) (h y)    □
+      .Suitable.transitive
+        {R = R₁} {S = R₂} {x = f} {y = g} {z = h}
+        R₁-prop R₂-prop S→T₁ S→T₂ {x} {y} →
 
-    .Suitable.descent {A} {x = f} {R} prop equiv S→T →
-      let
-        d :
-          (x : F A) →
-          Contractibleᴱ (∃ λ y → Erased (T (Graph [_]) (f x) y))
-        d x = TS.descent prop equiv (S→T (SP.reflexive prop equiv x))
+        S (R₁ ;ᴱ R₂) x y            ↔⟨ inverse Eq.⟨ _ , SP.transitive-;ᴱ⁻¹ R₁-prop R₂-prop _ _ ⟩ ⟩
+        (S R₁ ;ᴱ S R₂) x y          ↝⟨ T.∥∥ᴱ-map (Σ-map _ (Σ-map S→T₁ S→T₂)) ⟩
+        (T R₁ ;ᴱ T R₂) (f x) (h y)  ↝⟨ TS.transitive-;ᴱ R₁-prop R₂-prop _ _ ⟩□
+        T (R₁ ;ᴱ R₂) (f x) (h y)    □
 
-        g-[] : F A → G (A /ᴱ R)
-        g-[] x = d x .proj₁ .proj₁
+      .Suitable.descent {A} {x = f} {R} prop equiv S→T →
+        let
+          d :
+            (x : F A) →
+            Contractibleᴱ (∃ λ y → Erased (T (Graph [_]) (f x) y))
+          d x = TS.descent prop equiv (S→T (SP.reflexive prop equiv x))
 
-        S→T′ : Erased (S R x y → T (Graph [_]) (f x) (g-[] y))
-        S→T′ = λ {x = x} {y = y} →
-          [ S R x y                            ↝⟨ S→T ⟩
-            T R (f x) (f y)                    ↝⟨ flip (TS.transitive prop (λ _ _ → Q./ᴱ-is-set)) (d y .proj₁ .proj₂ .erased) ⟩
-            T (R ;ᴱ Graph [_]) (f x) (g-[] y)  ↝⟨ subst (λ R → T R (f x) (g-[] y)) (;ᴱ-Graph-[]≡Graph-[] prop equiv) ⟩□
-            T (Graph [_]) (f x) (g-[] y)       □
-          ]
+          g-[] : F A → G (A /ᴱ R)
+          g-[] x = d x .proj₁ .proj₁
 
-        S-[]-map-[] : ∀ {x} → Erased (S (Graph [_]) x (SA.map [_] x))
-        S-[]-map-[] = λ {x = x} →
-          [                                             $⟨ SA.map-map Q.[]-respects-relation (SP.reflexive prop equiv x) ⟩
-            S (Graph [_]) (SA.map id x) (SA.map [_] x)  ↝⟨ subst (λ f → S (Graph (Q.[_] {R = R})) (f x) (SA.map Q.[_] x)) SA.map-id ⟩□
-            S (Graph [_]) x (SA.map [_] x)              □
-          ]
+          S→T′ : Erased (S R x y → T (Graph [_]) (f x) (g-[] y))
+          S→T′ = λ {x = x} {y = y} →
+            [ S R x y                            ↝⟨ S→T ⟩
+              T R (f x) (f y)                    ↝⟨ flip (TS.transitive prop (λ _ _ → Q./ᴱ-is-set)) (d y .proj₁ .proj₂ .erased) ⟩
+              T (R ;ᴱ Graph [_]) (f x) (g-[] y)  ↝⟨ subst (λ R → T R (f x) (g-[] y)) (;ᴱ-Graph-[]≡Graph-[] prop equiv) ⟩□
+              T (Graph [_]) (f x) (g-[] y)       □
+            ]
 
-        g : F A /ᴱ S R → G (A /ᴱ R)
-        g = Q.rec λ where
-          .Q.is-setʳ → TS.preserves-is-set Q./ᴱ-is-set
+          S-[]-map-[] : ∀ {x} → Erased (S (Graph [_]) x (SA.map [_] x))
+          S-[]-map-[] = λ {x = x} →
+            [                                             $⟨ SA.map-map Q.[]-respects-relation (SP.reflexive prop equiv x) ⟩
+              S (Graph [_]) (SA.map id x) (SA.map [_] x)  ↝⟨ subst (λ f → S (Graph (Q.[_] {R = R})) (f x) (SA.map Q.[_] x)) SA.map-id ⟩□
+              S (Graph [_]) x (SA.map [_] x)              □
+            ]
 
-          .Q.[]ʳ → g-[]
+          g : F A /ᴱ S R → G (A /ᴱ R)
+          g = Q.rec λ where
+            .Q.is-setʳ → TS.preserves-is-set Q./ᴱ-is-set
 
-          .Q.[]-respects-relationʳ {x} {y} SRxy →
-            g-[] x  ≡⟨ cong proj₁ $
-                       d x .proj₂ .erased
-                         (g-[] y , Er.map (_$ SRxy) S→T′) ⟩∎
-            g-[] y  ∎
+            .Q.[]ʳ → g-[]
 
-        h : F A /ᴱ S R ≃ᴱ F (A /ᴱ R)
-        h = EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩
-      in
-        ( (F (A /ᴱ R)  ↝⟨ _≃ᴱ_.from h ⟩
-           F A /ᴱ S R  ↝⟨ g ⟩□
-           G (A /ᴱ R)  □)
-        , [ (λ {x = x} {y = y} →
+            .Q.[]-respects-relationʳ {x} {y} SRxy →
+              g-[] x  ≡⟨ cong proj₁ $
+                         d x .proj₂ .erased
+                           (g-[] y , Er.map (_$ SRxy) S→T′) ⟩∎
+              g-[] y  ∎
+
+          h : F A /ᴱ S R ≃ᴱ F (A /ᴱ R)
+          h = EEq.⟨ _ , SP.commutes-with-/ᴱ prop equiv ⟩
+        in
+          ( (F (A /ᴱ R)  ↝⟨ _≃ᴱ_.from h ⟩
+             F A /ᴱ S R  ↝⟨ g ⟩□
+             G (A /ᴱ R)  □)
+          , [ (λ {x = x} {y = y} →
+                 let
+                   lemma :
+                     ∀ y →
+                     S (Graph [_]) x (_≃ᴱ_.to h y) →
+                     T (Graph [_]) (f x) (g y)
+                   lemma = Q.elim-prop λ @0 where
+                     .Q.is-propositionʳ _ →
+                       Π-closure ext 1 λ _ →
+                       TS.preserves-is-proposition
+                         (λ _ _ → Q./ᴱ-is-set) _ _
+                     .Q.[]ʳ y →
+                       let
+                         s =                                  $⟨ S-[]-map-[] .erased ⟩
+                           S (Graph [_]) y (SA.map [_] y)     ↝⟨ SS.symmetric (λ _ _ → Q./ᴱ-is-set) ⟩□
+                           S (Graph [_] ⁻¹) (SA.map [_] y) y  □
+                       in
+                       S (Graph [_]) x (SA.map [_] y)    ↝⟨ flip (SS.transitive (λ _ _ → Q./ᴱ-is-set) λ _ _ → Q./ᴱ-is-set) s ⟩
+                       S (Graph [_] ⟵) x y               ↝⟨ subst (λ R → S R x y) (Graph-[]-⟵≡ prop equiv) ⟩
+                       S R x y                           ↝⟨ S→T′ .erased ⟩□
+                       T (Graph [_]) (f x) (g-[] y)      □
+                 in
+                 S (Graph [_]) x y                            ↝⟨ subst (S (Graph [_]) x) (sym $ _≃ᴱ_.right-inverse-of h _) ⟩
+                 S (Graph [_]) x (_≃ᴱ_.to h (_≃ᴱ_.from h y))  ↝⟨ lemma (_≃ᴱ_.from h y) ⟩□
+                 T (Graph [_]) (f x) (g (_≃ᴱ_.from h y))      □)
+            ]
+          )
+        , [ (λ (g′ , [ g′-hyp ]) →
                let
-                 lemma :
-                   ∀ y →
-                   S (Graph [_]) x (_≃ᴱ_.to h y) →
-                   T (Graph [_]) (f x) (g y)
+                 lemma : ∀ y → g y ≡ g′ (_≃ᴱ_.to h y)
                  lemma = Q.elim-prop λ @0 where
                    .Q.is-propositionʳ _ →
+                     TS.preserves-is-set Q./ᴱ-is-set
+                   .Q.[]ʳ y →
+                     g-[] y                                     ≡⟨ cong proj₁ $
+                                                                   d y .proj₂ .erased
+                                                                     ( g′ (SA.map [_] y)
+                                                                     , [
+                                                                         $⟨ S-[]-map-[] .erased ⟩
+                       S (Graph [_]) y (SA.map [_] y)                    ↝⟨ g′-hyp ⟩□
+                       T (Graph [_]) (f y) (g′ (SA.map [_] y))           □
+                                                                       ]
+                                                                     ) ⟩∎
+                     g′ (SA.map [_] y)                          ∎
+               in
+               Σ-≡,≡→≡
+                 (⟨ext⟩ λ x →
+                  g (_≃ᴱ_.from h x)               ≡⟨ lemma (_≃ᴱ_.from h x) ⟩
+                  g′ (_≃ᴱ_.to h (_≃ᴱ_.from h x))  ≡⟨ cong g′ $ _≃ᴱ_.right-inverse-of h _ ⟩∎
+                  g′ x                            ∎)
+                 (H-level-Erased 1
+                    (implicit-Π-closure ext 1 λ _ →
+                     implicit-Π-closure ext 1 λ _ →
                      Π-closure ext 1 λ _ →
                      TS.preserves-is-proposition
-                       (λ _ _ → Q./ᴱ-is-set) _ _
-                   .Q.[]ʳ y →
-                     let
-                       s =                                  $⟨ S-[]-map-[] .erased ⟩
-                         S (Graph [_]) y (SA.map [_] y)     ↝⟨ SS.symmetric (λ _ _ → Q./ᴱ-is-set) ⟩□
-                         S (Graph [_] ⁻¹) (SA.map [_] y) y  □
-                     in
-                     S (Graph [_]) x (SA.map [_] y)    ↝⟨ flip (SS.transitive (λ _ _ → Q./ᴱ-is-set) λ _ _ → Q./ᴱ-is-set) s ⟩
-                     S (Graph [_] ⟵) x y               ↝⟨ subst (λ R → S R x y) (Graph-[]-⟵≡ prop equiv) ⟩
-                     S R x y                           ↝⟨ S→T′ .erased ⟩□
-                     T (Graph [_]) (f x) (g-[] y)      □
-               in
-               S (Graph [_]) x y                            ↝⟨ subst (S (Graph [_]) x) (sym $ _≃ᴱ_.right-inverse-of h _) ⟩
-               S (Graph [_]) x (_≃ᴱ_.to h (_≃ᴱ_.from h y))  ↝⟨ lemma (_≃ᴱ_.from h y) ⟩□
-               T (Graph [_]) (f x) (g (_≃ᴱ_.from h y))      □)
+                       (λ _ _ → Q./ᴱ-is-set) _ _)
+                    _ _))
           ]
-        )
-      , [ (λ (g′ , [ g′-hyp ]) →
-             let
-               lemma : ∀ y → g y ≡ g′ (_≃ᴱ_.to h y)
-               lemma = Q.elim-prop λ @0 where
-                 .Q.is-propositionʳ _ →
-                   TS.preserves-is-set Q./ᴱ-is-set
-                 .Q.[]ʳ y →
-                   g-[] y                                     ≡⟨ cong proj₁ $
-                                                                 d y .proj₂ .erased
-                                                                   ( g′ (SA.map [_] y)
-                                                                   , [
-                                                                       $⟨ S-[]-map-[] .erased ⟩
-                     S (Graph [_]) y (SA.map [_] y)                    ↝⟨ g′-hyp ⟩□
-                     T (Graph [_]) (f y) (g′ (SA.map [_] y))           □
-                                                                     ]
-                                                                   ) ⟩∎
-                   g′ (SA.map [_] y)                          ∎
-             in
-             Σ-≡,≡→≡
-               (⟨ext⟩ λ x →
-                g (_≃ᴱ_.from h x)               ≡⟨ lemma (_≃ᴱ_.from h x) ⟩
-                g′ (_≃ᴱ_.to h (_≃ᴱ_.from h x))  ≡⟨ cong g′ $ _≃ᴱ_.right-inverse-of h _ ⟩∎
-                g′ x                            ∎)
-               (H-level-Erased 1
-                  (implicit-Π-closure ext 1 λ _ →
-                   implicit-Π-closure ext 1 λ _ →
-                   Π-closure ext 1 λ _ →
-                   TS.preserves-is-proposition (λ _ _ → Q./ᴱ-is-set) _ _)
-                  _ _))
-        ]
-  where
-  module SP = Positive p-S
-  module SA = Acts-on-functions SP.acts-on-functions
-  module SS = Suitable SP.suitable
-  module TS = Suitable s-T
+    where
+    module SP = Positive p-S
+    module SA = Acts-on-functions SP.acts-on-functions
+    module SS = Suitable SP.suitable
+    module TS = Suitable s-T
 
 -- If A is a set and G is suitable, then Function-Constᴿ A G is
 -- suitable.
@@ -2884,7 +2896,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
     /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ (Is-QER→Is-QERᴱ ∼-QER) ∼-propositional .proj₁
 
   opaque
-    unfolding /ᴱ⟵≃ᴱ/ᴱ⟶ T.∥∥ᴱ-map
+    unfolding /ᴱ⟵≃ᴱ/ᴱ⟶ /ᴱ⟵≃ᴱ/ᴱ⟶ᴱ T.∥∥ᴱ-map
 
     -- Lists that are related by List-bag≃ᴱAssoc-list-bag (in a
     -- certain way) are also related by _∼_.
@@ -2988,7 +3000,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
       .proj₂ .proj₂ .erased .proj₂ .proj₂
 
   opaque
-    unfolding Idᴿ-positive
+    unfolding Constᴿ-positive Functionᴿ-suitable Idᴿ-positive
 
     -- For List-bag /ᴱ _∼_ ⟵ equality of two lists can be expressed in
     -- terms of the induced count function (in erased contexts).
@@ -3008,7 +3020,7 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
           Q./ᴱ-is-set
         .Q.[]ʳ ys →
           ([ xs ] ≡ [ ys ])                  ↝⟨ inverse $
-                                                Q.related≃[equal]
+                                                Q.related≃[equal] ext univ
                                                   (Is-QER→Is-equivalence-relation-⟵ ∼-QER)
                                                   T.truncation-is-proposition ⟩
           (_∼_ ⟵) xs ys                      ↝⟨ Eq.⇔→≃

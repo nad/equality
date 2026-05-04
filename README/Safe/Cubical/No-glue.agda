@@ -79,6 +79,10 @@ import H-level.Truncation.Propositional
 
 import H-level.Truncation.Propositional.Non-recursive
 
+-- A variant of set quotients with erased higher constructors.
+
+import Quotient.Erased
+
 -- The "interval".
 
 import Interval

@@ -279,29 +279,32 @@ rec-prop r = elim-prop λ where
   .QE.[]-respects-relationʳ → []-respects-relation
   .QE.is-setʳ               → /-is-set
 
--- In an erased context quotients with erased higher constructors are
--- equivalent to quotients with regular higher constructors.
+opaque
+  unfolding QE.rec
 
-@0 /ᴱ≃/ : A /ᴱ R ≃ A / R
-/ᴱ≃/ {A} {R} = Eq.↔⇒≃ (record
-  { surjection = record
-    { logical-equivalence = record
-      { to   = /ᴱ→/
-      ; from = rec λ @0 where
-          .[]ʳ                   → QE.[_]
-          .[]-respects-relationʳ → QE.[]-respects-relation
-          .is-setʳ               → QE./ᴱ-is-set
+  -- In an erased context quotients with erased higher constructors are
+  -- equivalent to quotients with regular higher constructors.
+
+  @0 /ᴱ≃/ : A /ᴱ R ≃ A / R
+  /ᴱ≃/ {A} {R} = Eq.↔⇒≃ (record
+    { surjection = record
+      { logical-equivalence = record
+        { to   = /ᴱ→/
+        ; from = rec λ @0 where
+            .[]ʳ                   → QE.[_]
+            .[]-respects-relationʳ → QE.[]-respects-relation
+            .is-setʳ               → QE./ᴱ-is-set
+        }
+      ; right-inverse-of = elim λ @0 where
+          .[]ʳ _                   → refl _
+          .[]-respects-relationʳ _ → /-is-set _ _
+          .is-setʳ _               → mono₁ 2 /-is-set
       }
-    ; right-inverse-of = elim λ @0 where
-        .[]ʳ _                   → refl _
-        .[]-respects-relationʳ _ → /-is-set _ _
-        .is-setʳ _               → mono₁ 2 /-is-set
-    }
-  ; left-inverse-of = QE.elim λ where
-      .QE.[]ʳ _                   → refl _
-      .QE.[]-respects-relationʳ _ → QE./ᴱ-is-set _ _
-      .QE.is-setʳ _               → mono₁ 2 QE./ᴱ-is-set
-  })
+    ; left-inverse-of = QE.elim λ where
+        .QE.[]ʳ _                   → refl _
+        .QE.[]-respects-relationʳ _ → QE./ᴱ-is-set _ _
+        .QE.is-setʳ _               → mono₁ 2 QE./ᴱ-is-set
+    })
 
 ------------------------------------------------------------------------
 -- Some properties
