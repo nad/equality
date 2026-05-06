@@ -86,6 +86,15 @@ head (x ∷ _) = x
 tail : Vec A (suc n) → Vec A n
 tail (_ ∷ xs) = xs
 
+-- Vec A (suc n) is equivalent to A × Vec A n.
+
+Vec-suc≃ : Vec A (suc n) ≃ (A × Vec A n)
+Vec-suc≃ = Eq.↔→≃
+  (λ xs → head xs , tail xs)
+  (uncurry _∷_)
+  refl
+  (λ { (_ ∷ _) → refl _ })
+
 ------------------------------------------------------------------------
 -- Conversions to and from lists
 
