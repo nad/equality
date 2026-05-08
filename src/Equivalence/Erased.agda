@@ -1270,6 +1270,38 @@ Contractibleᴱ⇔≃ᴱ⊤ = record
   where
   Contractibleᴱ-⊤ = ECP.Contractible→Contractibleᴱ ⊤-contractible
 
+-- Erased (Contractible A) is logically equivalent to
+-- Contractibleᴱ (Erased A).
+
+Erased-Contractible⇔Contractibleᴱ-Erased :
+  {@0 A : Type a} →
+  Erased (Contractible A) ⇔ Contractibleᴱ (Erased A)
+Erased-Contractible⇔Contractibleᴱ-Erased = record
+  { to = λ c →
+      map proj₁ c ,
+      [ flip trans Erased-η ⊚ cong [_]→ ⊚ c .erased .proj₂ ⊚ erased ]
+  ; from = λ c →
+      [ H-level-cong _ 0 (Erased↔ .erased)
+          (ECP.Contractibleᴱ→Contractible c) ]
+  }
+
+-- Erased (Contractible A) is equivalent (with erased proofs) to
+-- Contractibleᴱ (Erased A) (assuming erased function extensionality).
+
+Erased-Contractible≃ᴱContractibleᴱ-Erased :
+  {@0 A : Type a} →
+  @0 Extensionality a a →
+  Erased (Contractible A) ≃ᴱ Contractibleᴱ (Erased A)
+Erased-Contractible≃ᴱContractibleᴱ-Erased ext =
+  ⇔→≃ᴱ
+    (BC.H-level-Erased 1 (H-level-propositional ext 0))
+    (ECP.Contractibleᴱ-propositional ext)
+    (_⇔_.to Erased-Contractible⇔Contractibleᴱ-Erased)
+    (_⇔_.from Erased-Contractible⇔Contractibleᴱ-Erased)
+  where
+  module @0 BC =
+    Erased.[]-cong₁ (Extensionality→[]-cong-axiomatisation ext)
+
 -- There is an equivalence with erased proofs between Contractibleᴱ A
 -- and A ≃ᴱ ⊤ (assuming extensionality).
 
