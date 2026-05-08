@@ -456,3 +456,95 @@ decidable-equality {A} ax dec (x ∷ xs) (y ∷ ys) with dec x y
             xs≢ys
               ([ cong pred eq₁ ] ,
                cong tail (decidable-equality-lemma ax eq₁ eq₂)))
+
+------------------------------------------------------------------------
+-- Does Agda implicitly rely on []-cong?
+
+-- The justification of Agda's pattern matching involves a translation
+-- into code that uses eliminators. However, it seems as if, in the
+-- presence of erasure, an "obvious" extension of that translation
+-- uses []-cong.
+--
+-- This observation came up in connection to discussions with Jesper
+-- Cockx.
+
+private
+
+  -- An implementation of tail using Vec-elim.
+  --
+  -- This variant does not use the translation mentioned above, and it
+  -- does not use []-cong.
+
+  tailᵉˡⁱᵐ : Vec A (suc n) → Vec A n
+  tailᵉˡⁱᵐ {A} = Vec-elim (λ {n} xs → Vec A (pred n)) [] (λ _ xs _ → xs)
+
+  -- A second implementation of tail using Vec-elim. This one is
+  -- arguably closer to the implementation above, with an omitted case
+  -- for []. It is based on the justification of Agda's pattern
+  -- matching presented by Cockx and Devriese in "Proof-relevant
+  -- unification: Dependent pattern matching with only the axioms".
+  -- However, it uses []-cong.
+
+  tailᵉˡⁱᵐ′ :
+    {A : Type a} →
+    []-cong-axiomatisation a →
+    {@0 n : ℕ} → Vec A (suc n) → Vec A n
+  tailᵉˡⁱᵐ′ {A} ax {n} xs =
+    Vec-elim (λ {n = m} _ → @0 m ≡ suc n → Vec A n)
+      (λ eq → ⊥-elim₀ (_≃ᴱ_.to tail-[] ([ n ] , [ eq ])))
+      (λ {n = m} _ xs _ eq →
+         let telescope = [ m ] , [ n ] , xs , [ eq ]
+             _ , xs′   = _≃ᴱ_.to tail-∷ telescope
+         in
+         substᴱ (λ tel → Vec A (tel .proj₂ .proj₁ .erased))
+           (_≃ᴱ_.left-inverse-of tail-∷ telescope) xs′)
+      xs (refl _)
+    where
+    open Erased.[]-cong₁ ax
+
+    tail-[] :
+      (∃ λ (([ n ]) : Erased ℕ) →
+       Erased (zero ≡ suc n)) ≃ᴱ
+      ⊥₀
+    tail-[] =
+      (∃ λ (([ n ]) : Erased ℕ) →
+       Erased (zero ≡ suc n))      ↝⟨ (∃-cong λ _ → Erased-cong-≃ᴱ (from-isomorphism zero≡suc↔)) ⟩
+
+      Erased ℕ × Erased ⊥          ↔⟨ (∃-cong λ _ → Erased-⊥↔⊥) ⟩
+
+      Erased ℕ × ⊥                 ↔⟨ ×-right-zero ⟩□
+
+      ⊥₀                           □
+
+    tail-∷ :
+      (∃ λ (([ m ]) : Erased ℕ) →
+       ∃ λ (([ n ]) : Erased ℕ) →
+       ∃ λ (xs : Vec A m) →
+       Erased (suc m ≡ suc n)) ≃ᴱ
+      (∃ λ (([ n ]) : Erased ℕ) →
+       Vec A n)
+    tail-∷ =
+      (∃ λ (([ m ]) : Erased ℕ) →
+       ∃ λ (([ n ]) : Erased ℕ) →
+       Vec A m ×
+       Erased (suc m ≡ suc n))                                          ↝⟨ (∃-cong λ _ → ∃-cong λ _ → ∃-cong λ _ →
+                                                                            Erased-cong-≃ᴱ (from-isomorphism suc≡suc↔)) ⟩
+      (∃ λ (([ m ]) : Erased ℕ) →
+       ∃ λ (([ n ]) : Erased ℕ) →
+       Vec A m ×
+       Erased (m ≡ n))                                                  ↝⟨ EEq.↔→≃ᴱ (λ (m , n , xs , eq) → m , (n , eq) , xs) _ refl refl ⟩
+
+      (∃ λ (([ m ]) : Erased ℕ) →
+       ∃ λ (([ n ] , _) : ∃ λ (([ n ]) : Erased ℕ) → Erased (m ≡ n)) →
+       Vec A m)                                                         ↝⟨ (∃-cong λ _ → Σ-cong (inverse Erased-Σ↔Σ) λ { ([ _ ] , [ _ ]) → F.id }) ⟩
+
+      (∃ λ (([ m ]) : Erased ℕ) →
+       ∃ λ (([ n , _ ]) : Erased (∃ λ (n : ℕ) → m ≡ n)) →
+       Vec A m)                                                         ↝⟨ (∃-cong λ _ →
+                                                                            EEq.drop-⊤-left-Σ-≃ᴱ
+                                                                              (_⇔_.to EEq.Contractibleᴱ⇔≃ᴱ⊤ $
+                                                                               _⇔_.to EEq.Erased-Contractible⇔Contractibleᴱ-Erased
+                                                                                 [ other-singleton-contractible _ ])
+                                                                              (λ _ _ → F.id)) ⟩□
+      (∃ λ (([ m ]) : Erased ℕ) →
+       Vec A m)                                                         □
