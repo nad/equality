@@ -26,7 +26,7 @@ open import Nat eq as Nat using (pred)
 open import Surjection eq using (_↠_; ↠-≡)
 
 private variable
-  a      : Level
+  a p    : Level
   A B    : Type _
   x y    : A
   @0 m n : ℕ
@@ -44,6 +44,17 @@ data Vec (A : Type a) : @0 ℕ → Type a where
 
 private variable
   xs ys : Vec _ _
+
+-- An eliminator for Vec.
+
+Vec-elim :
+  {@0 A : Type a}
+  (P : ∀ {@0 n} → Vec A n → Type p) →
+  P [] →
+  (∀ {@0 n} (x : A) (xs : Vec A n) → P xs → P (x ∷ xs)) →
+  (xs : Vec A n) → P xs
+Vec-elim P n c []       = n
+Vec-elim P n c (x ∷ xs) = c x xs (Vec-elim P n c xs)
 
 ------------------------------------------------------------------------
 -- Some simple functions

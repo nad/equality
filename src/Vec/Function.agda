@@ -20,7 +20,7 @@ open import Surjection eq using (_↠_; ↠-≡)
 
 private
   variable
-    a   : Level
+    a p : Level
     A B : Type a
     n   : ℕ
     k   : Kind
@@ -42,6 +42,20 @@ nil = λ ()
 
 cons : A → Vec A n → Vec A (suc n)
 cons x xs = [ const x , xs ]
+
+-- An eliminator for Vec.
+
+Vec-elim :
+  {A : Type a} →
+  Extensionality lzero a →
+  (P : ∀ {n} → Vec A n → Type p) →
+  P nil →
+  (∀ {n} (x : A) (xs : Vec A n) → P xs → P (cons x xs)) →
+  (xs : Vec A n) → P xs
+Vec-elim {n = zero}  ext P pⁿ _  _  = subst P (apply-ext ext (λ ())) pⁿ
+Vec-elim {n = suc n} ext P pⁿ pᶜ xs =
+  subst P (apply-ext ext [ (λ _ → refl _) , (λ _ → refl _) ])
+    (pᶜ (xs fzero) (xs ∘ fsuc) (Vec-elim ext P pⁿ pᶜ (xs ∘ fsuc)))
 
 ------------------------------------------------------------------------
 -- Some simple functions

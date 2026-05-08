@@ -33,6 +33,16 @@ Vec : (n : ℕ) → (Fin n → Type p) → Type p
 Vec zero    P = ↑ _ ⊤
 Vec (suc n) P = P fzero × Vec n (P ∘ fsuc)
 
+-- An empty vector.
+
+nil : Vec {p = p} 0 ⊥-elim
+nil = lift tt
+
+-- A cons function.
+
+cons : P fzero → Vec n (P ∘ fsuc) → Vec (suc n) P
+cons = _,_
+
 ------------------------------------------------------------------------
 -- Some simple functions
 

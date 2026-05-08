@@ -18,13 +18,11 @@ open import List eq using (length)
 open import Surjection eq using (_↠_; ↠-≡)
 import Vec.Dependent.Basics eq as DVec
 
-private
-
-  variable
-    a b c : Level
-    A B   : Type a
-    f g   : A → B
-    n     : ℕ
+private variable
+  a b c p : Level
+  A B     : Type a
+  f g     : A → B
+  n       : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -33,6 +31,27 @@ private
 
 Vec : Type a → ℕ → Type a
 Vec A n = DVec.Vec n (const A)
+
+-- An empty vector.
+
+nil : Vec A 0
+nil = DVec.nil
+
+-- A cons function.
+
+cons : A → Vec A n → Vec A (suc n)
+cons = DVec.cons {P = const _}
+
+-- An eliminator for Vec.
+
+Vec-elim :
+  {@0 A : Type a}
+  (@0 P : ∀ {n} → Vec A n → Type p) →
+  P (nil {A = A}) →
+  (∀ {n} (x : A) (xs : Vec A n) → P xs → P (cons x xs)) →
+  (xs : Vec A n) → P xs
+Vec-elim {n = zero}  _ pⁿ _  _        = pⁿ
+Vec-elim {n = suc n} _ pⁿ pᶜ (x , xs) = pᶜ x xs (Vec-elim _ pⁿ pᶜ xs)
 
 ------------------------------------------------------------------------
 -- Some simple functions
