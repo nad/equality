@@ -24,7 +24,7 @@ open import Nat.Solver eq
 
 private
   variable
-    a ℓ      : Level
+    a ℓ p    : Level
     A B C    : Type a
     x y      : A
     f g      : A → B
@@ -34,6 +34,17 @@ private
 
 ------------------------------------------------------------------------
 -- Some functions
+
+-- An eliminator.
+
+List-elim :
+  {@0 A : Type a}
+  (@0 P : List A → Type p) →
+  P [] →
+  ((x : A) (xs : List A) → P xs → P (x ∷ xs)) →
+  (xs : List A) → P xs
+List-elim P n c []       = n
+List-elim P n c (x ∷ xs) = c x xs (List-elim P n c xs)
 
 -- The tail of a list. Returns [] if the list is empty.
 
@@ -274,29 +285,29 @@ index∘map :
   f (index xs (subst Fin (length∘map f xs) i))
 index∘map {f} (x ∷ xs) {i} =
   index (f x ∷ map f xs) i                                  ≡⟨ lemma i ⟩
-  f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p i))          ≡⟨⟩
-  f (index (x ∷ xs) (subst (Fin ∘ suc) p i))                ≡⟨ cong (f ∘ index (_ ∷ xs)) (subst-∘ Fin suc _) ⟩
-  f (index (x ∷ xs) (subst Fin (cong suc p) i))             ≡⟨⟩
+  f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p′ i))         ≡⟨⟩
+  f (index (x ∷ xs) (subst (Fin ∘ suc) p′ i))               ≡⟨ cong (f ∘ index (_ ∷ xs)) (subst-∘ Fin suc _) ⟩
+  f (index (x ∷ xs) (subst Fin (cong suc p′) i))            ≡⟨⟩
   f (index (x ∷ xs) (subst Fin (length∘map f (x ∷ xs)) i))  ∎
   where
-  p = length∘map f xs
+  p′ = length∘map f xs
 
   lemma :
     ∀ i →
     index (f x ∷ map f xs) i ≡
-    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p i))
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p′ i))
   lemma fzero =
-    index (f x ∷ map f xs) fzero                          ≡⟨⟩
-    f x                                                   ≡⟨⟩
-    f (index (x ∷ xs) fzero)                              ≡⟨⟩
-    f (index (x ∷ xs) (inj₁ (subst (λ _ → ⊤) p tt)))      ≡⟨ cong (f ∘ index (_ ∷ xs)) $ sym $ push-subst-inj₁ _ Fin ⟩∎
-    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p fzero))  ∎
+    index (f x ∷ map f xs) fzero                           ≡⟨⟩
+    f x                                                    ≡⟨⟩
+    f (index (x ∷ xs) fzero)                               ≡⟨⟩
+    f (index (x ∷ xs) (inj₁ (subst (λ _ → ⊤) p′ tt)))      ≡⟨ cong (f ∘ index (_ ∷ xs)) $ sym $ push-subst-inj₁ _ Fin ⟩∎
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p′ fzero))  ∎
   lemma (fsuc i) =
-    index (f x ∷ map f xs) (fsuc i)                          ≡⟨⟩
-    index (map f xs) i                                       ≡⟨ index∘map xs ⟩
-    f (index xs (subst Fin p i))                             ≡⟨⟩
-    f (index (x ∷ xs) (fsuc (subst Fin p i)))                ≡⟨ cong (f ∘ index (_ ∷ xs)) $ sym $ push-subst-inj₂ _ Fin ⟩∎
-    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p (fsuc i)))  ∎
+    index (f x ∷ map f xs) (fsuc i)                           ≡⟨⟩
+    index (map f xs) i                                        ≡⟨ index∘map xs ⟩
+    f (index xs (subst Fin p′ i))                             ≡⟨⟩
+    f (index (x ∷ xs) (fsuc (subst Fin p′ i)))                ≡⟨ cong (f ∘ index (_ ∷ xs)) $ sym $ push-subst-inj₂ _ Fin ⟩∎
+    f (index (x ∷ xs) (subst (λ n → ⊤ ⊎ Fin n) p′ (fsuc i)))  ∎
 
 -- The length function is homomorphic with respect to _++_/_+_.
 
@@ -552,39 +563,39 @@ List↔Maybe[×List] = record
      x ≡ y × xs ≡ ys                □)
     (uncurry (cong₂ _∷_))
     (λ (x≡y , xs≡ys) →
-       trans (sym $ p (x ∷ xs))
+       trans (sym $ p′ (x ∷ xs))
          (trans (cong [ (λ _ → []) , uncurry _∷_ ]
                    (cong inj₂ (cong₂ _,_ x≡y xs≡ys)))
-            (p (y ∷ ys)))                                       ≡⟨ cong (trans _) $ cong (flip trans _) $
-                                                                   trans (cong-∘ _ _ _)
-                                                                   cong-uncurry-cong₂-, ⟩
-       trans (sym $ p (x ∷ xs))
-         (trans (cong₂ _∷_ x≡y xs≡ys) (p (y ∷ ys)))             ≡⟨ elim₁
-                                                                     (λ {x} x≡y →
-                                                                        trans (sym $ p (x ∷ xs))
-                                                                          (trans (cong₂ _∷_ x≡y xs≡ys) (p (y ∷ ys))) ≡
-                                                                        cong₂ _∷_ x≡y xs≡ys)
-                                                                     (elim₁
-                                                                        (λ {xs} xs≡ys →
-                                                                           trans (sym $ p (y ∷ xs))
-                                                                             (trans (cong₂ _∷_ (refl y) xs≡ys) (p (y ∷ ys))) ≡
-                                                                           cong₂ _∷_ (refl y) xs≡ys)
-                                                                        (
-         trans (sym $ p (y ∷ ys))
-           (trans (cong₂ _∷_ (refl y) (refl ys)) (p (y ∷ ys)))           ≡⟨ cong (trans _) $
-                                                                            trans (cong (flip trans _) $ cong₂-refl _) $
-                                                                            trans-reflˡ _ ⟩
+            (p′ (y ∷ ys)))                                       ≡⟨ cong (trans _) $ cong (flip trans _) $
+                                                                    trans (cong-∘ _ _ _)
+                                                                    cong-uncurry-cong₂-, ⟩
+       trans (sym $ p′ (x ∷ xs))
+         (trans (cong₂ _∷_ x≡y xs≡ys) (p′ (y ∷ ys)))             ≡⟨ elim₁
+                                                                      (λ {x} x≡y →
+                                                                         trans (sym $ p′ (x ∷ xs))
+                                                                           (trans (cong₂ _∷_ x≡y xs≡ys) (p′ (y ∷ ys))) ≡
+                                                                         cong₂ _∷_ x≡y xs≡ys)
+                                                                      (elim₁
+                                                                         (λ {xs} xs≡ys →
+                                                                            trans (sym $ p′ (y ∷ xs))
+                                                                              (trans (cong₂ _∷_ (refl y) xs≡ys) (p′ (y ∷ ys))) ≡
+                                                                            cong₂ _∷_ (refl y) xs≡ys)
+                                                                         (
+         trans (sym $ p′ (y ∷ ys))
+           (trans (cong₂ _∷_ (refl y) (refl ys)) (p′ (y ∷ ys)))           ≡⟨ cong (trans _) $
+                                                                             trans (cong (flip trans _) $ cong₂-refl _) $
+                                                                             trans-reflˡ _ ⟩
 
-         trans (sym $ p (y ∷ ys)) (p (y ∷ ys))                           ≡⟨ trans-symˡ _ ⟩
+         trans (sym $ p′ (y ∷ ys)) (p′ (y ∷ ys))                          ≡⟨ trans-symˡ _ ⟩
 
-         refl (y ∷ ys)                                                   ≡⟨ sym $ cong₂-refl _ ⟩∎
+         refl (y ∷ ys)                                                    ≡⟨ sym $ cong₂-refl _ ⟩∎
 
-         cong₂ _∷_ (refl y) (refl ys)                                    ∎)
-                                                                        xs≡ys)
-                                                                     x≡y ⟩∎
-       cong₂ _∷_ x≡y xs≡ys                                      ∎)
+         cong₂ _∷_ (refl y) (refl ys)                                     ∎)
+                                                                         xs≡ys)
+                                                                      x≡y ⟩∎
+       cong₂ _∷_ x≡y xs≡ys                                       ∎)
   where
-  p = _≃_.left-inverse-of (Eq.↔⇒≃ List↔Maybe[×List])
+  p′ = _≃_.left-inverse-of (Eq.↔⇒≃ List↔Maybe[×List])
 
 ------------------------------------------------------------------------
 -- H-levels
