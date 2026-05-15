@@ -280,6 +280,11 @@ import Vec.Data.Forded.Non-erased-lengths
 
 import Vec.Data.Forded
 
+-- Vectors defined as lists plus erased proofs showing that the lists
+-- have correct lengths.
+
+import Vec.Data.Erased-proofs
+
 -- Vectors, defined as functions from finite sets.
 
 import Vec.Function
