@@ -22,15 +22,14 @@ open import Monad eq hiding (map)
 open import Nat eq
 open import Nat.Solver eq
 
-private
-  variable
-    a ℓ p    : Level
-    A B C    : Type a
-    x y      : A
-    f g      : A → B
-    n        : ℕ
-    xs ys zs : List A
-    ns       : List ℕ
+private variable
+  a b c ℓ p : Level
+  A B C     : Type a
+  x y       : A
+  f g       : A → B
+  n         : ℕ
+  xs ys zs  : List A
+  ns        : List ℕ
 
 ------------------------------------------------------------------------
 -- Some functions
@@ -48,14 +47,14 @@ List-elim P n c (x ∷ xs) = c x xs (List-elim P n c xs)
 
 -- The tail of a list. Returns [] if the list is empty.
 
-tail : List A → List A
+tail : {@0 A : Type a} → List A → List A
 tail []       = []
 tail (_ ∷ xs) = xs
 
 -- The function take n returns the first n elements of a list (or the
 -- entire list, if the list does not contain n elements).
 
-take : ℕ → List A → List A
+take : {@0 A : Type a} → ℕ → List A → List A
 take zero    xs       = []
 take (suc n) (x ∷ xs) = x ∷ take n xs
 take (suc n) xs@[]    = xs
@@ -63,26 +62,30 @@ take (suc n) xs@[]    = xs
 -- The function drop n removes the first n elements from a list (or
 -- all elements, if the list does not contain n elements).
 
-drop : ℕ → List A → List A
+drop : {@0 A : Type a} → ℕ → List A → List A
 drop zero    xs       = xs
 drop (suc n) (x ∷ xs) = drop n xs
 drop (suc n) xs@[]    = xs
 
 -- Right fold.
 
-foldr : (A → B → B) → B → List A → B
+foldr :
+  {@0 A : Type a} {@0 B : Type b} →
+  (A → B → B) → B → List A → B
 foldr _⊕_ ε []       = ε
 foldr _⊕_ ε (x ∷ xs) = x ⊕ foldr _⊕_ ε xs
 
 -- Left fold.
 
-foldl : (B → A → B) → B → List A → B
+foldl :
+  {@0 A : Type a} {@0 B : Type b} →
+  (B → A → B) → B → List A → B
 foldl _⊕_ ε []       = ε
 foldl _⊕_ ε (x ∷ xs) = foldl _⊕_ (ε ⊕ x) xs
 
 -- The length of a list.
 
-length : List A → ℕ
+length : {@0 A : Type a} → List A → ℕ
 length = foldr (const suc) 0
 
 -- The sum of all the elements in a list of natural numbers.
@@ -90,61 +93,76 @@ length = foldr (const suc) 0
 sum : List ℕ → ℕ
 sum = foldr _+_ 0
 
+private
+
+  -- A variant of _∷_ with an erased type argument.
+
+  cons : {@0 A : Type a} → A → List A → List A
+  cons x xs = x ∷ xs
+
 -- Appends two lists.
 
 infixr 5 _++_
 
-_++_ : List A → List A → List A
-xs ++ ys = foldr _∷_ ys xs
+_++_ : {@0 A : Type a} → List A → List A → List A
+xs ++ ys = foldr cons ys xs
 
 -- Maps a function over a list.
 
-map : (A → B) → List A → List B
+map :
+  {@0 A : Type a} {@0 B : Type b} →
+  (A → B) → List A → List B
 map f = foldr (λ x ys → f x ∷ ys) []
 
 -- Concatenates a list of lists.
 
-concat : List (List A) → List A
+concat : {@0 A : Type a} → List (List A) → List A
 concat = foldr _++_ []
 
 -- "Zips" two lists, using the given function to combine elementsw.
 
-zip-with : (A → B → C) → List A → List B → List C
+zip-with :
+  {@0 A : Type a} {@0 B : Type b} {@0 C : Type c} →
+  (A → B → C) → List A → List B → List C
 zip-with f []       _        = []
 zip-with f _        []       = []
 zip-with f (x ∷ xs) (y ∷ ys) = f x y ∷ zip-with f xs ys
 
 -- "Zips" two lists.
 
-zip : List A → List B → List (A × B)
-zip = zip-with _,_
+zip :
+  {@0 A : Type a} {@0 B : Type b} →
+  List A → List B → List (A × B)
+zip = zip-with (λ x y → x , y)
 
 -- Reverses a list.
 
-reverse : List A → List A
+reverse : {@0 A : Type a} → List A → List A
 reverse = foldl (λ xs x → x ∷ xs) []
 
 -- Replicates the given value the given number of times.
 
-replicate : ℕ → A → List A
+replicate : {@0 A : Type a} → ℕ → A → List A
 replicate zero    x = []
 replicate (suc n) x = x ∷ replicate n x
 
 -- A filter function.
 
-filter : (A → Bool) → List A → List A
-filter p = foldr (λ x xs → if p x then x ∷ xs else xs) []
+filter : {@0 A : Type a} → (A → Bool) → List A → List A
+filter p = foldr (λ x xs → if p x then cons x xs else xs) []
 
 -- Finds the element at the given position.
 
-index : (xs : List A) → Fin (length xs) → A
+index : {@0 A : Type a} (xs : List A) → Fin (length xs) → A
 index []       ()
 index (x ∷ xs) fzero    = x
 index (x ∷ xs) (fsuc i) = index xs i
 
 -- A lookup function.
 
-lookup : (A → A → Bool) → A → List (A × B) → Maybe B
+lookup :
+  {@0 A : Type a} {@0 B : Type b} →
+  (A → A → Bool) → A → List (A × B) → Maybe B
 lookup _≟_ x []             = nothing
 lookup _≟_ x ((y , z) ∷ ps) =
   if x ≟ y then just z else lookup _≟_ x ps
@@ -159,7 +177,7 @@ nats-< (suc n) = n ∷ nats-< n
 -- A list that includes every tail of the given list (including the
 -- list itself) exactly once. Longer tails precede shorter ones.
 
-tails : List A → List (List A)
+tails : {@0 A : Type a} → List A → List (List A)
 tails []           = [] ∷ []
 tails xxs@(_ ∷ xs) = xxs ∷ tails xs
 
@@ -167,7 +185,7 @@ tails xxs@(_ ∷ xs) = xxs ∷ tails xs
 --
 -- The given comparison function ("is less than or equal to") is used.
 
-minimum : (A → A → Bool) → A → List A → A
+minimum : {@0 A : Type a} → (A → A → Bool) → A → List A → A
 minimum _    x []       = x
 minimum _<=_ x (y ∷ ys) = case x <= y of λ where
   true  → minimum _<=_ x ys
@@ -177,7 +195,7 @@ minimum _<=_ x (y ∷ ys) = case x <= y of λ where
 --
 -- The given comparison function ("is less than or equal to") is used.
 
-maximum : (A → A → Bool) → A → List A → A
+maximum : {@0 A : Type a} → (A → A → Bool) → A → List A → A
 maximum _<=_ = minimum (flip _<=_)
 
 ------------------------------------------------------------------------
@@ -187,7 +205,9 @@ maximum _<=_ = minimum (flip _<=_)
 -- you drop the first n elements from xs, then you get xs (even if n
 -- is larger than the length of xs).
 
-take++drop : ∀ n → take n xs ++ drop n xs ≡ xs
+take++drop :
+  {A : Type a} {xs : List A} →
+  ∀ n → take n xs ++ drop n xs ≡ xs
 take++drop               zero    = refl _
 take++drop {xs = []}     (suc n) = refl _
 take++drop {xs = x ∷ xs} (suc n) = cong (x ∷_) (take++drop n)
@@ -311,7 +331,9 @@ index∘map {f} (x ∷ xs) {i} =
 
 -- The length function is homomorphic with respect to _++_/_+_.
 
-length-++ : ∀ xs → length (xs ++ ys) ≡ length xs + length ys
+length-++ :
+  {@0 A : Type a} ({ys} xs : List A) →
+  length (xs ++ ys) ≡ length xs + length ys
 length-++ []       = refl _
 length-++ (_ ∷ xs) = cong suc (length-++ xs)
 
@@ -427,7 +449,9 @@ filter∘map p f (x ∷ xs) with p (f x)
 
 -- The length of replicate n x is n.
 
-length-replicate : ∀ n → length (replicate n x) ≡ n
+length-replicate :
+  {@0 A : Type a} {x : A} →
+  ∀ n → length (replicate n x) ≡ n
 length-replicate     zero    = refl _
 length-replicate {x} (suc n) =
   length (replicate (suc n) x)  ≡⟨⟩
@@ -525,7 +549,7 @@ List↔Maybe[×List] = record
   { surjection = record
     { logical-equivalence = record
       { to   = λ { [] → inj₁ tt; (x ∷ xs) → inj₂ (x , xs) }
-      ; from = [ (λ _ → []) , uncurry _∷_ ]
+      ; from = [ (λ _ → []) , uncurry cons ]
       }
     ; right-inverse-of = [ (λ _ → refl _) , (λ _ → refl _) ]
     }
