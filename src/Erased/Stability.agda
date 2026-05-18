@@ -1689,6 +1689,7 @@ module []-cong₂-⊔₁
 module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
 
   open E₁.[]-cong₁ ax
+  open EEq.[]-cong₁ ax
   open []-cong₂ ax ax
   open []-cong₂-⊔₁ ax ax ax
 
@@ -2088,6 +2089,127 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       (Very-stable-↑ Very-stable-⊤)
       Very-stable-⊥
       Very-stable-×
+
+  ----------------------------------------------------------------------
+  -- Variants of elim¹ᴱ and substᴱ
+
+  private
+
+    -- A lemma used below.
+
+    elim¹ᴱ′-lemma :
+      {A : Type ℓ} {x y : A} →
+      (@0 x≡y : x ≡ y) →
+      (∃ λ (eq : x ≡ y) → Erased (eq ≡ x≡y))
+        ↝[ k ]
+      (∃ λ (eq : Erased (x ≡ y)) → Erased (eq .erased ≡ x≡y)) →
+      _≡_ {A = ∃ λ y → Erased (x ≡ y)}
+        (x , [ refl x ]) (y , [ x≡y ])
+        ↝[ k ]
+      ⊤
+    elim¹ᴱ′-lemma {x} {y} x≡y hyp =
+      (x , [ refl x ]) ≡ (y , [ x≡y ])                         ↔⟨ inverse Bijection.Σ-≡,≡↔≡ ⟩
+
+      (∃ λ (eq : x ≡ y) →
+       subst (λ y → Erased (x ≡ y)) eq [ refl x ] ≡ [ x≡y ])   ↝⟨ (∃-cong λ _ → ≡⇒↝ _ (cong (_≡ _) (lemma _))) ⟩
+
+      (∃ λ (eq : x ≡ y) → [ eq ] ≡ [ x≡y ])                    ↔⟨ (∃-cong λ _ → inverse Erased-≡≃[]≡[]) ⟩
+
+      (∃ λ (eq : x ≡ y) → Erased (eq ≡ x≡y))                   ↝⟨ hyp ⟩
+
+      (∃ λ (eq : Erased (x ≡ y)) → Erased (eq .erased ≡ x≡y))  ↔⟨ inverse Erased-Σ↔Σ ⟩
+
+      Erased (∃ λ (eq : x ≡ y) → eq ≡ x≡y)                     ↔⟨ Erased-cong.Erased-cong-↔
+                                                                    ax (lower-[]-cong-axiomatisation _ ax)
+                                                                    (_⇔_.to contractible⇔↔⊤ (singleton-contractible _)) ⟩
+
+      Erased ⊤                                                 ↔⟨ Erased-⊤↔⊤ ⟩□
+
+      ⊤                                                        □
+      where
+      lemma :
+        (eq : x ≡ y) →
+        subst (λ y → Erased (x ≡ y)) eq [ refl x ] ≡ [ eq ]
+      lemma eq =
+        subst (λ y → Erased (x ≡ y)) eq [ refl x ]  ≡⟨ push-subst-[] ⟩
+        [ subst (x ≡_) eq (refl x) ]                ≡⟨ []-cong [ sym trans-subst ] ⟩
+        [ trans (refl x) eq ]                       ≡⟨ []-cong [ trans-reflˡ _ ] ⟩∎
+        [ eq ]                                      ∎
+
+  -- A variant of elim¹ᴱ.
+
+  elim¹ᴱ′ :
+    {A : Type ℓ} {x y : A} →
+    Very-stableᴱ (x ≡ y) →
+    (P : {y : A} → @0 x ≡ y → Type p) →
+    P (refl x) →
+    (@0 x≡y : x ≡ y) → P x≡y
+  elim¹ᴱ′ {x} {y} s P p x≡y =
+    subst {x = x , [ refl x ]} {y = y , [ x≡y ]}
+      (λ p → P (p .proj₂ .erased))
+      (_≃ᴱ_.from
+         (elim¹ᴱ′-lemma x≡y
+            (Σ-cong-≃ᴱ-Erased EEq.⟨ _ , s ⟩ (λ _ → F.id)))
+         tt)
+      p
+
+  -- A computation rule for elim¹ᴱ′.
+
+  elim¹ᴱ′-refl :
+    {A : Type ℓ} {x : A} →
+    (s : Very-stable (x ≡ x)) →
+    (P : {y : A} → @0 x ≡ y → Type p) →
+    {p : P (refl x)} →
+    elim¹ᴱ′ (Very-stable→Very-stableᴱ 0 s) P p (refl x) ≡ p
+  elim¹ᴱ′-refl {x} s P {p} =
+    subst (λ p → P (p .proj₂ .erased)) _ p                        ≡⟨ cong (flip (subst _) _) $
+                                                                     mono₁ 0
+                                                                       (_⇔_.from contractible⇔↔⊤ $
+                                                                        elim¹ᴱ′-lemma (refl x) (Σ-cong Eq.⟨ _ , s ⟩ (λ _ → F.id)))
+                                                                       _ _ ⟩
+    subst (λ p → P (p .proj₂ .erased)) (refl (x , [ refl x ])) p  ≡⟨ subst-refl _ _ ⟩∎
+    p                                                             ∎
+
+  -- Another computation rule for elim¹ᴱ′.
+
+  @0 elim¹ᴱ′-refl′ :
+    {A : Type ℓ} {x : A} →
+    (s : Very-stableᴱ (x ≡ x)) →
+    (P : {y : A} → @0 x ≡ y → Type p) →
+    {p : P (refl x)} →
+    elim¹ᴱ′ s P p (refl x) ≡ p
+  elim¹ᴱ′-refl′ {x} s P {p} =
+    elim¹ᴱ′ s P p (refl x)                                               ≡⟨⟩
+
+    elim¹ᴱ′ (Very-stable→Very-stableᴱ 0 (Very-stableᴱ→Very-stable 0 s))
+      P p (refl x)                                                       ≡⟨ elim¹ᴱ′-refl (Very-stableᴱ→Very-stable 0 s) P ⟩∎
+
+    p                                                                    ∎
+
+  -- A variant of substᴱ.
+
+  substᴱ′ :
+    {A : Type ℓ} {x y : A} →
+    Very-stableᴱ (x ≡ y) →
+    (P : A → Type p) → @0 x ≡ y → P x → P y
+  substᴱ′ {x} {y} s P x≡y p =
+    elim¹ᴱ′ s (λ {y = y} _ → P y) p x≡y
+
+  -- A computation rule for substᴱ′.
+
+  substᴱ′-refl :
+    {A : Type ℓ} {x : A} {P : A → Type p} {p : P x} →
+    (s : Very-stable (x ≡ x)) →
+    substᴱ′ (Very-stable→Very-stableᴱ 0 s) P (refl x) p ≡ p
+  substᴱ′-refl s = elim¹ᴱ′-refl s _
+
+  -- Another computation rule for substᴱ′.
+
+  @0 substᴱ′-refl′ :
+    {A : Type ℓ} {x : A} {P : A → Type p} {p : P x} →
+    (s : Very-stableᴱ (x ≡ x)) →
+    substᴱ′ s P (refl x) p ≡ p
+  substᴱ′-refl′ s = elim¹ᴱ′-refl′ s _
 
   ----------------------------------------------------------------------
   -- The function λ A → Erased A, [_]→ and Very-stable form a modality
