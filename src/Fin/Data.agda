@@ -20,7 +20,7 @@ private variable
 -- The type Fin n is a type that contains n values.
 
 data Fin : @0 ℕ → Type where
-  zero : Fin (suc n)
+  zero : ∀ {@0 n} → Fin (suc n)
   suc  : ∀ {@0 n} → Fin n → Fin (suc n)
 
 -- Fin and P.Fin are pointwise equivalent.
