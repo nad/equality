@@ -699,8 +699,6 @@ Stable-Σ {A} {P} s₁ hyp s₂ =
     }
 
 -- Very-stable is closed under Σ.
---
--- See also Very-stableᴱ-Σ below.
 
 Very-stable-Σ :
   Very-stable A →
@@ -710,6 +708,77 @@ Very-stable-Σ {A} {P} s s′ = _≃_.is-equivalence (
   Σ A P                                       ↝⟨ Σ-cong Eq.⟨ _ , s ⟩ (λ x → Eq.⟨ _ , s′ x ⟩) ⟩
   Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
   Erased (Σ A P)                              □)
+
+-- Very-stableᴱ is closed under Σ.
+
+Very-stableᴱ-Σ :
+  {@0 A : Type a} {@0 P : A → Type p} →
+  Very-stableᴱ A →
+  (∀ x → Very-stableᴱ (P x)) →
+  Very-stableᴱ (Σ A P)
+Very-stableᴱ-Σ {A} {P} s₁ s₂ =
+  let A≃ᴱ : A ≃ᴱ Erased A
+      A≃ᴱ = EEq.⟨ _ , s₁ ⟩
+
+      P≃ᴱ : ∀ x → P x ≃ᴱ Erased (P x)
+      P≃ᴱ x = EEq.⟨ _ , s₂ x ⟩
+  in
+  _≃ᴱ_.is-equivalence $
+  EEq.[≃]→≃ᴱ (EEq.[proofs]
+    (Eq.with-other-inverse
+       (Σ A P                                       ↝⟨ Σ-cong (EEq.≃ᴱ→≃ A≃ᴱ) (λ x → EEq.≃ᴱ→≃ (P≃ᴱ x)) ⟩
+        Σ (Erased A) (λ x → Erased (P (erased x)))  ↔⟨ inverse Erased-Σ↔Σ ⟩□
+        Erased (Σ A P)                              □)
+       (λ { [ x , y ] →
+            _≃ᴱ_.from A≃ᴱ [ x ] ,
+            _≃ᴱ_.from (P≃ᴱ (_≃ᴱ_.from A≃ᴱ [ x ]))
+              [ subst (λ x → P (x .erased))
+                  (sym (_≃ᴱ_.right-inverse-of A≃ᴱ [ x ])) y ] })
+       (λ @0 { [ x , y ] →
+               cong (_,_ _ ∘ _≃ᴱ_.from (P≃ᴱ (_≃ᴱ_.from A≃ᴱ [ x ])))
+                 (subst (λ x → Erased (P (x .erased)))
+                    (sym (_≃ᴱ_.right-inverse-of A≃ᴱ [ x ])) [ y ]   ≡⟨ E₁.[]-cong₁.push-subst-[] erased-instance-of-[]-cong-axiomatisation ⟩∎
+
+                  [ subst (λ x → P (x .erased))
+                      (sym (_≃ᴱ_.right-inverse-of A≃ᴱ [ x ])) y ]   ∎) })))
+
+-- A generalisation of Very-stableᴱ-Σ.
+
+Very-stableᴱ-Σⁿ :
+  {A : Type ℓ} {P : A → Type p} →
+  ∀ n →
+  For-iterated-equality n Very-stableᴱ A →
+  (∀ x → For-iterated-equality n Very-stableᴱ (P x)) →
+  For-iterated-equality n Very-stableᴱ (Σ A P)
+Very-stableᴱ-Σⁿ n =
+  For-iterated-equality-Σ
+    n
+    (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
+    Very-stableᴱ-Σ
+
+-- A variant of Very-stableᴱ-Σ.
+--
+-- Based on a lemma called inO_unsigma, implemented by Mike Shulman
+-- in the file ReflectiveSubuniverse.v in (one version of) the Coq
+-- HoTT library.
+
+Very-stableᴱ-Σ≃ᴱΠ :
+  {A : Type a} {P : A → Type p} →
+  @0 Extensionality (a ⊔ p) (a ⊔ p) →
+  Very-stableᴱ A →
+  Very-stableᴱ-≡ A →
+  Very-stableᴱ (Σ A P) ≃ᴱ (∀ x → Very-stableᴱ (P x))
+Very-stableᴱ-Σ≃ᴱΠ {a} {p} {A} {P} ext s s-≡ =
+  EEq.⇔→≃ᴱ
+    (Very-stableᴱ-propositional ext)
+    (Π-closure (lower-extensionality p a ext) 1 λ _ →
+     Very-stableᴱ-propositional (lower-extensionality a a ext))
+    (flip λ x →
+     Very-stableᴱ (Σ A P)                          ↝⟨ flip Very-stableᴱ-Σ (λ _ → s-≡ _ _) ⟩
+     Very-stableᴱ (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ ≃ᴱ→Very-stableᴱ→Very-stableᴱ $ from-bijection $ inverse Σ-assoc ⟩
+     Very-stableᴱ (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ ≃ᴱ→Very-stableᴱ→Very-stableᴱ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
+     Very-stableᴱ (P x)                            □)
+    (Very-stableᴱ-Σ s)
 
 -- Stable is closed under _×_.
 
@@ -962,6 +1031,50 @@ Very-stableᴱ-≡-List n =
      Very-stable-↑ Very-stable-⊤)
     (Very-stable→Very-stableᴱ 0 Very-stable-⊥)
     Very-stableᴱ-×
+
+------------------------------------------------------------------------
+-- Some lemmas related to Very-stableᴱ
+
+-- If A is "very stable with erased proofs n levels up", then
+-- For-iterated-equality n Contractibleᴱ A is very stable with erased
+-- proofs (assuming erased function extensionality).
+
+Very-stableᴱ-H-levelᴱ :
+  {@0 A : Type ℓ} →
+  @0 Extensionality ℓ ℓ →
+  ∀ n →
+  For-iterated-equality n Very-stableᴱ A →
+  Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)
+Very-stableᴱ-H-levelᴱ {A} ext n =
+  For-iterated-equality n Very-stableᴱ A                    →⟨ For-iterated-equality-cong₁ᴱ-→ n lemma ⟩
+  For-iterated-equality n (Very-stableᴱ ∘ Contractibleᴱ) A  →⟨ For-iterated-equality-commutesᴱ-← Very-stableᴱ n (Very-stableᴱ-Π ext) ⟩□
+  Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)    □
+  where
+  lemma : ∀ {@0 A} → Very-stableᴱ A → Very-stableᴱ (Contractibleᴱ A)
+  lemma s =
+    Very-stableᴱ-Σ s λ _ →
+    Very-stableᴱ-Erased
+
+-- There is an equivalence with erased proofs between
+-- Very-stableᴱ (Very-stableᴱ A) and Very-stableᴱ A (assuming erased
+-- function extensionality).
+
+Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ :
+  {@0 A : Type ℓ} →
+  @0 Extensionality ℓ ℓ →
+  Very-stableᴱ (Very-stableᴱ A) ≃ᴱ Very-stableᴱ A
+Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ ext =
+  EEq.⇔→≃ᴱ
+    (Very-stableᴱ-propositional ext)
+    (Very-stableᴱ-propositional ext)
+    Very-stableᴱ-Very-stableᴱ→Very-stableᴱ
+    (λ s →
+       ≃ᴱ→Very-stableᴱ→Very-stableᴱ
+         (EEq.inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) $
+       Very-stableᴱ-Π ext λ _ →
+       Very-stableᴱ-H-levelᴱ ext 0 $
+       Very-stableᴱ-Σ s λ _ →
+       Very-stableᴱ-Erased)
 
 ------------------------------------------------------------------------
 -- Some properties related to "Modalities in Homotopy Type Theory"
@@ -1788,35 +1901,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       (Very-stableᴱ-propositional ext _ _)
 
   ----------------------------------------------------------------------
-  -- Closure properties
-
-  -- Very-stableᴱ is closed under Σ.
-
-  Very-stableᴱ-Σ :
-    {@0 A : Type ℓ} {@0 P : A → Type p} →
-    Very-stableᴱ A →
-    (∀ x → Very-stableᴱ (P x)) →
-    Very-stableᴱ (Σ A P)
-  Very-stableᴱ-Σ {A} {P} s s′ = _≃ᴱ_.is-equivalence (
-    Σ A P                                       EEq.≃ᴱ⟨ EEq.[]-cong₁.Σ-cong-≃ᴱ-Erased ax EEq.⟨ _ , s ⟩₀ (λ x → EEq.⟨ _ , s′ x ⟩₀) ⟩
-    Σ (Erased A) (λ x → Erased (P (erased x)))  EEq.↔⟨ inverse Erased-Σ↔Σ ⟩□
-    Erased (Σ A P)                              □)
-
-  -- A generalisation of Very-stableᴱ-Σ.
-
-  Very-stableᴱ-Σⁿ :
-    {A : Type ℓ} {P : A → Type p} →
-    ∀ n →
-    For-iterated-equality n Very-stableᴱ A →
-    (∀ x → For-iterated-equality n Very-stableᴱ (P x)) →
-    For-iterated-equality n Very-stableᴱ (Σ A P)
-  Very-stableᴱ-Σⁿ n =
-    For-iterated-equality-Σ
-      n
-      (≃ᴱ→Very-stableᴱ→Very-stableᴱ ∘ from-isomorphism)
-      Very-stableᴱ-Σ
-
-  ----------------------------------------------------------------------
   -- Closure properties related to equality
 
   -- If A is very stable, then equality is very stable for A.
@@ -1940,27 +2024,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
       Very-stable-Π ext λ _ →
       Very-stable→Very-stable-≡ 0 s _ _
 
-  -- If A is "very stable with erased proofs n levels up", then
-  -- For-iterated-equality n Contractibleᴱ A is very stable with
-  -- erased proofs (assuming extensionality).
-
-  Very-stableᴱ-H-levelᴱ :
-    {@0 A : Type ℓ} →
-    @0 Extensionality ℓ ℓ →
-    ∀ n →
-    For-iterated-equality n Very-stableᴱ A →
-    Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)
-  Very-stableᴱ-H-levelᴱ {A} ext n =
-    For-iterated-equality n Very-stableᴱ A                    →⟨ For-iterated-equality-cong₁ᴱ-→ n lemma ⟩
-    For-iterated-equality n (Very-stableᴱ ∘ Contractibleᴱ) A  →⟨ For-iterated-equality-commutesᴱ-← Very-stableᴱ n (Very-stableᴱ-Π ext) ⟩□
-    Very-stableᴱ (For-iterated-equality n Contractibleᴱ A)    □
-    where
-    lemma : ∀ {@0 A} → Very-stableᴱ A → Very-stableᴱ (Contractibleᴱ A)
-    lemma s =
-      Very-stableᴱ-Σ s λ _ →
-      Very-stable→Very-stableᴱ 0
-      Very-stable-Erased
-
   -- If A is "very stable n levels up", then H-level n A is very
   -- stable (assuming extensionality).
 
@@ -1994,28 +2057,6 @@ module []-cong₁ (ax : []-cong-axiomatisation ℓ) where
              Very-stable-H-level ext 0 $
              Very-stable-Σ s (λ _ → Very-stable-≡₀ _ _)
          })
-
-  -- There is an equivalence with erased proofs between
-  -- Very-stableᴱ (Very-stableᴱ A) and Very-stableᴱ A (assuming
-  -- extensionality).
-
-  Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ :
-    {@0 A : Type ℓ} →
-    @0 Extensionality ℓ ℓ →
-    Very-stableᴱ (Very-stableᴱ A) ≃ᴱ Very-stableᴱ A
-  Very-stableᴱ-Very-stableᴱ≃ᴱVery-stableᴱ ext =
-    EEq.⇔→≃ᴱ
-      (Very-stableᴱ-propositional ext)
-      (Very-stableᴱ-propositional ext)
-      Very-stableᴱ-Very-stableᴱ→Very-stableᴱ
-      (λ s →
-         ≃ᴱ→Very-stableᴱ→Very-stableᴱ
-           (EEq.inverse $ EEq.Is-equivalenceᴱ≃ᴱIs-equivalenceᴱ-CP ext) $
-         Very-stableᴱ-Π ext λ _ →
-         Very-stableᴱ-H-levelᴱ ext 0 $
-         Very-stableᴱ-Σ s λ _ →
-         Very-stable→Very-stableᴱ 0 $
-         Very-stable-Erased)
 
   -- A generalisation of Stable-≡-List.
 
@@ -2480,30 +2521,6 @@ module []-cong₂-⊔₂
       (λ ext →
          Π-closure (lower-extensionality ℓ₂ ℓ₁ ext) 1 λ _ →
          Very-stable-propositional (lower-extensionality ℓ₁ ℓ₁ ext))
-
-  -- A variant of Very-stableᴱ-Σ.
-  --
-  -- Based on a lemma called inO_unsigma, implemented by Mike Shulman
-  -- in the file ReflectiveSubuniverse.v in (one version of) the Coq
-  -- HoTT library.
-
-  Very-stableᴱ-Σ≃ᴱΠ :
-    {A : Type ℓ₁} {P : A → Type ℓ₂} →
-    @0 Extensionality (ℓ₁ ⊔ ℓ₂) (ℓ₁ ⊔ ℓ₂) →
-    Very-stableᴱ A →
-    Very-stableᴱ-≡ A →
-    Very-stableᴱ (Σ A P) ≃ᴱ (∀ x → Very-stableᴱ (P x))
-  Very-stableᴱ-Σ≃ᴱΠ {A} {P} ext s s-≡ =
-    EEq.⇔→≃ᴱ
-      (Very-stableᴱ-propositional ext)
-      (Π-closure (lower-extensionality ℓ₂ ℓ₁ ext) 1 λ _ →
-       Very-stableᴱ-propositional (lower-extensionality ℓ₁ ℓ₁ ext))
-      (flip λ x →
-       Very-stableᴱ (Σ A P)                          ↝⟨ flip ([]-cong₁.Very-stableᴱ-Σ ax) (λ _ → s-≡ _ _) ⟩
-       Very-stableᴱ (∃ λ ((y , _) : Σ A P) → y ≡ x)  ↝⟨ ≃ᴱ→Very-stableᴱ→Very-stableᴱ $ from-bijection $ inverse Σ-assoc ⟩
-       Very-stableᴱ (∃ λ (y : A) → P y × y ≡ x)      ↝⟨ ≃ᴱ→Very-stableᴱ→Very-stableᴱ $ from-bijection $ inverse $ ∃-intro _ _ ⟩□
-       Very-stableᴱ (P x)                            □)
-      ([]-cong₁.Very-stableᴱ-Σ ax₁ s)
 
   ----------------------------------------------------------------------
   -- Closure properties related to equality
