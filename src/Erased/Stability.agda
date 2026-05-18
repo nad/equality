@@ -226,6 +226,22 @@ Very-stableᴱ→Stable-[]≡id {x} s =
 [Erased→Very-stableᴱ]→Very-stableᴱ =
   EEq.[inhabited→Is-equivalenceᴱ]→Is-equivalenceᴱ
 
+-- Erased A is very stable (with erased proofs).
+
+Very-stableᴱ-Erased :
+  {@0 A : Type ℓ} → Very-stableᴱ (Erased A)
+Very-stableᴱ-Erased =
+  _≃ᴱ_.is-equivalence $
+  EEq.↔→≃ᴱ _
+    (λ x → [ erased (erased x) ])
+    (λ x →
+       [ [ erased (erased x) ] ]  ≡⟨ cong [_]→ Erased-η ⟩
+       [ erased x ]               ≡⟨ Erased-η ⟩∎
+       x                          ∎)
+    (λ x →
+       [ erased x ]  ≡⟨ Erased-η ⟩∎
+       x             ∎)
+
 -- In an erased context every type is very stable.
 --
 -- Presumably "not in an erased context" is not expressible
