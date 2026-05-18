@@ -255,6 +255,10 @@ import Fin
 
 import Fin.Data
 
+-- A forded variant of Fin.Data.Fin.
+
+import Fin.Data.Forded
+
 -- Some definitions related to and properties of the Maybe type.
 
 import Maybe
