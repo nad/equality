@@ -271,6 +271,11 @@ import Vec
 
 import Vec.Data
 
+-- A forded variant of the vectors in Vec.Data with non-erased lengths
+-- but erased equality proofs.
+
+import Vec.Data.Forded.Non-erased-lengths
+
 -- Vectors, defined as functions from finite sets.
 
 import Vec.Function
