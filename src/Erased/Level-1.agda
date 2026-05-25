@@ -1536,6 +1536,22 @@ private module []-cong₁′ (ax : []-cong-axiomatisation ℓ) where
      cong (λ x → f x) (refl _)  ∎)
     eq
 
+  -- A rearrangement lemma for congᴱ and trans.
+
+  congᴱ-trans :
+    {@0 A : Type ℓ} {f : @0 A → B} {@0 x y z : A}
+    {@0 eq₁ : x ≡ y} {@0 eq₂ : y ≡ z} →
+    congᴱ f (trans eq₁ eq₂) ≡ trans (congᴱ f eq₁) (congᴱ f eq₂)
+  congᴱ-trans {f} {eq₁} =
+    elim¹ᴱ
+      (λ eq₂ →
+         congᴱ f (trans eq₁ eq₂) ≡ trans (congᴱ f eq₁) (congᴱ f eq₂))
+      (congᴱ f (trans eq₁ (refl _))            ≡⟨ congᴱ (congᴱ _) (trans-reflʳ _) ⟩
+       congᴱ f eq₁                             ≡⟨ sym (trans-reflʳ _) ⟩
+       trans (congᴱ f eq₁) (refl _)            ≡⟨ cong (trans _) (sym congᴱ-refl) ⟩∎
+       trans (congᴱ f eq₁) (congᴱ f (refl _))  ∎)
+      _
+
   ----------------------------------------------------------------------
   -- Some equalities
 
