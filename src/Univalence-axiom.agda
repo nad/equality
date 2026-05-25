@@ -20,6 +20,7 @@ open import Equivalence eq as Eq
   using (_≃_; ⟨_,_⟩; Is-equivalence) renaming (_∘_ to _⊚_)
 import Equivalence.Contractible-preimages eq as CP
 import Equivalence.Half-adjoint eq as HA
+open import Excluded-middle eq
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import Groupoid eq
@@ -1575,3 +1576,52 @@ Contractible-∃-Contractible ext prop-ext =
   subst (λ (_ , A≃B) → P A≃B) (refl _) p                      ≡⟨ subst-refl _ _ ⟩∎
 
   p                                                           ∎
+
+------------------------------------------------------------------------
+-- Excluded middle and propositional resizing
+
+-- Excluded middle implies propositional resizing (assuming function
+-- extensionality and univalence).
+--
+-- (This is basically Exercise 3.10 in the HoTT book.)
+
+Excluded-middle→Propositional-resizing :
+  ∀ {ℓ} →
+  Extensionality (lsuc ℓ) (lsuc ℓ) →
+  Univalence ℓ →
+  Univalence (lsuc ℓ) →
+  Excluded-middle (lsuc ℓ) →
+  Propositional-resizing ℓ
+Excluded-middle→Propositional-resizing {ℓ} ext univ₁ univ₂ em =
+  _≃_.is-equivalence $
+  Eq.↔→≃ _ from
+    (λ A →
+       Σ-≡,≡→≡
+         (≃⇒≡ univ₂
+            (↑ (lsuc ℓ) (from A .proj₁)  ↔⟨ Bijection.↑↔ ⟩
+             from A .proj₁               ↝⟨ from-≃ _ ⟩□
+             A .proj₁                    □))
+         (H-level-propositional ext 1 _ _))
+    (λ A →
+       Σ-≡,≡→≡
+         (≃⇒≡ univ₁
+            (from (↑-Prop A) .proj₁  ↝⟨ from-≃ _ ⟩
+             ↑-Prop A .proj₁         ↔⟨ Bijection.↑↔ ⟩□
+             A .proj₁                □))
+         (H-level-propositional (lower-extensionality _ _ ext) 1 _ _))
+    where
+    from : Proposition (lsuc ℓ) → Proposition ℓ
+    from (_ , A-prop) with em A-prop
+    … | yes _ = ↑ _ ⊤ , ↑-closure 1 (mono₁ 0 ⊤-contractible)
+    … | no _  = ⊥ , ⊥-propositional
+
+    from-≃ : (P : Proposition (lsuc ℓ)) → from P .proj₁ ≃ P .proj₁
+    from-≃ (A , A-prop) with em A-prop
+    … | yes witness =
+      ↑ ℓ ⊤  ↔⟨ Bijection.↑↔ ⟩
+      ⊤      ↔⟨ inverse $ _⇔_.to contractible⇔↔⊤ $
+                propositional⇒inhabited⇒contractible A-prop witness ⟩□
+      A      □
+    … | no not =
+      ⊥  ↝⟨ inverse (_⇔_.from (≃⊥≃¬ _) not) ⟩□
+      A  □

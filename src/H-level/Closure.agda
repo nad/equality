@@ -421,6 +421,16 @@ opaque
 ↑⁻¹-closure : ∀ {a b} {A : Type a} n → H-level n (↑ b A) → H-level n A
 ↑⁻¹-closure = respects-surjection (_↔_.surjection ↑↔)
 
+-- A variant of ↑ for Proposition.
+
+↑-Prop : ∀ {a} → Proposition a → Proposition (lsuc a)
+↑-Prop (A , A-prop) = ↑ _ A , ↑-closure 1 A-prop
+
+-- A variant of ↑ for Set.
+
+↑-Set : ∀ {a} → Set a → Set (lsuc a)
+↑-Set (A , A-set) = ↑ _ A , ↑-closure 2 A-set
+
 ------------------------------------------------------------------------
 -- W-types
 

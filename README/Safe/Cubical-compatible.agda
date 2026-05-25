@@ -98,10 +98,6 @@ import Extensionality
 
 import H-level.Closure
 
--- Excluded middle.
-
-import Excluded-middle
-
 -- Equivalence relations
 
 import Equivalence-relation
@@ -109,6 +105,10 @@ import Equivalence-relation
 -- Equivalences.
 
 import Equivalence
+
+-- Excluded middle.
+
+import Excluded-middle
 
 -- A type for values that should be erased at run-time.
 
