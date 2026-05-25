@@ -26,6 +26,7 @@ open import Prelude
 
 open import Bijection equality-with-J using (_↔_)
 open import Equality.Path.Isomorphisms eq
+open import Extensionality equality-with-J
 open import Function-universe equality-with-J hiding (_∘_)
 import H-level P.equality-with-J as PH
 open import H-level.Truncation.Propositional eq as PT
@@ -192,3 +193,43 @@ open Quotientᴱ.Truncation quotient PTᴱ.truncation public
 []-surjective = elim-prop λ where
   .[]ʳ x             → ∣ x , refl _ ∣
   .is-propositionʳ _ → PT.truncation-is-proposition
+
+------------------------------------------------------------------------
+-- Function extensionality
+
+opaque
+  unfolding rec
+
+  -- One form of erased function extensionality for set-valued
+  -- functions can be proved using quotient types.
+  --
+  -- This result is based on one in Martin Hofmann's PhD thesis (see
+  -- §3.2.7).
+  --
+  -- Perhaps one cannot make the proof below work in a setting where
+  -- the computation rule for [_] only holds propositionally (and
+  -- function extensionality is not already available), because this
+  -- computation rule is used under a binder.
+
+  @0 function-extensionality :
+    {A : Type a} {P : A → Type p} →
+    (∀ x → Is-set (P x)) →
+    Function-extensionality′ A P
+  function-extensionality {a} {p} {A} {P} P-set {f} {g} f∼g =
+    f              ≡⟨⟩
+    extract [ f ]  ≡⟨ cong extract ([]-respects-relation f∼g) ⟩
+    extract [ g ]  ≡⟨⟩
+    g              ∎
+    where
+    infix 4 _∼_
+
+    _∼_ : (_ _ : (x : A) → P x) → Type (a ⊔ p)
+    f ∼ g = (x : A) → f x ≡ g x
+
+    extract : ((x : A) → P x) /ᴱ _∼_ → (x : A) → P x
+    extract f x = rec
+      (λ where
+         .[]ʳ                   → _$ x
+         .[]-respects-relationʳ → _$ x
+         .is-setʳ               → P-set _)
+      f
