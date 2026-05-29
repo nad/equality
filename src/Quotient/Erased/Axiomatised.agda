@@ -769,15 +769,20 @@ record Quotientᴱ : Typeω where
 
   opaque
 
-    -- Quotienting with equality (for a set) amounts to the same thing
-    -- as not quotienting at all.
+    -- Quotienting with a relation that is contained in equality
+    -- amounts to the same thing as not quotienting at all (for a
+    -- set).
+    --
+    -- The generalisation from "equality" to "a relation that is
+    -- contained in equality" is based on a suggestion from Andreas
+    -- Abel.
 
-    /ᴱ≡≃ : @0 Is-set A → A /ᴱ _≡_ ≃ A
-    /ᴱ≡≃ A-set =
+    /ᴱ≡≃ : @0 (∀ {x y} → R x y → x ≡ y) → @0 Is-set A → A /ᴱ R ≃ A
+    /ᴱ≡≃ R⊆≡ A-set =
       Eq.↔→≃
         (rec λ where
            .[]ʳ                   → id
-           .[]-respects-relationʳ → id
+           .[]-respects-relationʳ → R⊆≡
            .is-setʳ               → A-set)
         [_]
         (λ _ → rec-[])

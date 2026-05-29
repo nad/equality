@@ -1289,7 +1289,7 @@ opaque
       _≃ᴱ_.is-equivalence $
       EEq.with-other-function
         (Const B C /ᴱ Constᴿ B R  ↔⟨⟩
-         B /ᴱ _≡_                 ↔⟨ Q./ᴱ≡≃ set ⟩
+         B /ᴱ _≡_                 ↔⟨ Q./ᴱ≡≃ id set ⟩
          B                        ↔⟨⟩
          Const B (C /ᴱ R)         □)
         (/ᴱ→/ᴱ (Constᴿ B) (Constᴿ-suitable set) Constᴿ-acts-on-functions

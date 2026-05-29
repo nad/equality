@@ -503,17 +503,20 @@ Stable→≃[]≡[] R-equiv R-prop R-stable =
   _≡_ {A = A / λ x y → ∥ R x y ∥} [ x ] [ y ]  ↝⟨ Eq.≃-≡ (inverse /-∥∥≃/) ⟩□
   _≡_ {A = A / R} [ x ] [ y ]                  □
 
--- Quotienting with equality (for a set) amounts to the same thing as
--- not quotienting at all.
+-- Quotienting with a relation that is contained in equality amounts
+-- to the same thing as not quotienting at all (for a set).
+--
+-- The generalisation from "equality" to "a relation that is contained
+-- in equality" is based on a suggestion from Andreas Abel.
 
-/≡↔ : Is-set A → A / _≡_ ↔ A
-/≡↔ A-set = record
+/≡↔ : (∀ {x y} → R x y → x ≡ y) → Is-set A → A / R ↔ A
+/≡↔ R⊆≡ A-set = record
   { surjection = record
     { logical-equivalence = record
       { from = [_]
       ; to   = rec λ where
           .[]ʳ                   → id
-          .[]-respects-relationʳ → id
+          .[]-respects-relationʳ → R⊆≡
           .is-setʳ               → A-set
       }
     ; right-inverse-of = λ _ → refl _
