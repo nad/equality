@@ -499,7 +499,7 @@ implicit-Π↔Π = record
 -- Implicit and explicit Π's with erased domains are isomorphic.
 
 implicit-Πᴱ↔Πᴱ :
-  ∀ {a b} {A : Type a} {B : A → Type b} →
+  ∀ {a b} {A : Type a} {B : @0 A → Type b} →
   ({@0 x : A} → B x) ↔ ((@0 x : A) → B x)
 implicit-Πᴱ↔Πᴱ = record
   { surjection = record
