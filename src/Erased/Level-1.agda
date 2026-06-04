@@ -39,7 +39,8 @@ open import Modality.Basics eq-J
 open import Monad eq-J hiding (map; map-id; map-∘)
 open import Preimage eq-J using (_⁻¹_)
 open import Surjection eq-J as Surjection using (_↠_; Split-surjective)
-open import Univalence-axiom eq-J as U using (Univalence; ≡⇒→; _²/≡)
+open import Univalence-axiom eq-J as U
+  using (Univalence; Propositional-extensionality; ≡⇒→; _²/≡)
 
 private
   variable
@@ -825,6 +826,19 @@ Erased-Split-surjective-[] = [ (λ @0 { [ x ] → x , refl _ }) ]
 H-level-1+-∃-H-level-Erased ext univ n =          $⟨ U.∃-H-level-H-level-1+ ext univ n ⟩
   H-level (1 + n) (∃ λ A → H-level n A)           →⟨ H-level-cong _ (1 + n) (∃-cong λ _ → inverse $ Erased↔ .erased) ⟩□
   H-level (1 + n) (∃ λ A → Erased (H-level n A))  □
+
+-- In erased contexts the type
+-- ∃ λ (A : Type a) → Erased (Is-proposition A) is a set (assuming
+-- function extensionality and propositional extensionality).
+
+@0 Is-set-∃-Erased-Is-proposition :
+  Extensionality (lsuc a) (lsuc a) →
+  Propositional-extensionality a →
+  Is-set (∃ λ (A : Type a) → Erased (Is-proposition A))
+Is-set-∃-Erased-Is-proposition ext prop-ext =
+                                              $⟨ (λ {_ _} → U.Is-set-∃-Is-proposition ext prop-ext) ⟩
+  Is-set (∃ λ A → Is-proposition A)           →⟨ H-level-cong _ 2 (∃-cong λ _ → inverse $ Erased↔ .erased) ⟩□
+  Is-set (∃ λ A → Erased (Is-proposition A))  □
 
 ------------------------------------------------------------------------
 -- An alternative to []-cong-axiomatisation
