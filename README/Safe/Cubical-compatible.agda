@@ -400,6 +400,10 @@ import Integer.Quotient.Same-difference
 
 import Integer.Quotient.Erased
 
+-- Strict total orders with erased proofs.
+
+import Total-order.Erased
+
 -- Some omniscience principles.
 
 import Omniscience
