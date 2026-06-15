@@ -180,7 +180,9 @@ quotient .Quotientᴱ.eliminator {P} f r s = elimᴾ λ where
 quotient .Quotientᴱ.eliminator-[] = refl _
 
 open Quotientᴱ quotient public
-  hiding (_/ᴱ_; [_]; []-respects-relation; /ᴱ-is-set; module Truncation)
+  hiding
+    (_/ᴱ_; [_]; []-respects-relation; /ᴱ-is-set; module Truncation;
+     ≃[]≡[]; decidable-erased-equality)
 
 open Quotientᴱ.Truncation quotient PTᴱ.truncation public
 
