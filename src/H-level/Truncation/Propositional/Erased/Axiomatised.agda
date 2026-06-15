@@ -31,7 +31,7 @@ open import Equivalence.Path-split eq
   using (Is-∞-extendable-along-[_])
 open import Equivalence-relation eq
 open import Erased.Level-1 eq as E₁
-  using (Erased; [_]; erased)
+  using (Erased; [_]; erased; Dec-Erased)
 import Erased.Level-2 eq as E₂
 open import Erased.Stability eq as ES using (Erased-singleton)
 open import Extensionality eq
@@ -1204,6 +1204,23 @@ record Truncationᴱ : Typeω where
       }
       where
       open Is-equivalence-relation R-equiv
+
+  opaque
+
+    -- A variant of Dec-Erased-map.
+
+    Dec-Erased-map-∥∥ᴱ :
+      {@0 A : Type a} {@0 B : Type b} →
+      @0 ∥ A ∥ᴱ ⇔ B →
+      Dec-Erased A → Dec-Erased B
+    Dec-Erased-map-∥∥ᴱ ∥A∥⇔B (yes x) =
+      yes (E₁.map (_⇔_.to ∥A∥⇔B ∘ ∣_∣) x)
+    Dec-Erased-map-∥∥ᴱ ∥A∥⇔B (no not) =
+      no [ (rec λ @0 where
+              .∣∣ʳ                        → not .erased
+              .truncation-is-propositionʳ → ⊥-propositional) ∘
+           _⇔_.from ∥A∥⇔B
+         ]
 
   ----------------------------------------------------------------------
   -- Definitions related to truncated binary sums
