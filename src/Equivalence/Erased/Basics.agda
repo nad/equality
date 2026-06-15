@@ -146,25 +146,9 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
   equivalence =
     Eq.⟨ to , Is-equivalenceᴱ→Is-equivalence is-equivalence ⟩
 
-  -- In an erased context the function from is a right inverse of to.
-
-  @0 right-inverse-of : ∀ y → to (from y) ≡ y
-  right-inverse-of = _≃_.right-inverse-of equivalence
-
-  -- In an erased context the function from is a left inverse of to.
-
-  @0 left-inverse-of : ∀ x → from (to x) ≡ x
-  left-inverse-of = _≃_.left-inverse-of equivalence
-
-  -- Two coherence properties.
-
-  @0 left-right-lemma :
-    ∀ x → cong to (left-inverse-of x) ≡ right-inverse-of (to x)
-  left-right-lemma = _≃_.left-right-lemma equivalence
-
-  @0 right-left-lemma :
-    ∀ x → cong from (right-inverse-of x) ≡ left-inverse-of (from x)
-  right-left-lemma = _≃_.right-left-lemma equivalence
+  private
+    open module @0 Equiv = _≃_ equivalence public
+      hiding (to; from; is-equivalence; logical-equivalence)
 
 private
   variable
