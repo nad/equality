@@ -17,6 +17,9 @@ open import Prelude
 
 open Derived-definitions-and-properties eq
 
+private variable
+  m n o : ℕ
+
 ------------------------------------------------------------------------
 -- A helper function
 
@@ -797,6 +800,34 @@ suc m ≤→ suc n = m ≤→ n
 ≤→→≤ zero    n       _  = zero≤ n
 ≤→→≤ (suc m) zero    ()
 ≤→→≤ (suc m) (suc n) p  = suc≤suc (≤→→≤ m n p)
+
+opaque
+
+  -- Addition is order-reflecting in its right argument.
+
+  +-order-reflectingʳ-≤→ : ∀ m → m + n ≤→ m + o → n ≤→ o
+  +-order-reflectingʳ-≤→ zero    = id
+  +-order-reflectingʳ-≤→ (suc m) = +-order-reflectingʳ-≤→ m
+
+opaque
+
+  -- Addition is order-reflecting in its right argument.
+
+  +-order-reflectingʳ : m + n ≤ m + o → n ≤ o
+  +-order-reflectingʳ {m} =
+    ≤→→≤ _ _ ∘
+    +-order-reflectingʳ-≤→ m ∘
+    ≤→≤→ _ _
+
+opaque
+
+  -- Addition is order-reflecting in its left argument.
+
+  +-order-reflectingˡ : m + o ≤ n + o → m ≤ n
+  +-order-reflectingˡ {m} {o} {n} =
+    m + o ≤ n + o  →⟨ subst id (cong₂ _≤_ (+-comm m) (+-comm n)) ⟩
+    o + m ≤ o + n  →⟨ +-order-reflectingʳ ⟩□
+    m ≤ n          □
 
 ------------------------------------------------------------------------
 -- Properties related to _∸_
