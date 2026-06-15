@@ -29,6 +29,7 @@ open import H-level equality-with-J
 open import H-level.Closure equality-with-J
 open import H-level.Truncation.Propositional eq using (∣_∣)
 import Integer equality-with-J as Data
+open import Integer.Quotient.Same-difference equality-with-J
 import Nat equality-with-J as Nat
 open import Quotient eq as Q hiding (elim; rec)
 open import Univalence-axiom equality-with-J
@@ -39,55 +40,6 @@ private
     a               : Level
     A               : Type a
     i j p q         : A
-
-------------------------------------------------------------------------
--- The relation used to define the integers.
-
--- Two pairs of natural numbers are related if they have the same
--- difference.
-
-Same-difference : ℕ × ℕ → ℕ × ℕ → Type
-Same-difference (m₁ , n₁) (m₂ , n₂) = m₁ ⊕ n₂ ≡ n₁ ⊕ m₂
-
--- The relation is pointwise propositional.
-
-Same-difference-propositional :
-  Is-proposition (Same-difference p q)
-Same-difference-propositional = ℕ-set
-
--- The relation is an equivalence relation.
-
-Same-difference-is-equivalence-relation :
-  Is-equivalence-relation Same-difference
-Same-difference-is-equivalence-relation = record
-  { reflexive  = λ { {m , n} →
-                     m ⊕ n  ≡⟨ Nat.+-comm m ⟩∎
-                     n ⊕ m  ∎
-                   }
-  ; symmetric  = λ { {m₁ , n₁} {m₂ , n₂} hyp →
-                     m₂ ⊕ n₁  ≡⟨ Nat.+-comm m₂ ⟩
-                     n₁ ⊕ m₂  ≡⟨ sym hyp ⟩
-                     m₁ ⊕ n₂  ≡⟨ Nat.+-comm m₁ ⟩∎
-                     n₂ ⊕ m₁  ∎
-                   }
-  ; transitive = λ { {m₁ , n₁} {m₂ , n₂} {m₃ , n₃} hyp₁ hyp₂ →
-                     Nat.+-cancellativeʳ (
-                       m₁ ⊕ n₃ ⊕ m₂    ≡⟨ sym $ Nat.+-assoc m₁ ⟩
-                       m₁ ⊕ (n₃ ⊕ m₂)  ≡⟨ cong (m₁ ⊕_) $ Nat.+-comm n₃ ⟩
-                       m₁ ⊕ (m₂ ⊕ n₃)  ≡⟨ cong (m₁ ⊕_) hyp₂ ⟩
-                       m₁ ⊕ (n₂ ⊕ m₃)  ≡⟨ Nat.+-assoc m₁ ⟩
-                       m₁ ⊕ n₂ ⊕ m₃    ≡⟨ cong (_⊕ m₃) hyp₁ ⟩
-                       n₁ ⊕ m₂ ⊕ m₃    ≡⟨ sym $ Nat.+-assoc n₁ ⟩
-                       n₁ ⊕ (m₂ ⊕ m₃)  ≡⟨ cong (n₁ ⊕_) $ Nat.+-comm m₂ ⟩
-                       n₁ ⊕ (m₃ ⊕ m₂)  ≡⟨ Nat.+-assoc n₁ ⟩∎
-                       n₁ ⊕ m₃ ⊕ m₂    ∎)
-                   }
-  }
-
--- It is decidable whether the relation holds.
-
-Same-difference-decidable : ∀ p → Dec (Same-difference p q)
-Same-difference-decidable _ = _ Nat.≟ _
 
 ------------------------------------------------------------------------
 -- Integers
@@ -117,14 +69,17 @@ infix 8 +_
 ------------------------------------------------------------------------
 -- A lemma
 
--- Increasing both sides of a pair by one does not affect the value of
--- the corresponding integer.
+opaque
+  unfolding Same-difference
 
-[]≡[suc,suc] : _≡_ {A = ℤ} [ (m , n) ] [ (P.suc m , P.suc n) ]
-[]≡[suc,suc] {m} {n} = []-respects-relation
-  (m ⊕ P.suc n  ≡⟨ sym $ Nat.suc+≡+suc m ⟩
-   P.suc m ⊕ n  ≡⟨ Nat.+-comm (P.suc m) ⟩∎
-   n ⊕ P.suc m  ∎)
+  -- Increasing both sides of a pair by one does not affect the value of
+  -- the corresponding integer.
+
+  []≡[suc,suc] : _≡_ {A = ℤ} [ (m , n) ] [ (P.suc m , P.suc n) ]
+  []≡[suc,suc] {m} {n} = []-respects-relation
+    (m ⊕ P.suc n  ≡⟨ sym $ Nat.suc+≡+suc m ⟩
+     P.suc m ⊕ n  ≡⟨ Nat.+-comm (P.suc m) ⟩∎
+     n ⊕ P.suc m  ∎)
 
 ------------------------------------------------------------------------
 -- A one-to-one correspondence between two definitions of integers
@@ -214,26 +169,29 @@ infix 8 +_
        n₁ ⊕ P.suc m₂    ≡⟨ sym $ Nat.suc+≡+suc n₁ ⟩∎
        P.suc (n₁ ⊕ m₂)  ∎)
 
-  to-lemma :
-    ∀ m₁ n₁ m₂ n₂ →
-    Same-difference (m₁ , n₁) (m₂ , n₂) →
-    Data.+ m₁ Data.- Data.+ n₁ ≡
-    Data.+ m₂ Data.- Data.+ n₂
-  to-lemma m₁ zero m₂ zero hyp =
-    Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ hyp ⟩
-    Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-    Data.+ (m₂ ⊕ 0)  ∎
-  to-lemma m₁ zero m₂ (P.suc n₂) hyp =
-    Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
-    Data.+ m₁             ≡⟨ to-lemma₁ hyp ⟩∎
-    Data.+ m₂ +-[1+ n₂ ]  ∎
-  to-lemma m₁ (P.suc n₁) m₂ zero hyp =
-    Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ hyp ⟩
-    Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
-    Data.+ (m₂ ⊕ 0)       ∎
-  to-lemma m₁ (P.suc n₁) m₂ (P.suc n₂) hyp =
-    Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ _ _ _ _ hyp ⟩∎
-    Data.+ m₂ +-[1+ n₂ ]  ∎
+  opaque
+    unfolding Same-difference
+
+    to-lemma :
+      ∀ m₁ n₁ m₂ n₂ →
+      Same-difference (m₁ , n₁) (m₂ , n₂) →
+      Data.+ m₁ Data.- Data.+ n₁ ≡
+      Data.+ m₂ Data.- Data.+ n₂
+    to-lemma m₁ zero m₂ zero hyp =
+      Data.+ (m₁ ⊕ 0)  ≡⟨ cong Data.+_ hyp ⟩
+      Data.+ m₂        ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+      Data.+ (m₂ ⊕ 0)  ∎
+    to-lemma m₁ zero m₂ (P.suc n₂) hyp =
+      Data.+ (m₁ ⊕ 0)       ≡⟨ cong Data.+_ Nat.+-right-identity ⟩
+      Data.+ m₁             ≡⟨ to-lemma₁ hyp ⟩∎
+      Data.+ m₂ +-[1+ n₂ ]  ∎
+    to-lemma m₁ (P.suc n₁) m₂ zero hyp =
+      Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₂ hyp ⟩
+      Data.+ m₂             ≡⟨ cong Data.+_ (sym Nat.+-right-identity) ⟩∎
+      Data.+ (m₂ ⊕ 0)       ∎
+    to-lemma m₁ (P.suc n₁) m₂ (P.suc n₂) hyp =
+      Data.+ m₁ +-[1+ n₁ ]  ≡⟨ to-lemma₃ _ _ _ _ hyp ⟩∎
+      Data.+ m₂ +-[1+ n₂ ]  ∎
 
   to : ℤ → Data.ℤ
   to = Q.rec λ where
@@ -352,7 +310,9 @@ elim P f i =                       $⟨ elim′ P (λ n → f n 0) (λ n → f 0
   P (_↔_.from ℤ↔ℤ (_↔_.to ℤ↔ℤ i))  ↝⟨ subst P (_↔_.left-inverse-of ℤ↔ℤ i) ⟩□
   P i                              □
 
-mutual
+opaque
+ unfolding []≡[suc,suc]
+ mutual
 
   -- A "computation" rule for elim.
   --
@@ -523,22 +483,24 @@ binary-operator :
    Same-difference (f i₁ j₁) (f i₂ j₂)) →
   ℤ → ℤ → ℤ
 binary-operator f resp = Q.rec λ where
-  .[]ʳ i → Q.rec λ where
-    .[]ʳ j → [ f i j ]
+    .[]ʳ i → Q.rec λ where
+      .[]ʳ j → [ f i j ]
 
-    .[]-respects-relationʳ s →
-      []-respects-relation (resp (Nat.+-comm (proj₁ i)) s)
+      .[]-respects-relationʳ s →
+        []-respects-relation (resp reflexive s)
 
-    .is-setʳ → ℤ-set
+      .is-setʳ → ℤ-set
 
-  .[]-respects-relationʳ s → ⟨ext⟩ $ Q.elim-prop λ where
-    .[]ʳ i → []-respects-relation (resp s (Nat.+-comm (proj₁ i)))
+    .[]-respects-relationʳ s → ⟨ext⟩ $ Q.elim-prop λ where
+      .[]ʳ i → []-respects-relation (resp s reflexive)
 
-    .is-propositionʳ _ → +⇒≡ {n = 1} ℤ-set
+      .is-propositionʳ _ → +⇒≡ {n = 1} ℤ-set
 
-  .is-setʳ →
-    Π-closure ext 2 λ _ →
-    ℤ-set
+    .is-setʳ →
+      Π-closure ext 2 λ _ →
+      ℤ-set
+  where
+  open Is-equivalence-relation Same-difference-is-equivalence-relation
 
 private
 
@@ -562,30 +524,14 @@ private
 infix 8 -_
 
 -_ : ℤ → ℤ
--_ = unary-operator swap sym
+-_ = unary-operator swap Same-difference-swap
 
 -- Addition.
 
 infixl 6 _+_
 
 _+_ : ℤ → ℤ → ℤ
-_+_ = binary-operator
-  (Σ-zip _⊕_ _⊕_)
-  (λ { {k₁ , k₂} {ℓ₁ , ℓ₂} {m₁ , m₂} {n₁ , n₂} hyp₁ hyp₂ →
-       (k₁ ⊕ m₁) ⊕ (ℓ₂ ⊕ n₂)  ≡⟨ lemma k₁ ⟩
-       (k₁ ⊕ ℓ₂) ⊕ (m₁ ⊕ n₂)  ≡⟨ cong₂ _⊕_ hyp₁ hyp₂ ⟩
-       (k₂ ⊕ ℓ₁) ⊕ (m₂ ⊕ n₁)  ≡⟨ lemma k₂ ⟩∎
-       (k₂ ⊕ m₂) ⊕ (ℓ₁ ⊕ n₁)  ∎
-     })
-  where
-  lemma : ∀ _ {b c d} → _
-  lemma a {b} {c} {d} =
-    (a ⊕ b) ⊕ (c ⊕ d)  ≡⟨ sym $ Nat.+-assoc a ⟩
-    a ⊕ (b ⊕ (c ⊕ d))  ≡⟨ cong (a ⊕_) $ Nat.+-assoc b ⟩
-    a ⊕ ((b ⊕ c) ⊕ d)  ≡⟨ cong ((a ⊕_) ∘ (_⊕ d)) $ Nat.+-comm b ⟩
-    a ⊕ ((c ⊕ b) ⊕ d)  ≡⟨ cong (a ⊕_) $ sym $ Nat.+-assoc c ⟩
-    a ⊕ (c ⊕ (b ⊕ d))  ≡⟨ Nat.+-assoc a ⟩∎
-    (a ⊕ c) ⊕ (b ⊕ d)  ∎
+_+_ = binary-operator (Σ-zip _⊕_ _⊕_) Same-difference-+
 
 -- Subtraction.
 
@@ -616,26 +562,29 @@ i - j = i + - j
   _↔_.from ℤ↔ℤ (Data.+ m +-[1+ n ])              ≡⟨⟩
   _↔_.from ℤ↔ℤ (Data.+ P.suc m +-[1+ P.suc n ])  ∎
 
--- The implementation of addition given here matches the one in
--- Integer.
+opaque
+  unfolding Same-difference
 
-+≡+ :
-  ∀ i →
-  (_↔_.from ℤ↔ℤ i) + (_↔_.from ℤ↔ℤ j) ≡ _↔_.from ℤ↔ℤ (i Data.+ j)
-+≡+ {j = Data.+ n}      (Data.+ m) = + (m ⊕ n)  ∎
-+≡+ {j = Data.-[1+ n ]} (Data.+ m) = ++-[1+]≡++-[1+]
+  -- The implementation of addition given here matches the one in
+  -- Integer.
 
-+≡+ {j = Data.+ n} Data.-[1+ m ] =
-  -[ P.suc m ] + + n                 ≡⟨ []-respects-relation (
-      n ⊕ P.suc m                         ≡⟨ Nat.+-comm n ⟩
-      P.suc m ⊕ n                         ≡⟨ sym $ cong₂ _⊕_ (Nat.+-right-identity {n = P.suc m}) Nat.+-right-identity ⟩∎
-      P.suc m ⊕ 0 ⊕ (n ⊕ 0)               ∎) ⟩
-  + n + -[ P.suc m ]                 ≡⟨ ++-[1+]≡++-[1+] ⟩∎
-  _↔_.from ℤ↔ℤ (Data.+ n +-[1+ m ])  ∎
+  +≡+ :
+    ∀ i →
+    (_↔_.from ℤ↔ℤ i) + (_↔_.from ℤ↔ℤ j) ≡ _↔_.from ℤ↔ℤ (i Data.+ j)
+  +≡+ {j = Data.+ n}      (Data.+ m) = + (m ⊕ n)  ∎
+  +≡+ {j = Data.-[1+ n ]} (Data.+ m) = ++-[1+]≡++-[1+]
 
-+≡+ {j = Data.-[1+ n ]} Data.-[1+ m ] =
-  -[ P.suc m ⊕ P.suc n ]      ≡⟨ cong (-[_] ∘ P.suc) $ sym $ Nat.suc+≡+suc _ ⟩∎
-  -[ P.suc (P.suc (m ⊕ n)) ]  ∎
+  +≡+ {j = Data.+ n} Data.-[1+ m ] =
+    -[ P.suc m ] + + n                 ≡⟨ []-respects-relation (
+        n ⊕ P.suc m                         ≡⟨ Nat.+-comm n ⟩
+        P.suc m ⊕ n                         ≡⟨ sym $ cong₂ _⊕_ (Nat.+-right-identity {n = P.suc m}) Nat.+-right-identity ⟩∎
+        P.suc m ⊕ 0 ⊕ (n ⊕ 0)               ∎) ⟩
+    + n + -[ P.suc m ]                 ≡⟨ ++-[1+]≡++-[1+] ⟩∎
+    _↔_.from ℤ↔ℤ (Data.+ n +-[1+ m ])  ∎
+
+  +≡+ {j = Data.-[1+ n ]} Data.-[1+ m ] =
+    -[ P.suc m ⊕ P.suc n ]      ≡⟨ cong (-[_] ∘ P.suc) $ sym $ Nat.suc+≡+suc _ ⟩∎
+    -[ P.suc (P.suc (m ⊕ n)) ]  ∎
 
 -- The implementation of subtraction given here matches the one in
 -- Integer.
@@ -654,6 +603,7 @@ i - j = i + - j
 -- Some lemmas related to equality
 
 opaque
+  unfolding Same-difference
 
   -- The Same-difference relation is pointwise equivalent to equality
   -- under [_].
@@ -663,7 +613,7 @@ opaque
   Same-difference≃[]≡[] =
     Stable→≃[]≡[]
       Same-difference-is-equivalence-relation
-      (λ {p} → Same-difference-propositional {p = p})
+      (λ {i} → Same-difference-propositional {i = i})
       (Dec→Stable (_ Nat.≟ _))
 
 opaque
@@ -681,35 +631,44 @@ opaque
                                               Nat.+-right-identity ⟩
     + m₁ - + m₂ ≡ + n₁ - + n₂            □
 
--- Non-negative integers are not equal to negative integers.
+opaque
+  unfolding Same-difference
 
-+≢-[1+] : + m ≢ -[ P.suc n ]
-+≢-[1+] {m} {n} =
-  + m ≡ -[ P.suc n ]                     ↔⟨⟩
-  [ (m , 0) ] ≡ [ (0 , P.suc n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
-  Same-difference (m , 0) (0 , P.suc n)  ↔⟨⟩
-  m ⊕ P.suc n ≡ 0                        ↝⟨ trans (Nat.suc+≡+suc m) ⟩
-  P.suc (m ⊕ n) ≡ 0                      ↝⟨ Nat.0≢+ ∘ sym ⟩□
-  ⊥                                      □
+  -- Non-negative integers are not equal to negative integers.
 
--- Non-positive integers are not equal to positive integers.
+  +≢-[1+] : + m ≢ -[ P.suc n ]
+  +≢-[1+] {m} {n} =
+    + m ≡ -[ P.suc n ]                     ↔⟨⟩
+    [ (m , 0) ] ≡ [ (0 , P.suc n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
+    Same-difference (m , 0) (0 , P.suc n)  ↔⟨⟩
+    m ⊕ P.suc n ≡ 0                        ↝⟨ trans (Nat.suc+≡+suc m) ⟩
+    P.suc (m ⊕ n) ≡ 0                      ↝⟨ Nat.0≢+ ∘ sym ⟩□
+    ⊥                                      □
 
-+[1+]≢- : + P.suc m ≢ -[ n ]
-+[1+]≢- {m} {n} =
-  + P.suc m ≡ -[ n ]                     ↔⟨⟩
-  [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
-  Same-difference (P.suc m , 0) (0 , n)  ↔⟨⟩
-  P.suc m ⊕ n ≡ 0                        ↝⟨ Nat.0≢+ ∘ sym ⟩□
-  ⊥                                      □
+opaque
+  unfolding Same-difference
 
--- The +_ "constructor" is cancellative.
+  -- Non-positive integers are not equal to positive integers.
 
-+-cancellative : + m ≡ + n → m ≡ n
-+-cancellative {m} {n} =
-  + m ≡ + n                  ↔⟨⟩
-  [ (m , 0) ] ≡ [ (n , 0) ]  ↔⟨ inverse Same-difference≃[]≡[] ⟩
-  m ⊕ 0 ≡ 0 ⊕ n              ↝⟨ trans (sym Nat.+-right-identity) ⟩□
-  m ≡ n                      □
+  +[1+]≢- : + P.suc m ≢ -[ n ]
+  +[1+]≢- {m} {n} =
+    + P.suc m ≡ -[ n ]                     ↔⟨⟩
+    [ (P.suc m , 0) ] ≡ [ (0 , n) ]        ↔⟨ inverse Same-difference≃[]≡[] ⟩
+    Same-difference (P.suc m , 0) (0 , n)  ↔⟨⟩
+    P.suc m ⊕ n ≡ 0                        ↝⟨ Nat.0≢+ ∘ sym ⟩□
+    ⊥                                      □
+
+opaque
+  unfolding Same-difference
+
+  -- The +_ "constructor" is cancellative.
+
+  +-cancellative : + m ≡ + n → m ≡ n
+  +-cancellative {m} {n} =
+    + m ≡ + n                  ↔⟨⟩
+    [ (m , 0) ] ≡ [ (n , 0) ]  ↔⟨ inverse Same-difference≃[]≡[] ⟩
+    m ⊕ 0 ≡ 0 ⊕ n              ↝⟨ trans (sym Nat.+-right-identity) ⟩□
+    m ≡ n                      □
 
 -- The -[_] "constructor" is cancellative.
 
@@ -725,10 +684,10 @@ infix 4 _≟_
 
 _≟_ : Decidable-equality ℤ
 _≟_ = Q.elim-prop λ where
-  .[]ʳ i → Q.elim-prop λ where
+  .[]ʳ _ → Q.elim-prop λ where
      .[]ʳ _ →
        Dec-map (_≃_.logical-equivalence Same-difference≃[]≡[])
-         (Same-difference-decidable i)
+         Same-difference-decidable
      .is-propositionʳ _ →
        Dec-closure-propositional ext ℤ-set
   .is-propositionʳ _ →
@@ -738,53 +697,68 @@ _≟_ = Q.elim-prop λ where
 ------------------------------------------------------------------------
 -- The successor and predecessor functions
 
--- The successor function.
+opaque
+  unfolding Same-difference
 
-suc : ℤ → ℤ
-suc = Q.rec λ where
-  .[]ʳ (m , n) → [ (P.suc m , n) ]
+  -- The successor function.
 
-  .[]-respects-relationʳ {x = m₁ , m₂} {y = n₁ , n₂} hyp →
-    []-respects-relation
-      (P.suc (m₁ ⊕ n₂)  ≡⟨ cong P.suc hyp ⟩
-       P.suc (m₂ ⊕ n₁)  ≡⟨ Nat.suc+≡+suc _ ⟩∎
-       m₂ ⊕ P.suc n₁    ∎ )
+  suc : ℤ → ℤ
+  suc = Q.rec λ where
+    .[]ʳ (m , n) → [ (P.suc m , n) ]
 
-  .is-setʳ → ℤ-set
+    .[]-respects-relationʳ {x = m₁ , m₂} {y = n₁ , n₂} hyp →
+      []-respects-relation
+        (P.suc (m₁ ⊕ n₂)  ≡⟨ cong P.suc hyp ⟩
+         P.suc (m₂ ⊕ n₁)  ≡⟨ Nat.suc+≡+suc _ ⟩∎
+         m₂ ⊕ P.suc n₁    ∎ )
 
--- The function suc adds one to its input.
+    .is-setʳ → ℤ-set
 
-suc≡1+ : ∀ i → suc i ≡ + 1 + i
-suc≡1+ = elim _ λ _ _ → refl _
+opaque
+  unfolding suc
 
--- The predecessor function.
+  -- The function suc adds one to its input.
 
-pred : ℤ → ℤ
-pred = Q.rec λ where
-  .[]ʳ (m , n) → [ (m , P.suc n) ]
+  suc≡1+ : ∀ i → suc i ≡ + 1 + i
+  suc≡1+ = elim _ λ _ _ → refl _
 
-  .[]-respects-relationʳ {x = m₁ , m₂} {y = n₁ , n₂} hyp →
-    []-respects-relation
-      (m₁ ⊕ P.suc n₂    ≡⟨ sym $ Nat.suc+≡+suc _ ⟩
-       P.suc (m₁ ⊕ n₂)  ≡⟨ cong P.suc hyp ⟩∎
-       P.suc (m₂ ⊕ n₁)  ∎)
+opaque
+  unfolding Same-difference
 
-  .is-setʳ → ℤ-set
+  -- The predecessor function.
 
--- The function pred subtracts one from its input.
+  pred : ℤ → ℤ
+  pred = Q.rec λ where
+    .[]ʳ (m , n) → [ (m , P.suc n) ]
 
-pred≡-1+ : ∀ i → pred i ≡ -[ 1 ] + i
-pred≡-1+ = elim _ λ _ _ → refl _
+    .[]-respects-relationʳ {x = m₁ , m₂} {y = n₁ , n₂} hyp →
+      []-respects-relation
+        (m₁ ⊕ P.suc n₂    ≡⟨ sym $ Nat.suc+≡+suc _ ⟩
+         P.suc (m₁ ⊕ n₂)  ≡⟨ cong P.suc hyp ⟩∎
+         P.suc (m₂ ⊕ n₁)  ∎)
 
--- An equivalence between ℤ and ℤ corresponding to the successor
--- function.
+    .is-setʳ → ℤ-set
 
-successor : ℤ ≃ ℤ
-successor = Eq.↔→≃
-  suc
-  pred
-  (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
-  (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
+opaque
+  unfolding pred
+
+  -- The function pred subtracts one from its input.
+
+  pred≡-1+ : ∀ i → pred i ≡ -[ 1 ] + i
+  pred≡-1+ = elim _ λ _ _ → refl _
+
+opaque
+  unfolding pred suc
+
+  -- An equivalence between ℤ and ℤ corresponding to the successor
+  -- function.
+
+  successor : ℤ ≃ ℤ
+  successor = Eq.↔→≃
+    suc
+    pred
+    (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
+    (elim _ λ m _ → []-respects-relation (cong P.suc (Nat.+-comm m)))
 
 ------------------------------------------------------------------------
 -- Positive, negative
@@ -866,6 +840,15 @@ Negative-propositional _ = Data.Negative-propositional
 ------------------------------------------------------------------------
 -- The group of integers
 
+private opaque
+  unfolding Same-difference
+
+  -- A lemma used below.
+
+  Same-difference-⊕-⊕-0-0 :
+    ∀ m → Same-difference (m ⊕ n , n ⊕ m) (0 , 0)
+  Same-difference-⊕-⊕-0-0 m = cong (_⊕ 0) $ Nat.+-comm m
+
 -- The group of integers.
 
 ℤ-group : Group lzero
@@ -888,10 +871,10 @@ Negative-propositional _ = Data.Negative-propositional
         Nat.+-right-identity
 ℤ-group .Group.left-inverse =
   elim _ λ _ n →
-  []-respects-relation (cong (_⊕ 0) $ Nat.+-comm n)
+  []-respects-relation (Same-difference-⊕-⊕-0-0 n)
 ℤ-group .Group.right-inverse =
   elim _ λ m _ →
-  []-respects-relation (cong (_⊕ 0) $ Nat.+-comm m)
+  []-respects-relation (Same-difference-⊕-⊕-0-0 m)
 
 -- ℤ-group is isomorphic to Data.ℤ-group.
 
@@ -1003,16 +986,19 @@ _*_ = binary-operator mul (λ {i₁ = i₁} → mul-resp i₁ _ _ _)
       a + ((- c + - b) + d)    ≡⟨ sym $ lemma₂ a c b ⟩
       (a + - c) + - (b + - d)  ∎
 
-    lemma₄ :
-      ∀ {a b c d} e →
-      Same-difference (a , b) (c , d) →
-      + (e ⊛ a) - + (e ⊛ b) ≡ + (e ⊛ c) - + (e ⊛ d)
-    lemma₄ {a} {b} {c} {d} e hyp =
-      _≃_.to Same-difference≃-≡-
-        (e ⊛ a ⊕ e ⊛ d  ≡⟨ sym $ Nat.*-+-distribˡ e ⟩
-         e ⊛ (a ⊕ d)    ≡⟨ cong (e ⊛_) hyp ⟩
-         e ⊛ (b ⊕ c)    ≡⟨ Nat.*-+-distribˡ e ⟩
-         e ⊛ b ⊕ e ⊛ c  ∎)
+    opaque
+      unfolding Same-difference
+
+      lemma₄ :
+        ∀ {a b c d} e →
+        Same-difference (a , b) (c , d) →
+        + (e ⊛ a) - + (e ⊛ b) ≡ + (e ⊛ c) - + (e ⊛ d)
+      lemma₄ {a} {b} {c} {d} e hyp =
+        _≃_.to Same-difference≃-≡-
+          (e ⊛ a ⊕ e ⊛ d  ≡⟨ sym $ Nat.*-+-distribˡ e ⟩
+           e ⊛ (a ⊕ d)    ≡⟨ cong (e ⊛_) hyp ⟩
+           e ⊛ (b ⊕ c)    ≡⟨ Nat.*-+-distribˡ e ⟩
+           e ⊛ b ⊕ e ⊛ c  ∎)
 
     lemma₅ :
       ∀ a b {c d e} →
@@ -1090,6 +1076,7 @@ opaque
            j)
 
 opaque
+  unfolding suc
 
   -- A "computation rule" for multiplication.
 
@@ -1140,6 +1127,7 @@ opaque
     - i + i * - j  ∎
 
 private opaque
+  unfolding suc
 
   -- A lemma used in the implementation of *≡*.
 
@@ -1157,6 +1145,7 @@ private opaque
     _↔_.from ℤ↔ℤ (i Data.+ i Data.*+ n)          ∎
 
 opaque
+  unfolding suc
 
   -- The implementation of multiplication given here matches the one
   -- in Integer.

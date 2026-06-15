@@ -392,6 +392,14 @@ import Group.Erased
 
 import Quotient.Erased.Axiomatised
 
+-- A relation used to define integers by quotienting.
+
+import Integer.Quotient.Same-difference
+
+-- Integers, defined using "erased quotients".
+
+import Integer.Quotient.Erased
+
 -- Some omniscience principles.
 
 import Omniscience
