@@ -7,13 +7,20 @@
 -- the individual files.
 ------------------------------------------------------------------------
 
-{-# OPTIONS --cubical --with-K --guardedness --sized-types --prop #-}
+{-# OPTIONS
+      --cubical --with-K --guardedness --sized-types --prop
+      --erased-funext --erased-propext --erased-quotients #-}
 
 module README where
 
 -- "Safe" code that uses --cubical-compatible.
 
 import README.Safe.Cubical-compatible
+
+-- "Safe" code that uses --cubical-compatible, --erased-funext,
+-- --erased-propext and --erased-quotients.
+
+import README.Safe.Cubical-compatible.Quotients
 
 -- "Safe" code that uses --cubical-compatible and --erased-matches.
 
