@@ -383,6 +383,10 @@ import H-level.Truncation.Church
 
 import H-level.Truncation.Propositional.Erased.Axiomatised
 
+-- Groups with erased "proofs".
+
+import Group.Erased
+
 -- An axiomatised variant of set quotients with erased higher
 -- constructors.
 
