@@ -77,10 +77,20 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
     @0 _≤_ : A → A → Type (a ⊔ r)
     x ≤ y = x < y ⊎ x ≡ y
 
+    -- The strict order is contained in the partial one.
+
+    <→≤ : x < y → x ≤ y
+    <→≤ = inj₁
+
+    -- The partial order is reflexive.
+
+    ≤-reflexive : x ≡ y → x ≤ y
+    ≤-reflexive = inj₂
+
     -- The partial order is reflexive.
 
     ≤-refl : x ≤ x
-    ≤-refl = inj₂ (refl _)
+    ≤-refl = ≤-reflexive (refl _)
 
     -- The partial order is antisymmetric.
 
@@ -106,6 +116,14 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
     @0 ≤-trans : x ≤ y → y ≤ z → x ≤ z
     ≤-trans (inj₁ x<y) y≤z = inj₁ (<-≤-trans x<y y≤z)
     ≤-trans (inj₂ x≡y) y≤z = subst (_≤ _) (sym x≡y) y≤z
+
+  opaque
+
+    -- If x < y, then x ≢ y.
+
+    @0 <→≢ : x < y → x ≢ y
+    <→≢ x<y x≡y =
+      <-irreflexive (<-≤-trans x<y (≤-reflexive (sym x≡y)))
 
 open Total-order
 
