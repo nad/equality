@@ -40,11 +40,13 @@ private
 
 private variable
   @0 m n   : ℕ
-  x y      : A
+  @0 x y   : A
   @0 lb ub : Extended _
+  Tr       : Type _
+  t        : Tr
 
 ------------------------------------------------------------------------
--- Red-black trees
+-- Trees with colours
 
 -- Colours.
 
@@ -55,8 +57,22 @@ pattern red   = false
 pattern black = true
 
 private variable
-  c     : Colour
-  @0 pc : Colour
+  @0 c pc : Colour
+
+-- Trees with colours but no invariants.
+
+data Tree⁻ : Type a where
+  leaf : Tree⁻
+  node : (c : Colour) (x : A) (l r : Tree⁻) → Tree⁻
+
+pattern nodeᶜ c = node c _ _ _
+pattern node!   = node _ _ _ _
+
+private variable
+  l r : Tree⁻
+
+------------------------------------------------------------------------
+-- Red-black trees
 
 opaque
 
@@ -65,9 +81,6 @@ opaque
   @0 Red-invariant : Colour → Colour → Type
   Red-invariant pc c =
     c ≡ red → pc ≡ red → ⊥
-
-private variable
-  @0 rinv : Red-invariant _ _
 
 opaque
 
@@ -78,28 +91,24 @@ opaque
   Black-invariant red   m n = n ≡ m
   Black-invariant black m n = n ≡ suc m
 
-private variable
-  @0 binv : Black-invariant _ _ _
-
--- Red-black trees.
+-- Red-black tree invariants.
 --
 -- The colour parameter is the *parent's* colour (if any). The natural
 -- number parameter is the number of black nodes on every path from
 -- the root to a leaf. The parameter lb is a lower bound for the nodes
 -- in the tree, and ub is an upper bound.
 
-data Tree (@0 pc : Colour) (@0 n : ℕ) (@0 lb ub : Extended A) :
-       Type (a ⊔ o) where
-  leaf :
-    (@0 lb<ub : lb <ᴱ ub) (@0 n≡0 : n ≡ 0) → Tree pc n lb ub
-  node :
-    (c : Colour) (x : A) (l : Tree c m lb [ x ])
-    (r : Tree c m [ x ] ub) (@0 rinv : Red-invariant pc c)
-    (@0 binv : Black-invariant c m n) →
-    Tree pc n lb ub
+@0 Red-black : Colour → ℕ → (_ _ : Extended A) → Tree⁻ → Type (a ⊔ o)
+Red-black _  n lb ub leaf           = lb <ᴱ ub × n ≡ 0
+Red-black pc n lb ub (node c x l r) =
+  ∃ λ m →
+  Red-black c m lb [ x ] l ×
+  Red-black c m [ x ] ub r ×
+  Red-invariant pc c ×
+  Black-invariant c m n
 
-private variable
-  l r t : Tree pc n lb ub
+pattern leafʳᵇ lb<ub n≡0     = lb<ub , n≡0
+pattern nodeʳᵇ l r rinv binv = _ , l , r , rinv , binv
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Red-invariant
@@ -170,9 +179,10 @@ opaque
 
   -- The lower bound is strictly below the upper bound.
 
-  @0 lower-bound-<-upper-bound : Tree pc n lb ub → lb <ᴱ ub
-  lower-bound-<-upper-bound (leaf lb<ub _)     = lb<ub
-  lower-bound-<-upper-bound (node _ _ l r _ _) =
+  @0 lower-bound-<-upper-bound : Red-black pc n lb ub t → lb <ᴱ ub
+  lower-bound-<-upper-bound {t = leaf} (leafʳᵇ lb<ub _) =
+    lb<ub
+  lower-bound-<-upper-bound {t = node! } (nodeʳᵇ l r _ _) =
     EO.<-trans (lower-bound-<-upper-bound l)
       (lower-bound-<-upper-bound r)
 
@@ -181,84 +191,87 @@ opaque
 
 -- Tree membership.
 
-infix 4 _∈_
+infix 4 _∈⁻_
 
-_∈_ :
-  ∀ {@0 lb ub} →
-  A → Tree pc n lb ub → Type (a ⊔ o)
-_ ∈ leaf _ _         = ⊥
-x ∈ node _ y l r _ _ = x ∈ l ⊎ x ≡ y ⊎ x ∈ r
+_∈⁻_ : A → Tree⁻ → Type a
+_ ∈⁻ leaf         = ⊥
+x ∈⁻ node _ y l r = x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
 
 opaque
 
-  -- If x is in the tree, then x is strictly between the lower and
-  -- upper bounds.
+  -- If x is in a red-black tree, then x is strictly between any lower
+  -- and upper bounds.
 
-  @0 ∈→<< :
-    {t : Tree pc n lb ub} →
-    x ∈ t → lb <ᴱ [ x ] × [ x ] <ᴱ ub
-  ∈→<< {t = node _ _ _ r _ _} (inj₁ x∈l) =
-    let <x , x< = ∈→<< x∈l in
+  @0 ∈⁻→<< :
+    Red-black pc n lb ub t → x ∈⁻ t → lb <ᴱ [ x ] × [ x ] <ᴱ ub
+  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₁ x∈l) =
+    let <x , x< = ∈⁻→<< l x∈l in
     <x , EO.<-trans x< (lower-bound-<-upper-bound r)
-  ∈→<< {t = node _ _ l r _ _} (inj₂ (inj₁ x≡y)) =
+  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₂ (inj₁ x≡y)) =
     EO.<-≤-trans (lower-bound-<-upper-bound l)
       (EO.≤-reflexive (cong [_] (sym x≡y))) ,
     EO.≤-<-trans (EO.≤-reflexive (cong [_] x≡y))
       (lower-bound-<-upper-bound r)
-  ∈→<< {t = node _ _ l _ _ _} (inj₂ (inj₂ x∈r)) =
-    let <x , x< = ∈→<< x∈r in
+  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₂ (inj₂ x∈r)) =
+    let <x , x< = ∈⁻→<< r x∈r in
     EO.<-trans (lower-bound-<-upper-bound l) <x , x<
 
 opaque
 
-  -- If x is below the lower bound, then x is not in the tree.
+  -- If x is below a lower bound of a red-black tree, then x is not in
+  -- the tree.
 
-  @0 <→∉ :
-    {t : Tree pc n lb ub} → [ x ] <ᴱ lb → ¬ x ∈ t
-  <→∉ <lb ∈t =
-    let lb< , _ = ∈→<< ∈t in
+  @0 <→∉⁻ :
+    Red-black pc n lb ub t → [ x ] <ᴱ lb → ¬ x ∈⁻ t
+  <→∉⁻ t <lb ∈t =
+    let lb< , _ = ∈⁻→<< t ∈t in
     EO.<-asymmetric <lb lb<
 
 opaque
 
-  -- If x is above the upper bound, then x is not in the tree.
+  -- If x is above an upper bound of a red-black tree, then x is not
+  -- in the tree.
 
-  @0 >→∉ :
-    {t : Tree pc n lb ub} → ub <ᴱ [ x ] → ¬ x ∈ t
-  >→∉ ub< ∈t =
-    let _ , <ub = ∈→<< ∈t in
+  @0 >→∉⁻ :
+    Red-black pc n lb ub t → ub <ᴱ [ x ] → ¬ x ∈⁻ t
+  >→∉⁻ t ub< ∈t =
+    let _ , <ub = ∈⁻→<< t ∈t in
     EO.<-asymmetric <ub ub<
 
 opaque
 
-  -- If x < y, then x is in a tree with y in the root if and only if x
-  -- is in the left sub-tree.
+  -- If x < y, then x is in a red-black tree with y in the root if and
+  -- only if x is in the left sub-tree.
 
-  @0 <→∈⇔∈ :
+  @0 <→∈⁻⇔∈⁻ :
+    let t = node c y l r in
+    Red-black pc n lb ub t →
     x < y →
-    x ∈ l ⇔ x ∈ node c y l r rinv binv
-  <→∈⇔∈ x<y = record
+    x ∈⁻ l ⇔ x ∈⁻ t
+  <→∈⁻⇔∈⁻ (nodeʳᵇ _ r _ _) x<y = record
     { to   = inj₁
     ; from =
         P.[ id
           , P.[ (λ eq → ⊥-elim₀ (O.<→≢ x<y eq))
-              , (λ ∈r → ⊥-elim₀ (<→∉ ([]-[] x<y) ∈r))
+              , (λ ∈r → ⊥-elim₀ (<→∉⁻ r ([]-[] x<y) ∈r))
               ]
           ]
     }
 
 opaque
 
-  -- If x > y, then x is in a tree with y in the root if and only if x
-  -- is in the right sub-tree.
+  -- If x > y, then x is in a red-black tree with y in the root if and
+  -- only if x is in the right sub-tree.
 
-  @0 >→∈⇔∈ :
+  @0 >→∈⁻⇔∈⁻ :
+    let t = node c y l r in
+    Red-black pc n lb ub t →
     x > y →
-    x ∈ r ⇔ x ∈ node c y l r rinv binv
-  >→∈⇔∈ x>y = record
+    x ∈⁻ r ⇔ x ∈⁻ t
+  >→∈⁻⇔∈⁻ (nodeʳᵇ l _ _ _) x>y = record
     { to   = inj₂ ∘ inj₂
     ; from =
-        P.[ (λ ∈l → ⊥-elim₀ (>→∉ ([]-[] x>y) ∈l))
+        P.[ (λ ∈l → ⊥-elim₀ (>→∉⁻ l ([]-[] x>y) ∈l))
           , P.[ (λ eq → ⊥-elim₀ (O.<→≢ x>y (sym eq)))
               , id
               ]
@@ -267,40 +280,45 @@ opaque
 
 opaque
 
-  -- Tree membership is propositional.
+  -- Tree membership is propositional for red-black trees.
 
-  @0 ∈-propositional : Is-proposition (x ∈ t)
-  ∈-propositional {t = leaf _ _} =
+  @0 ∈⁻-propositional :
+    Red-black pc n lb ub t → Is-proposition (x ∈⁻ t)
+  ∈⁻-propositional {t = leaf} _ =
     ⊥-propositional
-  ∈-propositional {t = node c y l r rinv binv} =
+  ∈⁻-propositional {t = node! } (nodeʳᵇ l r _ _) =
     ⊎-closure-propositional
       (λ x∈l →
-         let _ , x<y = ∈→<< x∈l in
+         let _ , x<y = ∈⁻→<< l x∈l in
          P.[ (λ x≡y → EO.<→≢ x<y (cong [_] x≡y))
-           , (λ x∈r → EO.<-asymmetric x<y (∈→<< x∈r .proj₁))
+           , (λ x∈r → EO.<-asymmetric x<y (∈⁻→<< r x∈r .proj₁))
            ])
-      ∈-propositional
+      (∈⁻-propositional l)
       (⊎-closure-propositional
-         (λ x≡y x∈r → EO.<→≢ (∈→<< x∈r .proj₁) (cong [_] (sym x≡y)))
-         O.is-set ∈-propositional)
+         (λ x≡y x∈r → EO.<→≢ (∈⁻→<< r x∈r .proj₁) (cong [_] (sym x≡y)))
+         O.is-set (∈⁻-propositional r))
 
 ------------------------------------------------------------------------
 -- A membership test
 
 opaque
 
-  -- Does the element exist in the tree?
+  -- Does the element exist in the red-black tree?
 
-  member? : (x : A) (t : Tree pc n lb ub) → Dec-Erased (x ∈ t)
-  member? _ (leaf _ _) =
+  member?⁻ :
+    (x : A) (t : Tree⁻) →
+    @0 Red-black pc n lb ub t →
+    Dec-Erased (x ∈⁻ t)
+  member?⁻ _ leaf _ =
     no [ ⊥-elim ]
-  member? x (node _ y l r rinv binv)
-    with O.compare x y
-  … | ltᵀ x<y =
-    Dec-Erased-map (<→∈⇔∈ {rinv = rinv} {binv = binv} x<y) (member? x l)
+  member?⁻ x (node _ y l r) _ with O.compare x y
   … | eqᵀ x≡y = yes [ inj₂ (inj₁ x≡y) ]
-  … | gtᵀ x>y =
-    Dec-Erased-map (>→∈⇔∈ {rinv = rinv} {binv = binv} x>y) (member? x r)
+  member?⁻ x (node _ _ l _) t@(nodeʳᵇ lʳᵇ _ _ _) | ltᵀ x<y =
+    Dec-Erased-map (<→∈⁻⇔∈⁻ t x<y)
+      (member?⁻ x l lʳᵇ)
+  member?⁻ x (node _ _ _ r) t@(nodeʳᵇ _ rʳᵇ _ _) | gtᵀ x>y =
+    Dec-Erased-map (>→∈⁻⇔∈⁻ t x>y)
+      (member?⁻ x r rʳᵇ)
 
 ------------------------------------------------------------------------
 -- An empty tree
@@ -309,16 +327,24 @@ opaque
 
   -- An empty tree.
 
-  empty : Tree pc 0 min max
-  empty = leaf min-max (refl _)
+  empty⁻ : Tree⁻
+  empty⁻ = leaf
 
 opaque
-  unfolding empty
+  unfolding empty⁻
+
+  -- The empty tree is red-black.
+
+  @0 empty⁻ʳᵇ : Red-black pc 0 min max empty⁻
+  empty⁻ʳᵇ = leafʳᵇ min-max (refl _)
+
+opaque
+  unfolding empty⁻
 
   -- The empty tree is empty.
 
-  @0 ∉empty : ¬ x ∈ empty {pc = pc}
-  ∉empty ()
+  @0 ∉⁻empty⁻ : ¬ x ∈⁻ empty⁻
+  ∉⁻empty⁻ ()
 
 ------------------------------------------------------------------------
 -- A cast lemma
@@ -326,504 +352,452 @@ opaque
 opaque
 
   -- A cast lemma.
-  --
-  -- TODO: It would be nice if this could be compiled into something
-  -- that just returned the input tree.
 
-  cast : @0 m ≡ n → Tree pc m lb ub → Tree pc n lb ub
-  cast eq (leaf lb<ub n≡0) =
-    leaf lb<ub (trans (sym eq) n≡0)
-  cast eq (node c x l r rinv binv) =
-    node c x l r rinv (subst (Black-invariant _ _) eq binv)
-
-opaque
-  unfolding cast
-
-  -- A membership lemma for cast.
-
-  @0 ∈-cast : {@0 m≡n : m ≡ n} → x ∈ cast m≡n t ⇔ x ∈ t
-  ∈-cast {t = leaf _ _}         = F.id
-  ∈-cast {t = node _ _ _ _ _ _} = F.id
+  @0 cast : m ≡ n → Red-black pc m lb ub t → Red-black pc n lb ub t
+  cast = subst (λ n → Red-black _ n _ _ _)
 
 ------------------------------------------------------------------------
 -- Insertion
 
+opaque
+
+  -- A balancing function.
+
+  balanceˡ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
+  balanceˡ red x l r =
+    node red x l r
+  balanceˡ black x₆ (node red x₄ (node red x₂ t₁ t₃) t₅) t₇ =
+    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
+  balanceˡ black x₆ (node red x₂ t₁ (node red x₄ t₃ t₅)) t₇ =
+    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
+  balanceˡ black x l r =
+    node black x l r
+
+opaque
+
+  -- A balancing function.
+
+  balanceʳ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
+  balanceʳ red x l r =
+    node red x l r
+  balanceʳ black x₂ t₁ (node red x₆ (node red x₄ t₃ t₅) t₇) =
+    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
+  balanceʳ black x₂ t₁ (node red x₄ t₃ (node red x₆ t₅ t₇)) =
+    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
+  balanceʳ black x l r =
+    node black x l r
+
+opaque
+
+  -- Inserts an element into the tree.
+
+  insert⁻′ : A → Tree⁻ → Tree⁻
+  insert⁻′ x leaf             = node red x leaf leaf
+  insert⁻′ x t@(node c y l r) with O.compare x y
+  … | eqᵀ _   = t
+  … | ltᵀ x<y = balanceˡ c y (insert⁻′ x l) r
+  … | gtᵀ x>y = balanceʳ c y l (insert⁻′ x r)
+
+opaque
+
+  -- If the tree is non-empty, then the root is coloured black.
+
+  colour-root-black : Tree⁻ → Tree⁻
+  colour-root-black leaf           = leaf
+  colour-root-black (node _ x l r) = node black x l r
+
+opaque
+
+  -- Inserts an element into the tree.
+
+  insert⁻ : A → Tree⁻ → Tree⁻
+  insert⁻ x t = colour-root-black (insert⁻′ x t)
+
+------------------------------------------------------------------------
+-- Insertion produces red-black trees, given certain assumptions
+
 -- A "fake" parent colour, used in the implementation of
--- Insertion-tree.
+-- Almost-red-black.
 
 @0 fake-parent-colour : Colour → Colour → Colour
 fake-parent-colour pc red   = pc
 fake-parent-colour pc black = black
 
--- Insertion-trees are trees for which the red invariant might be
--- broken for the top-most layer.
+-- In an "almost red-black tree" the red invariant might be broken for
+-- the top-most layer.
 
-data Insertion-tree (@0 pc : Colour) (@0 n : ℕ)
-       (@0 lb ub : Extended A) : Type (a ⊔ o) where
-  leaf :
-    (@0 lb<ub : lb <ᴱ ub) (@0 n≡0 : n ≡ 0) →
-    Insertion-tree pc n lb ub
-  node :
-    (c : Colour) (x : A)
-    (l : Tree (fake-parent-colour pc c) m lb [ x ])
-    (r : Tree (fake-parent-colour pc c) m [ x ] ub)
-    (@0 binv : Black-invariant c m n) →
-    Insertion-tree pc n lb ub
+@0 Almost-red-black :
+  Colour → ℕ → (_ _ : Extended A) → Tree⁻ → Type (a ⊔ o)
+Almost-red-black _  n lb ub leaf           = lb <ᴱ ub × n ≡ 0
+Almost-red-black pc n lb ub (node c x l r) =
+  ∃ λ m →
+  Red-black (fake-parent-colour pc c) m lb [ x ] l ×
+  Red-black (fake-parent-colour pc c) m [ x ] ub r ×
+  Black-invariant c m n
 
-private variable
-  lᴵ rᴵ tᴵ : Insertion-tree pc n lb ub
-
--- Insertion tree membership.
-
-infix 4 _∈ᴵ_
-
-_∈ᴵ_ :
-  ∀ {@0 lb ub} →
-  A → Insertion-tree pc n lb ub → Type (a ⊔ o)
-_ ∈ᴵ leaf _ _       = ⊥
-x ∈ᴵ node _ y l r _ = x ∈ l ⊎ x ≡ y ⊎ x ∈ r
-
--- TODO: It would be nice if the following tree conversion lemmas
--- could be compiled into pieces of code that just returned the input
--- trees.
+pattern leafᵃʳᵇ lb<ub n≡0 = lb<ub , n≡0
+pattern nodeᵃʳᵇ l r binv  = _ , l , r , binv
 
 opaque
 
   -- Well-formed trees are still well-formed if the parent node is
   -- coloured black.
 
-  with-black-parent :
-    Tree pc n lb ub →
-    Tree black n lb ub
-  with-black-parent (leaf lb<ub n≡0)         = leaf lb<ub n≡0
-  with-black-parent (node c x l r rinv binv) =
-    node c x l r black-parent binv
+  @0 Red-black→Red-black-black :
+    Red-black pc n lb ub t →
+    Red-black black n lb ub t
+  Red-black→Red-black-black {t = leaf} (leafʳᵇ lb<ub n≡0) =
+    leafʳᵇ lb<ub n≡0
+  Red-black→Red-black-black {t = node! } (nodeʳᵇ l r _ binv) =
+    nodeʳᵇ l r black-parent binv
 
 opaque
 
   -- A tree that is well-formed for a red parent is well-formed with a
   -- parent of any colour.
 
-  Tree-red→Tree :
-    Tree red n lb ub →
-    Tree pc n lb ub
-  Tree-red→Tree (leaf lb<ub n≡0) =
-    leaf lb<ub n≡0
-  Tree-red→Tree (node c x l r rinv binv) =
-    node c x l r (red-parent rinv) binv
+  @0 Red-black-red→Red-black :
+    Red-black red n lb ub t →
+    Red-black pc n lb ub t
+  Red-black-red→Red-black {t = leaf} (leafʳᵇ lb<ub n≡0) =
+    leafʳᵇ lb<ub n≡0
+  Red-black-red→Red-black {t = node! } (nodeʳᵇ l r rinv binv) =
+    nodeʳᵇ l r (red-parent rinv) binv
 
 opaque
 
-  -- A tree that is well-formed for the colour c is well-formed for
-  -- the colour fake-parent-colour pc c.
+  -- Red-black trees are almost red-black.
 
-  with-fake-parent-colour :
-    Tree c n lb ub →
-    Tree (fake-parent-colour pc c) n lb ub
-  with-fake-parent-colour {c = black} t = t
-  with-fake-parent-colour {c = red}   t = Tree-red→Tree t
-
-opaque
-
-  -- Trees can be converted to insertion trees.
-
-  Tree→Insertion-tree :
-    Tree pc n lb ub → Insertion-tree pc n lb ub
-  Tree→Insertion-tree (leaf lb<ub n≡0) =
-    leaf lb<ub n≡0
-  Tree→Insertion-tree (node c x l r rinv binv) =
-    node c x (with-fake-parent-colour l) (with-fake-parent-colour r)
-      binv
+  @0 Red-black→Almost-red-black :
+    ∀ t → Red-black pc n lb ub t → Almost-red-black pc n lb ub t
+  Red-black→Almost-red-black leaf (leafʳᵇ lb<ub n≡0) =
+    leafᵃʳᵇ lb<ub n≡0
+  Red-black→Almost-red-black (nodeᶜ black) (nodeʳᵇ l r _ binv) =
+    nodeᵃʳᵇ l r binv
+  Red-black→Almost-red-black (nodeᶜ red) (nodeʳᵇ l r _ binv) =
+    nodeᵃʳᵇ (Red-black-red→Red-black l) (Red-black-red→Red-black r) binv
 
 opaque
 
-  -- An insertion tree with a red parent can be turned into a tree
+  -- An almost red-black tree with a red parent is a red-black tree
   -- with a black parent.
 
-  Insertion-tree-red→Tree-black :
-    Insertion-tree red n lb ub → Tree black n lb ub
-  Insertion-tree-red→Tree-black (leaf lb<ub n≡0) =
-    leaf lb<ub n≡0
-  Insertion-tree-red→Tree-black (node black x l r binv) =
-    node black x l r black-parent binv
-  Insertion-tree-red→Tree-black (node red x l r binv) =
-    node red x l r black-parent binv
+  @0 Almost-red-black-red→Red-black-black :
+    Almost-red-black red n lb ub t → Red-black black n lb ub t
+  Almost-red-black-red→Red-black-black {t = leaf} (leafᵃʳᵇ lb<ub n≡0) =
+    leafʳᵇ lb<ub n≡0
+  Almost-red-black-red→Red-black-black
+    {t = nodeᶜ red} (nodeᵃʳᵇ l r binv) =
+    nodeʳᵇ l r black-parent binv
+  Almost-red-black-red→Red-black-black
+    {t = nodeᶜ black} (nodeᵃʳᵇ l r binv) =
+    nodeʳᵇ l r black-parent binv
 
 opaque
 
   -- If the red invariant holds for pc and red, then a tree that is
   -- well-formed with a black parent is well-formed for pc.
 
-  Tree-black→Tree :
-    @0 Red-invariant pc red →
-    Tree black n lb ub →
-    Tree pc n lb ub
-  Tree-black→Tree rinv (leaf lb<ub n≡0) =
-    leaf lb<ub n≡0
-  Tree-black→Tree rinv (node c x l r _ binv) =
-    node c x l r (red-child rinv) binv
+  @0 Red-black-black→Red-black :
+    Red-invariant pc red →
+    Red-black black n lb ub t →
+    Red-black pc n lb ub t
+  Red-black-black→Red-black {t = leaf} rinv (leafʳᵇ lb<ub n≡0) =
+    leafʳᵇ lb<ub n≡0
+  Red-black-black→Red-black {t = node! } rinv (nodeʳᵇ l r _ binv) =
+    nodeʳᵇ l r (red-child rinv) binv
 
 opaque
+  unfolding Black-invariant balanceˡ
 
-  -- An insertion tree can be turned into a tree by colouring the
-  -- top-most node black.
+  -- The function balanceˡ takes an almost red-black tree and a
+  -- red-black tree to an almost red-black tree.
 
-  Insertion-tree→Tree :
-    Insertion-tree pc n lb ub →
-    ∃ λ (n : Erased ℕ) → Tree pc (n .erased) lb ub
-  Insertion-tree→Tree (leaf lb<ub n≡0) =
-    [ _ ] , leaf lb<ub n≡0
-  Insertion-tree→Tree (node c x l r binv) =
-    [ _ ] ,
-    node black x (with-black-parent l) (with-black-parent r)
-      black-child (black-black binv .proj₂)
-
-opaque
-  unfolding Black-invariant
-
-  -- A balancing lemma.
-
-  balanceˡ :
-    (x : A) →
-    Insertion-tree c m lb [ x ] →
-    Tree c m [ x ] ub →
-    @0 Red-invariant pc c →
-    @0 Black-invariant c m n →
-    Insertion-tree pc n lb ub
-  balanceˡ {c = red} x l r rinv binv =
-    node red x (Tree-black→Tree rinv (Insertion-tree-red→Tree-black l))
-      (Tree-red→Tree r) binv
-  balanceˡ
-    {c = black} x₆ (node red x₄ (node red x₂ t₁ t₃ _ binv₁) t₅ binv₂) t₇
-    rinv₃ binv₃ =
-    node red x₄
-      (node black x₂ (with-black-parent t₁) (with-black-parent t₃)
-         rinv₃ (cong suc (trans binv₂ binv₁)))
-      (node black x₆ t₅ (cast binv₂ t₇) rinv₃ (cong suc binv₂))
+  @0 balanceˡʳᵇ :
+    Almost-red-black c m lb [ x ] l →
+    Red-black c m [ x ] ub r →
+    Red-invariant pc c →
+    Black-invariant c m n →
+    Almost-red-black pc n lb ub (balanceˡ c x l r)
+  balanceˡʳᵇ {c = red} l r rinv binv =
+    nodeᵃʳᵇ
+      (Red-black-black→Red-black rinv
+         (Almost-red-black-red→Red-black-black l))
+      (Red-black-red→Red-black r) binv
+  balanceˡʳᵇ
+    {c = black} {l = node red _ (nodeᶜ red) _}
+    (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) t₅ binv₂) t₇ rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (Red-black→Red-black-black t₁)
+         (Red-black→Red-black-black t₃) rinv₃
+         (cong suc (trans binv₂ binv₁)))
+      (nodeʳᵇ t₅ (cast binv₂ t₇) rinv₃ (cong suc binv₂))
       binv₃
-  balanceˡ
-    {c = black} x₆ (node red x₂ t₁ (node red x₄ t₃ t₅ _ binv₁) binv₂) t₇
-    rinv₃ binv₃ =
-    node red x₄
-      (node black x₂ t₁ (with-black-parent (cast (sym binv₁) t₃)) rinv₃
+  balanceˡʳᵇ
+    {c = black} {l = node red _ leaf (nodeᶜ red)}
+    (nodeᵃʳᵇ t₁ (nodeʳᵇ t₃ t₅ _ binv₁) binv₂) t₇ rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ t₁ (Red-black→Red-black-black (cast (sym binv₁) t₃)) rinv₃
          (cong suc binv₂))
-      (node black x₆ (with-black-parent (cast (sym binv₁) t₅))
+      (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅))
          (cast binv₂ t₇) rinv₃ (cong suc binv₂))
       binv₃
-  balanceˡ {c = black} x (leaf lb< n≡0) t _ binv =
-    node black x (leaf lb< n≡0) t binv
-  balanceˡ
-    {c = black} x₂ (node red x₁ (leaf lb< n≡0) (leaf x₁<x₂ _) binv₁) t₃
-    _ binv₂ =
-    node black x₂
-      (node red x₁ (leaf lb< n≡0) (leaf x₁<x₂ n≡0) black-parent binv₁)
-      t₃ binv₂
-  balanceˡ
-    {c = black} x₅
-    (node red x₁ (leaf lb< n≡0) (node black x₃ t₂ t₄ _ binv₁) binv₂) t₆
-    _ binv₃ =
-    node black x₅
-      (node red x₁ (leaf lb< n≡0)
-         (node black x₃ t₂ t₄ black-child binv₁) black-parent binv₂)
-      t₆ binv₃
-  balanceˡ
-    {c = black} x₅
-    (node red x₄ (node black x₂ t₁ t₃ _ binv₁) (leaf x₄<x₅ n≡0) binv₂)
-    t₆ _ binv₃ =
-    node black x₅
-      (node red x₄ (node black x₂ t₁ t₃ black-child binv₁)
-         (leaf x₄<x₅ n≡0) black-parent binv₂)
-      t₆ binv₃
-  balanceˡ
-    {c = black} x₈
-    (node red x₄ (node black x₂ t₁ t₃ _ binv₁)
-       (node black x₆ t₅ t₇ _ binv₂) binv₃)
-    t₉ _ binv₄ =
-    node black x₈
-      (node red x₄ (node black x₂ t₁ t₃ black-child binv₁)
-         (node black x₆ t₅ t₇ black-child binv₂) black-parent binv₃)
-      t₉ binv₄
-  balanceˡ
-    {c = black} x₄ (node black x₂ t₁ t₃ binv₁) t₅ _ binv₂ =
-    node black x₄ (node black x₂ t₁ t₃ black-parent binv₁) t₅ binv₂
-
-opaque
-  unfolding Black-invariant
-
-  -- A balancing lemma.
-
-  balanceʳ :
-    (x : A) →
-    Tree c m lb [ x ] →
-    Insertion-tree c m [ x ] ub →
-    @0 Red-invariant pc c →
-    @0 Black-invariant c m n →
-    Insertion-tree pc n lb ub
-  balanceʳ {c = red} x l r rinv binv =
-    node red x (Tree-red→Tree l)
-      (Tree-black→Tree rinv (Insertion-tree-red→Tree-black r)) binv
-  balanceʳ
-    {c = black} x₂ t₁ (node red x₆ (node red x₄ t₃ t₅ _ binv₁) t₇ binv₂)
-    rinv₃ binv₃ =
-    node red x₄
-      (node black x₂ (with-black-parent t₁)
-         (with-black-parent (cast (sym (trans binv₂ binv₁)) t₃)) rinv₃
-         (refl _))
-      (node black x₆ (with-black-parent (cast (sym binv₁) t₅)) t₇ rinv₃
+  balanceˡʳᵇ
+    {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ red)}
+    (nodeᵃʳᵇ t₁ (nodeʳᵇ t₃ t₅ _ binv₁) binv₂) t₇ rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ t₁ (Red-black→Red-black-black (cast (sym binv₁) t₃)) rinv₃
          (cong suc binv₂))
+      (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅))
+         (cast binv₂ t₇) rinv₃ (cong suc binv₂))
       binv₃
-  balanceʳ
-    {c = black} x₂ t₁ (node red x₄ t₃ (node red x₆ t₅ t₇ _ binv₁) binv₂)
-    rinv₃ binv₃ =
-    node red x₄
-      (node black x₂ t₁ (cast (sym binv₂) t₃) rinv₃ (refl _))
-      (node black x₆ (with-black-parent (cast (sym binv₁) t₅))
-         (with-black-parent (cast (sym binv₁) t₇)) rinv₃
-         (cong suc binv₂))
-      binv₃
-  balanceʳ {c = black} x t (leaf lb< n≡0) _ binv =
-    node black x t (leaf lb< n≡0) binv
-  balanceʳ
-    {c = black} x₂ t₁ (node red x₃ (leaf x₂<x₃ n≡0) (leaf <ub _) binv₁)
-    _ binv₂ =
-    node black x₂ t₁
-      (node red x₃ (leaf x₂<x₃ n≡0) (leaf <ub n≡0) black-parent binv₁)
+  balanceˡʳᵇ {c = black} {l = leaf} (leafᵃʳᵇ lb< n≡0) t _ binv =
+    nodeᵃʳᵇ (leafʳᵇ lb< n≡0) t binv
+  balanceˡʳᵇ
+    {c = black} {l = node red _ leaf leaf}
+    (nodeᵃʳᵇ (leafʳᵇ lb< n≡0) (leafʳᵇ x₁<x₂ _) binv₁) t₃ _ binv₂ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (leafʳᵇ lb< n≡0) (leafʳᵇ x₁<x₂ n≡0) black-parent binv₁) t₃
       binv₂
-  balanceʳ
-    {c = black} x₂ t₁
-    (node red x₃ (leaf x₂<x₃ n≡0) (node black x₅ t₄ t₆ _ binv₁) binv₂)
-    _ binv₃ =
-    node black x₂ t₁
-      (node red x₃ (leaf x₂<x₃ n≡0)
-         (node black x₅ t₄ t₆ black-child binv₁) black-parent binv₂)
+  balanceˡʳᵇ
+    {c = black} {l = node red _ leaf (nodeᶜ black)}
+    (nodeᵃʳᵇ (leafʳᵇ lb< n≡0) (nodeʳᵇ t₂ t₄ _ binv₁) binv₂) t₆ _ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (leafʳᵇ lb< n≡0) (nodeʳᵇ t₂ t₄ black-child binv₁)
+         black-parent binv₂)
+      t₆ binv₃
+  balanceˡʳᵇ
+    {c = black} {l = node red _ (nodeᶜ black) leaf}
+    (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) (leafʳᵇ x₄<x₅ n≡0) binv₂) t₆ _
+    binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (nodeʳᵇ t₁ t₃ black-child binv₁) (leafʳᵇ x₄<x₅ n≡0)
+         black-parent binv₂)
+      t₆ binv₃
+  balanceˡʳᵇ
+    {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ black)}
+    (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) (nodeʳᵇ t₅ t₇ _ binv₂) binv₃) t₉ _
+    binv₄ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (nodeʳᵇ t₁ t₃ black-child binv₁)
+         (nodeʳᵇ t₅ t₇ black-child binv₂) black-parent binv₃)
+      t₉ binv₄
+  balanceˡʳᵇ
+    {c = black} {l = nodeᶜ black} (nodeᵃʳᵇ t₁ t₃ binv₁) t₅ _ binv₂ =
+    nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ black-parent binv₁) t₅ binv₂
+
+opaque
+  unfolding Black-invariant balanceʳ
+
+  -- The function balanceˡ takes a red-black tree and an almost
+  -- red-black tree to an almost red-black tree.
+
+  @0 balanceʳʳᵇ :
+    Red-black c m lb [ x ] l →
+    Almost-red-black c m [ x ] ub r →
+    Red-invariant pc c →
+    Black-invariant c m n →
+    Almost-red-black pc n lb ub (balanceʳ c x l r)
+  balanceʳʳᵇ {c = red} l r rinv binv =
+    nodeᵃʳᵇ (Red-black-red→Red-black l)
+      (Red-black-black→Red-black rinv
+         (Almost-red-black-red→Red-black-black r))
+      binv
+  balanceʳʳᵇ
+    {c = black} {r = node red _ (nodeᶜ red) _}
+    t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) t₇ binv₂) rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ (Red-black→Red-black-black t₁)
+         (Red-black→Red-black-black (cast (sym (trans binv₂ binv₁)) t₃))
+         rinv₃ (refl _))
+      (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅)) t₇ rinv₃
+         (cong suc binv₂))
       binv₃
-  balanceʳ
-    {c = black} x₂ t₁
-    (node red x₆ (node black x₄ t₃ t₅ _ binv₁) (leaf <ub n≡0) binv₂)
-    _ binv₃ =
-    node black x₂ t₁
-      (node red x₆ (node black x₄ t₃ t₅ black-child binv₁)
-         (leaf <ub n≡0) black-parent binv₂)
+  balanceʳʳᵇ
+    {c = black} {r = node red _ leaf (nodeᶜ red)}
+    t₁ (nodeᵃʳᵇ t₃ (nodeʳᵇ t₅ t₇ _ binv₁) binv₂) rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ t₁ (cast {pc = black} {t = leaf} (sym binv₂) t₃) rinv₃
+         (refl _))
+      (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅))
+         (Red-black→Red-black-black (cast (sym binv₁) t₇)) rinv₃
+         (cong suc binv₂))
       binv₃
-  balanceʳ
-    {c = black} x₂ t₁
-    (node red x₆ (node black x₄ t₃ t₅ _ binv₁)
-       (node black x₈ t₇ t₉ _ binv₂) binv₃)
-    _ binv₄ =
-    node black x₂ t₁
-      (node red x₆ (node black x₄ t₃ t₅ black-child binv₁)
-         (node black x₈ t₇ t₉ black-child binv₂) black-parent binv₃)
+  balanceʳʳᵇ
+    {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ red)}
+    t₁ (nodeᵃʳᵇ t₃ (nodeʳᵇ t₅ t₇ _ binv₁) binv₂) rinv₃ binv₃ =
+    nodeᵃʳᵇ
+      (nodeʳᵇ t₁ (cast {t = node! } (sym binv₂) t₃) rinv₃ (refl _))
+      (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅))
+         (Red-black→Red-black-black (cast (sym binv₁) t₇)) rinv₃
+         (cong suc binv₂))
+      binv₃
+  balanceʳʳᵇ {c = black} {r = leaf} t (leafʳᵇ lb< n≡0) _ binv =
+    nodeᵃʳᵇ t (leafʳᵇ lb< n≡0) binv
+  balanceʳʳᵇ
+    {c = black} {r = node red _ leaf leaf}
+    t₁ (nodeᵃʳᵇ (leafʳᵇ x₂<x₃ n≡0) (leafʳᵇ <ub _) binv₁) _ binv₂ =
+    nodeᵃʳᵇ t₁
+      (nodeʳᵇ (leafʳᵇ x₂<x₃ n≡0) (leafʳᵇ <ub n≡0) black-parent binv₁)
+      binv₂
+  balanceʳʳᵇ
+    {c = black} {r = node red _ leaf (nodeᶜ black)}
+    t₁ (nodeᵃʳᵇ (leafʳᵇ x₂<x₃ n≡0) (nodeʳᵇ t₄ t₆ _ binv₁) binv₂) _
+    binv₃ =
+    nodeᵃʳᵇ t₁
+      (nodeʳᵇ (leafʳᵇ x₂<x₃ n≡0) (nodeʳᵇ t₄ t₆ black-child binv₁)
+         black-parent binv₂)
+      binv₃
+  balanceʳʳᵇ
+    {c = black} {r = node red _ (nodeᶜ black) leaf}
+    t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) (leafʳᵇ <ub n≡0) binv₂) _ binv₃ =
+    nodeᵃʳᵇ t₁
+      (nodeʳᵇ (nodeʳᵇ t₃ t₅ black-child binv₁) (leafʳᵇ <ub n≡0)
+         black-parent binv₂)
+      binv₃
+  balanceʳʳᵇ
+    {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ black)}
+    t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) (nodeʳᵇ t₇ t₉ _ binv₂) binv₃) _
+    binv₄ =
+    nodeᵃʳᵇ t₁
+      (nodeʳᵇ (nodeʳᵇ t₃ t₅ black-child binv₁)
+         (nodeʳᵇ t₇ t₉ black-child binv₂) black-parent binv₃)
       binv₄
-  balanceʳ
-    {c = black} x₂ t₁ (node black x₄ t₃ t₅ binv₁) _ binv₂ =
-    node black x₂ t₁ (node black x₄ t₃ t₅ black-parent binv₁) binv₂
+  balanceʳʳᵇ
+    {c = black} {r = nodeᶜ black} t₁ (nodeᵃʳᵇ t₃ t₅ binv₁) _ binv₂ =
+    nodeᵃʳᵇ t₁ (nodeʳᵇ t₃ t₅ black-parent binv₁) binv₂
 
 opaque
-  unfolding Black-invariant
+  unfolding Black-invariant insert⁻′
 
-  -- Inserts an element into the tree.
+  -- The function insert takes red-black trees to almost red-black
+  -- trees, given certain assumptions.
 
-  insert′ :
-    (x : A) → Tree pc n lb ub →
-    @0 lb <ᴱ [ x ] → @0 [ x ] <ᴱ ub →
-    Insertion-tree pc n lb ub
-  insert′ x (leaf lb<ub n≡0) lb< <ub =
-    node red x (leaf lb< (refl _)) (leaf <ub (refl _)) n≡0
-  insert′ x t@(node c y l r rinv binv) lb< <ub
+  @0 insert⁻′ʳᵇ :
+    Red-black pc n lb ub t →
+    lb <ᴱ [ x ] → [ x ] <ᴱ ub →
+    Almost-red-black pc n lb ub (insert⁻′ x t)
+  insert⁻′ʳᵇ {t = leaf} (leafʳᵇ _ n≡0) lb< <ub =
+    nodeᵃʳᵇ (leafʳᵇ lb< (refl _)) (leafʳᵇ <ub (refl _)) n≡0
+  insert⁻′ʳᵇ
+    {t = t@(node _ y _ _)} {x} tʳᵇ@(nodeʳᵇ l r rinv binv) lb< <ub
     with O.compare x y
-  … | eqᵀ _   = Tree→Insertion-tree t
-  … | ltᵀ x<y =
-    balanceˡ y (insert′ x l lb< ([]-[] x<y)) r rinv binv
-  … | gtᵀ x>y =
-    balanceʳ y l (insert′ x r ([]-[] x>y) <ub) rinv binv
+  … | eqᵀ _   = Red-black→Almost-red-black t tʳᵇ
+  … | ltᵀ x<y = balanceˡʳᵇ (insert⁻′ʳᵇ l lb< ([]-[] x<y)) r rinv binv
+  … | gtᵀ x>y = balanceʳʳᵇ l (insert⁻′ʳᵇ r ([]-[] x>y) <ub) rinv binv
 
 opaque
+  unfolding colour-root-black
 
-  -- Inserts an element into the tree.
+  -- The function colour-root-black takes almost red-black trees to
+  -- red-black trees.
 
-  insert :
-    (x : A) → Tree pc n lb ub →
-    @0 lb <ᴱ [ x ] → @0 [ x ] <ᴱ ub →
-    ∃ λ (n : Erased ℕ) → Tree pc (n .erased) lb ub
-  insert x t lb< <ub =
-    Insertion-tree→Tree (insert′ x t lb< <ub)
+  @0 colour-root-blackʳᵇ :
+    Almost-red-black pc n lb ub t →
+    ∃ λ n → Red-black pc n lb ub (colour-root-black t)
+  colour-root-blackʳᵇ {t = leaf} (leafᵃʳᵇ lb<ub n≡0) =
+    _ , leafʳᵇ lb<ub n≡0
+  colour-root-blackʳᵇ {t = node _ x l r} (nodeᵃʳᵇ lʳᵇ rʳᵇ binv) =
+    _ ,
+    nodeʳᵇ (Red-black→Red-black-black lʳᵇ)
+      (Red-black→Red-black-black rʳᵇ) black-child
+      (black-black binv .proj₂)
+
+opaque
+  unfolding insert⁻
+
+  -- The function insert⁻ takes red-black trees to red-black trees,
+  -- given certain assumptions.
+
+  @0 insert⁻ʳᵇ :
+    Red-black pc n lb ub t →
+    lb <ᴱ [ x ] → [ x ] <ᴱ ub →
+    ∃ λ (n : ℕ) → Red-black pc n lb ub (insert⁻ x t)
+  insert⁻ʳᵇ t lb< <ub =
+    colour-root-blackʳᵇ (insert⁻′ʳᵇ t lb< <ub)
 
 ------------------------------------------------------------------------
 -- Membership lemmas for insertion
-
-opaque
-  unfolding with-black-parent
-
-  -- A membership lemma for with-black-parent.
-
-  @0 ∈-with-black-parent :
-    x ∈ with-black-parent t ⇔ x ∈ t
-  ∈-with-black-parent {t = leaf _ _}         = F.id
-  ∈-with-black-parent {t = node _ _ _ _ _ _} = F.id
-
-opaque
-  unfolding Tree-red→Tree
-
-  -- A membership lemma for Tree-red→Tree.
-
-  @0 ∈-Tree-red→Tree : x ∈ Tree-red→Tree {pc = pc} t ⇔ x ∈ t
-  ∈-Tree-red→Tree {t = leaf _ _}         = F.id
-  ∈-Tree-red→Tree {t = node _ _ _ _ _ _} = F.id
-
-opaque
-  unfolding with-fake-parent-colour
-
-  -- A membership lemma for with-fake-parent-colour.
-
-  @0 ∈-with-fake-parent-colour :
-    x ∈ with-fake-parent-colour {c = c} {pc = pc} t ⇔ x ∈ t
-  ∈-with-fake-parent-colour {c = black} = F.id
-  ∈-with-fake-parent-colour {c = red}   = ∈-Tree-red→Tree
-
-opaque
-  unfolding Tree→Insertion-tree
-
-  -- Trees can be converted to insertion trees.
-
-  @0 ∈-Tree→Insertion-tree : x ∈ᴵ Tree→Insertion-tree t ⇔ x ∈ t
-  ∈-Tree→Insertion-tree {t = leaf _ _} =
-    F.id
-  ∈-Tree→Insertion-tree {t = node _ _ _ _ _ _} =
-    ∈-with-fake-parent-colour ⊎-cong F.id ⊎-cong
-    ∈-with-fake-parent-colour
-
-opaque
-  unfolding Insertion-tree-red→Tree-black
-
-  -- Trees can be converted to insertion trees.
-
-  @0 ∈-Insertion-tree-red→Tree-black :
-    x ∈ Insertion-tree-red→Tree-black tᴵ ⇔ x ∈ᴵ tᴵ
-  ∈-Insertion-tree-red→Tree-black {tᴵ = leaf _ _}           = F.id
-  ∈-Insertion-tree-red→Tree-black {tᴵ = node black _ _ _ _} = F.id
-  ∈-Insertion-tree-red→Tree-black {tᴵ = node red _ _ _ _}   = F.id
-
-opaque
-  unfolding Tree-black→Tree
-
-  -- A membership lemma for Tree-black→Tree.
-
-  @0 ∈-Tree-black→Tree :
-    x ∈ Tree-black→Tree rinv t ⇔ x ∈ t
-  ∈-Tree-black→Tree {t = leaf _ _}         = F.id
-  ∈-Tree-black→Tree {t = node _ _ _ _ _ _} = F.id
-
-opaque
-  unfolding Insertion-tree→Tree
-
-  -- A membership lemma for Insertion-tree→Tree.
-
-  @0 ∈-Insertion-tree→Tree :
-    x ∈ Insertion-tree→Tree tᴵ .proj₂ ⇔ x ∈ᴵ tᴵ
-  ∈-Insertion-tree→Tree {tᴵ = leaf _ _}       = F.id
-  ∈-Insertion-tree→Tree {tᴵ = node _ _ _ _ _} =
-    ∈-with-black-parent ⊎-cong F.id ⊎-cong ∈-with-black-parent
 
 opaque
   unfolding balanceˡ
 
   -- A membership lemma for balanceˡ.
 
-  @0 ∈-balanceˡ :
-    x ∈ᴵ balanceˡ {c = c} y lᴵ r rinv binv ⇔
-    x ∈ᴵ lᴵ ⊎ x ≡ y ⊎ x ∈ r
-  ∈-balanceˡ {c = red} =
-    (∈-Insertion-tree-red→Tree-black F.∘ ∈-Tree-black→Tree) ⊎-cong
-    F.id ⊎-cong
-    ∈-Tree-red→Tree
-  ∈-balanceˡ
+  @0 ∈⁻-balanceˡ :
+    x ∈⁻ balanceˡ c y l r ⇔
+    x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
+  ∈⁻-balanceˡ {c = red} =
+    F.id
+  ∈⁻-balanceˡ
     {x} {c = black} {y = x₆}
-    {lᴵ = node red x₄ (node red x₂ t₁ t₃ _ _) t₅ _} {r = t₇} =
-    (x ∈ with-black-parent t₁ ⊎ x ≡ x₂ ⊎ x ∈ with-black-parent t₃) ⊎
-    x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ cast _ t₇                          ↝⟨ (∈-with-black-parent ⊎-cong F.id ⊎-cong ∈-with-black-parent) ⊎-cong
-                                                                         F.id ⊎-cong F.id ⊎-cong F.id ⊎-cong ∈-cast ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇    ↝⟨ record
-                                                                           { to   = P.[ inj₁ ∘ inj₁
-                                                                                      , P.[ inj₁ ∘ inj₂ ∘ inj₁ , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ] ]
-                                                                                      ]
-                                                                           ; from = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
-                                                                                      , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                      ]
-                                                                           } ⟩□
-    ((x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅) ⊎ x ≡ x₆ ⊎ x ∈ t₇  □
-  ∈-balanceˡ
-    {x} {c = black} {y = x₆}
-    {lᴵ =
-       node red x₂ t₁@(node black _ _ _ _ _) (node red x₄ t₃ t₅ _ _) _}
-    {r = t₇} =
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ with-black-parent (cast _ t₃)) ⊎ x ≡ x₄ ⊎
-    x ∈ with-black-parent (cast _ t₅) ⊎ x ≡ x₆ ⊎ x ∈ cast _ t₇        ↝⟨ (F.id ⊎-cong F.id ⊎-cong (∈-cast F.∘ ∈-with-black-parent)) ⊎-cong
-                                                                         F.id ⊎-cong (∈-cast F.∘ ∈-with-black-parent) ⊎-cong F.id ⊎-cong ∈-cast ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇    ↝⟨ record
-                                                                           { to   = P.[ P.[ inj₁ ∘ inj₁
-                                                                                          , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
-                                                                                          ]
-                                                                                      , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₁
-                                                                                          , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₂ , inj₂ ]
-                                                                                          ]
-                                                                                      ]
-                                                                           ; from = P.[ P.[ inj₁ ∘ inj₁
+    {l = node red x₄ (node red x₂ t₁ t₃) t₅} {r = t₇} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    ↝⟨ record
+                                                                               { to   = P.[ inj₁ ∘ inj₁
                                                                                           , P.[ inj₁ ∘ inj₂ ∘ inj₁
-                                                                                              , P.[ inj₁ ∘ inj₂ ∘ inj₂
-                                                                                                  , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
-                                                                                                  ]
+                                                                                              , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ]
                                                                                               ]
                                                                                           ]
-                                                                                      , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                      ]
-                                                                           } ⟩□
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃ ⊎ x ≡ x₄ ⊎ x ∈ t₅) ⊎ x ≡ x₆ ⊎ x ∈ t₇    □
-  ∈-balanceˡ
+                                                                               ; from = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
+                                                                                          , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                          ]
+                                                                               } ⟩□
+    ((x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
+  ∈⁻-balanceˡ
     {x} {c = black} {y = x₆}
-    {lᴵ = node red x₂ t₁@(leaf _ _) (node red x₄ t₃ t₅ _ _) _}
-    {r = t₇} =
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ with-black-parent (cast _ t₃)) ⊎ x ≡ x₄ ⊎
-    x ∈ with-black-parent (cast _ t₅) ⊎ x ≡ x₆ ⊎ x ∈ cast _ t₇        ↝⟨ (F.id ⊎-cong F.id ⊎-cong (∈-cast F.∘ ∈-with-black-parent)) ⊎-cong
-                                                                         F.id ⊎-cong (∈-cast F.∘ ∈-with-black-parent) ⊎-cong F.id ⊎-cong ∈-cast ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇    ↝⟨ record
-                                                                           { to   = P.[ P.[ inj₁ ∘ inj₁
-                                                                                          , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
-                                                                                          ]
-                                                                                      , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₁
-                                                                                          , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₂ , inj₂ ]
-                                                                                          ]
-                                                                                      ]
-                                                                           ; from = P.[ P.[ inj₁ ∘ inj₁
-                                                                                          , P.[ inj₁ ∘ inj₂ ∘ inj₁
-                                                                                              , P.[ inj₁ ∘ inj₂ ∘ inj₂
-                                                                                                  , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
-                                                                                                  ]
-                                                                                              ]
-                                                                                          ]
-                                                                                      , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                      ]
-                                                                           } ⟩□
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃ ⊎ x ≡ x₄ ⊎ x ∈ t₅) ⊎ x ≡ x₆ ⊎ x ∈ t₇    □
-  ∈-balanceˡ {c = black} {lᴵ = leaf _ _} =
+    {l = node red x₂ t₁@(nodeᶜ black) (node red x₄ t₃ t₅)} {r = t₇} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
+                                                                             { to   = P.[ P.[ inj₁ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
+                                                                                            ]
+                                                                                        , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₂ , inj₂ ]
+                                                                                            ]
+                                                                                        ]
+                                                                             ; from = P.[ P.[ inj₁ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₁
+                                                                                                , P.[ inj₁ ∘ inj₂ ∘ inj₂
+                                                                                                    , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
+                                                                                                    ]
+                                                                                                ]
+                                                                                            ]
+                                                                                        , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                        ]
+                                                                             } ⟩□
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
+  ∈⁻-balanceˡ
+    {x} {c = black} {y = x₆}
+    {l = node red x₂ t₁@leaf (node red x₄ t₃ t₅)} {r = t₇} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
+                                                                             { to   = P.[ P.[ inj₁ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
+                                                                                            ]
+                                                                                        , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₂ ∘ inj₂ , inj₂ ]
+                                                                                            ]
+                                                                                        ]
+                                                                             ; from = P.[ P.[ inj₁ ∘ inj₁
+                                                                                            , P.[ inj₁ ∘ inj₂ ∘ inj₁
+                                                                                                , P.[ inj₁ ∘ inj₂ ∘ inj₂
+                                                                                                    , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
+                                                                                                    ]
+                                                                                                ]
+                                                                                            ]
+                                                                                        , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                        ]
+                                                                             } ⟩□
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
+  ∈⁻-balanceˡ {c = black} {l = leaf} =
     F.id
-  ∈-balanceˡ {c = black} {lᴵ = node red _ (leaf _ _) (leaf _ _) _} =
+  ∈⁻-balanceˡ {c = black} {l = node red _ leaf leaf} =
     F.id
-  ∈-balanceˡ
-    {c = black} {lᴵ = node red _ (leaf _ _) (node black _ _ _ _ _) _} =
+  ∈⁻-balanceˡ {c = black} {l = node red _ leaf (nodeᶜ black)} =
     F.id
-  ∈-balanceˡ
-    {c = black} {lᴵ = node red _ (node black _ _ _ _ _) (leaf _ _) _} =
+  ∈⁻-balanceˡ {c = black} {l = node red _ (nodeᶜ black) leaf} =
     F.id
-  ∈-balanceˡ
-    {c = black}
-    {lᴵ = node red _ (node black _ _ _ _ _) (node black _ _ _ _ _) _} =
+  ∈⁻-balanceˡ {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ black)} =
     F.id
-  ∈-balanceˡ {c = black} {lᴵ = node black _ _ _ _} =
+  ∈⁻-balanceˡ {c = black} {l = nodeᶜ black} =
     F.id
 
 opaque
@@ -831,209 +805,194 @@ opaque
 
   -- A membership lemma for balanceʳ.
 
-  @0 ∈-balanceʳ :
-    x ∈ᴵ balanceʳ {c = c} y l rᴵ rinv binv ⇔
-    x ∈ l ⊎ x ≡ y ⊎ x ∈ᴵ rᴵ
-  ∈-balanceʳ {c = red} =
-    ∈-Tree-red→Tree ⊎-cong F.id ⊎-cong
-    (∈-Insertion-tree-red→Tree-black F.∘ ∈-Tree-black→Tree)
-  ∈-balanceʳ
+  @0 ∈⁻-balanceʳ :
+    x ∈⁻ balanceʳ c y l r ⇔
+    x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
+  ∈⁻-balanceʳ {c = red} =
+    F.id
+  ∈⁻-balanceʳ
     {x} {c = black} {y = x₂} {l = t₁}
-    {rᴵ = node red x₆ (node red x₄ t₃ t₅ _ _) t₇ _} =
-    (x ∈ with-black-parent t₁ ⊎ x ≡ x₂ ⊎
-     x ∈ with-black-parent (cast _ t₃)) ⊎
-    x ≡ x₄ ⊎ x ∈ with-black-parent (cast _ t₅) ⊎ x ≡ x₆ ⊎ x ∈ t₇    ↝⟨ (∈-with-black-parent ⊎-cong F.id ⊎-cong
-                                                                        (∈-cast F.∘ ∈-with-black-parent)) ⊎-cong
-                                                                       F.id ⊎-cong ∈-cast F.∘ ∈-with-black-parent ⊎-cong F.id ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇  ↝⟨ record
-                                                                         { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₁ ] ]
-                                                                                    , P.[ inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₂ ∘ inj₁
-                                                                                        , P.[ inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₂ ∘ inj₂
-                                                                                            , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                            ]
-                                                                                        ]
-                                                                                    ]
-                                                                         ; from = P.[ inj₁ ∘ inj₁
-                                                                                    , P.[ inj₁ ∘ inj₂ ∘ inj₁
-                                                                                        , P.[ P.[ inj₁ ∘ inj₂ ∘ inj₂
-                                                                                                , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
+    {r = node red x₆ (node red x₄ t₃ t₅) t₇} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
+                                                                             { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₁ ] ]
+                                                                                        , P.[ inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₂ ∘ inj₁
+                                                                                            , P.[ inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₂ ∘ inj₂
+                                                                                                , inj₂ ∘ inj₂ ∘ inj₂
                                                                                                 ]
-                                                                                            , inj₂ ∘ inj₂ ∘ inj₂
                                                                                             ]
                                                                                         ]
-                                                                                    ]
-                                                                         } ⟩□
-    x ∈ t₁ ⊎ x ≡ x₂ ⊎ (x ∈ t₃ ⊎ x ≡ x₄ ⊎ x ∈ t₅) ⊎ x ≡ x₆ ⊎ x ∈ t₇  □
-  ∈-balanceʳ
+                                                                             ; from = P.[ inj₁ ∘ inj₁
+                                                                                        , P.[ inj₁ ∘ inj₂ ∘ inj₁
+                                                                                            , P.[ P.[ inj₁ ∘ inj₂ ∘ inj₂
+                                                                                                    , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ]
+                                                                                                    ]
+                                                                                                , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                                ]
+                                                                                            ]
+                                                                                        ]
+                                                                             } ⟩□
+    x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ (x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
+  ∈⁻-balanceʳ
     {x} {c = black} {y = x₂} {l = t₁}
-    {rᴵ =
-       node red x₄ t₃@(node black _ _ _ _ _) (node red x₆ t₅ t₇ _ _)
-         _} =
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ cast _ t₃) ⊎ x ≡ x₄ ⊎
-     x ∈ with-black-parent (cast _ t₅) ⊎ x ≡ x₆ ⊎
-     x ∈ with-black-parent (cast _ t₇)                              ↝⟨ (F.id ⊎-cong F.id ⊎-cong ∈-cast) ⊎-cong F.id ⊎-cong
-                                                                       (∈-cast F.∘ ∈-with-black-parent) ⊎-cong F.id ⊎-cong
-                                                                       (∈-cast F.∘ ∈-with-black-parent) ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇  ↝⟨ record
-                                                                         { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
-                                                                                    , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                    ]
-                                                                         ; from = P.[ inj₁ ∘ inj₁
-                                                                                    , P.[ inj₁ ∘ inj₂ ∘ inj₁ , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ] ]
-                                                                                    ]
-                                                                         } ⟩□
-    x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃ ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇    □
-  ∈-balanceʳ
+    {r = node red x₄ t₃@(nodeᶜ black) (node red x₆ t₅ t₇)} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
+                                                                             { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
+                                                                                        , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                        ]
+                                                                             ; from = P.[ inj₁ ∘ inj₁
+                                                                                        , P.[ inj₁ ∘ inj₂ ∘ inj₁ , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ] ]
+                                                                                        ]
+                                                                             } ⟩□
+    x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    □
+  ∈⁻-balanceʳ
     {x} {c = black} {y = x₂} {l = t₁}
-    {rᴵ = node red x₄ t₃@(leaf _ _) (node red x₆ t₅ t₇ _ _) _} =
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ cast _ t₃) ⊎ x ≡ x₄ ⊎
-     x ∈ with-black-parent (cast _ t₅) ⊎ x ≡ x₆ ⊎
-     x ∈ with-black-parent (cast _ t₇)                              ↝⟨ (F.id ⊎-cong F.id ⊎-cong ∈-cast) ⊎-cong F.id ⊎-cong
-                                                                       (∈-cast F.∘ ∈-with-black-parent) ⊎-cong F.id ⊎-cong
-                                                                       (∈-cast F.∘ ∈-with-black-parent) ⟩
-
-    (x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃) ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇  ↝⟨ record
-                                                                         { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
-                                                                                    , inj₂ ∘ inj₂ ∘ inj₂
-                                                                                    ]
-                                                                         ; from = P.[ inj₁ ∘ inj₁
-                                                                                    , P.[ inj₁ ∘ inj₂ ∘ inj₁ , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ] ]
-                                                                                    ]
-                                                                         } ⟩□
-    x ∈ t₁ ⊎ x ≡ x₂ ⊎ x ∈ t₃ ⊎ x ≡ x₄ ⊎ x ∈ t₅ ⊎ x ≡ x₆ ⊎ x ∈ t₇    □
-  ∈-balanceʳ {c = black} {rᴵ = leaf _ _} =
+    {r = node red x₄ t₃@leaf (node red x₆ t₅ t₇)} =
+    (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
+                                                                             { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
+                                                                                        , inj₂ ∘ inj₂ ∘ inj₂
+                                                                                        ]
+                                                                             ; from = P.[ inj₁ ∘ inj₁
+                                                                                        , P.[ inj₁ ∘ inj₂ ∘ inj₁ , P.[ inj₁ ∘ inj₂ ∘ inj₂ , inj₂ ] ]
+                                                                                        ]
+                                                                             } ⟩□
+    x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    □
+  ∈⁻-balanceʳ {c = black} {r = leaf} =
     F.id
-  ∈-balanceʳ
-    {c = black} {rᴵ = node red _ (leaf _ _) (leaf _ _) _} =
+  ∈⁻-balanceʳ {c = black} {r = node red _ leaf leaf} =
     F.id
-  ∈-balanceʳ
-    {c = black} {rᴵ = node red _ (leaf _ _) (node black _ _ _ _ _) _} =
+  ∈⁻-balanceʳ {c = black} {r = node red _ leaf (nodeᶜ black)} =
     F.id
-  ∈-balanceʳ
-    {c = black} {rᴵ = node red _ (node black _ _ _ _ _) (leaf _ _) _} =
+  ∈⁻-balanceʳ {c = black} {r = node red _ (nodeᶜ black) leaf} =
     F.id
-  ∈-balanceʳ
-    {c = black}
-    {rᴵ = node red _ (node black _ _ _ _ _) (node black _ _ _ _ _) _} =
+  ∈⁻-balanceʳ {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ black)} =
     F.id
-  ∈-balanceʳ {c = black} {rᴵ = node black _ _ _ _} =
+  ∈⁻-balanceʳ {c = black} {r = nodeᶜ black} =
     F.id
 
 opaque
-  unfolding insert′
+  unfolding insert⁻′
 
-  -- The value y is in insert′ x t if and only if y is x or y is in t.
+  -- The value y is in insert⁻′ x t if and only if y is x or y is in t.
 
-  @0 ∈-insert′ :
-    ∀ {t : Tree pc n lb ub} {@0 lb< <ub} →
-    y ∈ᴵ insert′ x t lb< <ub ⇔ y ≡ x ⊎ y ∈ t
-  ∈-insert′ {y} {x} {t = leaf _ _} =
+  @0 ∈⁻-insert⁻′ :
+    y ∈⁻ insert⁻′ x t ⇔ y ≡ x ⊎ y ∈⁻ t
+  ∈⁻-insert⁻′ {y} {x} {t = leaf} =
     ⊥ ⊎ y ≡ x ⊎ ⊥  ↔⟨ ⊎-left-identity ⟩□
     y ≡ x ⊎ ⊥      □
-  ∈-insert′ {y} {x} {t = t@(node _ z l r _ _)}
+  ∈⁻-insert⁻′ {y} {x} {t = node c z l r}
     with O.compare x z
   … | eqᵀ x≡z =
-    y ∈ᴵ Tree→Insertion-tree t     ↝⟨ ∈-Tree→Insertion-tree ⟩
-    y ∈ t                          ↔⟨⟩
-    y ∈ l ⊎ y ≡ z ⊎ y ∈ r          ↝⟨ record { to   = inj₂
-                                             ; from = P.[ inj₂ ∘ inj₁ ∘ flip trans x≡z , id ]
-                                             } ⟩□
-    y ≡ x ⊎ y ∈ l ⊎ y ≡ z ⊎ y ∈ r  □
+    y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r          ↝⟨ record
+                                          { to   = inj₂
+                                          ; from = P.[ inj₂ ∘ inj₁ ∘ flip trans x≡z , id ]
+                                          } ⟩□
+    y ≡ x ⊎ y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r  □
   … | ltᵀ _ =
-    y ∈ᴵ balanceˡ z (insert′ x l _ _) r _ _  ↝⟨ ∈-balanceˡ ⟩
-    y ∈ᴵ insert′ x l _ _ ⊎ y ≡ z ⊎ y ∈ r     ↝⟨ ∈-insert′ ⊎-cong F.id ⟩
-    (y ≡ x ⊎ y ∈ l) ⊎ y ≡ z ⊎ y ∈ r          ↔⟨ inverse ⊎-assoc ⟩□
-    y ≡ x ⊎ y ∈ l ⊎ y ≡ z ⊎ y ∈ r            □
+    y ∈⁻ balanceˡ c z (insert⁻′ x l) r  ↝⟨ ∈⁻-balanceˡ ⟩
+    y ∈⁻ insert⁻′ x l ⊎ y ≡ z ⊎ y ∈⁻ r  ↝⟨ ∈⁻-insert⁻′ ⊎-cong F.id ⟩
+    (y ≡ x ⊎ y ∈⁻ l) ⊎ y ≡ z ⊎ y ∈⁻ r   ↔⟨ inverse ⊎-assoc ⟩□
+    y ≡ x ⊎ y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r     □
   … | gtᵀ _ =
-    y ∈ᴵ balanceʳ z l (insert′ x r _ _) _ _  ↝⟨ ∈-balanceʳ ⟩
-    y ∈ l ⊎ y ≡ z ⊎ y ∈ᴵ insert′ x r _ _     ↝⟨ F.id ⊎-cong F.id ⊎-cong ∈-insert′ ⟩
-    y ∈ l ⊎ y ≡ z ⊎ y ≡ x ⊎ y ∈ r            ↝⟨ record
-                                                  { to   = P.[ inj₂ ∘ inj₁ , P.[ inj₂ ∘ inj₂ ∘ inj₁ , P.[ inj₁ , inj₂ ∘ inj₂ ∘ inj₂ ] ] ]
-                                                  ; from = P.[ inj₂ ∘ inj₂ ∘ inj₁ , P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₂ ] ] ]
-                                                  } ⟩□
-    y ≡ x ⊎ y ∈ l ⊎ y ≡ z ⊎ y ∈ r            □
+    y ∈⁻ balanceʳ c z l (insert⁻′ x r)  ↝⟨ ∈⁻-balanceʳ ⟩
+    y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ insert⁻′ x r  ↝⟨ F.id ⊎-cong F.id ⊎-cong ∈⁻-insert⁻′ ⟩
+    y ∈⁻ l ⊎ y ≡ z ⊎ y ≡ x ⊎ y ∈⁻ r     ↝⟨ record
+                                             { to   = P.[ inj₂ ∘ inj₁ , P.[ inj₂ ∘ inj₂ ∘ inj₁ , P.[ inj₁ , inj₂ ∘ inj₂ ∘ inj₂ ] ] ]
+                                             ; from = P.[ inj₂ ∘ inj₂ ∘ inj₁ , P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₂ ] ] ]
+                                             } ⟩□
+    y ≡ x ⊎ y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r     □
 
 opaque
-  unfolding insert
+  unfolding colour-root-black
 
-  -- The value y is in insert x t if and only if y is x or y is in t.
+  -- A membership lemma for colour-root-black.
 
-  @0 ∈-insert :
-    ∀ {@0 lb< <ub} →
-    y ∈ insert x t lb< <ub .proj₂ ⇔ y ≡ x ⊎ y ∈ t
-  ∈-insert {y} {x} {t} {lb<} {<ub}=
-    y ∈ Insertion-tree→Tree (insert′ x t lb< <ub) .proj₂  ↝⟨ ∈-Insertion-tree→Tree ⟩
-    y ∈ᴵ insert′ x t lb< <ub                              ↝⟨ ∈-insert′ ⟩□
-    y ≡ x ⊎ y ∈ t                                         □
-
-------------------------------------------------------------------------
--- An interface with fewer parameters
+  @0 ∈⁻-colour-root-black :
+    x ∈⁻ colour-root-black t ⇔ x ∈⁻ t
+  ∈⁻-colour-root-black {t = leaf}  = F.id
+  ∈⁻-colour-root-black {t = node! } = F.id
 
 opaque
-
-  -- Trees with fewer parameters.
-
-  Tree⁻ : Type (a ⊔ o)
-  Tree⁻ = ∃ λ (n : Erased ℕ) → Tree black (n .erased) min max
-
-opaque
-  unfolding Tree⁻
-
-  infix 4 _∈⁻_
-
-  -- A membership relation.
-
-  _∈⁻_ : A → Tree⁻ → Type (a ⊔ o)
-  x ∈⁻ (_ , t) = x ∈ t
-
-opaque
-  unfolding _∈⁻_
-
-  -- Tree membership is propositional.
-
-  @0 ∈⁻-propositional : {t : Tree⁻} → Is-proposition (x ∈⁻ t)
-  ∈⁻-propositional = ∈-propositional
-
-opaque
-  unfolding Tree⁻ _∈⁻_
-
-  -- Does the element exist in the tree?
-
-  member?⁻ : (x : A) (t : Tree⁻) → Dec-Erased (x ∈⁻ t)
-  member?⁻ x (_ , t) = member? x t
-
-opaque
-  unfolding Tree⁻
-
-  -- An empty tree.
-
-  empty⁻ : Tree⁻
-  empty⁻ = [ _ ] , empty
-
-opaque
-  unfolding _∈⁻_ empty⁻
-
-  -- The empty tree is empty.
-
-  @0 ∉empty⁻ : ¬ x ∈⁻ empty⁻
-  ∉empty⁻ = ∉empty
-
-opaque
-  unfolding Tree⁻
-
-  -- Inserts an element into the tree.
-
-  insert⁻ : A → Tree⁻ → Tree⁻
-  insert⁻ x (_ , t) = insert x t min-[] []-max
-
-opaque
-  unfolding _∈⁻_ insert⁻
+  unfolding insert⁻
 
   -- The value y is in insert⁻ x t if and only if y is x or y is in t.
 
   @0 ∈⁻-insert⁻ :
-    {t : Tree⁻} →
     y ∈⁻ insert⁻ x t ⇔ y ≡ x ⊎ y ∈⁻ t
-  ∈⁻-insert⁻ = ∈-insert
+  ∈⁻-insert⁻ {y} {x} {t} =
+    y ∈⁻ colour-root-black (insert⁻′ x t)  ↝⟨ ∈⁻-colour-root-black ⟩
+    y ∈⁻ insert⁻′ x t                      ↝⟨ ∈⁻-insert⁻′ ⟩□
+    y ≡ x ⊎ y ∈⁻ t                         □
+
+------------------------------------------------------------------------
+-- Red-black trees with integrated invariants
+
+-- Red-black trees.
+
+record Tree : Type (a ⊔ o) where
+  no-eta-equality
+  field
+    tree              : Tree⁻
+    @0 {black-height} : ℕ
+    @0 red-black      : Red-black black black-height min max tree
+
+opaque
+
+  infix 4 _∈_
+
+  -- A membership relation.
+
+  _∈_ : A → Tree → Type a
+  x ∈ t = x ∈⁻ Tree.tree t
+
+opaque
+  unfolding _∈_
+
+  -- Tree membership is propositional.
+
+  @0 ∈-propositional : Is-proposition (x ∈ t)
+  ∈-propositional {t} = ∈⁻-propositional (Tree.red-black t)
+
+opaque
+  unfolding _∈_
+
+  -- Does the element exist in the tree?
+
+  member? : (x : A) (t : Tree) → Dec-Erased (x ∈ t)
+  member? x t = member?⁻ x (Tree.tree t) (Tree.red-black t)
+
+opaque
+
+  -- An empty tree.
+
+  empty : Tree
+  empty = record
+    { tree      = empty⁻
+    ; red-black = empty⁻ʳᵇ
+    }
+
+opaque
+  unfolding _∈_ empty
+
+  -- The empty tree is empty.
+
+  @0 ∉empty : ¬ x ∈ empty
+  ∉empty = ∉⁻empty⁻
+
+opaque
+
+  -- Inserts an element into the tree.
+
+  insert : A → Tree → Tree
+  insert x t = record
+    { tree      = insert⁻ x (Tree.tree t)
+    ; red-black = insert⁻ʳᵇ (Tree.red-black t) min-[] []-max .proj₂
+    }
+
+opaque
+  unfolding _∈_ insert
+
+  -- The value y is in insert x t if and only if y is x or y is in t.
+
+  @0 ∈-insert :
+    y ∈ insert x t ⇔ y ≡ x ⊎ y ∈ t
+  ∈-insert = ∈⁻-insert⁻

@@ -22,8 +22,8 @@ module Tree.Red-black.Set
   (quot : Quotientᴱ)
   {a o}
   -- It is assumed that function and propositional extensionality hold.
-  (@0 ext      : Extensionality (lsuc (a ⊔ o)) (lsuc (a ⊔ o)))
-  (@0 prop-ext : Propositional-extensionality (a ⊔ o))
+  (@0 ext      : Extensionality (lsuc a) (lsuc a))
+  (@0 prop-ext : Propositional-extensionality a)
   -- The carrier type.
   {A : Type a}
   -- The carrier type is assumed to be totally ordered.
@@ -41,8 +41,7 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq hiding (Set)
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional.Erased.Axiomatised eq
-open import Tree.Red-black eq O as T
-  hiding (_∈_; ∈-propositional; member?; empty; insert)
+import Tree.Red-black eq O as T
 
 private
   module @0 BC {a} =
@@ -64,7 +63,7 @@ opaque
   -- equivalence.
 
   Set : Type (a ⊔ o)
-  Set = Tree⁻ /ᴱ (λ t₁ t₂ → ∀ z → z ∈⁻ t₁ ⇔ z ∈⁻ t₂)
+  Set = T.Tree /ᴱ (λ t₁ t₂ → ∀ z → z T.∈ t₁ ⇔ z T.∈ t₂)
 
 private variable
   xs : Set
@@ -78,23 +77,23 @@ private opaque
   -- Set membership.
 
   Membership :
-    A → Set → ∃ λ (B : Type (a ⊔ o)) → Erased (Is-proposition B)
+    A → Set → ∃ λ (B : Type a) → Erased (Is-proposition B)
   Membership x = Q.rec λ where
     .is-setʳ →
       Is-set-∃-Erased-Is-proposition ext prop-ext
     .[]ʳ t →
-      (x ∈⁻ t) , [ ∈⁻-propositional ]
+      (x T.∈ t) , [ T.∈-propositional ]
     .[]-respects-relationʳ {x = xs} {y = ys} →
-      (∀ z → z ∈⁻ xs ⇔ z ∈⁻ ys)             →⟨ _$ x ⟩
+      (∀ z → z T.∈ xs ⇔ z T.∈ ys)             →⟨ _$ x ⟩
 
-      x ∈⁻ xs ⇔ x ∈⁻ ys                     →⟨ prop-ext ∈⁻-propositional ∈⁻-propositional ⟩
+      x T.∈ xs ⇔ x T.∈ ys                     →⟨ prop-ext T.∈-propositional T.∈-propositional ⟩
 
-      (x ∈⁻ xs) ≡ (x ∈⁻ ys)                 ↔⟨ ignore-propositional-component
-                                                 (BC.H-level-Erased 1
-                                                    (H-level-propositional
-                                                       (lower-extensionality _ _ ext) 1)) ⟩□
-      ((x ∈⁻ xs) , [ ∈⁻-propositional ]) ≡
-      ((x ∈⁻ ys) , [ ∈⁻-propositional ])    □
+      (x T.∈ xs) ≡ (x T.∈ ys)                 ↔⟨ ignore-propositional-component
+                                                   (BC.H-level-Erased 1
+                                                      (H-level-propositional
+                                                         (lower-extensionality _ _ ext) 1)) ⟩□
+      ((x T.∈ xs) , [ T.∈-propositional ]) ≡
+      ((x T.∈ ys) , [ T.∈-propositional ])    □
 
 opaque
   unfolding Membership
@@ -103,7 +102,7 @@ opaque
 
   -- Set membership.
 
-  _∈_ : A → Set → Type (a ⊔ o)
+  _∈_ : A → Set → Type a
   x ∈ xs = Membership x xs .proj₁
 
 opaque
@@ -129,9 +128,9 @@ opaque
         ∈-propositional
     .[]ʳ t →
       Dec-Erased-map
-        (x ∈⁻ t       ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
-         x ∈ [ t ]Q   □)
-        (member?⁻ x t)
+        (x T.∈ t     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
+         x ∈ [ t ]Q  □)
+        (T.member? x t)
 
 ------------------------------------------------------------------------
 -- The empty set
@@ -142,7 +141,7 @@ opaque
   -- The empty set.
 
   ∅ : Set
-  ∅ = [ empty⁻ ]Q
+  ∅ = [ T.empty ]Q
 
 opaque
   unfolding ∅ _∈_
@@ -151,9 +150,9 @@ opaque
 
   @0 ∉∅ : ¬ x ∈ ∅
   ∉∅ {x} =
-    x ∈ [ empty⁻ ]Q  →⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
-    x ∈⁻ empty⁻      →⟨ ∉empty⁻ ⟩□
-    ⊥                □
+    x ∈ [ T.empty ]Q  →⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+    x T.∈ T.empty     →⟨ T.∉empty ⟩□
+    ⊥                 □
 
 ------------------------------------------------------------------------
 -- Insertion
@@ -165,15 +164,15 @@ opaque
 
   insert : A → Set → Set
   insert x =
-    insert⁻ x Q./ᴱ-map λ xs ys →
-      (∀ z → z ∈⁻ xs ⇔ z ∈⁻ ys)                      →⟨ (λ hyp z →
+    T.insert x Q./ᴱ-map λ xs ys →
+      (∀ z → z T.∈ xs ⇔ z T.∈ ys)                        →⟨ (λ hyp z →
 
-        z ∈⁻ insert⁻ x xs                                    ↝⟨ ∈⁻-insert⁻ ⟩
-        z ≡ x ⊎ z ∈⁻ xs                                      ↝⟨ F.id ⊎-cong hyp z ⟩
-        z ≡ x ⊎ z ∈⁻ ys                                      ↝⟨ inverse ∈⁻-insert⁻ ⟩□
-        z ∈⁻ insert⁻ x ys                                    □) ⟩□
+        z T.∈ T.insert x xs                                    ↝⟨ T.∈-insert ⟩
+        z ≡ x ⊎ z T.∈ xs                                       ↝⟨ F.id ⊎-cong hyp z ⟩
+        z ≡ x ⊎ z T.∈ ys                                       ↝⟨ inverse T.∈-insert ⟩□
+        z T.∈ T.insert x ys                                    □) ⟩□
 
-      (∀ z → z ∈⁻ insert⁻ x xs ⇔ z ∈⁻ insert⁻ x ys)  □
+      (∀ z → z T.∈ T.insert x xs ⇔ z T.∈ T.insert x ys)  □
 
 opaque
   unfolding Set _∈_ insert _/ᴱ-map_
@@ -189,10 +188,10 @@ opaque
            ⇔-closure (lower-extensionality _ _ ext) 1 ∈-propositional
              truncation-is-proposition
          .[]ʳ t →
-           y ∈ insert x [ t ]Q     ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
-           y ∈ [ insert⁻ x t ]Q    ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
-           y ∈⁻ insert⁻ x t        ↔⟨ inverse (∥∥ᴱ≃ ∈⁻-propositional) ⟩
-           ∥ y ∈⁻ insert⁻ x t ∥ᴱ   ↝⟨ _≃ᴱ_.logical-equivalence (∥∥ᴱ-cong-⇔ ∈⁻-insert⁻) ⟩
-           y ≡ x ∥⊎∥ᴱ y ∈⁻ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
-           y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q   □)
+           y ∈ insert x [ t ]Q      ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
+           y ∈ [ T.insert x t ]Q    ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+           y T.∈ T.insert x t       ↔⟨ inverse (∥∥ᴱ≃ T.∈-propositional) ⟩
+           ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ _≃ᴱ_.logical-equivalence (∥∥ᴱ-cong-⇔ T.∈-insert) ⟩
+           y ≡ x ∥⊎∥ᴱ y T.∈ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
+           y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q    □)
       xs
