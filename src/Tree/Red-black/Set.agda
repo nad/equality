@@ -41,7 +41,8 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq hiding (Set)
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional.Erased.Axiomatised eq
-open import Tree.Red-black eq as T hiding (_∈_; member?; empty; insert)
+open import Tree.Red-black eq as T
+  hiding (_∈_; ∈-propositional; member?; empty; insert)
 
 private
   module @0 BC {a} =
@@ -82,20 +83,18 @@ private opaque
     .is-setʳ →
       Is-set-∃-Erased-Is-proposition ext prop-ext
     .[]ʳ t →
-      ∥ x ∈⁻ t ∥ᴱ , [ truncation-is-proposition ]
+      (x ∈⁻ t) , [ ∈⁻-propositional ]
     .[]-respects-relationʳ {x = xs} {y = ys} →
-      (∀ z → z ∈⁻ xs ⇔ z ∈⁻ ys)                         →⟨ _$ x ⟩
+      (∀ z → z ∈⁻ xs ⇔ z ∈⁻ ys)             →⟨ _$ x ⟩
 
-      x ∈⁻ xs ⇔ x ∈⁻ ys                                 →⟨ ∥∥ᴱ-cong ⟩
+      x ∈⁻ xs ⇔ x ∈⁻ ys                     →⟨ prop-ext ∈⁻-propositional ∈⁻-propositional ⟩
 
-      ∥ x ∈⁻ xs ∥ᴱ ⇔ ∥ x ∈⁻ ys ∥ᴱ                       →⟨ prop-ext truncation-is-proposition truncation-is-proposition ⟩
-
-      ∥ x ∈⁻ xs ∥ᴱ ≡ ∥ x ∈⁻ ys ∥ᴱ                       ↔⟨ ignore-propositional-component
-                                                             (BC.H-level-Erased 1
-                                                                (H-level-propositional
-                                                                   (lower-extensionality _ _ ext) 1)) ⟩
-      (∥ x ∈⁻ xs ∥ᴱ , [ truncation-is-proposition ]) ≡
-      (∥ x ∈⁻ ys ∥ᴱ , [ truncation-is-proposition ])    □
+      (x ∈⁻ xs) ≡ (x ∈⁻ ys)                 ↔⟨ ignore-propositional-component
+                                                 (BC.H-level-Erased 1
+                                                    (H-level-propositional
+                                                       (lower-extensionality _ _ ext) 1)) ⟩□
+      ((x ∈⁻ xs) , [ ∈⁻-propositional ]) ≡
+      ((x ∈⁻ ys) , [ ∈⁻-propositional ])    □
 
 opaque
   unfolding Membership
@@ -129,8 +128,8 @@ opaque
       BC.Is-proposition-Dec-Erased (lower-extensionality _ _ ext)
         ∈-propositional
     .[]ʳ t →
-      Dec-Erased-map-∥∥ᴱ
-        (∥ x ∈⁻ t ∥ᴱ  ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
+      Dec-Erased-map
+        (x ∈⁻ t       ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
          x ∈ [ t ]Q   □)
         (member?⁻ x t)
 
@@ -152,13 +151,9 @@ opaque
 
   @0 ∉∅ : ¬ x ∈ ∅
   ∉∅ {x} =
-    x ∈ [ empty⁻ ]Q   →⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
-    ∥ x ∈⁻ empty⁻ ∥ᴱ  →⟨ (Tr.rec λ where
-                            .truncation-is-propositionʳ →
-                              ⊥-propositional
-                            .∣∣ʳ →
-                              ∉empty⁻) ⟩□
-    ⊥                 □
+    x ∈ [ empty⁻ ]Q  →⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+    x ∈⁻ empty⁻      →⟨ ∉empty⁻ ⟩□
+    ⊥                □
 
 ------------------------------------------------------------------------
 -- Insertion
@@ -196,8 +191,8 @@ opaque
          .[]ʳ t →
            y ∈ insert x [ t ]Q     ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
            y ∈ [ insert⁻ x t ]Q    ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+           y ∈⁻ insert⁻ x t        ↔⟨ inverse (∥∥ᴱ≃ ∈⁻-propositional) ⟩
            ∥ y ∈⁻ insert⁻ x t ∥ᴱ   ↝⟨ _≃ᴱ_.logical-equivalence (∥∥ᴱ-cong-⇔ ∈⁻-insert⁻) ⟩
-           y ≡ x ∥⊎∥ᴱ y ∈⁻ t       ↝⟨ _≃_.logical-equivalence truncate-right-∥⊎∥ᴱ ⟩
-           y ≡ x ∥⊎∥ᴱ ∥ y ∈⁻ t ∥ᴱ  ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
+           y ≡ x ∥⊎∥ᴱ y ∈⁻ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
            y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q   □)
       xs

@@ -21,6 +21,7 @@ open import Prelude as P
 open import Equality.Decision-procedures eq
 open import Erased.Level-1 eq
 open import Function-universe eq as F hiding (id; _∘_)
+open import H-level.Closure eq
 open import Total-order.Erased eq
 
 private variable
@@ -275,6 +276,29 @@ opaque
     }
     where
     open Total-order O
+
+opaque
+
+  -- Tree membership is propositional.
+
+  @0 ∈-propositional :
+    {t : Tree O pc n lb ub} →
+    Is-proposition (x ∈ t)
+  ∈-propositional {t = leaf _ _} =
+    ⊥-propositional
+  ∈-propositional {O} {t = node c y l r rinv binv} =
+    ⊎-closure-propositional
+      (λ x∈l →
+         let _ , x<y = ∈→<< x∈l in
+         P.[ (λ x≡y → <→≢ x<y (cong [_] x≡y))
+           , (λ x∈r → <-asymmetric x<y (∈→<< x∈r .proj₁))
+           ])
+      ∈-propositional
+      (⊎-closure-propositional
+         (λ x≡y x∈r → <→≢ (∈→<< x∈r .proj₁) (cong [_] (sym x≡y)))
+         (Total-order.is-set O) ∈-propositional)
+    where
+    open Total-order (extended O)
 
 ------------------------------------------------------------------------
 -- A membership test
@@ -986,6 +1010,14 @@ opaque
     {A : Type a} {O : Total-order A o} →
     A → Tree⁻ O → Type (a ⊔ o)
   x ∈⁻ (_ , t) = x ∈ t
+
+opaque
+  unfolding _∈⁻_
+
+  -- Tree membership is propositional.
+
+  @0 ∈⁻-propositional : {t : Tree⁻ O} → Is-proposition (x ∈⁻ t)
+  ∈⁻-propositional = ∈-propositional
 
 opaque
   unfolding Tree⁻ _∈⁻_
