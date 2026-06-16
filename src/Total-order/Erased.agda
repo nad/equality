@@ -42,6 +42,7 @@ pattern gtᵀ p = inj₂ (inj₂ [ p ])
 -- Strict total orders on A.
 
 record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
+  no-eta-equality
   infix 4 _<_
   field
     -- The ordering relation.
