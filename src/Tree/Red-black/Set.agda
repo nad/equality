@@ -41,7 +41,7 @@ open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq hiding (Set)
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional.Erased.Axiomatised eq
-open import Tree.Red-black eq as T
+open import Tree.Red-black eq O as T
   hiding (_∈_; ∈-propositional; member?; empty; insert)
 
 private
@@ -64,7 +64,7 @@ opaque
   -- equivalence.
 
   Set : Type (a ⊔ o)
-  Set = Tree⁻ O /ᴱ (λ t₁ t₂ → ∀ z → z ∈⁻ t₁ ⇔ z ∈⁻ t₂)
+  Set = Tree⁻ /ᴱ (λ t₁ t₂ → ∀ z → z ∈⁻ t₁ ⇔ z ∈⁻ t₂)
 
 private variable
   xs : Set

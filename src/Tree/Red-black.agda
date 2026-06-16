@@ -10,26 +10,37 @@
 {-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
+open import Prelude as P
+import Total-order.Erased
 
-module Tree.Red-black {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
+module Tree.Red-black
+  {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺)
+  (open Total-order.Erased eq)
+  {a o}
+  -- The carrier type.
+  {A : Type a}
+  -- The carrier type is assumed to be totally ordered.
+  (O : Total-order A o)
+  where
 
 open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
-open import Prelude as P
 
 open import Equality.Decision-procedures eq
 open import Erased.Level-1 eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
-open import Total-order.Erased eq
+import Total-order.Erased eq as TE
+
+private
+  open module O  = TE.Total-order O using (_<_; _>_)
+  open module EO = TE.Total-order (extended O)
+    using () renaming (_<_ to _<ᴱ_)
 
 private variable
-  a o      : Level
   @0 m n   : ℕ
-  A        : Type _
   x y      : A
-  O        : Total-order _ _
   @0 lb ub : Extended _
 
 ------------------------------------------------------------------------
@@ -77,19 +88,18 @@ private variable
 -- the root to a leaf. The parameter lb is a lower bound for the nodes
 -- in the tree, and ub is an upper bound.
 
-data Tree {A : Type a} (O : Total-order A o) (@0 pc : Colour)
-       (@0 n : ℕ) (@0 lb ub : Extended A) : Type (a ⊔ o) where
+data Tree (@0 pc : Colour) (@0 n : ℕ) (@0 lb ub : Extended A) :
+       Type (a ⊔ o) where
   leaf :
-    let open Total-order (extended O) in
-    (@0 lb<ub : lb < ub) (@0 n≡0 : n ≡ 0) → Tree O pc n lb ub
+    (@0 lb<ub : lb <ᴱ ub) (@0 n≡0 : n ≡ 0) → Tree pc n lb ub
   node :
-    (c : Colour) (x : A) (l : Tree O c m lb [ x ])
-    (r : Tree O c m [ x ] ub) (@0 rinv : Red-invariant pc c)
+    (c : Colour) (x : A) (l : Tree c m lb [ x ])
+    (r : Tree c m [ x ] ub) (@0 rinv : Red-invariant pc c)
     (@0 binv : Black-invariant c m n) →
-    Tree O pc n lb ub
+    Tree pc n lb ub
 
 private variable
-  l r t : Tree _ pc n lb ub
+  l r t : Tree pc n lb ub
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Red-invariant
@@ -160,15 +170,11 @@ opaque
 
   -- The lower bound is strictly below the upper bound.
 
-  @0 lower-bound-<-upper-bound :
-    let open Total-order (extended O) in
-    Tree O pc n lb ub →
-    lb < ub
-  lower-bound-<-upper-bound     (leaf lb<ub _)     = lb<ub
-  lower-bound-<-upper-bound {O} (node _ _ l r _ _) =
-    <-trans (lower-bound-<-upper-bound l) (lower-bound-<-upper-bound r)
-    where
-    open Total-order (extended O)
+  @0 lower-bound-<-upper-bound : Tree pc n lb ub → lb <ᴱ ub
+  lower-bound-<-upper-bound (leaf lb<ub _)     = lb<ub
+  lower-bound-<-upper-bound (node _ _ l r _ _) =
+    EO.<-trans (lower-bound-<-upper-bound l)
+      (lower-bound-<-upper-bound r)
 
 ------------------------------------------------------------------------
 -- Membership
@@ -178,8 +184,8 @@ opaque
 infix 4 _∈_
 
 _∈_ :
-  ∀ {A : Type a} {O : Total-order A o} {@0 lb ub} →
-  A → Tree O pc n lb ub → Type (a ⊔ o)
+  ∀ {@0 lb ub} →
+  A → Tree pc n lb ub → Type (a ⊔ o)
 _ ∈ leaf _ _         = ⊥
 x ∈ node _ y l r _ _ = x ∈ l ⊎ x ≡ y ⊎ x ∈ r
 
@@ -189,51 +195,39 @@ opaque
   -- upper bounds.
 
   @0 ∈→<< :
-    let open Total-order (extended O) in
-    {t : Tree O pc n lb ub} →
-    x ∈ t → lb < [ x ] × [ x ] < ub
-  ∈→<< {O} {t = node _ _ _ r _ _} (inj₁ x∈l) =
+    {t : Tree pc n lb ub} →
+    x ∈ t → lb <ᴱ [ x ] × [ x ] <ᴱ ub
+  ∈→<< {t = node _ _ _ r _ _} (inj₁ x∈l) =
     let <x , x< = ∈→<< x∈l in
-    <x , <-trans x< (lower-bound-<-upper-bound r)
-    where
-    open Total-order (extended O)
-  ∈→<< {O} {t = node _ _ l r _ _} (inj₂ (inj₁ x≡y)) =
-    let eq = cong [_] (sym x≡y) in
-    subst (_<_ _) eq (lower-bound-<-upper-bound l) ,
-    subst (flip _<_ _) eq (lower-bound-<-upper-bound r)
-    where
-    open Total-order (extended O)
-  ∈→<< {O} {t = node _ _ l _ _ _} (inj₂ (inj₂ x∈r)) =
+    <x , EO.<-trans x< (lower-bound-<-upper-bound r)
+  ∈→<< {t = node _ _ l r _ _} (inj₂ (inj₁ x≡y)) =
+    EO.<-≤-trans (lower-bound-<-upper-bound l)
+      (EO.≤-reflexive (cong [_] (sym x≡y))) ,
+    EO.≤-<-trans (EO.≤-reflexive (cong [_] x≡y))
+      (lower-bound-<-upper-bound r)
+  ∈→<< {t = node _ _ l _ _ _} (inj₂ (inj₂ x∈r)) =
     let <x , x< = ∈→<< x∈r in
-    <-trans (lower-bound-<-upper-bound l) <x , x<
-    where
-    open Total-order (extended O)
+    EO.<-trans (lower-bound-<-upper-bound l) <x , x<
 
 opaque
 
   -- If x is below the lower bound, then x is not in the tree.
 
   @0 <→∉ :
-    let open Total-order (extended O) in
-    {t : Tree O pc n lb ub} → [ x ] < lb → ¬ x ∈ t
-  <→∉ {O} <lb ∈t =
+    {t : Tree pc n lb ub} → [ x ] <ᴱ lb → ¬ x ∈ t
+  <→∉ <lb ∈t =
     let lb< , _ = ∈→<< ∈t in
-    <-asymmetric <lb lb<
-    where
-    open Total-order (extended O)
+    EO.<-asymmetric <lb lb<
 
 opaque
 
   -- If x is above the upper bound, then x is not in the tree.
 
   @0 >→∉ :
-    let open Total-order (extended O) in
-    {t : Tree O pc n lb ub} → ub < [ x ] → ¬ x ∈ t
-  >→∉ {O} ub< ∈t =
+    {t : Tree pc n lb ub} → ub <ᴱ [ x ] → ¬ x ∈ t
+  >→∉ ub< ∈t =
     let _ , <ub = ∈→<< ∈t in
-    <-asymmetric <ub ub<
-    where
-    open Total-order (extended O)
+    EO.<-asymmetric <ub ub<
 
 opaque
 
@@ -241,20 +235,17 @@ opaque
   -- is in the left sub-tree.
 
   @0 <→∈⇔∈ :
-    let open Total-order O in
     x < y →
-    x ∈ l ⇔ x ∈ node {O = O} c y l r rinv binv
-  <→∈⇔∈ {O} x<y = record
+    x ∈ l ⇔ x ∈ node c y l r rinv binv
+  <→∈⇔∈ x<y = record
     { to   = inj₁
     ; from =
         P.[ id
-          , P.[ (λ eq → ⊥-elim₀ (<-irreflexive (subst (_< _) eq x<y)))
+          , P.[ (λ eq → ⊥-elim₀ (O.<→≢ x<y eq))
               , (λ ∈r → ⊥-elim₀ (<→∉ ([]-[] x<y) ∈r))
               ]
           ]
     }
-    where
-    open Total-order O
 
 opaque
 
@@ -262,43 +253,36 @@ opaque
   -- is in the right sub-tree.
 
   @0 >→∈⇔∈ :
-    let open Total-order O in
     x > y →
-    x ∈ r ⇔ x ∈ node {O = O} c y l r rinv binv
-  >→∈⇔∈ {O} x>y = record
+    x ∈ r ⇔ x ∈ node c y l r rinv binv
+  >→∈⇔∈ x>y = record
     { to   = inj₂ ∘ inj₂
     ; from =
         P.[ (λ ∈l → ⊥-elim₀ (>→∉ ([]-[] x>y) ∈l))
-          , P.[ (λ eq → ⊥-elim₀ (<-irreflexive (subst (_ <_) eq x>y)))
+          , P.[ (λ eq → ⊥-elim₀ (O.<→≢ x>y (sym eq)))
               , id
               ]
           ]
     }
-    where
-    open Total-order O
 
 opaque
 
   -- Tree membership is propositional.
 
-  @0 ∈-propositional :
-    {t : Tree O pc n lb ub} →
-    Is-proposition (x ∈ t)
+  @0 ∈-propositional : Is-proposition (x ∈ t)
   ∈-propositional {t = leaf _ _} =
     ⊥-propositional
-  ∈-propositional {O} {t = node c y l r rinv binv} =
+  ∈-propositional {t = node c y l r rinv binv} =
     ⊎-closure-propositional
       (λ x∈l →
          let _ , x<y = ∈→<< x∈l in
-         P.[ (λ x≡y → <→≢ x<y (cong [_] x≡y))
-           , (λ x∈r → <-asymmetric x<y (∈→<< x∈r .proj₁))
+         P.[ (λ x≡y → EO.<→≢ x<y (cong [_] x≡y))
+           , (λ x∈r → EO.<-asymmetric x<y (∈→<< x∈r .proj₁))
            ])
       ∈-propositional
       (⊎-closure-propositional
-         (λ x≡y x∈r → <→≢ (∈→<< x∈r .proj₁) (cong [_] (sym x≡y)))
-         (Total-order.is-set O) ∈-propositional)
-    where
-    open Total-order (extended O)
+         (λ x≡y x∈r → EO.<→≢ (∈→<< x∈r .proj₁) (cong [_] (sym x≡y)))
+         O.is-set ∈-propositional)
 
 ------------------------------------------------------------------------
 -- A membership test
@@ -307,11 +291,11 @@ opaque
 
   -- Does the element exist in the tree?
 
-  member? : (x : A) (t : Tree O pc n lb ub) → Dec-Erased (x ∈ t)
+  member? : (x : A) (t : Tree pc n lb ub) → Dec-Erased (x ∈ t)
   member? _ (leaf _ _) =
     no [ ⊥-elim ]
-  member? {O} x (node _ y l r rinv binv)
-    with O .Total-order.compare x y
+  member? x (node _ y l r rinv binv)
+    with O.compare x y
   … | ltᵀ x<y =
     Dec-Erased-map (<→∈⇔∈ {rinv = rinv} {binv = binv} x<y) (member? x l)
   … | eqᵀ x≡y = yes [ inj₂ (inj₁ x≡y) ]
@@ -325,9 +309,7 @@ opaque
 
   -- An empty tree.
 
-  empty :
-    {@0 A : Type a} {@0 O : Total-order A o} →
-    Tree O pc 0 min max
+  empty : Tree pc 0 min max
   empty = leaf min-max (refl _)
 
 opaque
@@ -335,7 +317,7 @@ opaque
 
   -- The empty tree is empty.
 
-  @0 ∉empty : ¬ x ∈ empty {pc = pc} {O = O}
+  @0 ∉empty : ¬ x ∈ empty {pc = pc}
   ∉empty ()
 
 ------------------------------------------------------------------------
@@ -348,7 +330,7 @@ opaque
   -- TODO: It would be nice if this could be compiled into something
   -- that just returned the input tree.
 
-  cast : @0 m ≡ n → Tree O pc m lb ub → Tree O pc n lb ub
+  cast : @0 m ≡ n → Tree pc m lb ub → Tree pc n lb ub
   cast eq (leaf lb<ub n≡0) =
     leaf lb<ub (trans (sym eq) n≡0)
   cast eq (node c x l r rinv binv) =
@@ -376,29 +358,28 @@ fake-parent-colour pc black = black
 -- Insertion-trees are trees for which the red invariant might be
 -- broken for the top-most layer.
 
-data Insertion-tree {A : Type a} (O : Total-order A o) (@0 pc : Colour)
-       (@0 n : ℕ) (@0 lb ub : Extended A) : Type (a ⊔ o) where
+data Insertion-tree (@0 pc : Colour) (@0 n : ℕ)
+       (@0 lb ub : Extended A) : Type (a ⊔ o) where
   leaf :
-    let open Total-order (extended O) in
-    (@0 lb<ub : lb < ub) (@0 n≡0 : n ≡ 0) →
-    Insertion-tree O pc n lb ub
+    (@0 lb<ub : lb <ᴱ ub) (@0 n≡0 : n ≡ 0) →
+    Insertion-tree pc n lb ub
   node :
     (c : Colour) (x : A)
-    (l : Tree O (fake-parent-colour pc c) m lb [ x ])
-    (r : Tree O (fake-parent-colour pc c) m [ x ] ub)
+    (l : Tree (fake-parent-colour pc c) m lb [ x ])
+    (r : Tree (fake-parent-colour pc c) m [ x ] ub)
     (@0 binv : Black-invariant c m n) →
-    Insertion-tree O pc n lb ub
+    Insertion-tree pc n lb ub
 
 private variable
-  lᴵ rᴵ tᴵ : Insertion-tree _ pc n lb ub
+  lᴵ rᴵ tᴵ : Insertion-tree pc n lb ub
 
 -- Insertion tree membership.
 
 infix 4 _∈ᴵ_
 
 _∈ᴵ_ :
-  ∀ {A : Type a} {O : Total-order A o} {@0 lb ub} →
-  A → Insertion-tree O pc n lb ub → Type (a ⊔ o)
+  ∀ {@0 lb ub} →
+  A → Insertion-tree pc n lb ub → Type (a ⊔ o)
 _ ∈ᴵ leaf _ _       = ⊥
 x ∈ᴵ node _ y l r _ = x ∈ l ⊎ x ≡ y ⊎ x ∈ r
 
@@ -412,8 +393,8 @@ opaque
   -- coloured black.
 
   with-black-parent :
-    Tree O pc n lb ub →
-    Tree O black n lb ub
+    Tree pc n lb ub →
+    Tree black n lb ub
   with-black-parent (leaf lb<ub n≡0)         = leaf lb<ub n≡0
   with-black-parent (node c x l r rinv binv) =
     node c x l r black-parent binv
@@ -424,8 +405,8 @@ opaque
   -- parent of any colour.
 
   Tree-red→Tree :
-    Tree O red n lb ub →
-    Tree O pc n lb ub
+    Tree red n lb ub →
+    Tree pc n lb ub
   Tree-red→Tree (leaf lb<ub n≡0) =
     leaf lb<ub n≡0
   Tree-red→Tree (node c x l r rinv binv) =
@@ -437,8 +418,8 @@ opaque
   -- the colour fake-parent-colour pc c.
 
   with-fake-parent-colour :
-    Tree O c n lb ub →
-    Tree O (fake-parent-colour pc c) n lb ub
+    Tree c n lb ub →
+    Tree (fake-parent-colour pc c) n lb ub
   with-fake-parent-colour {c = black} t = t
   with-fake-parent-colour {c = red}   t = Tree-red→Tree t
 
@@ -447,7 +428,7 @@ opaque
   -- Trees can be converted to insertion trees.
 
   Tree→Insertion-tree :
-    Tree O pc n lb ub → Insertion-tree O pc n lb ub
+    Tree pc n lb ub → Insertion-tree pc n lb ub
   Tree→Insertion-tree (leaf lb<ub n≡0) =
     leaf lb<ub n≡0
   Tree→Insertion-tree (node c x l r rinv binv) =
@@ -460,7 +441,7 @@ opaque
   -- with a black parent.
 
   Insertion-tree-red→Tree-black :
-    Insertion-tree O red n lb ub → Tree O black n lb ub
+    Insertion-tree red n lb ub → Tree black n lb ub
   Insertion-tree-red→Tree-black (leaf lb<ub n≡0) =
     leaf lb<ub n≡0
   Insertion-tree-red→Tree-black (node black x l r binv) =
@@ -475,8 +456,8 @@ opaque
 
   Tree-black→Tree :
     @0 Red-invariant pc red →
-    Tree O black n lb ub →
-    Tree O pc n lb ub
+    Tree black n lb ub →
+    Tree pc n lb ub
   Tree-black→Tree rinv (leaf lb<ub n≡0) =
     leaf lb<ub n≡0
   Tree-black→Tree rinv (node c x l r _ binv) =
@@ -488,8 +469,8 @@ opaque
   -- top-most node black.
 
   Insertion-tree→Tree :
-    Insertion-tree O pc n lb ub →
-    ∃ λ (n : Erased ℕ) → Tree O pc (n .erased) lb ub
+    Insertion-tree pc n lb ub →
+    ∃ λ (n : Erased ℕ) → Tree pc (n .erased) lb ub
   Insertion-tree→Tree (leaf lb<ub n≡0) =
     [ _ ] , leaf lb<ub n≡0
   Insertion-tree→Tree (node c x l r binv) =
@@ -504,11 +485,11 @@ opaque
 
   balanceˡ :
     (x : A) →
-    Insertion-tree O c m lb [ x ] →
-    Tree O c m [ x ] ub →
+    Insertion-tree c m lb [ x ] →
+    Tree c m [ x ] ub →
     @0 Red-invariant pc c →
     @0 Black-invariant c m n →
-    Insertion-tree O pc n lb ub
+    Insertion-tree pc n lb ub
   balanceˡ {c = red} x l r rinv binv =
     node red x (Tree-black→Tree rinv (Insertion-tree-red→Tree-black l))
       (Tree-red→Tree r) binv
@@ -573,11 +554,11 @@ opaque
 
   balanceʳ :
     (x : A) →
-    Tree O c m lb [ x ] →
-    Insertion-tree O c m [ x ] ub →
+    Tree c m lb [ x ] →
+    Insertion-tree c m [ x ] ub →
     @0 Red-invariant pc c →
     @0 Black-invariant c m n →
-    Insertion-tree O pc n lb ub
+    Insertion-tree pc n lb ub
   balanceʳ {c = red} x l r rinv binv =
     node red x (Tree-red→Tree l)
       (Tree-black→Tree rinv (Insertion-tree-red→Tree-black r)) binv
@@ -643,14 +624,13 @@ opaque
   -- Inserts an element into the tree.
 
   insert′ :
-    let open Total-order (extended O) in
-    (x : A) → Tree O pc n lb ub →
-    @0 lb < [ x ] → @0 [ x ] < ub →
-    Insertion-tree O pc n lb ub
+    (x : A) → Tree pc n lb ub →
+    @0 lb <ᴱ [ x ] → @0 [ x ] <ᴱ ub →
+    Insertion-tree pc n lb ub
   insert′ x (leaf lb<ub n≡0) lb< <ub =
     node red x (leaf lb< (refl _)) (leaf <ub (refl _)) n≡0
-  insert′ {O} x t@(node c y l r rinv binv) lb< <ub
-    with O .Total-order.compare x y
+  insert′ x t@(node c y l r rinv binv) lb< <ub
+    with O.compare x y
   … | eqᵀ _   = Tree→Insertion-tree t
   … | ltᵀ x<y =
     balanceˡ y (insert′ x l lb< ([]-[] x<y)) r rinv binv
@@ -662,10 +642,9 @@ opaque
   -- Inserts an element into the tree.
 
   insert :
-    let open Total-order (extended O) in
-    (x : A) → Tree O pc n lb ub →
-    @0 lb < [ x ] → @0 [ x ] < ub →
-    ∃ λ (n : Erased ℕ) → Tree O pc (n .erased) lb ub
+    (x : A) → Tree pc n lb ub →
+    @0 lb <ᴱ [ x ] → @0 [ x ] <ᴱ ub →
+    ∃ λ (n : Erased ℕ) → Tree pc (n .erased) lb ub
   insert x t lb< <ub =
     Insertion-tree→Tree (insert′ x t lb< <ub)
 
@@ -948,13 +927,13 @@ opaque
   -- The value y is in insert′ x t if and only if y is x or y is in t.
 
   @0 ∈-insert′ :
-    ∀ {t : Tree O pc n lb ub} {@0 lb< <ub} →
+    ∀ {t : Tree pc n lb ub} {@0 lb< <ub} →
     y ∈ᴵ insert′ x t lb< <ub ⇔ y ≡ x ⊎ y ∈ t
   ∈-insert′ {y} {x} {t = leaf _ _} =
     ⊥ ⊎ y ≡ x ⊎ ⊥  ↔⟨ ⊎-left-identity ⟩□
     y ≡ x ⊎ ⊥      □
-  ∈-insert′ {O} {y} {x} {t = t@(node _ z l r _ _)}
-    with O .Total-order.compare x z
+  ∈-insert′ {y} {x} {t = t@(node _ z l r _ _)}
+    with O.compare x z
   … | eqᵀ x≡z =
     y ∈ᴵ Tree→Insertion-tree t     ↝⟨ ∈-Tree→Insertion-tree ⟩
     y ∈ t                          ↔⟨⟩
@@ -996,8 +975,8 @@ opaque
 
   -- Trees with fewer parameters.
 
-  Tree⁻ : {A : Type a} → Total-order A o → Type (a ⊔ o)
-  Tree⁻ O = ∃ λ (n : Erased ℕ) → Tree O black (n .erased) min max
+  Tree⁻ : Type (a ⊔ o)
+  Tree⁻ = ∃ λ (n : Erased ℕ) → Tree black (n .erased) min max
 
 opaque
   unfolding Tree⁻
@@ -1006,9 +985,7 @@ opaque
 
   -- A membership relation.
 
-  _∈⁻_ :
-    {A : Type a} {O : Total-order A o} →
-    A → Tree⁻ O → Type (a ⊔ o)
+  _∈⁻_ : A → Tree⁻ → Type (a ⊔ o)
   x ∈⁻ (_ , t) = x ∈ t
 
 opaque
@@ -1016,7 +993,7 @@ opaque
 
   -- Tree membership is propositional.
 
-  @0 ∈⁻-propositional : {t : Tree⁻ O} → Is-proposition (x ∈⁻ t)
+  @0 ∈⁻-propositional : {t : Tree⁻} → Is-proposition (x ∈⁻ t)
   ∈⁻-propositional = ∈-propositional
 
 opaque
@@ -1024,7 +1001,7 @@ opaque
 
   -- Does the element exist in the tree?
 
-  member?⁻ : (x : A) (t : Tree⁻ O) → Dec-Erased (x ∈⁻ t)
+  member?⁻ : (x : A) (t : Tree⁻) → Dec-Erased (x ∈⁻ t)
   member?⁻ x (_ , t) = member? x t
 
 opaque
@@ -1032,9 +1009,7 @@ opaque
 
   -- An empty tree.
 
-  empty⁻ :
-    {@0 A : Type a} {@0 O : Total-order A o} →
-    Tree⁻ O
+  empty⁻ : Tree⁻
   empty⁻ = [ _ ] , empty
 
 opaque
@@ -1042,7 +1017,7 @@ opaque
 
   -- The empty tree is empty.
 
-  @0 ∉empty⁻ : ¬ x ∈⁻ empty⁻ {O = O}
+  @0 ∉empty⁻ : ¬ x ∈⁻ empty⁻
   ∉empty⁻ = ∉empty
 
 opaque
@@ -1050,7 +1025,7 @@ opaque
 
   -- Inserts an element into the tree.
 
-  insert⁻ : {O : Total-order A o} → A → Tree⁻ O → Tree⁻ O
+  insert⁻ : A → Tree⁻ → Tree⁻
   insert⁻ x (_ , t) = insert x t min-[] []-max
 
 opaque
@@ -1059,6 +1034,6 @@ opaque
   -- The value y is in insert⁻ x t if and only if y is x or y is in t.
 
   @0 ∈⁻-insert⁻ :
-    {t : Tree⁻ O} →
+    {t : Tree⁻} →
     y ∈⁻ insert⁻ x t ⇔ y ≡ x ⊎ y ∈⁻ t
   ∈⁻-insert⁻ = ∈-insert
