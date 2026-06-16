@@ -51,6 +51,9 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
     -- A comparison function.
     compare : ∀ x y → Erased (x < y) ⊎ Erased (x ≡ y) ⊎ Erased (y < x)
 
+    -- The relation _<_ is propositional.
+    @0 <-propositional : Is-proposition (x < y)
+
     -- The relation is irreflexive.
     @0 <-irreflexive : ¬ x < x
 
@@ -180,11 +183,11 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
   opaque
     unfolding _≤_
 
-    -- If x < y is propositional, then x ≤ y is.
+    -- The relation _≤_ is propositional.
 
-    @0 ≤-propositional :
-      Is-proposition (x < y) → Is-proposition (x ≤ y)
-    ≤-propositional prop = H.⊎-closure-propositional <→≢ prop is-set
+    @0 ≤-propositional : Is-proposition (x ≤ y)
+    ≤-propositional =
+      H.⊎-closure-propositional <→≢ <-propositional is-set
 
 open Total-order
 
@@ -218,6 +221,11 @@ extended :
   Total-order (Extended A) (a ⊔ r)
 extended 𝓞 ._<_ =
   Extended-order (𝓞 ._<_)
+extended 𝓞 .<-propositional min-max   min-max   = refl _
+extended 𝓞 .<-propositional min-[]    min-[]    = refl _
+extended 𝓞 .<-propositional []-max    []-max    = refl _
+extended 𝓞 .<-propositional ([]-[] p) ([]-[] q) =
+  cong []-[] (𝓞 .<-propositional p q)
 extended 𝓞 .compare min   min   = inj₂ (inj₁ [ refl min ])
 extended 𝓞 .compare min   [ _ ] = inj₁ [ min-[] ]
 extended 𝓞 .compare min   max   = inj₁ [ min-max ]
@@ -279,7 +287,8 @@ opaque
   -- A strict total order for natural numbers.
 
   ℕ-order : Total-order ℕ lzero
-  ℕ-order .Total-order._<_           = N._<_
-  ℕ-order .Total-order.compare       = compare-ℕ
-  ℕ-order .Total-order.<-irreflexive = N.<-irreflexive
-  ℕ-order .Total-order.<-trans       = N.<-trans
+  ℕ-order .Total-order._<_             = N._<_
+  ℕ-order .Total-order.<-propositional = H.≤-propositional
+  ℕ-order .Total-order.compare         = compare-ℕ
+  ℕ-order .Total-order.<-irreflexive   = N.<-irreflexive
+  ℕ-order .Total-order.<-trans         = N.<-trans
