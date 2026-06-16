@@ -14,12 +14,14 @@ open Derived-definitions-and-properties eq
 open import Equality.Instances-related
 import Equality.Propositional as EP
 open import Logical-equivalence using (_⇔_)
-open import Prelude
+open import Prelude as P
 
 open import Bijection eq using (_↔_)
 open import Bool eq
+open import Equality.Decidable-UIP eq
 open import Erased.Level-1 eq as E
 open import Function-universe eq
+import H-level.Closure eq as H
 import Nat eq as N
 
 private variable
@@ -124,6 +126,64 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
     @0 <→≢ : x < y → x ≢ y
     <→≢ x<y x≡y =
       <-irreflexive (<-≤-trans x<y (≤-reflexive (sym x≡y)))
+
+  opaque
+
+    -- Erased equality is decidable for A.
+
+    infix 4 _≟_
+
+    _≟_ : Decidable-erased-equality A
+    x ≟ y with compare x y
+    … | eqᵀ x≡y = yes [ x≡y ]
+    … | ltᵀ x<y = no [ (λ x≡y → <→≢ x<y x≡y) ]
+    … | gtᵀ x>y = no [ (λ x≡y → <→≢ x>y (sym x≡y)) ]
+
+  opaque
+
+    -- The relation _<_ is decidable (with erased proofs).
+
+    infix 4 _<?_
+
+    _<?_ : (x y : A) → Dec-Erased (x < y)
+    x <? y with compare x y
+    … | inj₁ x<y = yes x<y
+    … | inj₂ not =
+      no [ P.[ (λ ([ x≡y ]) x<y → <→≢ x<y x≡y)
+             , (λ ([ x>y ]) x<y → <-asymmetric x<y x>y)
+             ]
+             not
+         ]
+
+  opaque
+
+    -- The relation _≤_ is decidable (with erased proofs).
+
+    infix 4 _≤?_
+
+    _≤?_ : (x y : A) → Dec-Erased (x ≤ y)
+    x ≤? y with compare x y
+    … | ltᵀ x<y = yes [ <→≤ x<y ]
+    … | eqᵀ x≡y = yes [ ≤-reflexive x≡y ]
+    … | gtᵀ x>y = no [ (λ x≤y → <-irreflexive (<-≤-trans x>y x≤y)) ]
+
+  opaque
+
+    -- The type A is a set.
+
+    @0 is-set : Is-set A
+    is-set =
+      decidable⇒set
+        (Decidable-erased-equality≃Decidable-equality _ _≟_)
+
+  opaque
+    unfolding _≤_
+
+    -- If x < y is propositional, then x ≤ y is.
+
+    @0 ≤-propositional :
+      Is-proposition (x < y) → Is-proposition (x ≤ y)
+    ≤-propositional prop = H.⊎-closure-propositional <→≢ prop is-set
 
 open Total-order
 
