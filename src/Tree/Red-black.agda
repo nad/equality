@@ -423,8 +423,13 @@ opaque
 fake-parent-colour pc red   = pc
 fake-parent-colour pc black = black
 
--- In an "almost red-black tree" the red invariant might be broken for
--- the top-most layer.
+-- In an "almost red-black tree" the red invariant might be broken:
+--
+-- * If the parent colour is black and the tree has a red root, then
+--   the root's children are allowed to be red.
+--
+-- * If the parent colour is red, then the tree is allowed to have a
+--   red root.
 
 @0 Almost-red-black :
   Colour → ℕ → (_ _ : Extended A) → Tree⁻ → Type (a ⊔ o)
