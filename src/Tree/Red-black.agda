@@ -66,7 +66,7 @@ data Tree⁻ : Type a where
   node : (c : Colour) (x : A) (l r : Tree⁻) → Tree⁻
 
 pattern nodeᶜ c = node c _ _ _
-pattern node!   = node _ _ _ _
+pattern node⁰   = node _ _ _ _
 
 private variable
   l r : Tree⁻
@@ -182,7 +182,7 @@ opaque
   @0 lower-bound-<-upper-bound : Red-black pc n lb ub t → lb <ᴱ ub
   lower-bound-<-upper-bound {t = leaf} (leafʳᵇ lb<ub _) =
     lb<ub
-  lower-bound-<-upper-bound {t = node! } (nodeʳᵇ l r _ _) =
+  lower-bound-<-upper-bound {t = node⁰} (nodeʳᵇ l r _ _) =
     EO.<-trans (lower-bound-<-upper-bound l)
       (lower-bound-<-upper-bound r)
 
@@ -204,15 +204,15 @@ opaque
 
   @0 ∈⁻→<< :
     Red-black pc n lb ub t → x ∈⁻ t → lb <ᴱ [ x ] × [ x ] <ᴱ ub
-  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₁ x∈l) =
+  ∈⁻→<< {t = node⁰} (nodeʳᵇ l r _ _) (inj₁ x∈l) =
     let <x , x< = ∈⁻→<< l x∈l in
     <x , EO.<-trans x< (lower-bound-<-upper-bound r)
-  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₂ (inj₁ x≡y)) =
+  ∈⁻→<< {t = node⁰} (nodeʳᵇ l r _ _) (inj₂ (inj₁ x≡y)) =
     EO.<-≤-trans (lower-bound-<-upper-bound l)
       (EO.≤-reflexive (cong [_] (sym x≡y))) ,
     EO.≤-<-trans (EO.≤-reflexive (cong [_] x≡y))
       (lower-bound-<-upper-bound r)
-  ∈⁻→<< {t = node! } (nodeʳᵇ l r _ _) (inj₂ (inj₂ x∈r)) =
+  ∈⁻→<< {t = node⁰} (nodeʳᵇ l r _ _) (inj₂ (inj₂ x∈r)) =
     let <x , x< = ∈⁻→<< r x∈r in
     EO.<-trans (lower-bound-<-upper-bound l) <x , x<
 
@@ -286,7 +286,7 @@ opaque
     Red-black pc n lb ub t → Is-proposition (x ∈⁻ t)
   ∈⁻-propositional {t = leaf} _ =
     ⊥-propositional
-  ∈⁻-propositional {t = node! } (nodeʳᵇ l r _ _) =
+  ∈⁻-propositional {t = node⁰} (nodeʳᵇ l r _ _) =
     ⊎-closure-propositional
       (λ x∈l →
          let _ , x<y = ∈⁻→<< l x∈l in
@@ -453,7 +453,7 @@ opaque
     Red-black black n lb ub t
   Red-black→Red-black-black {t = leaf} (leafʳᵇ lb<ub n≡0) =
     leafʳᵇ lb<ub n≡0
-  Red-black→Red-black-black {t = node! } (nodeʳᵇ l r _ binv) =
+  Red-black→Red-black-black {t = node⁰} (nodeʳᵇ l r _ binv) =
     nodeʳᵇ l r black-parent binv
 
 opaque
@@ -466,7 +466,7 @@ opaque
     Red-black pc n lb ub t
   Red-black-red→Red-black {t = leaf} (leafʳᵇ lb<ub n≡0) =
     leafʳᵇ lb<ub n≡0
-  Red-black-red→Red-black {t = node! } (nodeʳᵇ l r rinv binv) =
+  Red-black-red→Red-black {t = node⁰} (nodeʳᵇ l r rinv binv) =
     nodeʳᵇ l r (red-parent rinv) binv
 
 opaque
@@ -509,7 +509,7 @@ opaque
     Red-black pc n lb ub t
   Red-black-black→Red-black {t = leaf} rinv (leafʳᵇ lb<ub n≡0) =
     leafʳᵇ lb<ub n≡0
-  Red-black-black→Red-black {t = node! } rinv (nodeʳᵇ l r _ binv) =
+  Red-black-black→Red-black {t = node⁰} rinv (nodeʳᵇ l r _ binv) =
     nodeʳᵇ l r (red-child rinv) binv
 
 opaque
@@ -632,7 +632,7 @@ opaque
     {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ red)}
     t₁ (nodeᵃʳᵇ t₃ (nodeʳᵇ t₅ t₇ _ binv₁) binv₂) rinv₃ binv₃ =
     nodeᵃʳᵇ
-      (nodeʳᵇ t₁ (cast {t = node! } (sym binv₂) t₃) rinv₃ (refl _))
+      (nodeʳᵇ t₁ (cast {t = node⁰} (sym binv₂) t₃) rinv₃ (refl _))
       (nodeʳᵇ (Red-black→Red-black-black (cast (sym binv₁) t₅))
          (Red-black→Red-black-black (cast (sym binv₁) t₇)) rinv₃
          (cong suc binv₂))
@@ -914,7 +914,7 @@ opaque
   @0 ∈⁻-colour-root-black :
     x ∈⁻ colour-root-black t ⇔ x ∈⁻ t
   ∈⁻-colour-root-black {t = leaf}  = F.id
-  ∈⁻-colour-root-black {t = node! } = F.id
+  ∈⁻-colour-root-black {t = node⁰} = F.id
 
 opaque
   unfolding insert⁻
