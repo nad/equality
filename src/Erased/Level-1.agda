@@ -2705,6 +2705,55 @@ opaque
          [ refl x ]                    ∎)
 
 ------------------------------------------------------------------------
+-- A variant of []-cong⁻¹-axiomatisation
+
+-- A variant of []-cong⁻¹-axiomatisation.
+
+[]-cong⁻¹-axiomatisation₀ : (ℓ : Level) → Type (lsuc ℓ)
+[]-cong⁻¹-axiomatisation₀ ℓ =
+  {@0 A : Type ℓ} {@0 x y : A} →
+  Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])
+
+-- The type []-cong⁻¹-axiomatisation₀ ℓ is propositional (assuming
+-- function extensionality).
+
+[]-cong⁻¹-axiomatisation₀-propositional :
+  Extensionality (lsuc ℓ) ℓ →
+  Is-proposition ([]-cong⁻¹-axiomatisation₀ ℓ)
+[]-cong⁻¹-axiomatisation₀-propositional {ℓ} ext =
+  implicit-Πᴱ-closure ext 1 λ _ →
+  implicit-Πᴱ-closure ext′ 1 λ _ →
+  implicit-Πᴱ-closure ext′ 1 λ _ →
+  Is-equivalence-propositional ext′
+  where
+  ext′ : Extensionality ℓ ℓ
+  ext′ = lower-extensionality _ lzero ext
+
+-- The type []-cong-axiomatisation ℓ is equivalent to
+-- []-cong⁻¹-axiomatisation₀ ℓ (assuming extensionality).
+
+[]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation₀ :
+  []-cong-axiomatisation ℓ ↝[ lsuc ℓ ∣ ℓ ] []-cong⁻¹-axiomatisation₀ ℓ
+[]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation₀ {ℓ} =
+  generalise-ext?-prop
+    (record
+       { to   = to
+       ; from =
+           []-cong⁻¹-axiomatisation₀ ℓ  →⟨ (λ hyp → hyp) ⟩
+           []-cong⁻¹-axiomatisation ℓ   →⟨ _⇔_.from ([]-cong-axiomatisation≃[]-cong⁻¹-axiomatisation _) ⟩□
+           []-cong-axiomatisation ℓ     □
+       })
+    []-cong-axiomatisation-propositional
+    []-cong⁻¹-axiomatisation₀-propositional
+  where
+  to : []-cong-axiomatisation ℓ → []-cong⁻¹-axiomatisation₀ ℓ
+  to ax {x} {y} =                                                 $⟨ _≃_.is-equivalence $ inverse Erased-≡≃[]≡[] ⟩
+    Is-equivalence ([]-cong⁻¹ {x = x} {y = y})                    →⟨ (Is-equivalence-cong _ λ _ → []-cong⁻¹≡[cong-erased]) ⟩□
+    Is-equivalence (λ (eq : [ x ] ≡ [ y ]) → [ cong erased eq ])  □
+    where
+    open []-cong₁′ ax
+
+------------------------------------------------------------------------
 -- Some lemmas related to ≡→Erased[erased≡erased]-axiomatisation
 
 -- The type []-cong⁻¹-axiomatisation ℓ is equivalent to
