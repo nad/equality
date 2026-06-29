@@ -332,7 +332,7 @@ Graph-[]-⟵≡ {R} prop equiv =
   in
   ≃⇒≡ univ
     ((Graph [_] ⟵) x y  ↝⟨ lemma ⟩
-     [ x ] ≡ [ y ]      ↔⟨ inverse $ Q.≃[]≡[] (Q.effective ext prop-ext) equiv (prop _ _) ⟩□
+     [ x ] ≡ [ y ]      ↔⟨ inverse $ Q.≃[]≡[] (Q.effective₀ ext prop-ext equiv prop) (prop _ _) ⟩□
      R x y              □)
 
 -- If R is a propositional equivalence relation, then
@@ -368,7 +368,7 @@ Graph-[]-⟵≡ {R} prop equiv =
                [ x ]  ≡⟨ Q.[]-respects-relation Rxz ⟩
                [ z ]  ≡⟨ [z]≡[y] ⟩∎
                [ y ]  ∎)
-          ([ x ] ≡ [ y ]             ↔⟨ inverse $ Q.≃[]≡[] (Q.effective ext prop-ext) equiv (prop _ _) ⟩
+          ([ x ] ≡ [ y ]             ↔⟨ inverse $ Q.≃[]≡[] (Q.effective₀ ext prop-ext equiv prop) (prop _ _) ⟩
            R x y                     ↝⟨ (λ Rxy → ∣ _ , Rxy , refl _ ∣) ⟩
            (R ;ᴱ Graph [_]) x [ y ]  □)
 
@@ -705,7 +705,7 @@ opaque
                                  Π-closure ext 1 λ _ →
                                  prop _ _
                                .T.∣∣ʳ (y′ , Rxy′) →
-                                 [ y′ ] ≡ [ y ]  ↝⟨ Q.effective ext prop-ext
+                                 [ y′ ] ≡ [ y ]  ↝⟨ Q.effective′ ext prop-ext
                                                       (Is-QER→Is-equivalence-relation-⟶ qer)
                                                       T.truncation-is-proposition
                                                       ∣ _ , Rxy′ , Rxy′ ∣ ⟩
@@ -1008,16 +1008,20 @@ Suitable→/ᴱ⟵×/ᴱ⟶ {F} (A , x) (B , y) {R} {G}
             let R⟵x′x : (R ⟵) x′ x
                 R⟵x′x =
                   _≃_.from
-                    (Q.≃[]≡[] (Q.effective ext prop-ext)
-                       (Is-QERᴱ→Is-equivalence-relation-⟵ qer)
+                    (Q.≃[]≡[]
+                       (Q.effective₀ ext prop-ext
+                          (Is-QERᴱ→Is-equivalence-relation-⟵ qer)
+                          (λ _ _ → T.truncation-is-proposition))
                        T.truncation-is-proposition)
                     [x′]≡[x]
 
                 R⟶y′y : (R ⟶) y′ y
                 R⟶y′y =
                   _≃_.from
-                    (Q.≃[]≡[] (Q.effective ext prop-ext)
-                       (Is-QERᴱ→Is-equivalence-relation-⟶ qer)
+                    (Q.≃[]≡[]
+                       (Q.effective₀ ext prop-ext
+                          (Is-QERᴱ→Is-equivalence-relation-⟶ qer)
+                          (λ _ _ → T.truncation-is-proposition))
                        T.truncation-is-proposition)
                     [y′]≡[y]
             in
@@ -3020,8 +3024,10 @@ module Example₂ {A : Type a} (_≟_ : Decidable-equality A) where
           Q./ᴱ-is-set
         .Q.[]ʳ ys →
           ([ xs ] ≡ [ ys ])                  ↝⟨ inverse $
-                                                Q.≃[]≡[] (Q.effective ext prop-ext)
-                                                  (Is-QER→Is-equivalence-relation-⟵ ∼-QER)
+                                                Q.≃[]≡[]
+                                                  (Q.effective₀ ext prop-ext
+                                                     (Is-QER→Is-equivalence-relation-⟵ ∼-QER)
+                                                     (λ _ _ → T.truncation-is-proposition))
                                                   T.truncation-is-proposition ⟩
           (_∼_ ⟵) xs ys                      ↝⟨ Eq.⇔→≃
                                                   T.truncation-is-proposition

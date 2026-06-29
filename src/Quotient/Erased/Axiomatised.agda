@@ -388,15 +388,11 @@ record Quotientᴱ : Typeω where
   -- The property of being effective.
   --
   -- This definition is based on those in Martin Hofmann's PhD thesis
-  -- and the HoTT book, but adapted for erasure.
+  -- and the HoTT book.
 
   Effective : {A : Type a} → (A → A → Type r) → Type (a ⊔ r)
   Effective {A} R =
-    ∀ {x y} →
-    @0 Is-equivalence-relation R →
-    @0 Is-proposition (R x y) →
-    R x x →
-    _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
+    ∀ {x y} → _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
 
   -- See also below.
 
@@ -568,75 +564,66 @@ record Quotientᴱ : Typeω where
     -- The property of being weakly effective.
     --
     -- This definition is based on one in "Quotienting the Delay Monad
-    -- by Weak Bisimilarity" by Chapman, Uustalu and Veltri, but
-    -- adapted for erasure.
+    -- by Weak Bisimilarity" by Chapman, Uustalu and Veltri.
 
     Weakly-effective : {A : Type a} → (A → A → Type r) → Type (a ⊔ r)
     Weakly-effective {A} R =
-      ∀ {x y} →
-      @0 Is-equivalence-relation R →
-      ∥ R x x ∥ᴱ →
-      _≡_ {A = A /ᴱ R} [ x ] [ y ] → ∥ R x y ∥ᴱ
+      ∀ {x y} → _≡_ {A = A /ᴱ R} [ x ] [ y ] → ∥ R x y ∥ᴱ
 
     opaque
 
-      -- If R is weakly effective, then the relation is effective.
-
-      Weakly-effective→Effective :
-        {R : A → A → Type r} →
-        Weakly-effective R → Effective R
-      Weakly-effective→Effective {R} eff {x} {y} eq prop Rxx =
-        [ x ] ≡ [ y ]  →⟨ eff eq ∣ Rxx ∣ ⟩
-        ∥ R x y ∥ᴱ     ↔⟨ Tr.∥∥ᴱ≃ prop ⟩□
-        R x y          □
-
-    opaque
-
-      -- If R is effective and propositional, then the relation is
-      -- weakly effective.
+      -- Effective relations are weakly effective.
 
       Effective→Weakly-effective :
         {R : A → A → Type r} →
-        @0 (∀ {x y} → Is-proposition (R x y)) →
         Effective R → Weakly-effective R
-      Effective→Weakly-effective {R} prop eff {x} {y} eq Rxx =
-        [ x ] ≡ [ y ]  →⟨ eff eq prop (_≃_.to (Tr.∥∥ᴱ≃ prop) Rxx) ⟩
-        R x y          ↔⟨ inverse (Tr.∥∥ᴱ≃ prop) ⟩□
-        ∥ R x y ∥ᴱ     □
+      Effective→Weakly-effective eff eq = ∣ eff eq ∣
 
     opaque
 
-      -- If R is an effective equivalence relation that is a
-      -- proposition for x and y, then R x y is equivalent to equality
-      -- of x and y under [_] (in erased contexts).
+      -- Propositional relations are effective if and only if they are
+      -- weakly effective.
+
+      Effective⇔Weakly-effective :
+        {A : Type a} {R : A → A → Type r} →
+        @0 (∀ x y → Is-proposition (R x y)) →
+        Effective R ↝[ a ⊔ r ∣ a ⊔ r ] Weakly-effective R
+      Effective⇔Weakly-effective {a} {r} prop ext =
+        let ext₁ = lower-extensionality? _ r lzero ext
+            ext₂ = lower-extensionality? _ lzero a ext
+        in
+        implicit-∀-cong ext₁ $ implicit-∀-cong ext₁ $ ∀-cong ext₂ λ _ →
+        from-equivalence (inverse (Tr.∥∥ᴱ≃ (prop _ _)))
+
+    opaque
+
+      -- If R is effective and R x y is a proposition, then R x y is
+      -- equivalent to equality of x and y under [_] (in erased
+      -- contexts).
 
       @0 ≃[]≡[] :
         Effective R →
-        Is-equivalence-relation R →
         Is-proposition (R x y) →
         R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-      ≃[]≡[] eff eq prop =
-        Eq.⇔→≃ prop /ᴱ-is-set []-respects-relation
-          (eff eq prop (eq .Is-equivalence-relation.reflexive))
+      ≃[]≡[] eff prop =
+        Eq.⇔→≃ prop /ᴱ-is-set []-respects-relation eff
 
     opaque
 
-      -- If R is a weakly effective equivalence relation, then
-      -- ∥ R x y ∥ᴱ is equivalent to equality of x and y under [_] (in
-      -- erased contexts).
+      -- If R is weakly effective, then ∥ R x y ∥ᴱ is equivalent to
+      -- equality of x and y under [_] (in erased contexts).
 
       @0 ∥∥ᴱ≃[]≡[] :
         Weakly-effective R →
-        Is-equivalence-relation R →
         ∥ R x y ∥ᴱ ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-      ∥∥ᴱ≃[]≡[] eff eq =
+      ∥∥ᴱ≃[]≡[] eff =
         Eq.⇔→≃
           Tr.truncation-is-proposition
           /ᴱ-is-set
           (Tr.rec λ @0 where
              .Tr.truncation-is-propositionʳ → /ᴱ-is-set
              .Tr.∣∣ʳ                        → []-respects-relation)
-          (eff eq ∣ eq .Is-equivalence-relation.reflexive ∣)
+          eff
 
     -- In the presence of erased propositional extensionality and
     -- erased function extensionality every (non-erased) relation is
@@ -649,16 +636,18 @@ record Quotientᴱ : Typeω where
 
       opaque
 
-        -- Every non-erased relation is weakly effective.
+        -- A variant of weakly-effective, which is defined below.
         --
         -- This proof is based on that of Proposition 2 in
         -- "Quotienting the Delay Monad by Weak Bisimilarity" by
         -- Chapman, Uustalu and Veltri.
 
-        weakly-effective :
+        weakly-effective′ :
           {R : A → A → Type r} →
-          Weakly-effective R
-        weakly-effective {A} {R} {x} {y} eq ∥Rxx∥ᴱ [x]≡[y] =
+          @0 Is-equivalence-relation R →
+          ∥ R x x ∥ᴱ →
+          _≡_ {A = A /ᴱ R} [ x ] [ y ] → ∥ R x y ∥ᴱ
+        weakly-effective′ {A} {x} {y} {R} eq ∥Rxx∥ᴱ [x]≡[y] =
                              $⟨ ∥Rxx∥ᴱ ⟩
           ∥ R x x ∥ᴱ         ↔⟨ ≡⇒↝ equivalence (cong proj₁ (sym rec-[])) ⟩
           R′ x [ x ] .proj₁  →⟨ ≡⇒→ (cong (λ y → R′ x y .proj₁) [x]≡[y]) ⟩
@@ -685,12 +674,55 @@ record Quotientᴱ : Typeω where
 
       opaque
 
-        -- Every non-erased relation is effective.
+        -- Every non-erased equivalence relation is weakly effective.
+
+        weakly-effective :
+          {R : A → A → Type r} →
+          @0 Is-equivalence-relation R →
+          (∀ x → ∥ R x x ∥ᴱ) →
+          Weakly-effective R
+        weakly-effective eq refl = weakly-effective′ eq (refl _)
+
+      opaque
+
+        -- A variant of effective, which is defined below.
+
+        effective′ :
+          {R : A → A → Type r} →
+          @0 Is-equivalence-relation R →
+          @0 Is-proposition (R x y) →
+          R x x →
+          _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
+        effective′ eq prop Rxx [x]≡[y] =
+          _≃_.to (Tr.∥∥ᴱ≃ prop) (weakly-effective′ eq ∣ Rxx ∣ [x]≡[y])
+
+      opaque
+
+        -- Every non-erased propositional equivalence relation is
+        -- effective.
 
         effective :
           {R : A → A → Type r} →
+          @0 Is-equivalence-relation R →
+          @0 (∀ x y → Is-proposition (R x y)) →
+          (∀ x → R x x) →
           Effective R
-        effective = Weakly-effective→Effective weakly-effective
+        effective eq prop refl =
+          _⇔_.from (Effective⇔Weakly-effective prop _)
+            (weakly-effective eq (∣_∣ ∘ refl))
+
+      opaque
+
+        -- A variant of effective, intended to be used in erased
+        -- contexts.
+
+        effective₀ :
+          {R : A → A → Type r} →
+          Is-equivalence-relation R →
+          (∀ x y → Is-proposition (R x y)) →
+          Effective R
+        effective₀ eq prop =
+          effective eq prop (λ _ → Is-equivalence-relation.reflexive eq)
 
     -- One can prove that the quotient type is effective given certain
     -- assumptions that do not include function extensionality or
@@ -768,7 +800,7 @@ record Quotientᴱ : Typeω where
         -- The relation R is weakly effective (in erased contexts).
 
         @0 weakly-effective : Weakly-effective R
-        weakly-effective {x} {y} _ _ =
+        weakly-effective {x} {y} =
           [ x ] ≡ [ y ]                              ↔⟨ inverse (Eq.≃-≡ (EEq.≃ᴱ→≃ (inverse ∃-Erased-≡-≃ᴱ/ᴱ))) ⟩
 
           _≃ᴱ_.from ∃-Erased-≡-≃ᴱ/ᴱ [ x ] ≡
@@ -787,7 +819,10 @@ record Quotientᴱ : Typeω where
         -- The relation R is effective (in erased contexts).
 
         @0 effective : Effective R
-        effective = Weakly-effective→Effective weakly-effective
+        effective =
+          _⇔_.from
+            (Effective⇔Weakly-effective (λ _ _ → is-proposition) _)
+            weakly-effective
 
       opaque
 
@@ -795,8 +830,7 @@ record Quotientᴱ : Typeω where
         -- erased contexts).
 
         @0 ≃[]≡[]′ : R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
-        ≃[]≡[]′ =
-          ≃[]≡[] effective is-equivalence-relation is-proposition
+        ≃[]≡[]′ = ≃[]≡[] effective is-proposition
 
     -- A special case of the module above.
 
@@ -850,44 +884,38 @@ record Quotientᴱ : Typeω where
 
     opaque
 
-      -- If R is a weakly effective equivalence relation and it is
-      -- decidable (with erased proofs) whether R holds, then erased
-      -- equality is decidable for A /ᴱ R (assuming erased function
-      -- extensionality).
+      -- If R is weakly effective and it is decidable (with erased
+      -- proofs) whether R holds, then erased equality is decidable
+      -- for A /ᴱ R (assuming erased function extensionality).
 
       decidable-erased-equality′ :
         {A : Type a} {@0 R : A → A → Type r} →
         @0 Extensionality (a ⊔ r) lzero →
         @0 Weakly-effective R →
-        @0 Is-equivalence-relation R →
         (∀ x y → Dec-Erased (R x y)) →
         Decidable-erased-equality (A /ᴱ R)
-      decidable-erased-equality′ ext eff equiv dec =
+      decidable-erased-equality′ ext eff dec =
         elim-prop₂ _
           (λ _ _ → BC.Is-proposition-Dec-Erased ext /ᴱ-is-set)
           (λ x y →
              Tr.Dec-Erased-map-∥∥ᴱ
-               (_≃_.logical-equivalence (∥∥ᴱ≃[]≡[] eff equiv))
+               (_≃_.logical-equivalence (∥∥ᴱ≃[]≡[] eff))
                (dec x y))
 
     opaque
 
-      -- If R is an effective, propositional equivalence relation and
-      -- it is decidable (with erased proofs) whether R holds, then
-      -- erased equality is decidable for A /ᴱ R (assuming erased
-      -- function extensionality).
+      -- If R is effective and it is decidable (with erased proofs)
+      -- whether R holds, then erased equality is decidable for A /ᴱ R
+      -- (assuming erased function extensionality).
 
       decidable-erased-equality :
         {A : Type a} {@0 R : A → A → Type r} →
         @0 Extensionality (a ⊔ r) lzero →
         @0 Effective R →
-        @0 Is-equivalence-relation R →
-        @0 (∀ {x y} → Is-proposition (R x y)) →
         (∀ x y → Dec-Erased (R x y)) →
         Decidable-erased-equality (A /ᴱ R)
-      decidable-erased-equality ext eff equiv prop dec =
-        decidable-erased-equality′ ext
-          (Effective→Weakly-effective prop eff) equiv dec
+      decidable-erased-equality ext eff =
+        decidable-erased-equality′ ext (Effective→Weakly-effective eff)
 
     --------------------------------------------------------------------
     -- Other properties
@@ -1036,7 +1064,7 @@ record Quotientᴱ : Typeω where
     using (≃[]≡[]; decidable-erased-equality)
 
   open Truncation-/ᴱ.Propositional-extensionality public
-    using (effective)
+    using (effective; effective₀; effective′)
 
   ----------------------------------------------------------------------
   -- Preservation lemmas

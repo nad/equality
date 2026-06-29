@@ -1221,7 +1221,7 @@ module Effectiveness
       minus i ≡ minus j → Same-difference i j
     minus≡minus→Same-difference =
       Q.effective ext prop-ext Same-difference-is-equivalence-relation
-        Same-difference-propositional reflexive
+        (λ _ _ → Same-difference-propositional) (λ _ → reflexive)
       where
       open Is-equivalence-relation
              Same-difference-is-equivalence-relation
@@ -1235,9 +1235,7 @@ module Effectiveness
     @0 Same-difference≃minus≡minus :
       Same-difference i j ≃ (minus i ≡ minus j)
     Same-difference≃minus≡minus =
-      Q.Truncation-/ᴱ.≃[]≡[]
-        (Q.effective ext prop-ext)
-        Same-difference-is-equivalence-relation
+      Q.Truncation-/ᴱ.≃[]≡[] minus≡minus→Same-difference
         Same-difference-propositional
 
 opaque
