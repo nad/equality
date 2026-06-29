@@ -1058,13 +1058,81 @@ record Quotientᴱ : Typeω where
   module Truncation-/ᴱ = Truncation truncation
 
   -- Some results that do not refer to the truncation operator are
-  -- re-exported.
+  -- re-exported. The type-signatures are repeated (with minor
+  -- changes) to make it clear that no truncation operator is
+  -- involved.
 
-  open Truncation-/ᴱ public
-    using (≃[]≡[]; decidable-erased-equality)
+  opaque
 
-  open Truncation-/ᴱ.Propositional-extensionality public
-    using (effective; effective₀; effective′)
+    -- If R is effective and R x y is a proposition, then R x y is
+    -- equivalent to equality of x and y under [_] (in erased
+    -- contexts).
+
+    @0 ≃[]≡[] :
+      Effective R →
+      Is-proposition (R x y) →
+      R x y ≃ _≡_ {A = A /ᴱ R} [ x ] [ y ]
+    ≃[]≡[] = Truncation-/ᴱ.≃[]≡[]
+
+  opaque
+
+    -- If R is effective and it is decidable (with erased proofs)
+    -- whether R holds, then erased equality is decidable for A /ᴱ R
+    -- (assuming erased function extensionality).
+
+    decidable-erased-equality :
+      {A : Type a} {@0 R : A → A → Type r} →
+      @0 Extensionality (a ⊔ r) lzero →
+      @0 Effective R →
+      (∀ x y → Dec-Erased (R x y)) →
+      Decidable-erased-equality (A /ᴱ R)
+    decidable-erased-equality = Truncation-/ᴱ.decidable-erased-equality
+
+  opaque
+
+    -- Every non-erased propositional equivalence relation is
+    -- effective, assuming erased propositional extensionality and
+    -- erased function extensionality.
+
+    effective :
+      {R : A → A → Type r} →
+      @0 Extensionality (lsuc r) (lsuc r) →
+      @0 Propositional-extensionality r →
+      @0 Is-equivalence-relation R →
+      @0 (∀ x y → Is-proposition (R x y)) →
+      (∀ x → R x x) →
+      Effective R
+    effective ext prop-ext =
+      Truncation-/ᴱ.Propositional-extensionality.effective ext prop-ext
+
+  opaque
+
+    -- A variant of effective.
+
+    effective′ :
+      {R : A → A → Type r} →
+      @0 Extensionality (lsuc r) (lsuc r) →
+      @0 Propositional-extensionality r →
+      @0 Is-equivalence-relation R →
+      @0 Is-proposition (R x y) →
+      R x x →
+      _≡_ {A = A /ᴱ R} [ x ] [ y ] → R x y
+    effective′ ext prop-ext =
+      Truncation-/ᴱ.Propositional-extensionality.effective′ ext prop-ext
+
+  opaque
+
+    -- A variant of effective, intended to be used in erased contexts.
+
+    effective₀ :
+      {R : A → A → Type r} →
+      @0 Extensionality (lsuc r) (lsuc r) →
+      @0 Propositional-extensionality r →
+      Is-equivalence-relation R →
+      (∀ x y → Is-proposition (R x y)) →
+      Effective R
+    effective₀ ext prop-ext =
+      Truncation-/ᴱ.Propositional-extensionality.effective₀ ext prop-ext
 
   ----------------------------------------------------------------------
   -- Preservation lemmas
