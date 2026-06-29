@@ -621,9 +621,9 @@ record Quotientᴱ : Typeω where
 
     opaque
 
-      -- If R is a weakly effective equivalence relation, then R x y
-      -- is equivalent to equality of x and y under [_] (in erased
-      -- contexts).
+      -- If R is a weakly effective equivalence relation, then
+      -- ∥ R x y ∥ᴱ is equivalent to equality of x and y under [_] (in
+      -- erased contexts).
 
       @0 ∥∥ᴱ≃[]≡[] :
         Weakly-effective R →
