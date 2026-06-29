@@ -41,6 +41,10 @@ import Equality.Propositional
 
 import Equality.Tactic
 
+-- A type for values that should be erased at run-time.
+
+import Erased.Basics
+
 -- Injections.
 
 import Injection
@@ -109,10 +113,6 @@ import Equivalence
 -- Excluded middle.
 
 import Excluded-middle
-
--- A type for values that should be erased at run-time.
-
-import Erased.Basics
 
 -- An axiomatisation for []-cong.
 

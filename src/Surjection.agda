@@ -10,6 +10,7 @@ module Surjection
   {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
 
 open Derived-definitions-and-properties eq
+open import Erased.Basics
 open import Logical-equivalence
   using (_⇔_; module _⇔_) renaming (_∘_ to _⊙_)
 open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
@@ -22,6 +23,12 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 Split-surjective :
   ∀ {a b} {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
 Split-surjective f = ∀ y → ∃ λ x → f x ≡ y
+
+-- The property of being a split surjection with erased "proofs".
+
+Split-surjectiveᴱ :
+  ∀ {a b} {A : Type a} {B : Type b} → (A → B) → Type (a ⊔ b)
+Split-surjectiveᴱ f = ∀ y → ∃ λ x → Erased (f x ≡ y)
 
 infix 0 _↠_
 

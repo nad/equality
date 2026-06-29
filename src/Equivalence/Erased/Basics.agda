@@ -23,6 +23,7 @@ open import Equivalence.Erased.Contractible-preimages.Basics eq as ECP
 import Equivalence.Half-adjoint eq as HA
 open import Erased.Basics
 open import Preimage eq as Preimage using (_⁻¹_)
+open import Surjection eq using (Split-surjectiveᴱ)
 
 private
   variable
@@ -149,6 +150,11 @@ module _≃ᴱ_ {@0 A : Type a} {@0 B : Type b} (A≃B : A ≃ᴱ B) where
   private
     open module @0 Equiv = _≃_ equivalence public
       hiding (to; from; is-equivalence; logical-equivalence)
+
+  -- The function to is split surjective with erased proofs.
+
+  split-surjectiveᴱ : Split-surjectiveᴱ to
+  split-surjectiveᴱ y = from y , [ right-inverse-of y ]
 
 private
   variable
