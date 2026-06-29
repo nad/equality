@@ -3374,11 +3374,11 @@ opaque
   Modality-for (λ {A : Type ℓ} (x : A) → [ x ])
 
 -- The type []-modality-axiomatisation ℓ is propositional (assuming
--- function extensionality and univalence).
+-- function extensionality and propositional extensionality).
 
 []-modality-axiomatisation-propositional :
   Extensionality (lsuc ℓ) (lsuc ℓ) →
-  Univalence ℓ →
+  Propositional-extensionality ℓ →
   Is-proposition ([]-modality-axiomatisation ℓ)
 []-modality-axiomatisation-propositional =
   Modality-for-propositional
@@ -3406,18 +3406,18 @@ opaque
 
 -- The type []-cong-axiomatisation ℓ is equivalent to
 -- []-modality-axiomatisation ℓ (assuming function extensionality and
--- univalence).
+-- propositional extensionality).
 
 []-cong-axiomatisation≃[]-modality-axiomatisation :
   Extensionality (lsuc ℓ) (lsuc ℓ) →
-  Univalence ℓ →
+  Propositional-extensionality ℓ →
   []-cong-axiomatisation ℓ ≃ []-modality-axiomatisation ℓ
-[]-cong-axiomatisation≃[]-modality-axiomatisation ext univ =
+[]-cong-axiomatisation≃[]-modality-axiomatisation ext prop-ext =
   _↠_.from
     (Eq.≃↠⇔
        ([]-cong-axiomatisation-propositional
           (lower-extensionality lzero _ ext))
-       ([]-modality-axiomatisation-propositional ext univ))
+       ([]-modality-axiomatisation-propositional ext prop-ext))
     []-cong-axiomatisation⇔[]-modality-axiomatisation
 
 ------------------------------------------------------------------------

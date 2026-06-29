@@ -5171,18 +5171,19 @@ private
     ext″ = lower-extensionality _ _ ext
 
 -- Modality-for η is a proposition (assuming function extensionality
--- and univalence).
+-- and propositional extensionality).
 
 Modality-for-propositional :
   {◯ : Type a → Type a} {η : {A : Type a} → A → ◯ A} →
   Extensionality (lsuc a) (lsuc a) →
-  Univalence a →
+  Propositional-extensionality a →
   Is-proposition (Modality-for η)
-Modality-for-propositional {η} ext univ mf₁ mf₂ =      $⟨ Σ-≡,≡→≡
-                                                            (apply-ext ext λ A → ≃⇒≡ univ (
-    M₁.Modal A                                                 ↝⟨ M₁.Modal≃Is-equivalence-η ext′ ⟩
+Modality-for-propositional {η} ext prop-ext mf₁ mf₂ =  $⟨ Σ-≡,≡→≡
+                                                            (apply-ext ext λ A →
+                                                             prop-ext (M₁.Modal-propositional ext′) (M₂.Modal-propositional ext′) (
+    M₁.Modal A                                                 ↝⟨ M₁.Modal≃Is-equivalence-η _ ⟩
     Is-equivalence (η {A = A})                                 ↝⟨ inverse $
-                                                                  M₂.Modal≃Is-equivalence-η ext′ ⟩□
+                                                                  M₂.Modal≃Is-equivalence-η _ ⟩□
     M₂.Modal A                                                 □))
                                                             (Modality-for′-propositional ext _ _) ⟩
   _≃_.to Modality-for≃ mf₁ ≡ _≃_.to Modality-for≃ mf₂  ↝⟨ Eq.≃-≡ Modality-for≃ ⟩□
