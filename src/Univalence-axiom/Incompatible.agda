@@ -54,7 +54,8 @@ module Bad-subst₂
 
   -- A problematic variant of subst.
 
-  bad-subst₂ : (P : A → Type p) → @0 x ≡ y → P x → P y
+  bad-subst₂ :
+    {A : Type a} {x y : A} (P : A → Type p) → @0 x ≡ y → P x → P y
   bad-subst₂ P refl p = p
 
   -- In erased contexts bad-subst₂ is pointwise equal to subst.
@@ -70,14 +71,26 @@ module Bad-subst₂
   swap = swap-as-an-equality univalence
 
   -- A boolean that should be true.
+  --
+  -- The implicit arguments are explicit to make it clear that the
+  -- only difference between the right-hand sides of should-be-true
+  -- and should-be-false below is the penultimate argument of
+  -- bad-subst₂, which is erased. These two right-hand sides should
+  -- thus be compiled to code that behaves in the same way. However,
+  -- as can be seen below one is equal to true, and the other is equal
+  -- to false.
 
   should-be-true : Bool
-  should-be-true = bad-subst₂ (λ A → A) refl true
+  should-be-true =
+    bad-subst₂ {a = lsuc lzero} {p = lzero} {A = Type}
+      {x = Bool} {y = Bool} (λ A → A) refl true
 
   -- A boolean that should be false.
 
   should-be-false : Bool
-  should-be-false = bad-subst₂ (λ A → A) swap true
+  should-be-false =
+    bad-subst₂ {a = lsuc lzero} {p = lzero} {A = Type}
+      {x = Bool} {y = Bool} (λ A → A) swap true
 
   -- The boolean should-be-true is equal to true.
 
@@ -117,7 +130,8 @@ module Bad-subst₁
 
   -- A problematic variant of subst.
 
-  bad-subst₁ : (@0 P : A → Type p) → x ≡ y → P x → P y
+  bad-subst₁ :
+    {A : Type a} {x y : A} (@0 P : A → Type p) → x ≡ y → P x → P y
   bad-subst₁ P refl p = p
 
   -- In erased contexts bad-subst₁ is pointwise equal to subst.
@@ -133,14 +147,30 @@ module Bad-subst₁
   swap = swap-as-an-equality univalence
 
   -- A boolean that should be true.
+  --
+  -- The given implicit arguments are explicit to make it clear that
+  -- the only difference between the right-hand sides of
+  -- should-be-true and should-be-false below is the penultimate
+  -- argument of bad-subst₁, which is erased. These two right-hand
+  -- sides should thus be compiled to code that behaves in the same
+  -- way. However, as can be seen below one is equal to true, and the
+  -- other is equal to false.
 
   should-be-true : Bool
-  should-be-true = bad-subst₁ erased ([]-cong [ refl ]) true
+  should-be-true =
+    bad-subst₁ {a = lsuc lzero} {p = lzero}
+      {A = Erased {a = lsuc lzero} (Type lzero)} {x = [ Bool ]}
+      {y = [ Bool ]} (erased {a = lsuc lzero} {A = Type})
+      ([]-cong [ refl ]) true
 
   -- A boolean that should be false.
 
   should-be-false : Bool
-  should-be-false = bad-subst₁ erased ([]-cong [ swap ]) true
+  should-be-false =
+    bad-subst₁ {a = lsuc lzero} {p = lzero}
+      {A = Erased {a = lsuc lzero} (Type lzero)} {x = [ Bool ]}
+      {y = [ Bool ]} (erased {a = lsuc lzero} {A = Type})
+      ([]-cong [ swap ]) true
 
   -- The boolean should-be-true is equal to true.
 
@@ -227,7 +257,9 @@ module Bad-id₁
 
   -- A function that can "resurrect" erased identity proofs.
 
-  resurrect : @0 Id₀ A x y → Id₀ A x y
+  resurrect :
+    {A : Type a} {x y : A} →
+    @0 Id₀ A x y → Id₀ A x y
   resurrect {A} {x} eq =
     subst (λ y → Id₀ A x (erased y)) ([]-cong [ eq ]) refl
 
@@ -240,14 +272,26 @@ module Bad-id₁
     refl                                                      ∎
 
   -- A boolean that should be true.
+  --
+  -- The implicit arguments are explicit to make it clear that the
+  -- only difference between the right-hand sides of should-be-true
+  -- and should-be-false below is the last argument of resurrect,
+  -- which is erased. (Note that the universe level of "A" is not
+  -- given explicitly.) These two right-hand sides should thus be
+  -- compiled to code that behaves in the same way. However, as can be
+  -- seen below one is equal to true, and the other is equal to false.
 
   should-be-true : Bool
-  should-be-true = subst (λ A → A) (resurrect refl) true
+  should-be-true =
+    subst {A = Type} {p = lzero} {x = Bool} {y = Bool} (λ A → A)
+      (resurrect {A = Type} {x = Bool} {y = Bool} refl) true
 
   -- A boolean that should be false.
 
   should-be-false : Bool
-  should-be-false = subst (λ A → A) (resurrect swap) true
+  should-be-false =
+    subst {A = Type} {p = lzero} {x = Bool} {y = Bool} (λ A → A)
+      (resurrect {A = Type} {x = Bool} {y = Bool} swap) true
 
   -- The boolean should-be-true is equal to true.
 
@@ -336,7 +380,9 @@ module Bad-id₂
 
   -- A function that can "resurrect" erased identity proofs.
 
-  resurrect : @0 Id₀ A x y → Id₀ A x y
+  resurrect :
+    {A : Type a} {x y : A} →
+    @0 Id₀ A x y → Id₀ A x y
   resurrect {A} {x} eq =
     subst (λ y → Id₀ A x (erased y)) ([]-cong [ eq ]) refl
 
@@ -349,14 +395,26 @@ module Bad-id₂
     refl                                                      ∎
 
   -- A boolean that should be true.
+  --
+  -- The implicit arguments are explicit to make it clear that the
+  -- only difference between the right-hand sides of should-be-true
+  -- and should-be-false below is the last argument of resurrect,
+  -- which is erased. (Note that the universe level of "A" is not
+  -- given explicitly.) These two right-hand sides should thus be
+  -- compiled to code that behaves in the same way. However, as can be
+  -- seen below one is equal to true, and the other is equal to false.
 
   should-be-true : Bool
-  should-be-true = subst (λ A → A) (resurrect refl) true
+  should-be-true =
+    subst {A = Type} {p = lzero} {x = Bool} {y = Bool} (λ A → A)
+      (resurrect {A = Type} {x = Bool} {y = Bool} refl) true
 
   -- A boolean that should be false.
 
   should-be-false : Bool
-  should-be-false = subst (λ A → A) (resurrect (→Id₀ swap)) true
+  should-be-false =
+    subst {A = Type} {p = lzero} {x = Bool} {y = Bool} (λ A → A)
+      (resurrect {A = Type} {x = Bool} {y = Bool} (→Id₀ swap)) true
 
   -- The boolean should-be-true is equal to true.
 
