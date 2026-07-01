@@ -300,6 +300,12 @@ Dec→Stable : {@0 A : Type a} → Dec A → Stable A
 Dec→Stable (yes x) _ = x
 Dec→Stable (no ¬x) x with () ← Erased→¬¬ x ¬x
 
+-- Types with decidable equality have stable equality.
+
+Decidable-equality→Stable-≡ :
+  {@0 A : Type a} → Decidable-equality A → Stable-≡ A
+Decidable-equality→Stable-≡ dec x y = Dec→Stable (dec x y)
+
 -- Every type is stable in the double-negation monad.
 
 ¬¬-Stable : {@0 A : Type a} → ¬¬ Stable A
