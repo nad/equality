@@ -1261,3 +1261,102 @@ max-∸ (suc m) zero    (suc o) =
   n + ⌊ 1 /2⌋      ≡⟨⟩
   n + 0            ≡⟨ +-right-identity ⟩∎
   n                ∎
+
+------------------------------------------------------------------------
+-- Properties related to "is equal to zero"
+
+opaque
+
+  -- If n is at most zero, then n is zero.
+
+  ≤0→≡0 : n ≤ 0 → n ≡ 0
+  ≤0→≡0 {n = zero}  _   = refl _
+  ≤0→≡0 {n = suc _} hyp = ⊥-elim₀ (≮0 _ hyp)
+
+opaque
+
+  -- If pred n is zero, then n is zero or one.
+
+  pred≡0→ : pred n ≡ 0 → n ≤ 1
+  pred≡0→ {n = zero}        _   = zero≤ _
+  pred≡0→ {n = suc zero}    _   = ≤-refl
+  pred≡0→ {n = suc (suc _)} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If m + n is zero, then m and n are both zero.
+
+  +≡0→ : m + n ≡ 0 → m ≡ 0 × n ≡ 0
+  +≡0→ {m = zero}  {n = zero}  _   = refl _ , refl _
+  +≡0→ {m = zero}  {n = suc _} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+  +≡0→ {m = suc _}             hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If m * n is zero, then m or n is zero.
+
+  *≡0→ : m * n ≡ 0 → m ≡ 0 ⊎ n ≡ 0
+  *≡0→ {m = zero}              _   = inj₁ (refl _)
+  *≡0→ {m = suc _} {n = zero}  _   = inj₂ (refl _)
+  *≡0→ {m = suc _} {n = suc _} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If m ^ n is zero, then m is zero.
+
+  ^≡0→ : ∀ n → m ^ n ≡ 0 → m ≡ 0
+  ^≡0→ {m = zero}  _ _   = refl _
+  ^≡0→ {m = suc m} n hyp = ⊥-elim₀ (lemma n hyp)
+    where
+    lemma : ∀ n → ¬ suc m ^ n ≡ 0
+    lemma zero    = ⊥-elim ∘ 0≢+ ∘ sym
+    lemma (suc n) =
+      suc m ^ n + m * suc m ^ n ≡ 0  →⟨ (λ hyp → proj₁ (+≡0→ hyp)) ⟩
+      suc m ^ n ≡ 0                  →⟨ lemma n ⟩□
+      ⊥                              □
+
+opaque
+
+  -- If m ∸ n is zero, then m ≤ n.
+
+  ∸≡0→ : m ∸ n ≡ 0 → m ≤ n
+  ∸≡0→ {m = zero}              _   = zero≤ _
+  ∸≡0→ {m = suc _} {n = zero}  hyp = ⊥-elim₀ (0≢+ (sym hyp))
+  ∸≡0→ {m = suc _} {n = suc _} hyp = suc≤suc (∸≡0→ hyp)
+
+opaque
+
+  -- If min m n is zero, then m or n is zero.
+
+  min≡0→ : min m n ≡ 0 → m ≡ 0 ⊎ n ≡ 0
+  min≡0→ {m = zero}              _   = inj₁ (refl _)
+  min≡0→ {m = suc _} {n = zero}  _   = inj₂ (refl _)
+  min≡0→ {m = suc _} {n = suc _} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If max m n is zero, then m and n are both zero.
+
+  max≡0→ : max m n ≡ 0 → m ≡ 0 × n ≡ 0
+  max≡0→ {m = zero}  {n = zero}  _   = refl _ , refl _
+  max≡0→ {m = zero}  {n = suc _} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+  max≡0→ {m = suc _} {n = zero}  hyp = ⊥-elim₀ (0≢+ (sym hyp))
+  max≡0→ {m = suc _} {n = suc _} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If ⌈ n /2⌉ is zero, then n is zero.
+
+  ⌈/2⌉≡0→ : ⌈ n /2⌉ ≡ 0 → n ≡ 0
+  ⌈/2⌉≡0→ {n = zero}        _   = refl _
+  ⌈/2⌉≡0→ {n = suc zero}    hyp = ⊥-elim₀ (0≢+ (sym hyp))
+  ⌈/2⌉≡0→ {n = suc (suc _)} hyp = ⊥-elim₀ (0≢+ (sym hyp))
+
+opaque
+
+  -- If ⌊ n /2⌋ is zero, then n is zero or one.
+
+  ⌊/2⌋≡0→ : ⌊ n /2⌋ ≡ 0 → n ≤ 1
+  ⌊/2⌋≡0→ {n = zero}        _   = zero≤ _
+  ⌊/2⌋≡0→ {n = suc zero}    _   = ≤-refl
+  ⌊/2⌋≡0→ {n = suc (suc _)} hyp = ⊥-elim₀ (0≢+ (sym hyp))
