@@ -1189,7 +1189,7 @@ record Quotientᴱ : Typeω where
   opaque
     unfolding Truncation-/ᴱ._/ᴱ-cong-∥∥ᴱ-↠_
 
-    -- Two preservation lemmas for split surjections.
+    -- A preservation lemma for split surjections.
 
     infix 5 _/ᴱ-cong-↠_
 
