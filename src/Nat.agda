@@ -251,6 +251,15 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
   suc m * n₂  ≡⟨ *-comm (suc m) ⟩∎
   n₂ * suc m  ∎)
 
+opaque
+
+  -- 2 * n is equal to n + n.
+
+  2*≡+ : ∀ n → 2 * n ≡ n + n
+  2*≡+ n =
+    n + (n + 0)  ≡⟨ cong (n +_) +-right-identity ⟩∎
+    n + n        ∎
+
 -- Even numbers are not equal to odd numbers.
 
 even≢odd : ∀ m n → 2 * m ≢ 1 + 2 * n
