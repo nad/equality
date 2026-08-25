@@ -5433,6 +5433,14 @@ suc≤suc↔ =
   _↠_.from (Eq.≃↠⇔ ≤-propositional ≤-propositional) $
   record { to = suc≤suc⁻¹; from = suc≤suc }
 
+opaque
+
+  zero<suc≃ : ∀ {n} → (zero < suc n) ≃ ⊤
+  zero<suc≃ {n} =
+    suc zero ≤ suc n  ↔⟨ suc≤suc↔ ⟩
+    zero ≤ n          ↔⟨ zero≤↔ ⟩□
+    ⊤                 □
+
 ≤↔<⊎≡ : ∀ {m n} → m ≤ n ↔ m < n ⊎ m ≡ n
 ≤↔<⊎≡ =
   _≃_.bijection $
@@ -5500,24 +5508,38 @@ suc≤suc↔ =
   (∃ λ m → suc m ≤ n)      ↝⟨ inverse ∃0<↔∃suc ⟩□
   (∃ λ m → 0 < m × m ≤ n)  □
 
--- The ordering test Nat._<=_ gives the right result.
+opaque
 
-T[<=]↔≤ : {m n : ℕ} → T (m <= n) ↔ m ≤ n
-T[<=]↔≤ {m = zero} {n} =
-  T (zero <= n)  ↔⟨⟩
-  ⊤              ↝⟨ inverse zero≤↔ ⟩□
-  zero ≤ n       □
+  -- The ordering test Nat._<?_ gives the right result.
 
-T[<=]↔≤ {m = suc m} {n = zero} =
-  T (suc m <= zero)  ↔⟨⟩
-  ⊥                  ↝⟨ inverse <zero↔ ⟩□
-  suc m ≤ zero       □
+  T[<?]≃< : {m n : ℕ} → T (m <? n) ≃ (m < n)
+  T[<?]≃< {m} {n = zero} =
+    T (m <? zero)  ↔⟨⟩
+    ⊥              ↔⟨ inverse <zero↔ ⟩□
+    m < zero       □
 
-T[<=]↔≤ {m = suc m} {n = suc n} =
-  T (suc m <= suc n)  ↔⟨⟩
-  T (m <= n)          ↝⟨ T[<=]↔≤ ⟩
-  m ≤ n               ↝⟨ inverse suc≤suc↔ ⟩□
-  suc m ≤ suc n       □
+  T[<?]≃< {m = zero} {n = suc n} =
+    T (zero <? suc n)  ↔⟨⟩
+    ⊤                  ↝⟨ inverse zero<suc≃ ⟩□
+    zero < suc n       □
+
+  T[<?]≃< {m = suc m} {n = suc n} =
+    T (suc m <? suc n)  ↔⟨⟩
+    T (m <? n)          ↝⟨ T[<?]≃< ⟩
+    m < n               ↔⟨ inverse suc≤suc↔ ⟩□
+    suc m < suc n       □
+
+opaque
+
+  -- The ordering test Nat._<=_ gives the right result.
+
+  T[<=]↔≤ : {m n : ℕ} → T (m <= n) ↔ m ≤ n
+  T[<=]↔≤ {m} {n} =
+    T (m <= n)      ↔⟨⟩
+    T (m <? suc n)  ↔⟨ T[<?]≃< ⟩
+    m < suc n       ↔⟨⟩
+    suc m ≤ suc n   ↝⟨ suc≤suc↔ ⟩□
+    m ≤ n           □
 
 -- Equality or distinctness of two natural numbers is isomorphic to
 -- the unit type.

@@ -451,13 +451,20 @@ suc m ≤? zero  = inj₂ λ { (≤-refl′ eq)   → 0≢+ (sym eq)
                         }
 suc m ≤? suc n = ⊎-map suc≤suc (λ m≰n → m≰n ∘ suc≤suc⁻¹) (m ≤? n)
 
+-- A comparison operator.
+
+infix 4 _<?_
+
+_<?_ : ℕ → ℕ → Bool
+m <? n = Bool→Bool (m Agda.Builtin.Nat.< n)
+
 -- A comparison operator that is likely to be more efficient than
 -- _≤?_.
 
 infix 4 _<=_
 
 _<=_ : ℕ → ℕ → Bool
-m <= n = Bool→Bool (m Agda.Builtin.Nat.< suc n)
+m <= n = m <? suc n
 
 -- If m is not less than or equal to n, then n is strictly less
 -- than m.
