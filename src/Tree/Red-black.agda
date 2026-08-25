@@ -64,7 +64,7 @@ private variable
 
 data Tree⁻ : Type a where
   leaf : Tree⁻
-  node : (c : Colour) (x : A) (l r : Tree⁻) → Tree⁻
+  node : (c : Colour) (l : Tree⁻) (x : A) (r : Tree⁻) → Tree⁻
 
 pattern nodeᶜ c = node c _ _ _
 pattern node⁰   = node _ _ _ _
@@ -101,7 +101,7 @@ opaque
 
 @0 Red-black : Colour → ℕ → (_ _ : Extended A) → Tree⁻ → Type (a ⊔ o)
 Red-black _  n lb ub leaf           = lb <ᴱ ub × n ≡ 0
-Red-black pc n lb ub (node c x l r) =
+Red-black pc n lb ub (node c l x r) =
   ∃ λ m →
   Red-black c m lb [ x ] l ×
   Red-black c m [ x ] ub r ×
@@ -206,7 +206,7 @@ infix 4 _∈⁻_
 
 _∈⁻_ : A → Tree⁻ → Type a
 _ ∈⁻ leaf         = ⊥
-x ∈⁻ node _ y l r = x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
+x ∈⁻ node _ l y r = x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
 
 opaque
 
@@ -255,7 +255,7 @@ opaque
   -- only if x is in the left sub-tree.
 
   @0 <→∈⁻⇔∈⁻ :
-    let t = node c y l r in
+    let t = node c l y r in
     Red-black pc n lb ub t →
     x < y →
     x ∈⁻ l ⇔ x ∈⁻ t
@@ -275,7 +275,7 @@ opaque
   -- only if x is in the right sub-tree.
 
   @0 >→∈⁻⇔∈⁻ :
-    let t = node c y l r in
+    let t = node c l y r in
     Red-black pc n lb ub t →
     x > y →
     x ∈⁻ r ⇔ x ∈⁻ t
@@ -322,9 +322,9 @@ opaque
     Dec-Erased (x ∈⁻ t)
   member?⁻ _ leaf _ =
     no [ ⊥-elim ]
-  member?⁻ x (node _ y l r) _ with O.compare x y
+  member?⁻ x (node _ l y r) _ with O.compare x y
   … | eqᵀ x≡y = yes [ inj₂ (inj₁ x≡y) ]
-  member?⁻ x (node _ _ l _) t@(nodeʳᵇ lʳᵇ _ _ _) | ltᵀ x<y =
+  member?⁻ x (node _ l _ _) t@(nodeʳᵇ lʳᵇ _ _ _) | ltᵀ x<y =
     Dec-Erased-map (<→∈⁻⇔∈⁻ t x<y)
       (member?⁻ x l lʳᵇ)
   member?⁻ x (node _ _ _ r) t@(nodeʳᵇ _ rʳᵇ _ _) | gtᵀ x>y =
@@ -374,36 +374,36 @@ opaque
 
   -- A balancing function.
 
-  balanceˡ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
-  balanceˡ black x₆ (node red x₄ (node red x₂ t₁ t₃) t₅) t₇ =
-    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceˡ black x₆ (node red x₂ t₁ (node red x₄ t₃ t₅)) t₇ =
-    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceˡ c x l r =
-    node c x l r
+  balanceˡ : Colour → Tree⁻ → A → Tree⁻ → Tree⁻
+  balanceˡ black (node red (node red t₁ x₂ t₃) x₄ t₅) x₆ t₇ =
+    node red (node black t₁ x₂ t₃) x₄ (node black t₅ x₆ t₇)
+  balanceˡ black (node red t₁ x₂ (node red t₃ x₄ t₅)) x₆ t₇ =
+    node red (node black t₁ x₂ t₃) x₄ (node black t₅ x₆ t₇)
+  balanceˡ c l x r =
+    node c l x r
 
 opaque
 
   -- A balancing function.
 
-  balanceʳ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
-  balanceʳ black x₂ t₁ (node red x₆ (node red x₄ t₃ t₅) t₇) =
-    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceʳ black x₂ t₁ (node red x₄ t₃ (node red x₆ t₅ t₇)) =
-    node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceʳ c x l r =
-    node c x l r
+  balanceʳ : Colour → Tree⁻ → A → Tree⁻ → Tree⁻
+  balanceʳ black t₁ x₂ (node red (node red t₃ x₄ t₅) x₆ t₇) =
+    node red (node black t₁ x₂ t₃) x₄ (node black t₅ x₆ t₇)
+  balanceʳ black t₁ x₂ (node red t₃ x₄ (node red t₅ x₆ t₇)) =
+    node red (node black t₁ x₂ t₃) x₄ (node black t₅ x₆ t₇)
+  balanceʳ c l x r =
+    node c l x r
 
 opaque
 
   -- Inserts an element into the tree.
 
   insert⁻′ : A → Tree⁻ → Tree⁻
-  insert⁻′ x leaf             = node red x leaf leaf
-  insert⁻′ x t@(node c y l r) with O.compare x y
+  insert⁻′ x leaf             = node red leaf x leaf
+  insert⁻′ x t@(node c l y r) with O.compare x y
   … | eqᵀ _ = t
-  … | ltᵀ _ = balanceˡ c y (insert⁻′ x l) r
-  … | gtᵀ _ = balanceʳ c y l (insert⁻′ x r)
+  … | ltᵀ _ = balanceˡ c (insert⁻′ x l) y r
+  … | gtᵀ _ = balanceʳ c l y (insert⁻′ x r)
 
 opaque
 
@@ -411,7 +411,7 @@ opaque
 
   colour-root-black : Tree⁻ → Tree⁻
   colour-root-black leaf           = leaf
-  colour-root-black (node _ x l r) = node black x l r
+  colour-root-black (node _ l x r) = node black l x r
 
 opaque
 
@@ -441,7 +441,7 @@ fake-parent-colour pc black = black
 @0 Almost-red-black :
   Colour → ℕ → (_ _ : Extended A) → Tree⁻ → Type (a ⊔ o)
 Almost-red-black _  n lb ub leaf           = lb <ᴱ ub × n ≡ 0
-Almost-red-black pc n lb ub (node c x l r) =
+Almost-red-black pc n lb ub (node c l x r) =
   ∃ λ m →
   Red-black (fake-parent-colour pc c) m lb [ x ] l ×
   Red-black (fake-parent-colour pc c) m [ x ] ub r ×
@@ -530,14 +530,14 @@ opaque
     Red-black c m [ x ] ub r →
     Red-invariant pc c →
     Black-invariant c m n →
-    Almost-red-black pc n lb ub (balanceˡ c x l r)
+    Almost-red-black pc n lb ub (balanceˡ c l x r)
   balanceˡʳᵇ {c = red} l r rinv binv =
     nodeᵃʳᵇ
       (Red-black-black→Red-black rinv
          (Almost-red-black-red→Red-black-black l))
       (Red-black-red→Red-black r) binv
   balanceˡʳᵇ
-    {c = black} {l = node red _ (nodeᶜ red) _}
+    {c = black} {l = node red (nodeᶜ red) _ _}
     (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) t₅ binv₂) t₇ rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ (Red-black→Red-black-black t₁)
@@ -546,7 +546,7 @@ opaque
       (nodeʳᵇ t₅ (cast binv₂ t₇) rinv₃ (cong suc binv₂))
       binv₃
   balanceˡʳᵇ
-    {c = black} {l = node red _ leaf (nodeᶜ red)}
+    {c = black} {l = node red leaf _ (nodeᶜ red)}
     (nodeᵃʳᵇ t₁ (nodeʳᵇ t₃ t₅ _ binv₁) binv₂) t₇ rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ t₁ (Red-black→Red-black-black (cast (sym binv₁) t₃)) rinv₃
@@ -555,7 +555,7 @@ opaque
          (cast binv₂ t₇) rinv₃ (cong suc binv₂))
       binv₃
   balanceˡʳᵇ
-    {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ red)}
+    {c = black} {l = node red (nodeᶜ black) _ (nodeᶜ red)}
     (nodeᵃʳᵇ t₁ (nodeʳᵇ t₃ t₅ _ binv₁) binv₂) t₇ rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ t₁ (Red-black→Red-black-black (cast (sym binv₁) t₃)) rinv₃
@@ -566,20 +566,20 @@ opaque
   balanceˡʳᵇ {c = black} {l = leaf} (leafᵃʳᵇ lb< n≡0) t _ binv =
     nodeᵃʳᵇ (leafʳᵇ lb< n≡0) t binv
   balanceˡʳᵇ
-    {c = black} {l = node red _ leaf leaf}
+    {c = black} {l = node red leaf _ leaf}
     (nodeᵃʳᵇ (leafʳᵇ lb< n≡0) (leafʳᵇ x₁<x₂ _) binv₁) t₃ _ binv₂ =
     nodeᵃʳᵇ
       (nodeʳᵇ (leafʳᵇ lb< n≡0) (leafʳᵇ x₁<x₂ n≡0) black-parent binv₁) t₃
       binv₂
   balanceˡʳᵇ
-    {c = black} {l = node red _ leaf (nodeᶜ black)}
+    {c = black} {l = node red leaf _ (nodeᶜ black)}
     (nodeᵃʳᵇ (leafʳᵇ lb< n≡0) (nodeʳᵇ t₂ t₄ _ binv₁) binv₂) t₆ _ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ (leafʳᵇ lb< n≡0) (nodeʳᵇ t₂ t₄ black-child binv₁)
          black-parent binv₂)
       t₆ binv₃
   balanceˡʳᵇ
-    {c = black} {l = node red _ (nodeᶜ black) leaf}
+    {c = black} {l = node red (nodeᶜ black) _ leaf}
     (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) (leafʳᵇ x₄<x₅ n≡0) binv₂) t₆ _
     binv₃ =
     nodeᵃʳᵇ
@@ -587,7 +587,7 @@ opaque
          black-parent binv₂)
       t₆ binv₃
   balanceˡʳᵇ
-    {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ black)}
+    {c = black} {l = node red (nodeᶜ black) _ (nodeᶜ black)}
     (nodeᵃʳᵇ (nodeʳᵇ t₁ t₃ _ binv₁) (nodeʳᵇ t₅ t₇ _ binv₂) binv₃) t₉ _
     binv₄ =
     nodeᵃʳᵇ
@@ -609,14 +609,14 @@ opaque
     Almost-red-black c m [ x ] ub r →
     Red-invariant pc c →
     Black-invariant c m n →
-    Almost-red-black pc n lb ub (balanceʳ c x l r)
+    Almost-red-black pc n lb ub (balanceʳ c l x r)
   balanceʳʳᵇ {c = red} l r rinv binv =
     nodeᵃʳᵇ (Red-black-red→Red-black l)
       (Red-black-black→Red-black rinv
          (Almost-red-black-red→Red-black-black r))
       binv
   balanceʳʳᵇ
-    {c = black} {r = node red _ (nodeᶜ red) _}
+    {c = black} {r = node red (nodeᶜ red) _ _}
     t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) t₇ binv₂) rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ (Red-black→Red-black-black t₁)
@@ -626,7 +626,7 @@ opaque
          (cong suc binv₂))
       binv₃
   balanceʳʳᵇ
-    {c = black} {r = node red _ leaf (nodeᶜ red)}
+    {c = black} {r = node red leaf _ (nodeᶜ red)}
     t₁ (nodeᵃʳᵇ t₃ (nodeʳᵇ t₅ t₇ _ binv₁) binv₂) rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ t₁ (cast {pc = black} {t = leaf} (sym binv₂) t₃) rinv₃
@@ -636,7 +636,7 @@ opaque
          (cong suc binv₂))
       binv₃
   balanceʳʳᵇ
-    {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ red)}
+    {c = black} {r = node red (nodeᶜ black) _ (nodeᶜ red)}
     t₁ (nodeᵃʳᵇ t₃ (nodeʳᵇ t₅ t₇ _ binv₁) binv₂) rinv₃ binv₃ =
     nodeᵃʳᵇ
       (nodeʳᵇ t₁ (cast {t = node⁰} (sym binv₂) t₃) rinv₃ (refl _))
@@ -647,13 +647,13 @@ opaque
   balanceʳʳᵇ {c = black} {r = leaf} t (leafʳᵇ lb< n≡0) _ binv =
     nodeᵃʳᵇ t (leafʳᵇ lb< n≡0) binv
   balanceʳʳᵇ
-    {c = black} {r = node red _ leaf leaf}
+    {c = black} {r = node red leaf _ leaf}
     t₁ (nodeᵃʳᵇ (leafʳᵇ x₂<x₃ n≡0) (leafʳᵇ <ub _) binv₁) _ binv₂ =
     nodeᵃʳᵇ t₁
       (nodeʳᵇ (leafʳᵇ x₂<x₃ n≡0) (leafʳᵇ <ub n≡0) black-parent binv₁)
       binv₂
   balanceʳʳᵇ
-    {c = black} {r = node red _ leaf (nodeᶜ black)}
+    {c = black} {r = node red leaf _ (nodeᶜ black)}
     t₁ (nodeᵃʳᵇ (leafʳᵇ x₂<x₃ n≡0) (nodeʳᵇ t₄ t₆ _ binv₁) binv₂) _
     binv₃ =
     nodeᵃʳᵇ t₁
@@ -661,14 +661,14 @@ opaque
          black-parent binv₂)
       binv₃
   balanceʳʳᵇ
-    {c = black} {r = node red _ (nodeᶜ black) leaf}
+    {c = black} {r = node red (nodeᶜ black) _ leaf}
     t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) (leafʳᵇ <ub n≡0) binv₂) _ binv₃ =
     nodeᵃʳᵇ t₁
       (nodeʳᵇ (nodeʳᵇ t₃ t₅ black-child binv₁) (leafʳᵇ <ub n≡0)
          black-parent binv₂)
       binv₃
   balanceʳʳᵇ
-    {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ black)}
+    {c = black} {r = node red (nodeᶜ black) _ (nodeᶜ black)}
     t₁ (nodeᵃʳᵇ (nodeʳᵇ t₃ t₅ _ binv₁) (nodeʳᵇ t₇ t₉ _ binv₂) binv₃) _
     binv₄ =
     nodeᵃʳᵇ t₁
@@ -692,7 +692,7 @@ opaque
   insert⁻′ʳᵇ {t = leaf} (leafʳᵇ _ n≡0) lb< <ub =
     nodeᵃʳᵇ (leafʳᵇ lb< (refl _)) (leafʳᵇ <ub (refl _)) n≡0
   insert⁻′ʳᵇ
-    {t = t@(node _ y _ _)} {x} tʳᵇ@(nodeʳᵇ l r rinv binv) lb< <ub
+    {t = t@(node _ _ y _)} {x} tʳᵇ@(nodeʳᵇ l r rinv binv) lb< <ub
     with O.compare x y
   … | eqᵀ _   = Red-black→Almost-red-black t tʳᵇ
   … | ltᵀ x<y = balanceˡʳᵇ (insert⁻′ʳᵇ l lb< ([]-[] x<y)) r rinv binv
@@ -737,13 +737,13 @@ opaque
   -- A membership lemma for balanceˡ.
 
   @0 ∈⁻-balanceˡ :
-    x ∈⁻ balanceˡ c y l r ⇔
+    x ∈⁻ balanceˡ c l y r ⇔
     x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
   ∈⁻-balanceˡ {c = red} =
     F.id
   ∈⁻-balanceˡ
-    {x} {c = black} {y = x₆}
-    {l = node red x₄ (node red x₂ t₁ t₃) t₅} {r = t₇} =
+    {x} {c = black}
+    {l = node red (node red t₁ x₂ t₃) x₄ t₅} {y = x₆} {r = t₇} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    ↝⟨ record
                                                                                { to   = P.[ inj₁ ∘ inj₁
                                                                                           , P.[ inj₁ ∘ inj₂ ∘ inj₁
@@ -756,8 +756,9 @@ opaque
                                                                                } ⟩□
     ((x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
   ∈⁻-balanceˡ
-    {x} {c = black} {y = x₆}
-    {l = node red x₂ t₁@(nodeᶜ black) (node red x₄ t₃ t₅)} {r = t₇} =
+    {x} {c = black}
+    {l = node red t₁@(nodeᶜ black) x₂ (node red t₃ x₄ t₅)} {y = x₆}
+    {r = t₇} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
                                                                              { to   = P.[ P.[ inj₁ ∘ inj₁
                                                                                             , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
@@ -778,8 +779,8 @@ opaque
                                                                              } ⟩□
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
   ∈⁻-balanceˡ
-    {x} {c = black} {y = x₆}
-    {l = node red x₂ t₁@leaf (node red x₄ t₃ t₅)} {r = t₇} =
+    {x} {c = black}
+    {l = node red t₁@leaf x₂ (node red t₃ x₄ t₅)} {y = x₆} {r = t₇} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
                                                                              { to   = P.[ P.[ inj₁ ∘ inj₁
                                                                                             , P.[ inj₁ ∘ inj₂ ∘ inj₁ , inj₁ ∘ inj₂ ∘ inj₂ ∘ inj₁ ]
@@ -801,13 +802,13 @@ opaque
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
   ∈⁻-balanceˡ {c = black} {l = leaf} =
     F.id
-  ∈⁻-balanceˡ {c = black} {l = node red _ leaf leaf} =
+  ∈⁻-balanceˡ {c = black} {l = node red leaf _ leaf} =
     F.id
-  ∈⁻-balanceˡ {c = black} {l = node red _ leaf (nodeᶜ black)} =
+  ∈⁻-balanceˡ {c = black} {l = node red leaf _ (nodeᶜ black)} =
     F.id
-  ∈⁻-balanceˡ {c = black} {l = node red _ (nodeᶜ black) leaf} =
+  ∈⁻-balanceˡ {c = black} {l = node red (nodeᶜ black) _ leaf} =
     F.id
-  ∈⁻-balanceˡ {c = black} {l = node red _ (nodeᶜ black) (nodeᶜ black)} =
+  ∈⁻-balanceˡ {c = black} {l = node red (nodeᶜ black) _ (nodeᶜ black)} =
     F.id
   ∈⁻-balanceˡ {c = black} {l = nodeᶜ black} =
     F.id
@@ -818,13 +819,13 @@ opaque
   -- A membership lemma for balanceʳ.
 
   @0 ∈⁻-balanceʳ :
-    x ∈⁻ balanceʳ c y l r ⇔
+    x ∈⁻ balanceʳ c l y r ⇔
     x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r
   ∈⁻-balanceʳ {c = red} =
     F.id
   ∈⁻-balanceʳ
-    {x} {c = black} {y = x₂} {l = t₁}
-    {r = node red x₆ (node red x₄ t₃ t₅) t₇} =
+    {x} {c = black} {l = t₁} {y = x₂}
+    {r = node red (node red t₃ x₄ t₅) x₆ t₇} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
                                                                              { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₁ ] ]
                                                                                         , P.[ inj₂ ∘ inj₂ ∘ inj₁ ∘ inj₂ ∘ inj₁
@@ -845,8 +846,8 @@ opaque
                                                                              } ⟩□
     x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ (x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅) ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  □
   ∈⁻-balanceʳ
-    {x} {c = black} {y = x₂} {l = t₁}
-    {r = node red x₄ t₃@(nodeᶜ black) (node red x₆ t₅ t₇)} =
+    {x} {c = black} {l = t₁} {y = x₂}
+    {r = node red t₃@(nodeᶜ black) x₄ (node red t₅ x₆ t₇)} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
                                                                              { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
                                                                                         , inj₂ ∘ inj₂ ∘ inj₂
@@ -857,8 +858,8 @@ opaque
                                                                              } ⟩□
     x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    □
   ∈⁻-balanceʳ
-    {x} {c = black} {y = x₂} {l = t₁}
-    {r = node red x₄ t₃@leaf (node red x₆ t₅ t₇)} =
+    {x} {c = black} {l = t₁} {y = x₂}
+    {r = node red t₃@leaf x₄ (node red t₅ x₆ t₇)} =
     (x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃) ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇  ↝⟨ record
                                                                              { to   = P.[ P.[ inj₁ , P.[ inj₂ ∘ inj₁ , inj₂ ∘ inj₂ ∘ inj₁ ] ]
                                                                                         , inj₂ ∘ inj₂ ∘ inj₂
@@ -870,13 +871,13 @@ opaque
     x ∈⁻ t₁ ⊎ x ≡ x₂ ⊎ x ∈⁻ t₃ ⊎ x ≡ x₄ ⊎ x ∈⁻ t₅ ⊎ x ≡ x₆ ⊎ x ∈⁻ t₇    □
   ∈⁻-balanceʳ {c = black} {r = leaf} =
     F.id
-  ∈⁻-balanceʳ {c = black} {r = node red _ leaf leaf} =
+  ∈⁻-balanceʳ {c = black} {r = node red leaf _ leaf} =
     F.id
-  ∈⁻-balanceʳ {c = black} {r = node red _ leaf (nodeᶜ black)} =
+  ∈⁻-balanceʳ {c = black} {r = node red leaf _ (nodeᶜ black)} =
     F.id
-  ∈⁻-balanceʳ {c = black} {r = node red _ (nodeᶜ black) leaf} =
+  ∈⁻-balanceʳ {c = black} {r = node red (nodeᶜ black) _ leaf} =
     F.id
-  ∈⁻-balanceʳ {c = black} {r = node red _ (nodeᶜ black) (nodeᶜ black)} =
+  ∈⁻-balanceʳ {c = black} {r = node red (nodeᶜ black) _ (nodeᶜ black)} =
     F.id
   ∈⁻-balanceʳ {c = black} {r = nodeᶜ black} =
     F.id
@@ -891,7 +892,7 @@ opaque
   ∈⁻-insert⁻′ {y} {x} {t = leaf} =
     ⊥ ⊎ y ≡ x ⊎ ⊥  ↔⟨ ⊎-left-identity ⟩□
     y ≡ x ⊎ ⊥      □
-  ∈⁻-insert⁻′ {y} {x} {t = node c z l r}
+  ∈⁻-insert⁻′ {y} {x} {t = node c l z r}
     with O.compare x z
   … | eqᵀ x≡z =
     y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r          ↝⟨ record
@@ -900,12 +901,12 @@ opaque
                                           } ⟩□
     y ≡ x ⊎ y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r  □
   … | ltᵀ _ =
-    y ∈⁻ balanceˡ c z (insert⁻′ x l) r  ↝⟨ ∈⁻-balanceˡ ⟩
+    y ∈⁻ balanceˡ c (insert⁻′ x l) z r  ↝⟨ ∈⁻-balanceˡ ⟩
     y ∈⁻ insert⁻′ x l ⊎ y ≡ z ⊎ y ∈⁻ r  ↝⟨ ∈⁻-insert⁻′ ⊎-cong F.id ⟩
     (y ≡ x ⊎ y ∈⁻ l) ⊎ y ≡ z ⊎ y ∈⁻ r   ↔⟨ inverse ⊎-assoc ⟩□
     y ≡ x ⊎ y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ r     □
   … | gtᵀ _ =
-    y ∈⁻ balanceʳ c z l (insert⁻′ x r)  ↝⟨ ∈⁻-balanceʳ ⟩
+    y ∈⁻ balanceʳ c l z (insert⁻′ x r)  ↝⟨ ∈⁻-balanceʳ ⟩
     y ∈⁻ l ⊎ y ≡ z ⊎ y ∈⁻ insert⁻′ x r  ↝⟨ F.id ⊎-cong F.id ⊎-cong ∈⁻-insert⁻′ ⟩
     y ∈⁻ l ⊎ y ≡ z ⊎ y ≡ x ⊎ y ∈⁻ r     ↝⟨ record
                                              { to   = P.[ inj₂ ∘ inj₁ , P.[ inj₂ ∘ inj₂ ∘ inj₁ , P.[ inj₁ , inj₂ ∘ inj₂ ∘ inj₂ ] ] ]
@@ -1016,7 +1017,7 @@ opaque
 
 @0 height⁻ : Tree⁻ → ℕ
 height⁻ leaf           = 0
-height⁻ (node _ _ l r) = suc (N.max (height⁻ l) (height⁻ r))
+height⁻ (node _ l _ r) = suc (N.max (height⁻ l) (height⁻ r))
 
 -- The height of a red-black tree.
 
@@ -1034,7 +1035,7 @@ opaque
     lemma {n} leaf (leafʳᵇ _ n≡0) =
       n  N.≡⟨ n≡0 ⟩≤
       0  N.∎≤
-    lemma {n} (node _ _ l r) (m , l-ok , r-ok , _ , binv) =
+    lemma {n} (node _ l _ r) (m , l-ok , r-ok , _ , binv) =
       n                                    N.≤⟨ Black-invariant→≤ binv ⟩
       suc m                                N.≡⟨ cong suc (sym (N.max-idempotent _)) ⟩≤
       suc (N.max m m)                      N.≤⟨ N.suc≤suc (N.max-mono (lemma l l-ok) (lemma r r-ok)) ⟩∎
@@ -1054,11 +1055,11 @@ opaque
         ∀ t → Red-black black n lb ub t → height⁻ t N.≤ 1 + 2 * n
       lemmaᵇ {n} leaf (leafʳᵇ _ n≡0) =
         N.zero≤ _
-      lemmaᵇ {n} (node black _ l r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+      lemmaᵇ {n} (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
         1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ black-case l r l-ok r-ok n≡1+m ⟩
         2 * n                              N.≤⟨ N.pred≤ _ ⟩∎
         1 + 2 * n                          ∎≤
-      lemmaᵇ {n} (node red _ l r) (m , l-ok , r-ok , _ , n≡m) =
+      lemmaᵇ {n} (node red l _ r) (m , l-ok , r-ok , _ , n≡m) =
         1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (lemmaʳ l l-ok) (lemmaʳ r r-ok) ⟩
         1 + N.max (2 * m) (2 * m)          N.≡⟨ cong (1 +_) (N.max-idempotent _) ⟩≤
         1 + 2 * m                          N.≡⟨ cong ((1 +_) ∘ (2 *_)) (sym n≡m) ⟩≤
@@ -1067,7 +1068,7 @@ opaque
       lemmaʳ : ∀ t → Red-black red n lb ub t → height⁻ t N.≤ 2 * n
       lemmaʳ leaf (leafʳᵇ _ n≡0) =
         N.zero≤ _
-      lemmaʳ (node black _ l r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+      lemmaʳ (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
         black-case l r l-ok r-ok n≡1+m
       lemmaʳ (node red _ _ _) (nodeʳᵇ _ _ rinv _) =
         ⊥-elim (rinv (refl _) (refl _))
@@ -1104,7 +1105,7 @@ opaque
 
 @0 size⁻ : Tree⁻ → ℕ
 size⁻ leaf           = 0
-size⁻ (node _ _ l r) = suc (size⁻ l + size⁻ r)
+size⁻ (node _ l _ r) = suc (size⁻ l + size⁻ r)
 
 -- The size of a red-black tree.
 
@@ -1124,7 +1125,7 @@ opaque
     lemma : ∀ t → 1 + size⁻ t N.≤ 2 ^ height⁻ t
     lemma leaf =
       N.≤-refl
-    lemma (node _ _ l r) =
+    lemma (node _ l _ r) =
       2 + size⁻ l + size⁻ r                  N.≡⟨ N.suc+≡+suc (1 + _) ⟩≤
 
       (1 + size⁻ l) + (1 + size⁻ r)          N.≤⟨ lemma l N.+-mono lemma r ⟩
@@ -1172,13 +1173,13 @@ opaque
     lemma {n} leaf (leafʳᵇ _ n≡0) =
       2 ^ n  N.≡⟨ cong (2 ^_) n≡0 ⟩≤
       1      N.∎≤
-    lemma {n} (node black _ l r) (m , l-ok , r-ok , _ , n≡1+m) =
+    lemma {n} (node black l _ r) (m , l-ok , r-ok , _ , n≡1+m) =
       2 ^ n                          N.≡⟨ cong (2 ^_) n≡1+m ⟩≤
       2 ^ (1 + m)                    N.≡⟨ N.2*≡+ (2 ^ m) ⟩≤
       2 ^ m + 2 ^ m                  N.≤⟨ lemma l l-ok N.+-mono lemma r r-ok ⟩
       (1 + size⁻ l) + (1 + size⁻ r)  N.≡⟨ sym (N.suc+≡+suc (1 + _)) ⟩≤
       2 + size⁻ l + size⁻ r          N.∎≤
-    lemma {n} (node red _ l r) (m , l-ok , r-ok , _ , n≡m) =
+    lemma {n} (node red l _ r) (m , l-ok , r-ok , _ , n≡m) =
       2 ^ n                          N.≡⟨ cong (2 ^_) n≡m ⟩≤
       2 ^ m                          N.≤⟨ N.m≤m+n _ _ ⟩
       2 ^ m + 2 ^ m                  N.≤⟨ lemma l l-ok N.+-mono lemma r r-ok ⟩
