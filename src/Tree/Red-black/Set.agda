@@ -117,7 +117,7 @@ opaque
 -- A membership test
 
 opaque
-  unfolding Set _∈_
+  unfolding _∈_
 
   -- Does the element exist in the set?
 
@@ -175,7 +175,7 @@ opaque
       (∀ z → z T.∈ T.insert x xs ⇔ z T.∈ T.insert x ys)  □
 
 opaque
-  unfolding Set _∈_ insert _/ᴱ-map_
+  unfolding _∈_ insert _/ᴱ-map_
 
   -- The value y is in insert x xs if and only if merely y is x or y
   -- is in xs.
@@ -191,7 +191,7 @@ opaque
            y ∈ insert x [ t ]Q      ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
            y ∈ [ T.insert x t ]Q    ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
            y T.∈ T.insert x t       ↔⟨ inverse (∥∥ᴱ≃ T.∈-propositional) ⟩
-           ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ _≃ᴱ_.logical-equivalence (∥∥ᴱ-cong-⇔ T.∈-insert) ⟩
+           ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ ∥∥ᴱ-cong T.∈-insert ⟩
            y ≡ x ∥⊎∥ᴱ y T.∈ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
            y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q    □)
       xs

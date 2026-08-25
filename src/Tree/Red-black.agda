@@ -151,7 +151,7 @@ opaque
 opaque
   unfolding Red-invariant
 
-  -- If the red invariant holds for rec and c, then it holds for pc
+  -- If the red invariant holds for red and c, then it holds for pc
   -- and c.
 
   @0 red-parent : Red-invariant red c → Red-invariant pc c
@@ -375,28 +375,24 @@ opaque
   -- A balancing function.
 
   balanceˡ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
-  balanceˡ red x l r =
-    node red x l r
   balanceˡ black x₆ (node red x₄ (node red x₂ t₁ t₃) t₅) t₇ =
     node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
   balanceˡ black x₆ (node red x₂ t₁ (node red x₄ t₃ t₅)) t₇ =
     node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceˡ black x l r =
-    node black x l r
+  balanceˡ c x l r =
+    node c x l r
 
 opaque
 
   -- A balancing function.
 
   balanceʳ : Colour → A → Tree⁻ → Tree⁻ → Tree⁻
-  balanceʳ red x l r =
-    node red x l r
   balanceʳ black x₂ t₁ (node red x₆ (node red x₄ t₃ t₅) t₇) =
     node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
   balanceʳ black x₂ t₁ (node red x₄ t₃ (node red x₆ t₅ t₇)) =
     node red x₄ (node black x₂ t₁ t₃) (node black x₆ t₅ t₇)
-  balanceʳ black x l r =
-    node black x l r
+  balanceʳ c x l r =
+    node c x l r
 
 opaque
 
@@ -405,9 +401,9 @@ opaque
   insert⁻′ : A → Tree⁻ → Tree⁻
   insert⁻′ x leaf             = node red x leaf leaf
   insert⁻′ x t@(node c y l r) with O.compare x y
-  … | eqᵀ _   = t
-  … | ltᵀ x<y = balanceˡ c y (insert⁻′ x l) r
-  … | gtᵀ x>y = balanceʳ c y l (insert⁻′ x r)
+  … | eqᵀ _ = t
+  … | ltᵀ _ = balanceˡ c y (insert⁻′ x l) r
+  … | gtᵀ _ = balanceʳ c y l (insert⁻′ x r)
 
 opaque
 
@@ -686,7 +682,7 @@ opaque
 opaque
   unfolding Black-invariant insert⁻′
 
-  -- The function insert takes red-black trees to almost red-black
+  -- The function insert⁻′ takes red-black trees to almost red-black
   -- trees, given certain assumptions.
 
   @0 insert⁻′ʳᵇ :
@@ -713,7 +709,7 @@ opaque
     ∃ λ n → Red-black pc n lb ub (colour-root-black t)
   colour-root-blackʳᵇ {t = leaf} (leafᵃʳᵇ lb<ub n≡0) =
     _ , leafʳᵇ lb<ub n≡0
-  colour-root-blackʳᵇ {t = node _ x l r} (nodeᵃʳᵇ lʳᵇ rʳᵇ binv) =
+  colour-root-blackʳᵇ {t = node _ _ _ _} (nodeᵃʳᵇ lʳᵇ rʳᵇ binv) =
     _ ,
     nodeʳᵇ (Red-black→Red-black-black lʳᵇ)
       (Red-black→Red-black-black rʳᵇ) black-child
