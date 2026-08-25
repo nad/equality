@@ -31,6 +31,7 @@ open import Equality.Decision-procedures eq
 open import Erased.Level-1 eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
+import Nat eq as N
 import Total-order.Erased eq as TE
 
 private
@@ -158,7 +159,7 @@ opaque
   red-parent {c = black} _   = black-child
 
 ------------------------------------------------------------------------
--- A lemma related to Black-invariant
+-- Some lemmas related to Black-invariant
 
 opaque
   unfolding Black-invariant
@@ -171,6 +172,16 @@ opaque
     ∃ (Black-invariant black m)
   black-black {c = red}   eq = _ , cong suc eq
   black-black {c = black} eq = _ , eq
+
+  -- If Black-invariant c m n holds, then n is bounded by suc m.
+
+  @0 Black-invariant→≤ :
+    Black-invariant c m n → n N.≤ suc m
+  Black-invariant→≤ {c = black}         eq = N.≤-refl′ eq
+  Black-invariant→≤ {c = red}   {m} {n} eq =
+    n      N.≡⟨ eq ⟩≤
+    m      N.≤⟨ N.pred≤ _ ⟩∎
+    suc m  ∎≤
 
 ------------------------------------------------------------------------
 -- A lemma related to the bounds
@@ -1001,3 +1012,194 @@ opaque
   @0 ∈-insert :
     y ∈ insert x t ⇔ y ≡ x ⊎ y ∈ t
   ∈-insert = ∈⁻-insert⁻
+
+------------------------------------------------------------------------
+-- Heights
+
+-- The height of a tree.
+
+@0 height⁻ : Tree⁻ → ℕ
+height⁻ leaf           = 0
+height⁻ (node _ _ l r) = suc (N.max (height⁻ l) (height⁻ r))
+
+-- The height of a red-black tree.
+
+@0 height : Tree → ℕ
+height t = height⁻ (Tree.tree t)
+
+opaque
+
+  -- The height is at least the black height.
+
+  @0 black-height≤height : ∀ t → Tree.black-height t N.≤ height t
+  black-height≤height = lemma _ ∘ Tree.red-black
+    where
+    lemma : ∀ t → Red-black c n lb ub t → n N.≤ height⁻ t
+    lemma {n} leaf (leafʳᵇ _ n≡0) =
+      n  N.≡⟨ n≡0 ⟩≤
+      0  N.∎≤
+    lemma {n} (node _ _ l r) (m , l-ok , r-ok , _ , binv) =
+      n                                    N.≤⟨ Black-invariant→≤ binv ⟩
+      suc m                                N.≡⟨ cong suc (sym (N.max-idempotent _)) ⟩≤
+      suc (N.max m m)                      N.≤⟨ N.suc≤suc (N.max-mono (lemma l l-ok) (lemma r r-ok)) ⟩∎
+      suc (N.max (height⁻ l) (height⁻ r))  ∎≤
+
+opaque
+  unfolding Red-invariant Black-invariant
+
+  -- The height is at most one plus twice the black height.
+
+  @0 height≤1+2*black-height :
+    ∀ t → height t N.≤ 1 + 2 * Tree.black-height t
+  height≤1+2*black-height = lemmaᵇ _ ∘ Tree.red-black
+    where
+    mutual
+      lemmaᵇ :
+        ∀ t → Red-black black n lb ub t → height⁻ t N.≤ 1 + 2 * n
+      lemmaᵇ {n} leaf (leafʳᵇ _ n≡0) =
+        N.zero≤ _
+      lemmaᵇ {n} (node black _ l r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ black-case l r l-ok r-ok n≡1+m ⟩
+        2 * n                              N.≤⟨ N.pred≤ _ ⟩∎
+        1 + 2 * n                          ∎≤
+      lemmaᵇ {n} (node red _ l r) (m , l-ok , r-ok , _ , n≡m) =
+        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (lemmaʳ l l-ok) (lemmaʳ r r-ok) ⟩
+        1 + N.max (2 * m) (2 * m)          N.≡⟨ cong (1 +_) (N.max-idempotent _) ⟩≤
+        1 + 2 * m                          N.≡⟨ cong ((1 +_) ∘ (2 *_)) (sym n≡m) ⟩≤
+        1 + 2 * n                          N.∎≤
+
+      lemmaʳ : ∀ t → Red-black red n lb ub t → height⁻ t N.≤ 2 * n
+      lemmaʳ leaf (leafʳᵇ _ n≡0) =
+        N.zero≤ _
+      lemmaʳ (node black _ l r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+        black-case l r l-ok r-ok n≡1+m
+      lemmaʳ (node red _ _ _) (nodeʳᵇ _ _ rinv _) =
+        ⊥-elim (rinv (refl _) (refl _))
+
+      black-case :
+        ∀ l r →
+        Red-black black m lb [ x ] l →
+        Red-black black m [ x ] ub r →
+        n ≡ 1 + m →
+        1 + N.max (height⁻ l) (height⁻ r) N.≤ 2 * n
+      black-case {m} {n} l r l-ok r-ok n≡1+m =
+        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (lemmaᵇ l l-ok) (lemmaᵇ r r-ok) ⟩
+        1 + N.max (1 + 2 * m) (1 + 2 * m)  N.≡⟨ cong suc (N.max-idempotent _) ⟩≤
+        2 + 2 * m                          N.≡⟨ sym (N.*-+-distribˡ 2 {n = 1}) ⟩≤
+        2 * suc m                          N.≡⟨ cong (2 *_) (sym n≡1+m) ⟩≤
+        2 * n                              N.∎≤
+
+opaque
+
+  -- A variant of height≤1+2*black-height.
+
+  @0 ⌈height∸1/2⌉≤black-height :
+    ∀ t → N.⌈ height t ∸ 1 /2⌉ N.≤ Tree.black-height t
+  ⌈height∸1/2⌉≤black-height t =
+    N.⌈ height t ∸ 1 /2⌉                       N.≤⟨ N.⌈/2⌉-mono (height≤1+2*black-height t N.∸-mono N.≤-refl) ⟩
+    N.⌈ (1 + 2 * Tree.black-height t) ∸ 1 /2⌉  N.≡⟨⟩≤
+    N.⌈ 2 * Tree.black-height t /2⌉            N.≡⟨ N.⌈2*/2⌉≡ _ ⟩≤
+    Tree.black-height t                        N.∎≤
+
+------------------------------------------------------------------------
+-- Sizes
+
+-- The size of a tree.
+
+@0 size⁻ : Tree⁻ → ℕ
+size⁻ leaf           = 0
+size⁻ (node _ _ l r) = suc (size⁻ l + size⁻ r)
+
+-- The size of a red-black tree.
+
+@0 size : Tree → ℕ
+size t = size⁻ (Tree.tree t)
+
+------------------------------------------------------------------------
+-- Lemmas relating sizes and heights
+
+opaque
+
+  -- A lemma relating the size of a tree to its height.
+
+  @0 size⁻≤2^height⁻∸1 : size⁻ t N.≤ 2 ^ height⁻ t ∸ 1
+  size⁻≤2^height⁻∸1 {t} = lemma t N.∸-mono N.≤-refl
+    where
+    lemma : ∀ t → 1 + size⁻ t N.≤ 2 ^ height⁻ t
+    lemma leaf =
+      N.≤-refl
+    lemma (node _ _ l r) =
+      2 + size⁻ l + size⁻ r                  N.≡⟨ N.suc+≡+suc (1 + _) ⟩≤
+
+      (1 + size⁻ l) + (1 + size⁻ r)          N.≤⟨ lemma l N.+-mono lemma r ⟩
+
+      2 ^ height⁻ l + 2 ^ height⁻ r          N.≤⟨ N.≤-refl N.⁺^-mono N.ˡ≤max (height⁻ l) _ N.+-mono
+                                                  N.≤-refl N.⁺^-mono N.ʳ≤max (height⁻ l) _ ⟩
+      2 ^ N.max (height⁻ l) (height⁻ r) +
+      2 ^ N.max (height⁻ l) (height⁻ r)      N.≡⟨ sym (N.2*≡+ (2 ^ N.max (height⁻ l) _)) ⟩≤
+
+      2 * 2 ^ N.max (height⁻ l) (height⁻ r)  N.∎≤
+
+opaque
+
+  -- A lemma relating the size of a red-black tree to its height.
+  --
+  -- See also 2^⌈height∸1/2⌉∸1≤size below.
+
+  @0 size≤2^height∸1 : ∀ t → size t N.≤ 2 ^ height t ∸ 1
+  size≤2^height∸1 _ = size⁻≤2^height⁻∸1
+
+opaque
+
+  -- A lemma relating the size of a red-black tree to its black
+  -- height.
+
+  @0 size≤2^1+2*black-height∸1 :
+    ∀ t → size t N.≤ 2 ^ (1 + 2 * Tree.black-height t) ∸ 1
+  size≤2^1+2*black-height∸1 t =
+    size t                                 N.≤⟨ size≤2^height∸1 t ⟩
+    2 ^ height t ∸ 1                       N.≤⟨ N.≤-refl N.⁺^-mono height≤1+2*black-height t N.∸-mono N.≤-refl {n = 1} ⟩∎
+    2 ^ (1 + 2 * Tree.black-height t) ∸ 1  ∎≤
+
+opaque
+  unfolding Black-invariant
+
+  -- Another lemma relating the size of a red-black tree to its black
+  -- height.
+
+  @0 2^black-height∸1≤size :
+    ∀ t → 2 ^ Tree.black-height t ∸ 1 N.≤ size t
+  2^black-height∸1≤size t =
+    lemma _ (Tree.red-black t) N.∸-mono N.≤-refl
+    where
+    lemma : ∀ t → Red-black c n lb ub t → 2 ^ n N.≤ 1 + size⁻ t
+    lemma {n} leaf (leafʳᵇ _ n≡0) =
+      2 ^ n  N.≡⟨ cong (2 ^_) n≡0 ⟩≤
+      1      N.∎≤
+    lemma {n} (node black _ l r) (m , l-ok , r-ok , _ , n≡1+m) =
+      2 ^ n                          N.≡⟨ cong (2 ^_) n≡1+m ⟩≤
+      2 ^ (1 + m)                    N.≡⟨ N.2*≡+ (2 ^ m) ⟩≤
+      2 ^ m + 2 ^ m                  N.≤⟨ lemma l l-ok N.+-mono lemma r r-ok ⟩
+      (1 + size⁻ l) + (1 + size⁻ r)  N.≡⟨ sym (N.suc+≡+suc (1 + _)) ⟩≤
+      2 + size⁻ l + size⁻ r          N.∎≤
+    lemma {n} (node red _ l r) (m , l-ok , r-ok , _ , n≡m) =
+      2 ^ n                          N.≡⟨ cong (2 ^_) n≡m ⟩≤
+      2 ^ m                          N.≤⟨ N.m≤m+n _ _ ⟩
+      2 ^ m + 2 ^ m                  N.≤⟨ lemma l l-ok N.+-mono lemma r r-ok ⟩
+      (1 + size⁻ l) + (1 + size⁻ r)  N.≡⟨ sym (N.suc+≡+suc (1 + _)) ⟩≤
+      2 + size⁻ l + size⁻ r          N.∎≤
+
+opaque
+
+  -- Another lemma relating the size of a red-black tree to its
+  -- height.
+  --
+  -- Note that this lemma and size≤2^height∸1 imply that the height is
+  -- Θ(log n), where n is the size.
+
+  @0 2^⌈height∸1/2⌉∸1≤size :
+    ∀ t → 2 ^ N.⌈ height t ∸ 1 /2⌉ ∸ 1 N.≤ size t
+  2^⌈height∸1/2⌉∸1≤size t =
+    2 ^ N.⌈ height t ∸ 1 /2⌉ ∸ 1  N.≤⟨ N.≤-refl N.⁺^-mono ⌈height∸1/2⌉≤black-height t N.∸-mono N.≤-refl {n = 1} ⟩
+    2 ^ Tree.black-height t ∸ 1   N.≤⟨ 2^black-height∸1≤size t ⟩∎
+    size t                        ∎≤
