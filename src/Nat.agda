@@ -18,7 +18,7 @@ open import Prelude
 open Derived-definitions-and-properties eq
 
 private variable
-  m n o : ℕ
+  m m₁ m₂ n n₁ n₂ o : ℕ
 
 ------------------------------------------------------------------------
 -- A helper function
@@ -1162,6 +1162,42 @@ max-∸ (suc m) zero    (suc o) =
   max (m ∸ o) 0  ≡⟨ max-comm _ 0 ⟩
   m ∸ o          ∎
 
+opaque
+
+  -- The function min is monotone.
+
+  min-mono : m₁ ≤ m₂ → n₁ ≤ n₂ → min m₁ n₁ ≤ min m₂ n₂
+  min-mono m₁≤m₂ n₁≤n₂ =
+    min-mono′ _ _ (≤→≤→ _ _ m₁≤m₂) _ _ (≤→≤→ _ _ n₁≤n₂)
+    where
+    min-mono′ :
+      ∀ m₁ m₂ → m₁ ≤→ m₂ → ∀ n₁ n₂ → n₁ ≤→ n₂ → min m₁ n₁ ≤ min m₂ n₂
+    min-mono′ zero    _       _     _       _       _     = zero≤ _
+    min-mono′ (suc _) _       _     zero    _       _     = zero≤ _
+    min-mono′ (suc _) (suc _) m₁≤m₂ (suc _) (suc _) n₁≤n₂ =
+      suc≤suc (min-mono′ _ _ m₁≤m₂ _ _ n₁≤n₂)
+
+opaque
+
+  -- The function max is monotone.
+
+  max-mono : m₁ ≤ m₂ → n₁ ≤ n₂ → max m₁ n₁ ≤ max m₂ n₂
+  max-mono {m₁} m₁≤m₂ n₁≤n₂ =
+    max-mono′ m₁ _ (≤→≤→ _ _ m₁≤m₂) _ _ (≤→≤→ _ _ n₁≤n₂)
+    where
+    max-mono′ :
+      ∀ m₁ m₂ → m₁ ≤→ m₂ → ∀ n₁ n₂ → n₁ ≤→ n₂ → max m₁ n₁ ≤ max m₂ n₂
+    max-mono′ zero m₂ _ n₁ n₂ n₁≤n₂ =
+      n₁         ≤⟨ ≤→→≤ _ _ n₁≤n₂ ⟩
+      n₂         ≤⟨ ʳ≤max m₂ _ ⟩∎
+      max m₂ n₂  ∎≤
+    max-mono′ (suc m₁) m₂ 1+m₁≤m₂ zero n₂ _ =
+      suc m₁     ≤⟨ ≤→→≤ _ _ 1+m₁≤m₂ ⟩
+      m₂         ≤⟨ ˡ≤max m₂ _ ⟩∎
+      max m₂ n₂  ∎≤
+    max-mono′ (suc m₁) (suc _) m₁≤m₂ (suc _) (suc _) n₁≤n₂ =
+      suc≤suc (max-mono′ m₁ _ m₁≤m₂ _ _ n₁≤n₂)
+
 ------------------------------------------------------------------------
 -- Division by two
 
@@ -1261,6 +1297,34 @@ max-∸ (suc m) zero    (suc o) =
   n + ⌊ 1 /2⌋      ≡⟨⟩
   n + 0            ≡⟨ +-right-identity ⟩∎
   n                ∎
+
+opaque
+
+  -- ⌈_/2⌉ is monotone.
+
+  ⌈/2⌉-mono : m ≤ n → ⌈ m /2⌉ ≤ ⌈ n /2⌉
+  ⌈/2⌉-mono = ⌈/2⌉-mono′ _ _ ∘ ≤→≤→ _ _
+    where
+    ⌈/2⌉-mono′ : ∀ m n → m ≤→ n → ⌈ m /2⌉ ≤ ⌈ n /2⌉
+    ⌈/2⌉-mono′ zero          _             _   = zero≤ _
+    ⌈/2⌉-mono′ (suc zero)    (suc zero)    _   = ≤-refl
+    ⌈/2⌉-mono′ (suc zero)    (suc (suc _)) m≤n = suc≤suc (zero≤ _)
+    ⌈/2⌉-mono′ (suc (suc _)) (suc (suc _)) m≤n =
+      suc≤suc (⌈/2⌉-mono′ _ _ m≤n)
+
+opaque
+
+  -- ⌊_/2⌋ is monotone.
+
+  ⌊/2⌋-mono : m ≤ n → ⌊ m /2⌋ ≤ ⌊ n /2⌋
+  ⌊/2⌋-mono = ⌊/2⌋-mono′ _ _ ∘ ≤→≤→ _ _
+    where
+    ⌊/2⌋-mono′ : ∀ m n → m ≤→ n → ⌊ m /2⌋ ≤ ⌊ n /2⌋
+    ⌊/2⌋-mono′ zero          _             _   = zero≤ _
+    ⌊/2⌋-mono′ (suc zero)    (suc zero)    _   = ≤-refl
+    ⌊/2⌋-mono′ (suc zero)    (suc (suc _)) m≤n = zero≤ _
+    ⌊/2⌋-mono′ (suc (suc _)) (suc (suc _)) m≤n =
+      suc≤suc (⌊/2⌋-mono′ _ _ m≤n)
 
 ------------------------------------------------------------------------
 -- Properties related to "is equal to zero"
