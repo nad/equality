@@ -299,6 +299,17 @@ opaque
 
       b′                                                    ∎
 
+  -- If values of type Σ A B have unique first components and B is
+  -- pointwise propositional, then Σ A B is a proposition.
+
+  proj₁-unique→Σ-propositional :
+    ∀ {a b} {A : Type a} {B : A → Type b} →
+    ((x y : Σ A B) → proj₁ x ≡ proj₁ y) →
+    (∀ x → Is-proposition (B x)) →
+    Is-proposition (Σ A B)
+  proj₁-unique→Σ-propositional eq prop p₁ p₂ =
+    Σ-≡,≡→≡ (eq p₁ p₂) (prop _ _ _)
+
   -- H-level is closed under _×_.
 
   ×-closure : ∀ {a b} {A : Type a} {B : Type b} n →
