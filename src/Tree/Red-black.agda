@@ -42,13 +42,13 @@ private
     using () renaming (_<_ to _<ᴱ_)
 
 private variable
-  @0 b            : Bool
-  @0 m n n′ n₁ n₂ : ℕ
-  @0 x y          : A
-  @0 lb ub        : Extended _
-  Tr              : Type _
-  t               : Tr
-  @0 t₁ t₂        : Tr
+  @0 b                     : Bool
+  @0 m n n′ n₁ n₂          : ℕ
+  @0 x y                   : A
+  @0 lb lb₁ lb₂ ub ub₁ ub₂ : Extended _
+  Tr                       : Type _
+  t                        : Tr
+  @0 t₁ t₂                 : Tr
 
 ------------------------------------------------------------------------
 -- A lemma used below
@@ -317,7 +317,7 @@ opaque
            Black-invariant-propositional)
 
 ------------------------------------------------------------------------
--- A lemma related to the bounds
+-- Some lemmas related to the bounds
 
 opaque
 
@@ -329,6 +329,28 @@ opaque
   lower-bound-<-upper-bound {t = node⁰} (nodeʳᵇ l r _ _) =
     EO.<-trans (lower-bound-<-upper-bound l)
       (lower-bound-<-upper-bound r)
+
+opaque
+
+  -- The lower bound can be decreased.
+
+  @0 Red-black-<ᴱˡ :
+    lb₁ <ᴱ lb₂ → Red-black pc n lb₂ ub t → Red-black pc n lb₁ ub t
+  Red-black-<ᴱˡ {t = leaf} lb₁<lb₂ (leafʳᵇ lb₂<ub n≡0) =
+    leafʳᵇ (EO.<-trans lb₁<lb₂ lb₂<ub) n≡0
+  Red-black-<ᴱˡ {t = node⁰} lb₁<lb₂ (nodeʳᵇ l r rinv binv) =
+    nodeʳᵇ (Red-black-<ᴱˡ lb₁<lb₂ l) r rinv binv
+
+opaque
+
+  -- The upper bound can be increased.
+
+  @0 Red-black-<ᴱʳ :
+    ub₁ <ᴱ ub₂ → Red-black pc n lb ub₁ t → Red-black pc n lb ub₂ t
+  Red-black-<ᴱʳ {t = leaf} ub₁<ub₂ (leafʳᵇ lb<ub₁ n≡0) =
+    leafʳᵇ (EO.<-trans lb<ub₁ ub₁<ub₂) n≡0
+  Red-black-<ᴱʳ {t = node⁰} ub₁<ub₂ (nodeʳᵇ l r rinv binv) =
+    nodeʳᵇ l (Red-black-<ᴱʳ ub₁<ub₂ r) rinv binv
 
 ------------------------------------------------------------------------
 -- Membership
