@@ -4592,6 +4592,49 @@ private
     (λ ext → Π-closure (lower-extensionality a b ext) 1 λ _ →
              ¬-propositional (lower-extensionality b _ ext))
 
+-- If A is logically equivalent to B or C, which are mutually
+-- exclusive, then A × ¬ B is logically equivalent to C.
+
+⇔⊎→×¬⇔ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
+  A ⇔ B ⊎ C →
+  (B → C → ⊥₀) →
+  A × ¬ B ⇔ C
+⇔⊎→×¬⇔ A⇔B⊎C excl = record
+  { from = λ x → _⇔_.from A⇔B⊎C (inj₂ x) , flip excl x
+  ; to   = λ (x , ¬B) → P.[ ⊥-elim ∘ ¬B , id ] (_⇔_.to A⇔B⊎C x)
+  }
+
+-- If A is equivalent to B or C, which are mutually exclusive, then
+-- A × ¬ B is equivalent to C (assuming function extensionality).
+
+≃⊎→×¬≃ :
+  ∀ {a b c} {A : Type a} {B : Type b} {C : Type c} →
+  A ≃ (B ⊎ C) →
+  (B → C → ⊥₀) →
+  A × ¬ B ↝[ b ∣ lzero ] C
+≃⊎→×¬≃ {B} {C} A≃B⊎C excl =
+  generalise-ext? (⇔⊎→×¬⇔ (from-equivalence A≃B⊎C) excl) λ ext →
+    (λ x →
+       let f = P.[ ⊥-elim ∘ flip excl x , id ] in
+       f (_≃_.to A≃B⊎C (_≃_.from A≃B⊎C (inj₂ x)))  ≡⟨ cong f (_≃_.right-inverse-of A≃B⊎C _) ⟩
+       f (inj₂ x)                                  ≡⟨⟩
+       x                                           ∎) ,
+    (λ (x , ¬B) →
+       _↔_.to (ignore-propositional-component (¬-propositional ext))
+         (_≃_.from A≃B⊎C
+            (inj₂ ([ ⊥-elim ⊚ ¬B , P.id ] (_≃_.to A≃B⊎C x)))  ≡⟨ cong (_≃_.from A≃B⊎C) (lemma _) ⟩
+
+          _≃_.from A≃B⊎C (_≃_.to A≃B⊎C x)                     ≡⟨ _≃_.left-inverse-of A≃B⊎C _ ⟩∎
+
+          x                                                   ∎))
+  where
+  lemma :
+    {¬B : ¬ B} →
+    (x : B ⊎ C) → inj₂ ([ ⊥-elim ⊚ ¬B , P.id ] x) ≡ x
+  lemma {¬B} (inj₁ x) = ⊥-elim (¬B x)
+  lemma      (inj₂ _) = refl _
+
 ------------------------------------------------------------------------
 -- Lemmas related to H-level
 
