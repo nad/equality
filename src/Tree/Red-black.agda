@@ -28,8 +28,10 @@ open Derived-definitions-and-properties eq
 open import Logical-equivalence using (_⇔_)
 
 open import Equality.Decision-procedures eq
+open import Equivalence eq as Eq using (_≃_)
 open import Erased.Level-1 eq
-open import Function-universe eq as F hiding (id; _∘_)
+open import Function-universe eq as F hiding (id; _∘_; if-lemma)
+import H-level eq as H-level
 open import H-level.Closure eq
 import Nat eq as N
 import Total-order.Erased eq as TE
@@ -40,11 +42,28 @@ private
     using () renaming (_<_ to _<ᴱ_)
 
 private variable
-  @0 m n   : ℕ
-  @0 x y   : A
-  @0 lb ub : Extended _
-  Tr       : Type _
-  t        : Tr
+  @0 b            : Bool
+  @0 m n n′ n₁ n₂ : ℕ
+  @0 x y          : A
+  @0 lb ub        : Extended _
+  Tr              : Type _
+  t               : Tr
+  @0 t₁ t₂        : Tr
+
+------------------------------------------------------------------------
+-- A lemma used below
+
+private opaque
+
+  -- A lemma used below.
+
+  @0 if-lemma :
+    (b ≡ true → n ≢ 0) →
+    let n′ = if b then N.pred n else n in
+    n ≡ if b then suc n′ else n′
+  if-lemma {b = true} {n = zero}  hyp = ⊥-elim (hyp (refl _) (refl _))
+  if-lemma {b = true} {n = suc _} _   = refl _
+  if-lemma {b = false}            _   = refl _
 
 ------------------------------------------------------------------------
 -- Trees with colours
@@ -80,8 +99,8 @@ opaque
   -- The red invariant: red nodes do not have red parents.
 
   @0 Red-invariant : Colour → Colour → Type
-  Red-invariant pc c =
-    c ≡ red → pc ≡ red → ⊥
+  Red-invariant red red = ⊥
+  Red-invariant _   _   = ⊤
 
 opaque
 
@@ -117,10 +136,25 @@ pattern nodeʳᵇ l r rinv binv = _ , l , r , rinv , binv
 opaque
   unfolding Red-invariant
 
+  -- Red-invariant is propositional.
+
+  @0 Red-invariant-propositional :
+    Is-proposition (Red-invariant pc c)
+  Red-invariant-propositional {pc = red}   {c = red} =
+    ⊥-propositional
+  Red-invariant-propositional {pc = red}   {c = black} =
+    H-level.mono₁ 0 ⊤-contractible
+  Red-invariant-propositional {pc = black} =
+    H-level.mono₁ 0 ⊤-contractible
+
+opaque
+  unfolding Red-invariant
+
   -- The red invariant holds for black children.
 
   @0 black-child : Red-invariant pc black
-  black-child black≡red _ = Bool.true≢false black≡red
+  black-child {pc = black} = _
+  black-child {pc = red}   = _
 
 opaque
   unfolding Red-invariant
@@ -128,7 +162,7 @@ opaque
   -- The red invariant holds for black parents.
 
   @0 black-parent : Red-invariant black c
-  black-parent _ black≡red = Bool.true≢false black≡red
+  black-parent = _
 
 opaque
   unfolding Red-invariant
@@ -136,7 +170,7 @@ opaque
   -- The red invariant does not hold for two red nodes.
 
   @0 not-red-red : ¬ Red-invariant red red
-  not-red-red inv = inv (refl _) (refl _)
+  not-red-red ()
 
 opaque
   unfolding Red-invariant
@@ -146,7 +180,7 @@ opaque
 
   @0 red-child : ∀ {pc} → Red-invariant pc red → Red-invariant pc c
   red-child {pc = red}   inv = ⊥-elim (not-red-red inv)
-  red-child {pc = black} _   = black-parent
+  red-child {pc = black} _   = _
 
 opaque
   unfolding Red-invariant
@@ -160,6 +194,16 @@ opaque
 
 ------------------------------------------------------------------------
 -- Some lemmas related to Black-invariant
+
+opaque
+  unfolding Black-invariant
+
+  -- Black-invariant is propositional.
+
+  @0 Black-invariant-propositional :
+    Is-proposition (Black-invariant c m n)
+  Black-invariant-propositional {c = black} = ℕ-set
+  Black-invariant-propositional {c = red}   = ℕ-set
 
 opaque
   unfolding Black-invariant
@@ -182,6 +226,95 @@ opaque
     n      N.≡⟨ eq ⟩≤
     m      N.≤⟨ N.pred≤ _ ⟩∎
     suc m  ∎≤
+
+  -- If Black-invariant c m n holds and m is non-zero, then n is
+  -- non-zero.
+
+  @0 Black-invariant→≢0→≢0 :
+    Black-invariant c m n → m ≢ 0 → n ≢ 0
+  Black-invariant→≢0→≢0 {c = black} n≡1+m _ n≡0 =
+    N.0≢+ (trans (sym n≡0) n≡1+m)
+  Black-invariant→≢0→≢0 {c = red} n≡m m≢0 n≡0 =
+    m≢0 (trans (sym n≡m) n≡0)
+
+  -- If Black-invariant c (suc m) n holds, then Black-invariant c
+  -- holds for m and the predecessor of n.
+
+  @0 Black-invariant-pred :
+    Black-invariant c (suc m) n → Black-invariant c m (N.pred n)
+  Black-invariant-pred {c = red}   = cong N.pred
+  Black-invariant-pred {c = black} = cong N.pred
+
+  -- A lemma with a somewhat convoluted statement.
+
+  @0 Black-invariant-lemma :
+    ∀ c (b b′ : Bool) →
+    let n″ = if b then N.pred n′ else n′ in
+    (b ≡ true → n′ ≢ 0) →
+    (b′ ≡ true → b ≡ true) →
+    Black-invariant c n′ n →
+    Black-invariant c
+      (if b′ then n″ else (if b then suc n″ else n″))
+      (if b′ then N.pred n else n)
+  Black-invariant-lemma c _ false hyp _ =
+    subst (flip (Black-invariant c) _) (if-lemma hyp)
+  Black-invariant-lemma {n′ = zero} _ true true hyp _ =
+    ⊥-elim (hyp (refl _) (refl _))
+  Black-invariant-lemma {n′ = suc _} c true true _ _ =
+    Black-invariant-pred {c = c}
+  Black-invariant-lemma _ false true _ hyp =
+    ⊥-elim (Bool.true≢false (sym (hyp (refl _))))
+
+------------------------------------------------------------------------
+-- The predicate Red-black is propositional
+
+opaque
+  unfolding Black-invariant
+
+  -- The black height is unique.
+
+  @0 black-height-unique :
+    Red-black pc n₁ lb ub t →
+    Red-black pc n₂ lb ub t →
+    n₁ ≡ n₂
+  black-height-unique
+    {n₁} {t = leaf} {n₂} (leafʳᵇ _ n₁≡0) (leafʳᵇ _ n₂≡0) =
+    n₁  ≡⟨ n₁≡0 ⟩
+    0   ≡⟨ sym n₂≡0 ⟩∎
+    n₂  ∎
+  black-height-unique
+    {n₁} {t = nodeᶜ black} {n₂}
+    (m₁ , l₁ , _ , _ , binv₁) (m₂ , l₂ , _ , _ , binv₂) =
+    n₁      ≡⟨ binv₁ ⟩
+    suc m₁  ≡⟨ cong suc (black-height-unique l₁ l₂) ⟩
+    suc m₂  ≡⟨ sym binv₂ ⟩∎
+    n₂      ∎
+  black-height-unique
+    {n₁} {t = nodeᶜ red} {n₂}
+    (m₁ , l₁ , _ , _ , binv₁) (m₂ , l₂ , _ , _ , binv₂) =
+    n₁  ≡⟨ binv₁ ⟩
+    m₁  ≡⟨ black-height-unique l₁ l₂ ⟩
+    m₂  ≡⟨ sym binv₂ ⟩∎
+    n₂  ∎
+
+opaque
+
+  -- Red-black is propositional.
+
+  @0 Red-black-propositional :
+    Is-proposition (Red-black pc n lb ub t)
+  Red-black-propositional {t = leaf} =
+    ×-closure 1 EO.<-propositional ℕ-set
+  Red-black-propositional {t = node⁰} =
+    proj₁-unique→Σ-propositional
+      (λ (_ , l₁ , _) (_ , l₂ , _) →
+         black-height-unique l₁ l₂)
+      (λ _ →
+         ×-closure 1 Red-black-propositional $
+         ×-closure 1 Red-black-propositional $
+         ×-closure 1
+           Red-invariant-propositional
+           Black-invariant-propositional)
 
 ------------------------------------------------------------------------
 -- A lemma related to the bounds
@@ -943,10 +1076,35 @@ opaque
 
 record Tree : Type (a ⊔ o) where
   no-eta-equality
+  pattern
   field
     tree              : Tree⁻
     @0 {black-height} : ℕ
     @0 red-black      : Red-black black black-height min max tree
+
+opaque
+
+  -- There is an equivalence between equality of two trees and
+  -- equality of the corresponding underlying trees.
+
+  @0 tree-cong : (Tree.tree t₁ ≡ Tree.tree t₂) ≃ (t₁ ≡ t₂)
+  tree-cong {t₁} {t₂} =
+    Tree.tree t₁ ≡ Tree.tree t₂               ↔⟨ ignore-propositional-component
+                                                   (proj₁-unique→Σ-propositional
+                                                      (λ (_ , rb₁) (_ , rb₂) → black-height-unique rb₁ rb₂)
+                                                      (λ _ → Red-black-propositional)) ⟩
+    (Tree.tree t₁ , _ , Tree.red-black t₁) ≡
+    (Tree.tree t₂ , _ , Tree.red-black t₂)    ↔⟨ Eq.≃-≡ equiv ⟩□
+
+    t₁ ≡ t₂                                   □
+    where
+    equiv :
+      Tree ≃ (∃ λ (t : Tree⁻) → ∃ λ n → Red-black black n min max t)
+    equiv = Eq.↔→≃
+      (λ t → Tree.tree t , _ , Tree.red-black t)
+      (λ (t , _ , tʳᵇ) → record { tree = t; red-black = tʳᵇ })
+      refl
+      (λ { record{} → refl _ })
 
 opaque
 
@@ -1071,7 +1229,7 @@ opaque
       lemmaʳ (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
         black-case l r l-ok r-ok n≡1+m
       lemmaʳ (node red _ _ _) (nodeʳᵇ _ _ rinv _) =
-        ⊥-elim (rinv (refl _) (refl _))
+        ⊥-elim (not-red-red rinv)
 
       black-case :
         ∀ l r →
