@@ -17,12 +17,12 @@ module Tree.Red-black.Set
   (open Extensionality eq)
   (open Quotient.Erased.Axiomatised eq)
   (open Total-order.Erased eq)
-  (open Univalence-axiom eq)
+  (open Univalence-axiom eq hiding (extensionality))
   -- The code is parametrised by an implementation of quotients.
   (quot : Quotientᴱ)
   {a o}
   -- It is assumed that function and propositional extensionality hold.
-  (@0 ext      : Extensionality (lsuc a) (lsuc a))
+  (@0 ext      : Extensionality (lsuc a) (lsuc a ⊔ o))
   (@0 prop-ext : Propositional-extensionality a)
   -- The carrier type.
   {A : Type a}
@@ -66,7 +66,7 @@ opaque
   Set = T.Tree /ᴱ (λ t₁ t₂ → ∀ z → z T.∈ t₁ ⇔ z T.∈ t₂)
 
 private variable
-  xs : Set
+  xs xs₁ xs₂ : Set
 
 ------------------------------------------------------------------------
 -- Set membership
@@ -80,7 +80,8 @@ private opaque
     A → Set → ∃ λ (B : Type a) → Erased (Is-proposition B)
   Membership x = Q.rec λ where
     .is-setʳ →
-      Is-set-∃-Erased-Is-proposition ext prop-ext
+      Is-set-∃-Erased-Is-proposition (lower-extensionality lzero o ext)
+        prop-ext
     .[]ʳ t →
       (x T.∈ t) , [ T.∈-propositional ]
     .[]-respects-relationʳ {x = xs} {y = ys} →
@@ -112,6 +113,25 @@ opaque
 
   @0 ∈-propositional : Is-proposition (x ∈ xs)
   ∈-propositional = Membership _ _ .proj₂ .erased
+
+opaque
+  unfolding Set _∈_
+
+  -- Extensionality for sets.
+
+  @0 extensionality : (∀ {x} → x ∈ xs₁ ⇔ x ∈ xs₂) → xs₁ ≡ xs₂
+  extensionality =
+    Q.elim-prop₂ (λ xs₁ xs₂ → (∀ {x} → x ∈ xs₁ ⇔ x ∈ xs₂) → xs₁ ≡ xs₂)
+      (λ _ _ →
+         Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+         Q./ᴱ-is-set)
+      (λ t₁ t₂ t₁≈t₂ →
+         Q.[]-respects-relation λ x →
+           x T.∈ t₁     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
+           x ∈ [ t₁ ]Q  ↝⟨ t₁≈t₂ ⟩
+           x ∈ [ t₂ ]Q  ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩□
+           x T.∈ t₂     □)
+      _ _
 
 ------------------------------------------------------------------------
 -- A membership test
