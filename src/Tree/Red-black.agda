@@ -1128,6 +1128,9 @@ opaque
       refl
       (λ { record{} → refl _ })
 
+------------------------------------------------------------------------
+-- Membership
+
 opaque
 
   infix 4 _∈_
@@ -1145,6 +1148,9 @@ opaque
   @0 ∈-propositional : Is-proposition (x ∈ t)
   ∈-propositional {t} = ∈⁻-propositional (Tree.red-black t)
 
+------------------------------------------------------------------------
+-- A membership test
+
 opaque
   unfolding _∈_
 
@@ -1152,6 +1158,9 @@ opaque
 
   member? : (x : A) (t : Tree) → Dec-Erased (x ∈ t)
   member? x t = member?⁻ x (Tree.tree t) (Tree.red-black t)
+
+------------------------------------------------------------------------
+-- An empty tree
 
 opaque
 
@@ -1170,6 +1179,9 @@ opaque
 
   @0 ∉empty : ¬ x ∈ empty
   ∉empty = ∉⁻empty⁻
+
+------------------------------------------------------------------------
+-- Insertion
 
 opaque
 
