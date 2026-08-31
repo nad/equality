@@ -559,6 +559,14 @@ implicit-apply-extᴱ {A} {P} {f} {g} ext =
        (λ _ → apply-extᴱ ext λ _ → refl _)
      , (λ _ → apply-ext ext λ { [ _ ] → refl _ }))
 
+opaque
+
+  -- In erased contexts Π-types with erased domains are equivalent to
+  -- Π-types with non-erased domains.
+
+  @0 Π0≃Π : ((@0 x : A) → P x) ≃ ((x : A) → P x)
+  Π0≃Π = Eq.↔→≃ (λ f x → f x) (λ f x → f x) refl refl
+
 ------------------------------------------------------------------------
 -- A variant of Dec ∘ Erased
 
