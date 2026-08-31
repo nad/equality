@@ -16,11 +16,12 @@ import Equality.Propositional as EP
 open import Logical-equivalence using (_⇔_)
 open import Prelude as P
 
+open import Bag-equivalence eq
 open import Bijection eq using (_↔_)
 open import Bool eq
 open import Equality.Decidable-UIP eq
 open import Erased.Level-1 eq as E
-open import Function-universe eq
+open import Function-universe eq as F hiding (id)
 import H-level.Closure eq as H
 import Nat eq as N
 
@@ -189,8 +190,6 @@ record Total-order (A : Type a) (r : Level) : Type (a ⊔ lsuc r) where
     ≤-propositional =
       H.⊎-closure-propositional <→≢ <-propositional is-set
 
-open Total-order
-
 ------------------------------------------------------------------------
 -- Extending a total order with new bottom and top elements
 
@@ -213,39 +212,176 @@ data Extended-order
   []-max  : Extended-order R [ x ] max
   []-[]   : R x y → Extended-order R [ x ] [ y ]
 
--- A total order can be extended with new bottom and top elements.
+module _ where
 
-extended :
-  {A : Type a} →
-  Total-order A r →
-  Total-order (Extended A) (a ⊔ r)
-extended 𝓞 ._<_ =
-  Extended-order (𝓞 ._<_)
-extended 𝓞 .<-propositional min-max   min-max   = refl _
-extended 𝓞 .<-propositional min-[]    min-[]    = refl _
-extended 𝓞 .<-propositional []-max    []-max    = refl _
-extended 𝓞 .<-propositional ([]-[] p) ([]-[] q) =
-  cong []-[] (𝓞 .<-propositional p q)
-extended 𝓞 .compare min   min   = inj₂ (inj₁ [ refl min ])
-extended 𝓞 .compare min   [ _ ] = inj₁ [ min-[] ]
-extended 𝓞 .compare min   max   = inj₁ [ min-max ]
-extended 𝓞 .compare max   min   = inj₂ (inj₂ [ min-max ])
-extended 𝓞 .compare max   [ _ ] = inj₂ (inj₂ [ []-max ])
-extended 𝓞 .compare max   max   = inj₂ (inj₁ [ refl max ])
-extended 𝓞 .compare [ _ ] min   = inj₂ (inj₂ [ min-[] ])
-extended 𝓞 .compare [ _ ] max   = inj₁ [ []-max ]
-extended 𝓞 .compare [ x ] [ y ] =
+  open Total-order
+
+  -- A total order can be extended with new bottom and top elements.
+
+  extended :
+    {A : Type a} →
+    Total-order A r →
+    Total-order (Extended A) (a ⊔ r)
+  extended 𝓞 ._<_ =
+    Extended-order (𝓞 ._<_)
+  extended 𝓞 .<-propositional min-max   min-max   = refl _
+  extended 𝓞 .<-propositional min-[]    min-[]    = refl _
+  extended 𝓞 .<-propositional []-max    []-max    = refl _
+  extended 𝓞 .<-propositional ([]-[] p) ([]-[] q) =
+    cong []-[] (𝓞 .<-propositional p q)
+  extended 𝓞 .compare min   min   = inj₂ (inj₁ [ refl min ])
+  extended 𝓞 .compare min   [ _ ] = inj₁ [ min-[] ]
+  extended 𝓞 .compare min   max   = inj₁ [ min-max ]
+  extended 𝓞 .compare max   min   = inj₂ (inj₂ [ min-max ])
+  extended 𝓞 .compare max   [ _ ] = inj₂ (inj₂ [ []-max ])
+  extended 𝓞 .compare max   max   = inj₂ (inj₁ [ refl max ])
+  extended 𝓞 .compare [ _ ] min   = inj₂ (inj₂ [ min-[] ])
+  extended 𝓞 .compare [ _ ] max   = inj₁ [ []-max ]
+  extended 𝓞 .compare [ x ] [ y ] =
     ⊎-map (E.map []-[]) (⊎-map (E.map (cong [_])) (E.map []-[]))
       (𝓞 .compare x y)
-extended 𝓞 .Total-order.<-irreflexive ([]-[] x<x) =
-  𝓞 .<-irreflexive x<x
-extended 𝓞 .<-trans min-max     ()
-extended 𝓞 .<-trans min-[]      []-max      = min-max
-extended 𝓞 .<-trans min-[]      ([]-[] _)   = min-[]
-extended 𝓞 .<-trans []-max      ()
-extended 𝓞 .<-trans ([]-[] _)   []-max      = []-max
-extended 𝓞 .<-trans ([]-[] x<y) ([]-[] y<z) =
-  []-[] (𝓞 .<-trans x<y y<z)
+  extended 𝓞 .Total-order.<-irreflexive ([]-[] x<x) =
+    𝓞 .<-irreflexive x<x
+  extended 𝓞 .<-trans min-max     ()
+  extended 𝓞 .<-trans min-[]      []-max      = min-max
+  extended 𝓞 .<-trans min-[]      ([]-[] _)   = min-[]
+  extended 𝓞 .<-trans []-max      ()
+  extended 𝓞 .<-trans ([]-[] _)   []-max      = []-max
+  extended 𝓞 .<-trans ([]-[] x<y) ([]-[] y<z) =
+    []-[] (𝓞 .<-trans x<y y<z)
+
+------------------------------------------------------------------------
+-- Sorted lists
+
+module @0 Sorted-list {A : Type a} (O : Total-order A r) where
+
+  open Total-order (extended O)
+
+  private variable
+    lb lb₁ lb₂ ub ub₁ ub₂ : Extended A
+    xs xs₁ xs₂            : List A
+
+  -- Sorted lb ub xs means that xs is sorted (strictly), with lb as a
+  -- strict lower bound and ub as a strict upper bound.
+  --
+  -- This predicate is based on McBride's "How to Keep Your Neighbours
+  -- in Order".
+
+  Sorted : Extended A → Extended A → List A → Type (a ⊔ r)
+  Sorted lb ub []       = lb < ub
+  Sorted lb ub (x ∷ xs) = lb < [ x ] × Sorted [ x ] ub xs
+
+  opaque
+
+    -- Sorted is propositional.
+
+    Sorted-propositional : ∀ xs → Is-proposition (Sorted lb ub xs)
+    Sorted-propositional []       = <-propositional
+    Sorted-propositional (_ ∷ xs) =
+      H.×-closure 1 <-propositional (Sorted-propositional xs)
+
+  opaque
+
+    -- The lower bound is strictly below the upper bound.
+
+    Sorted→lower-bound-<-upper-bound :
+      ∀ xs → Sorted lb ub xs → lb < ub
+    Sorted→lower-bound-<-upper-bound []       lb<ub     = lb<ub
+    Sorted→lower-bound-<-upper-bound (_ ∷ xs) (lb< , s) =
+      <-trans lb< (Sorted→lower-bound-<-upper-bound xs s)
+
+  opaque
+
+    -- Elements of a sorted list are between the bounds (strictly).
+
+    Sorted→∈→<< :
+      Sorted lb ub xs → x ∈ xs → lb < [ x ] × [ x ] < ub
+    Sorted→∈→<< {lb} {ub} {xs = _ ∷ ys} (lb<y , s) (inj₁ x≡y) =
+      subst (λ x → lb < [ x ] × [ x ] < ub) (sym x≡y)
+        (lb<y , Sorted→lower-bound-<-upper-bound ys s)
+    Sorted→∈→<< {xs = _ ∷ _} (lb<y , s) (inj₂ x∈ys) =
+      Σ-map (<-trans lb<y) id (Sorted→∈→<< s x∈ys)
+
+  opaque
+
+    -- Sorted, set equivalent lists are equal.
+
+    Sorted→≈→≡ :
+      Sorted lb₁ ub₁ xs₁ → Sorted lb₂ ub₂ xs₂ → xs₁ ∼[ set ] xs₂ →
+      xs₁ ≡ xs₂
+    Sorted→≈→≡ {xs₁ = []} {xs₂ = []} _ _ _ =
+      refl _
+    Sorted→≈→≡ {xs₁ = []} {xs₂ = x ∷ xs} _ _ []≈x∷xs =
+                   $⟨ inj₁ (refl _) ⟩
+      x ∈ x ∷ xs   →⟨ _⇔_.from ([]≈x∷xs _) ⟩
+      x ∈ []       ↔⟨⟩
+      ⊥            →⟨ ⊥-elim ⟩□
+      [] ≡ x ∷ xs  □
+    Sorted→≈→≡ {xs₁ = x ∷ xs} {xs₂ = []} _ _ x∷xs≈[] =
+                   $⟨ inj₁ (refl _) ⟩
+      x ∈ x ∷ xs   →⟨ _⇔_.to (x∷xs≈[] _) ⟩
+      x ∈ []       ↔⟨⟩
+      ⊥            →⟨ ⊥-elim ⟩□
+      x ∷ xs ≡ []  □
+    Sorted→≈→≡
+      {xs₁ = x₁ ∷ xs₁} {xs₂ = x₂ ∷ xs₂}
+      (<x₁ , x₁<xs₁) (<x₂ , x₂<xs₂) x₁∷xs₁≈x₂∷xs₂ =
+      let x₁∈ : x₁ ∈ x₂ ∷ xs₂
+          x₁∈ = _⇔_.to (x₁∷xs₁≈x₂∷xs₂ _) (inj₁ (refl _))
+
+          x₂∈ : x₂ ∈ x₁ ∷ xs₁
+          x₂∈ = _⇔_.from (x₁∷xs₁≈x₂∷xs₂ _) (inj₁ (refl _))
+
+          x₁≡x₂ : x₁ ≡ x₂
+          x₁≡x₂ = case x₁∈ of λ where
+            (inj₁ x₁≡x₂)  → x₁≡x₂
+            (inj₂ x₁∈xs₂) →
+              case x₂∈ of λ where
+                (inj₁ x₂≡x₁)  → sym x₂≡x₁
+                (inj₂ x₂∈xs₁) →
+                  let x₂<x₁ , _ = Sorted→∈→<< x₂<xs₂ x₁∈xs₂
+                      x₁<x₂ , _ = Sorted→∈→<< x₁<xs₁ x₂∈xs₁
+                  in
+                  ⊥-elim (<-asymmetric x₁<x₂ x₂<x₁)
+
+          xs₁≈xs₂ : xs₁ ∼[ set ] xs₂
+          xs₁≈xs₂ y =
+            y ∈ xs₁                ↝⟨ (inverse $ ⇔⊎→×¬⇔ F.id λ y≡x₁ y∈xs₁ →
+                                       <→≢ (Sorted→∈→<< x₁<xs₁ y∈xs₁ .proj₁) (cong [_] (sym y≡x₁))) ⟩
+            y ∈ x₁ ∷ xs₁ × y ≢ x₁  ↝⟨ x₁∷xs₁≈x₂∷xs₂ _ ×-cong →-cong _ (≡⇒↝ _ (cong (_ ≡_) x₁≡x₂)) F.id ⟩
+            y ∈ x₂ ∷ xs₂ × y ≢ x₂  ↝⟨ (⇔⊎→×¬⇔ F.id λ y≡x₂ y∈xs₂ →
+                                       <→≢ (Sorted→∈→<< x₂<xs₂ y∈xs₂ .proj₁) (cong [_] (sym y≡x₂))) ⟩□
+            y ∈ xs₂                □
+      in
+      cong₂ _∷_ x₁≡x₂ (Sorted→≈→≡ x₁<xs₁ x₂<xs₂ xs₁≈xs₂)
+
+  -- A variant of Sorted that allows the lower bound to be equal to the
+  -- first element (or the upper bound, if the list is empty).
+
+  Sorted-≤₁ : Extended A → Extended A → List A → Type (a ⊔ r)
+  Sorted-≤₁ lb ub []       = lb ≤ ub
+  Sorted-≤₁ lb ub (x ∷ xs) = lb ≤ [ x ] × Sorted [ x ] ub xs
+
+  opaque
+
+    -- Sorted-≤₁ is propositional.
+
+    Sorted-≤₁-propositional :
+      ∀ xs → Is-proposition (Sorted-≤₁ lb ub xs)
+    Sorted-≤₁-propositional []       = ≤-propositional
+    Sorted-≤₁-propositional (_ ∷ xs) =
+      H.×-closure 1 ≤-propositional (Sorted-propositional xs)
+
+  opaque
+
+    -- One can convert from Sorted-≤₁ to Sorted.
+
+    Sorted-≤₁→Sorted :
+      ∀ xs → lb₁ < lb₂ → Sorted-≤₁ lb₂ ub xs → Sorted lb₁ ub xs
+    Sorted-≤₁→Sorted [] lb₁<lb₂ lb₂≤ub =
+      <-≤-trans lb₁<lb₂ lb₂≤ub
+    Sorted-≤₁→Sorted (_ ∷ _) lb₁<lb₂ (lb₂≤ , s) =
+      <-≤-trans lb₁<lb₂ lb₂≤ , s
 
 ------------------------------------------------------------------------
 -- An example: natural numbers
