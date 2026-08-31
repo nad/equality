@@ -137,22 +137,28 @@ opaque
         subst P ([]-respects-relation r) (f x) ≡ f y) →
     @0 (∀ x → Is-set (P x)) →
     (x : A /ᴱ R) → P x
-  eliminator P f resp set =
-    Q.qrec P f
-      (λ {x y} r →
-         _↔_.to iso
-           (Q.subst P (Q.resp r) (f x)                              ≡⟨ cong (flip (Q.subst _) _) (sym (_↔_.right-inverse-of iso _)) ⟩
-            Q.subst P (_↔_.to iso (_↔_.from iso (Q.resp r))) (f x)  ≡⟨ elim¹ (λ eq → Q.subst P (_↔_.to iso eq) (f x) ≡ subst P eq (f x))
-                                                                         (
-              Q.subst P (_↔_.to iso (refl _)) (f x)                       ≡⟨ cong (flip (Q.subst _) _) iso-refl ⟩
-              Q.subst P EP.refl (f x)                                     ≡⟨⟩
-              f x                                                         ≡⟨ sym (subst-refl _ _) ⟩∎
-              subst P (refl _) (f x)                                      ∎)
-                                                                         _ ⟩
-            subst P (_↔_.from iso (Q.resp r)) (f x)                 ≡⟨⟩
-            subst P ([]-respects-relation r) (f x)                  ≡⟨ resp r ⟩
-            f y                                                     ∎))
-      (Is-set←Is-set ∘ set)
+  eliminator {A} {R} P f resp set =
+    Q.qrec P f resp′ set′
+    where
+    opaque
+
+      @0 resp′ : (r : R x y) → Q.subst P (Q.resp r) (f x) EP.≡ f y
+      resp′ {x} {y} r =
+        _↔_.to iso
+          (Q.subst P (Q.resp r) (f x)                              ≡⟨ cong (flip (Q.subst _) _) (sym (_↔_.right-inverse-of iso _)) ⟩
+           Q.subst P (_↔_.to iso (_↔_.from iso (Q.resp r))) (f x)  ≡⟨ elim¹ (λ eq → Q.subst P (_↔_.to iso eq) (f x) ≡ subst P eq (f x))
+                                                                        (
+             Q.subst P (_↔_.to iso (refl _)) (f x)                       ≡⟨ cong (flip (Q.subst _) _) iso-refl ⟩
+             Q.subst P EP.refl (f x)                                     ≡⟨⟩
+             f x                                                         ≡⟨ sym (subst-refl _ _) ⟩∎
+             subst P (refl _) (f x)                                      ∎)
+                                                                        _ ⟩
+           subst P (_↔_.from iso (Q.resp r)) (f x)                 ≡⟨⟩
+           subst P ([]-respects-relation r) (f x)                  ≡⟨ resp r ⟩
+           f y                                                     ∎)
+
+      @0 set′ : (x : A Q./ R) → Q.Is-set (P x)
+      set′ = Is-set←Is-set ∘ set
 
 opaque
   unfolding eliminator

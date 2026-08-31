@@ -116,13 +116,15 @@ private opaque
 
   Membership :
     A → Set → ∃ λ (B : Type a) → Erased (Is-proposition B)
-  Membership x = Q.rec λ where
-    .is-setʳ →
+  Membership x = Q.rec r
+    where
+    r : Q.Rec T._≈_ (∃ λ (B : Type a) → Erased (Is-proposition B))
+    r .is-setʳ =
       Is-set-∃-Erased-Is-proposition (lower-extensionality o o ext)
         prop-ext
-    .[]ʳ t →
+    r .[]ʳ t =
       (x T.∈ t) , [ T.∈-propositional ]
-    .[]-respects-relationʳ {x = xs} {y = ys} →
+    r .[]-respects-relationʳ {x = xs} {y = ys} =
       (∀ {z} → z T.∈ xs ⇔ z T.∈ ys)           →⟨ (λ xs≈ys → xs≈ys) ⟩
 
       x T.∈ xs ⇔ x T.∈ ys                     →⟨ prop-ext T.∈-propositional T.∈-propositional ⟩

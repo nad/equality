@@ -127,15 +127,17 @@ record Quotientᴱ : Typeω where
     unfolding elim
 
     rec : Rec R B → A /ᴱ R → B
-    rec r = elim λ where
-        .[]ʳ →
-          R.[]ʳ
-        .[]-respects-relationʳ →
-          trans (subst-const _) ∘ R.[]-respects-relationʳ
-        .is-setʳ _ →
-          R.is-setʳ
+    rec {R} {B} r = elim e′
       where
       module R = Rec r
+
+      e′ : Elim {R = R} (λ _ → B)
+      e′ .[]ʳ =
+        R.[]ʳ
+      e′ .[]-respects-relationʳ =
+        trans (subst-const _) ∘ R.[]-respects-relationʳ
+      e′ .is-setʳ _ =
+        R.is-setʳ
 
     rec-[] : rec {R = R} r [ x ] ≡ r .[]ʳ x
     rec-[] = eliminator-[]
@@ -421,16 +423,18 @@ record Quotientᴱ : Typeω where
         (A₁→A₂ : A₁ → A₂) →
         @0 (∀ x y → ∥ R₁ x y ∥ᴱ → ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥ᴱ) →
         A₁ /ᴱ R₁ → A₂ /ᴱ R₂
-      _/ᴱ-map-∥∥ᴱ_ {R₁} {R₂} A₁→A₂ R₁→R₂ = rec λ where
-          .[]ʳ                           → [_] ∘ A₁→A₂
-          .is-setʳ                       → /ᴱ-is-set
-          .[]-respects-relationʳ {x} {y} →
-             R₁ x y                       →⟨ ∣_∣ ⟩
-             ∥ R₁ x y ∥ᴱ                  →⟨ R₁→R₂ _ _ ⟩
-             ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥ᴱ  →⟨ (Tr.rec λ @0 where
-                                                .Tr.∣∣ʳ                        → []-respects-relation
-                                                .Tr.truncation-is-propositionʳ → /ᴱ-is-set) ⟩□
-             [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]    □
+      _/ᴱ-map-∥∥ᴱ_ {A₂} {R₁} {R₂} A₁→A₂ R₁→R₂ = rec r′
+        where
+        r′ : Rec R₁ (A₂ /ᴱ R₂)
+        r′ .[]ʳ                           = [_] ∘ A₁→A₂
+        r′ .is-setʳ                       = /ᴱ-is-set
+        r′ .[]-respects-relationʳ {x} {y} =
+          R₁ x y                       →⟨ ∣_∣ ⟩
+          ∥ R₁ x y ∥ᴱ                  →⟨ R₁→R₂ _ _ ⟩
+          ∥ R₂ (A₁→A₂ x) (A₁→A₂ y) ∥ᴱ  →⟨ (Tr.rec λ @0 where
+                                             .Tr.∣∣ʳ                        → []-respects-relation
+                                             .Tr.truncation-is-propositionʳ → /ᴱ-is-set) ⟩□
+          [ A₁→A₂ x ] ≡ [ A₁→A₂ y ]    □
 
     opaque
       unfolding _/ᴱ-map-∥∥ᴱ_
