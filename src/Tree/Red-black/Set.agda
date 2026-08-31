@@ -68,6 +68,14 @@ opaque
 private variable
   xs xs₁ xs₂ : Set
 
+opaque
+  unfolding Set
+
+  -- Set is a set.
+
+  @0 Set-set : Is-set Set
+  Set-set = Q./ᴱ-is-set
+
 ------------------------------------------------------------------------
 -- Set membership
 
@@ -124,7 +132,7 @@ opaque
     Q.elim-prop₂ (λ xs₁ xs₂ → (∀ {x} → x ∈ xs₁ ⇔ x ∈ xs₂) → xs₁ ≡ xs₂)
       (λ _ _ →
          Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
-         Q./ᴱ-is-set)
+         Set-set)
       (λ t₁ t₂ t₁≈t₂ →
          Q.[]-respects-relation λ x →
            x T.∈ t₁     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
