@@ -52,7 +52,7 @@ private
     Erased.[]-cong₁ (erased-instance-of-[]-cong-axiomatisation {a = a})
   open module Q  = Quotientᴱ quot renaming ([_] to [_]Q)
   open module Tr = Truncationᴱ Q.truncation
-  open module O  = Total-order O using (_<_)
+  open module O  = Total-order O using (_<_; _≤_)
 
 private variable
   x y : A
@@ -492,3 +492,56 @@ opaque
       Is-just (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ⇔ Is-just r
     lemma nothing  = F.id
     lemma (just _) = F.id
+
+------------------------------------------------------------------------
+-- Finding the minimum element
+
+opaque
+
+  -- A merely non-empty set contains a least element.
+
+  find-min :
+    {xs : Set} →
+    @0 ∥ (∃ λ x → x ∈ xs) ∥ᴱ →
+    ∃ λ (x : A) → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))
+  find-min {xs} non-empty =
+    lemma (delete-min xs) (refl _) non-empty
+    where
+    lemma :
+      (r : Maybe (A × Set)) →
+      @0 delete-min xs ≡ r →
+      @0 ∥ (∃ λ x → x ∈ xs) ∥ᴱ →
+      ∃ λ x → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))
+    lemma nothing eq ∈xs =
+      ⊥-elim₀
+        (Tr.rec
+           (λ @0 where
+              .truncation-is-propositionʳ →
+                ⊥-propositional
+              .∣∣ʳ (_ , ∈xs) →
+                _⇔_.to Is-nothing-delete-min
+                  (subst Is-nothing (sym eq) _) ∈xs)
+           ∈xs)
+    lemma (just (x , _)) eq _ =
+      x ,
+      [ ( _⇔_.from (∈-delete-min eq) (inj₁ (refl _))
+        , λ y∈xs →
+            case _⇔_.to (∈-delete-min eq) y∈xs of λ @0 where
+              (inj₁ y≡x)   → O.≤-reflexive (sym y≡x)
+              (inj₂ y∈xs′) → O.<→≤ (<-delete-min eq y∈xs′)
+        )
+      ]
+
+opaque
+
+  -- A set is non-empty if and only if it is merely non-empty.
+
+  @0 ∈⇔∥∈∥ᴱ : (∃ λ x → x ∈ xs) ⇔ ∥ (∃ λ x → x ∈ xs) ∥ᴱ
+  ∈⇔∥∈∥ᴱ {xs} = record
+    { to   = ∣_∣
+    ; from =
+        ∥ (∃ λ x → x ∈ xs) ∥ᴱ                                 →⟨ (λ hyp → find-min hyp) ⟩
+        (∃ λ x → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y)))  ↔⟨ (∃-cong λ _ → erased Erased↔) ⟩
+        (∃ λ x → x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))           →⟨ Σ-map id proj₁ ⟩
+        (∃ λ x → x ∈ xs)                                      □
+    }
