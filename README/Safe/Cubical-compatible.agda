@@ -404,7 +404,11 @@ import Integer.Quotient.Erased
 
 import Total-order.Erased
 
--- Red-black trees.
+-- Red-black trees with external invariants.
+
+import Tree.Red-black.External-invariants
+
+-- Red-black trees with integrated invariants.
 
 import Tree.Red-black
 
