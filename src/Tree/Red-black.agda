@@ -22,6 +22,7 @@ open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
 
+import Bag-equivalence eq as L
 open import Bijection eq using (_↔_)
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
@@ -36,6 +37,7 @@ import Total-order.Erased eq as TE
 open import Tree.Red-black.External-invariants eq O
 
 open TE.Total-order O using (_<_)
+open Sorted-list O
 
 private variable
   @0 m n   : ℕ
@@ -230,6 +232,53 @@ opaque
     N.⌈ (1 + 2 * Tree.black-height t) ∸ 1 /2⌉  N.≡⟨⟩≤
     N.⌈ 2 * Tree.black-height t /2⌉            N.≡⟨ N.⌈2*/2⌉≡ _ ⟩≤
     Tree.black-height t                        N.∎≤
+
+------------------------------------------------------------------------
+-- Conversion to lists
+
+opaque
+
+  -- Converts the tree to a sorted list.
+
+  to-List : Tree → List A
+  to-List t = to-List⁻ (Tree.tree t)
+
+opaque
+  unfolding _∈_ to-List
+
+  -- A membership lemma for to-List.
+
+  @0 ∈-to-List : (x L.∈ to-List t) ≃ (x ∈ t)
+  ∈-to-List = ∈⁻-to-List⁻
+
+opaque
+  unfolding to-List
+
+  -- The list returned by to-List is sorted.
+
+  @0 Sorted-to-List : Sorted min max (to-List t)
+  Sorted-to-List {t} = Sorted-to-List⁻ (Tree.red-black t)
+
+opaque
+  unfolding _≈_
+
+  -- The trees t₁ and t₂ are set equivalent if and only if to-List t₁
+  -- is equal to to-List t₂.
+
+  @0 ≈⇔to-List≡to-List : t₁ ≈ t₂ ⇔ to-List t₁ ≡ to-List t₂
+  ≈⇔to-List≡to-List {t₁} {t₂} = record
+    { to = λ t₁≈t₂ →
+        Sorted→≈→≡ Sorted-to-List Sorted-to-List λ x →
+          x L.∈ to-List t₁  ↔⟨ ∈-to-List ⟩
+          x ∈ t₁            ↝⟨ t₁≈t₂ ⟩
+          x ∈ t₂            ↔⟨ inverse ∈-to-List ⟩□
+          x L.∈ to-List t₂  □
+    ; from = λ eq {x} →
+        x ∈ t₁            ↔⟨ inverse ∈-to-List ⟩
+        x L.∈ to-List t₁  ↝⟨ ≡⇒↝ _ (cong (L._∈_ _) eq) ⟩
+        x L.∈ to-List t₂  ↔⟨ ∈-to-List ⟩□
+        x ∈ t₂            □
+    }
 
 ------------------------------------------------------------------------
 -- Sizes and lemmas relating sizes and heights

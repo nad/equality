@@ -34,14 +34,16 @@ open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
 
+import Bag-equivalence eq as L
 open import Equality.Decision-procedures eq
-open import Equivalence eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_)
 open import Equivalence.Erased eq using (_≃ᴱ_)
 open import Erased.Level-1 eq as Erased
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level hiding (Set)
 open import H-level.Closure eq
 open import H-level.Truncation.Propositional.Erased.Axiomatised eq
+open import List eq
 open import Maybe eq
 open import Monad eq
 import Nat eq as N
@@ -53,6 +55,8 @@ private
   open module Q  = Quotientᴱ quot renaming ([_] to [_]Q)
   open module Tr = Truncationᴱ Q.truncation
   open module O  = Total-order O using (_<_; _≤_)
+
+open Sorted-list O
 
 private variable
   x y : A
@@ -545,3 +549,55 @@ opaque
         (∃ λ x → x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))           →⟨ Σ-map id proj₁ ⟩
         (∃ λ x → x ∈ xs)                                      □
     }
+
+------------------------------------------------------------------------
+-- Conversion to lists
+
+opaque
+  unfolding Set
+
+  -- Converts the set to a sorted list.
+
+  to-List : Set → List A
+  to-List = Q.rec λ where
+    .[]ʳ                   → T.to-List
+    .[]-respects-relationʳ → _⇔_.to T.≈⇔to-List≡to-List
+    .is-setʳ               → H-level-List 0 O.is-set
+
+opaque
+  unfolding to-List ∈[]
+
+  -- The list to-List xs is bag equivalent to the set xs.
+  --
+  -- Note that this implies that the set is finite.
+
+  @0 ∈to-List≃ : (x L.∈ to-List xs) ≃ (x ∈ xs)
+  ∈to-List≃ {x} =
+    Q.elim-prop {P = λ xs → (x L.∈ to-List xs) ≃ (x ∈ xs)}
+      (λ where
+         .is-propositionʳ _ →
+           Eq.right-closure (lower-extensionality _ _ ext) 0
+             ∈-propositional
+         .[]ʳ t →
+           x L.∈ to-List [ t ]Q  ↝⟨ ≡⇒↝ _ (cong (L._∈_ _) Q.rec-[]) ⟩
+           x L.∈ T.to-List t     ↝⟨ T.∈-to-List ⟩
+           x T.∈ t               ↝⟨ ≡⇒↝ _ (sym ∈[]) ⟩□
+           x ∈ [ t ]Q            □)
+      _
+
+opaque
+  unfolding to-List
+
+  -- The list returned by to-List is strictly ascending.
+
+  @0 Sorted-to-List : Sorted min max (to-List xs)
+  Sorted-to-List =
+    Q.elim-prop {P = λ xs → Sorted min max (to-List xs)}
+      (λ where
+         .is-propositionʳ _ →
+           Sorted-propositional (to-List _)
+         .[]ʳ t →
+                                            $⟨ T.Sorted-to-List ⟩
+           Sorted min max (T.to-List t)     →⟨ subst (Sorted _ _) (sym Q.rec-[]) ⟩
+           Sorted min max (to-List [ t ]Q)  □)
+      _

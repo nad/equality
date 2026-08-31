@@ -28,11 +28,14 @@ open Derived-definitions-and-properties eq
 
 open import Logical-equivalence using (_⇔_)
 
+import Bag-equivalence eq as L
 open import Equality.Decision-procedures eq
+open import Equivalence eq using (_≃_)
 open import Erased.Level-1 eq
 open import Function-universe eq as F hiding (id; _∘_; if-lemma)
 import H-level eq as H-level
 open import H-level.Closure eq
+open import List eq
 open import Maybe eq
 import Nat eq as N
 import Total-order.Erased eq as TE
@@ -42,11 +45,14 @@ private
   open module EO = TE.Total-order (extended O)
     using () renaming (_<_ to _<ᴱ_)
 
+open Sorted-list O
+
 private variable
-  @0 b                     : Bool
-  @0 m n n′ n₁ n₂          : ℕ
-  @0 x x₂ x₄ y z           : A
-  @0 lb lb₁ lb₂ ub ub₁ ub₂ : Extended _
+  @0 b                              : Bool
+  @0 m n n′ n₁ n₂                   : ℕ
+  @0 xs                             : List _
+  @0 x x₂ x₄ y z                    : A
+  @0 b₁ b₂ b₃ lb lb₁ lb₂ ub ub₁ ub₂ : Extended _
 
 ------------------------------------------------------------------------
 -- A lemma used below
@@ -2395,3 +2401,127 @@ opaque
     Red-black pc n lb ub t →
     y ∈⁻ delete⁻ x t ⇔ y ≢ x × y ∈⁻ t
   ∈⁻-delete⁻ = ∈⁻-delete⁻′
+
+------------------------------------------------------------------------
+-- Conversion to lists
+
+private opaque
+
+  -- A helper function used by to-List⁻.
+
+  to-List⁻′ : Tree⁻ → List A → List A
+  to-List⁻′ leaf           xs = xs
+  to-List⁻′ (node _ l x r) xs = to-List⁻′ l (x ∷ to-List⁻′ r xs)
+
+private opaque
+  unfolding to-List⁻′
+
+  -- A membership lemma for to-List⁻′.
+
+  @0 ∈⁻-to-List⁻′ :
+    (x L.∈ to-List⁻′ t xs) ≃ (x ∈⁻ t ⊎ x L.∈ xs)
+  ∈⁻-to-List⁻′ {x} {t = leaf} {xs} =
+    x L.∈ xs      ↔⟨ inverse ⊎-left-identity ⟩□
+    ⊥ ⊎ x L.∈ xs  □
+  ∈⁻-to-List⁻′ {x} {t = node _ l y r} {xs} =
+    x L.∈ to-List⁻′ l (y ∷ to-List⁻′ r xs)  ↝⟨ ∈⁻-to-List⁻′ ⟩
+    x ∈⁻ l ⊎ x ≡ y ⊎ x L.∈ to-List⁻′ r xs   ↝⟨ F.id ⊎-cong F.id ⊎-cong ∈⁻-to-List⁻′ ⟩
+    x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r ⊎ x L.∈ xs      ↔⟨ F.⊎-assoc F.∘ (F.id ⊎-cong F.⊎-assoc) ⟩□
+    (x ∈⁻ l ⊎ x ≡ y ⊎ x ∈⁻ r) ⊎ x L.∈ xs    □
+
+private opaque
+  unfolding to-List⁻′
+
+  -- The list returned by to-List⁻′ is sorted, given certain
+  -- assumptions.
+
+  @0 Sorted-to-List⁻′ :
+    Red-black pc n b₁ b₂ t → Sorted-≤₁ b₂ b₃ xs →
+    Sorted b₁ b₃ (to-List⁻′ t xs)
+  Sorted-to-List⁻′ {t = leaf} {xs} (leafʳᵇ b₁<b₂ _) s =
+    Sorted-≤₁→Sorted xs b₁<b₂ s
+  Sorted-to-List⁻′ {t = node⁰} {xs} (nodeʳᵇ l r _ _) s =
+    Sorted-to-List⁻′ l (EO.≤-refl , Sorted-to-List⁻′ r s)
+
+opaque
+
+  -- Converts the tree to a list.
+
+  to-List⁻ : Tree⁻ → List A
+  to-List⁻ t = to-List⁻′ t []
+
+opaque
+  unfolding to-List⁻
+
+  -- A membership lemma for to-List⁻.
+
+  @0 ∈⁻-to-List⁻ :
+    (x L.∈ to-List⁻ t) ≃ (x ∈⁻ t)
+  ∈⁻-to-List⁻ {x} {t} =
+    x L.∈ to-List⁻′ t []  ↝⟨ ∈⁻-to-List⁻′ ⟩
+    x ∈⁻ t ⊎ ⊥            ↔⟨ ⊎-right-identity ⟩□
+    x ∈⁻ t                □
+
+opaque
+  unfolding to-List⁻
+
+  -- The list returned by to-List⁻ is sorted, given a certain
+  -- assumption.
+
+  @0 Sorted-to-List⁻ :
+    Red-black pc n lb ub t →
+    Sorted lb ub (to-List⁻ t)
+  Sorted-to-List⁻ t = Sorted-to-List⁻′ t EO.≤-refl
+
+opaque
+
+  -- A possibly slower but perhaps less complicated alternative to
+  -- to-List⁻.
+
+  @0 to-List⁻-slow : Tree⁻ → List A
+  to-List⁻-slow leaf           = []
+  to-List⁻-slow (node _ l x r) = to-List⁻-slow l ++ x ∷ to-List⁻-slow r
+
+opaque
+  unfolding to-List⁻ to-List⁻′ to-List⁻-slow
+
+  -- The functions to-List⁻-slow and to-List⁻ return equal results.
+
+  @0 to-List⁻-slow≡to-List⁻ :
+    to-List⁻-slow t ≡ to-List⁻ t
+  to-List⁻-slow≡to-List⁻ {t} =
+    to-List⁻-slow t        ≡⟨ sym (++-right-identity _) ⟩
+    to-List⁻-slow t ++ []  ≡⟨ lemma t ⟩∎
+    to-List⁻′ t []         ∎
+    where
+    lemma : ∀ t → to-List⁻-slow t ++ xs ≡ to-List⁻′ t xs
+    lemma      leaf           = refl _
+    lemma {xs} (node _ l x r) =
+      (to-List⁻-slow l ++ x ∷ to-List⁻-slow r) ++ xs  ≡⟨ sym (++-associative (to-List⁻-slow l) _ _) ⟩
+      to-List⁻-slow l ++ (x ∷ to-List⁻-slow r ++ xs)  ≡⟨ cong ((to-List⁻-slow l ++_) ∘ (x ∷_)) (lemma r) ⟩
+      to-List⁻-slow l ++ x ∷ to-List⁻′ r xs           ≡⟨ lemma l ⟩∎
+      to-List⁻′ l (x ∷ to-List⁻′ r xs)                ∎
+
+opaque
+  unfolding to-List⁻-slow
+
+  -- The function size⁻ can be expressed using length and to-List⁻-slow.
+
+  @0 size⁻≡length∘to-List⁻-slow : size⁻ t ≡ length (to-List⁻-slow t)
+  size⁻≡length∘to-List⁻-slow {t = leaf} =
+    refl _
+  size⁻≡length∘to-List⁻-slow {t = node _ l x r} =
+    1 + size⁻ l + size⁻ r                                      ≡⟨ N.suc+≡+suc _ ⟩
+    size⁻ l + (1 + size⁻ r)                                    ≡⟨ cong₂ _+_ size⁻≡length∘to-List⁻-slow (cong suc size⁻≡length∘to-List⁻-slow) ⟩
+    length (to-List⁻-slow l) + (1 + length (to-List⁻-slow r))  ≡⟨ sym (length-++ (to-List⁻-slow l)) ⟩∎
+    length (to-List⁻-slow l ++ x ∷ to-List⁻-slow r)            ∎
+
+opaque
+
+  -- The function size⁻ can be expressed using length and to-List⁻.
+
+  @0 size⁻≡length∘to-List⁻ : size⁻ t ≡ length (to-List⁻ t)
+  size⁻≡length∘to-List⁻ {t} =
+    size⁻ t                   ≡⟨ size⁻≡length∘to-List⁻-slow ⟩
+    length (to-List⁻-slow t)  ≡⟨ cong length to-List⁻-slow≡to-List⁻ ⟩∎
+    length (to-List⁻ t)       ∎
