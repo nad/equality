@@ -1847,18 +1847,18 @@ opaque
   --
   -- * the returned tree's root, if any, is black.
 
-  delete-min⁻′ : (t : Tree⁻) → @0 t ≢ leaf → A × Bool × Tree⁻
-  delete-min⁻′ leaf hyp =
+  delete-min⁻ : (t : Tree⁻) → @0 t ≢ leaf → A × Bool × Tree⁻
+  delete-min⁻ leaf hyp =
     ⊥-elim₀ (hyp (refl _))
-  delete-min⁻′ (node c l@node⁰ y r) _ =
-    case delete-min⁻′ l node≢leaf of λ
+  delete-min⁻ (node c l@node⁰ y r) _ =
+    case delete-min⁻ l node≢leaf of λ
       (x , l) →
     x , del-balanceˡ c l y r
-  delete-min⁻′ (node red leaf y r) _ =
+  delete-min⁻ (node red leaf y r) _ =
     y , false , r
-  delete-min⁻′ (node black leaf y leaf) _ =
+  delete-min⁻ (node black leaf y leaf) _ =
     y , true , leaf
-  delete-min⁻′ (node black leaf y r@node⁰) _ =
+  delete-min⁻ (node black leaf y r@node⁰) _ =
     y , false , colour-root-black r
 
 opaque
@@ -1866,52 +1866,53 @@ opaque
   -- Returns and deletes the minimum element, if any. If the tree is
   -- empty, then nothing is returned.
 
-  delete-min⁻ : Tree⁻ → Maybe (A × Tree⁻)
-  delete-min⁻ leaf    = nothing
-  delete-min⁻ t@node⁰ = just (Σ-map id proj₂ (delete-min⁻′ t node≢leaf))
+  delete-min⁻₀ : Tree⁻ → Maybe (A × Tree⁻)
+  delete-min⁻₀ leaf    = nothing
+  delete-min⁻₀ t@node⁰ =
+    just (Σ-map id proj₂ (delete-min⁻ t node≢leaf))
 
 ------------------------------------------------------------------------
 -- Deletion of the minimum element produces red-black trees, given
 -- certain assumptions
 
 opaque
-  unfolding Black-invariant colour-root-black delete-min⁻′
+  unfolding Black-invariant colour-root-black delete-min⁻
 
-  -- The function delete-min⁻′ produces red-black trees, given certain
+  -- The function delete-min⁻ produces red-black trees, given certain
   -- assumptions.
 
-  @0 delete-min⁻′ʳᵇ :
+  @0 delete-min⁻ʳᵇ :
     (t : Tree⁻)
     (t≢leaf : t ≢ leaf) →
-    let x , b , t′ = delete-min⁻′ t t≢leaf in
+    let x , b , t′ = delete-min⁻ t t≢leaf in
     Red-black pc n lb ub t →
     (b ≡ true → n ≢ 0) ×
     Red-black (if b then red else pc) (if b then N.pred n else n) [ x ]
       ub t′
-  delete-min⁻′ʳᵇ leaf hyp _ =
+  delete-min⁻ʳᵇ leaf hyp _ =
     ⊥-elim₀ (hyp (refl _))
-  delete-min⁻′ʳᵇ (node red leaf _ _) _ (nodeʳᵇ _ r _ binv) =
+  delete-min⁻ʳᵇ (node red leaf _ _) _ (nodeʳᵇ _ r _ binv) =
     ⊥-elim ∘ Bool.true≢false ∘ sym ,
     cast (sym binv) (Red-black-red→Red-black r)
-  delete-min⁻′ʳᵇ (node black leaf _ leaf) _ (nodeʳᵇ _ r _ binv) =
+  delete-min⁻ʳᵇ (node black leaf _ leaf) _ (nodeʳᵇ _ r _ binv) =
     (λ _ → N.0≢+ ∘ flip trans binv ∘ sym) ,
     r .proj₁ , trans (cong N.pred binv) (r .proj₂)
-  delete-min⁻′ʳᵇ
+  delete-min⁻ʳᵇ
     (node black leaf _ (nodeᶜ red)) _
     (nodeʳᵇ _ (nodeʳᵇ l r _ binv₁) _ binv) =
     ⊥-elim ∘ Bool.true≢false ∘ sym ,
     nodeʳᵇ (Red-black→Red-black-black l) (Red-black→Red-black-black r)
       black-child (trans binv (cong suc binv₁))
-  delete-min⁻′ʳᵇ
+  delete-min⁻ʳᵇ
     (node black leaf _ (nodeᶜ black)) _
     (nodeʳᵇ (_ , ≡0) (nodeʳᵇ _ _ _ ≡+) _ _) =
     ⊥-elim (N.0≢+ (trans (sym ≡0) ≡+))
-  delete-min⁻′ʳᵇ
+  delete-min⁻ʳᵇ
     {n} {ub} (node c l@node⁰ x r) _
     (n′ , lʳᵇ@(nodeʳᵇ llʳᵇ lrʳᵇ rinv₁ binv₁) , rʳᵇ , rinv , binv) =
-    let _ , b , l′ = delete-min⁻′ l node≢leaf
+    let _ , b , l′ = delete-min⁻ l node≢leaf
         b′ , _     = del-balanceˡ c (b , l′) x r
-        ≢0 , l′ʳᵇ  = delete-min⁻′ʳᵇ _ node≢leaf lʳᵇ
+        ≢0 , l′ʳᵇ  = delete-min⁻ʳᵇ _ node≢leaf lʳᵇ
 
         ≢0′ : b′ ≡ true → n ≢ 0
         ≢0′ b′≡true =
@@ -1933,21 +1934,21 @@ opaque
     ≢0′ , del-balanceˡʳᵇ _ _ _ l′ʳᵇ rʳᵇ′ rinv binv′
 
 opaque
-  unfolding delete-min⁻
+  unfolding delete-min⁻₀
 
-  -- The function delete-min⁻ produces red-black trees, given certain
+  -- The function delete-min⁻₀ produces red-black trees, given certain
   -- assumptions.
 
-  @0 delete-min⁻ʳᵇ :
+  @0 delete-min⁻₀ʳᵇ :
     (t : Tree⁻) →
-    delete-min⁻ t ≡ just (x , t′) →
+    delete-min⁻₀ t ≡ just (x , t′) →
     Red-black pc n lb ub t →
     ∃ λ n → Red-black pc n [ x ] ub t′
-  delete-min⁻ʳᵇ leaf hyp _ =
+  delete-min⁻₀ʳᵇ leaf hyp _ =
     ⊥-elim (⊎.inj₁≢inj₂ hyp)
-  delete-min⁻ʳᵇ t@node⁰ hyp tʳᵇ
-    with delete-min⁻′ t node≢leaf
-       | delete-min⁻′ʳᵇ _ node≢leaf tʳᵇ
+  delete-min⁻₀ʳᵇ t@node⁰ hyp tʳᵇ
+    with delete-min⁻ t node≢leaf
+       | delete-min⁻ʳᵇ _ node≢leaf tʳᵇ
   … | _ , false , _ | _ , t′ =
     _ ,
     subst (λ (lb , t) → Red-black _ _ [ lb ] _ t) (⊎.cancel-inj₂ hyp) t′
@@ -1960,42 +1961,42 @@ opaque
 -- Membership lemmas for deletion of the minimum element
 
 opaque
-  unfolding colour-root-black delete-min⁻′
+  unfolding colour-root-black delete-min⁻
 
-  -- A membership lemma for delete-min⁻′.
+  -- A membership lemma for delete-min⁻.
 
-  @0 ∈⁻-delete-min⁻′ :
+  @0 ∈⁻-delete-min⁻ :
     (t≢leaf : t ≢ leaf) →
-    let x , _ , t′ = delete-min⁻′ t t≢leaf in
+    let x , _ , t′ = delete-min⁻ t t≢leaf in
     y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′
-  ∈⁻-delete-min⁻′ {t = leaf} hyp =
+  ∈⁻-delete-min⁻ {t = leaf} hyp =
     ⊥-elim₀ (hyp (refl _))
-  ∈⁻-delete-min⁻′ {t = node red leaf _ _} _ =
+  ∈⁻-delete-min⁻ {t = node red leaf _ _} _ =
     from-bijection ⊎-left-identity
-  ∈⁻-delete-min⁻′ {t = node black leaf _ leaf} _ =
+  ∈⁻-delete-min⁻ {t = node black leaf _ leaf} _ =
     from-bijection ⊎-left-identity
-  ∈⁻-delete-min⁻′ {t = node black leaf _ node⁰} _ =
+  ∈⁻-delete-min⁻ {t = node black leaf _ node⁰} _ =
     from-bijection ⊎-left-identity
-  ∈⁻-delete-min⁻′ {t = node c t₁@node⁰ x₂ t₃} {y} _ =
-    let x , b , t₁′ = delete-min⁻′ t₁ _ in
-    y ∈⁻ t₁ ⊎ y ≡ x₂ ⊎ y ∈⁻ t₃                          ↝⟨ ∈⁻-delete-min⁻′ _ ⊎-cong F.id ⟩
+  ∈⁻-delete-min⁻ {t = node c t₁@node⁰ x₂ t₃} {y} _ =
+    let x , b , t₁′ = delete-min⁻ t₁ _ in
+    y ∈⁻ t₁ ⊎ y ≡ x₂ ⊎ y ∈⁻ t₃                          ↝⟨ ∈⁻-delete-min⁻ _ ⊎-cong F.id ⟩
     (y ≡ x ⊎ y ∈⁻ t₁′) ⊎ y ≡ x₂ ⊎ y ∈⁻ t₃               ↔⟨ inverse ⊎-assoc ⟩
     y ≡ x ⊎ (y ∈⁻ t₁′ ⊎ y ≡ x₂ ⊎ y ∈⁻ t₃)               ↝⟨ F.id ⊎-cong inverse ∈⁻-del-balanceˡ ⟩□
     y ≡ x ⊎ y ∈⁻ del-balanceˡ c (b , t₁′) x₂ t₃ .proj₂  □
 
 opaque
-  unfolding delete-min⁻
+  unfolding delete-min⁻₀
 
-  -- A membership lemma for delete-min⁻.
+  -- A membership lemma for delete-min⁻₀.
 
-  @0 ∈⁻-delete-min⁻ :
-    delete-min⁻ t ≡ just (x , t′) →
+  @0 ∈⁻-delete-min⁻₀ :
+    delete-min⁻₀ t ≡ just (x , t′) →
     y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′
-  ∈⁻-delete-min⁻ {t = leaf} hyp =
+  ∈⁻-delete-min⁻₀ {t = leaf} hyp =
     ⊥-elim (⊎.inj₁≢inj₂ hyp)
-  ∈⁻-delete-min⁻ {t = t@node⁰} {x} {t′} {y} hyp =
-    let x′ , _ , t″ = delete-min⁻′ t node≢leaf in
-    y ∈⁻ t            ↝⟨ ∈⁻-delete-min⁻′ _ ⟩
+  ∈⁻-delete-min⁻₀ {t = t@node⁰} {x} {t′} {y} hyp =
+    let x′ , _ , t″ = delete-min⁻ t node≢leaf in
+    y ∈⁻ t            ↝⟨ ∈⁻-delete-min⁻ _ ⟩
     y ≡ x′ ⊎ y ∈⁻ t″  ↝⟨ ≡⇒↝ _ (cong (λ (x , t′) → y ≡ x ⊎ y ∈⁻ t′) (⊎.cancel-inj₂ hyp)) ⟩□
     y ≡ x  ⊎ y ∈⁻ t′  □
 
@@ -2004,120 +2005,121 @@ opaque
 
 opaque
 
-  -- An ordering lemma for delete-min⁻′.
-
-  @0 <-delete-min⁻′ :
-    (t≢leaf : t ≢ leaf) →
-    let x , _ , t′ = delete-min⁻′ t t≢leaf in
-    Red-black pc n lb ub t →
-    y ∈⁻ t′ → x < y
-  <-delete-min⁻′ t≢leaf t y∈
-    with ∈⁻→<< (delete-min⁻′ʳᵇ _ t≢leaf t .proj₂) y∈
-  … | []-[] x<y , _ = x<y
-
-opaque
-
   -- An ordering lemma for delete-min⁻.
 
   @0 <-delete-min⁻ :
-    delete-min⁻ t ≡ just (x , t′) →
+    (t≢leaf : t ≢ leaf) →
+    let x , _ , t′ = delete-min⁻ t t≢leaf in
     Red-black pc n lb ub t →
     y ∈⁻ t′ → x < y
-  <-delete-min⁻ eq t y∈
-    with ∈⁻→<< (delete-min⁻ʳᵇ _ eq t .proj₂) y∈
+  <-delete-min⁻ t≢leaf t y∈
+    with ∈⁻→<< (delete-min⁻ʳᵇ _ t≢leaf t .proj₂) y∈
   … | []-[] x<y , _ = x<y
 
 opaque
-  unfolding delete-min⁻
 
-  -- The function delete-min⁻ returns nothing if and only if the tree
+  -- An ordering lemma for delete-min⁻₀.
+
+  @0 <-delete-min⁻₀ :
+    delete-min⁻₀ t ≡ just (x , t′) →
+    Red-black pc n lb ub t →
+    y ∈⁻ t′ → x < y
+  <-delete-min⁻₀ eq t y∈
+    with ∈⁻→<< (delete-min⁻₀ʳᵇ _ eq t .proj₂) y∈
+  … | []-[] x<y , _ = x<y
+
+opaque
+  unfolding delete-min⁻₀
+
+  -- The function delete-min⁻₀ returns nothing if and only if the tree
   -- is empty.
 
-  @0 Is-nothing-delete-min⁻ :
-    Is-nothing (delete-min⁻ t) ⇔ (∀ {x} → ¬ x ∈⁻ t)
-  Is-nothing-delete-min⁻ {t = leaf} =
+  @0 Is-nothing-delete-min⁻₀ :
+    Is-nothing (delete-min⁻₀ t) ⇔ (∀ {x} → ¬ x ∈⁻ t)
+  Is-nothing-delete-min⁻₀ {t = leaf} =
     record { to = λ _ () }
-  Is-nothing-delete-min⁻ {t = node⁰} =
+  Is-nothing-delete-min⁻₀ {t = node⁰} =
     record { to = ⊥-elim; from = _$ (inj₂ (inj₁ (refl _))) }
 
 opaque
-  unfolding delete-min⁻
+  unfolding delete-min⁻₀
 
-  -- The value of delete-min⁻ t is just something if and only if t is
+  -- The value of delete-min⁻₀ t is just something if and only if t is
   -- non-empty.
 
-  @0 Is-just-delete-min⁻ :
-    Is-just (delete-min⁻ t) ⇔ (∃ λ x → x ∈⁻ t)
-  Is-just-delete-min⁻ {t = leaf} =
+  @0 Is-just-delete-min⁻₀ :
+    Is-just (delete-min⁻₀ t) ⇔ (∃ λ x → x ∈⁻ t)
+  Is-just-delete-min⁻₀ {t = leaf} =
     from-bijection (inverse ×-right-zero)
-  Is-just-delete-min⁻ {t = node _ _ x _} =
+  Is-just-delete-min⁻₀ {t = node _ _ x _} =
     record { to = λ _ → x , inj₂ (inj₁ (refl _)) }
 
 opaque
 
   -- If the non-empty tree t is red-black, every element in t is
   -- either equal to x or in t′, and x is strictly smaller than all
-  -- elements in t′, then delete-min⁻′ t is x , b , t″ for some b and
+  -- elements in t′, then delete-min⁻ t is x , b , t″ for some b and
   -- some t″ that contains the same elements as t′.
 
-  @0 delete-min⁻′-just :
+  @0 delete-min⁻-just :
     (t≢leaf : t ≢ leaf) →
     Red-black pc n lb ub t →
     (∀ {y} → y ∈⁻ t′ → x < y) →
     (∀ {y} → y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′) →
     ∃ λ b → ∃ λ t″ →
-      delete-min⁻′ t t≢leaf ≡ (x , b , t″) ×
+      delete-min⁻ t t≢leaf ≡ (x , b , t″) ×
       (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)
-  delete-min⁻′-just {t} {t′} {x} t≢leaf tʳᵇ ∈→< ∈⇔ =
-    let x′ , b , t″ = delete-min⁻′ t t≢leaf
+  delete-min⁻-just {t} {t′} {x} t≢leaf tʳᵇ ∈→< ∈⇔ =
+    let x′ , b , t″ = delete-min⁻ t t≢leaf
 
         x≤x′ =
           P.[ O.≤-reflexive ∘ sym , O.<→≤ ∘ ∈→< ]
              (_⇔_.to (∈⇔ {y = x′})
-                (_⇔_.from (∈⁻-delete-min⁻′ t≢leaf) (inj₁ (refl _))))
+                (_⇔_.from (∈⁻-delete-min⁻ t≢leaf) (inj₁ (refl _))))
 
         x′≤x =
-          P.[ O.≤-reflexive ∘ sym , O.<→≤ ∘ <-delete-min⁻′ t≢leaf tʳᵇ ]
-            (_⇔_.to (∈⁻-delete-min⁻′ t≢leaf)
+          P.[ O.≤-reflexive ∘ sym , O.<→≤ ∘ <-delete-min⁻ t≢leaf tʳᵇ ]
+            (_⇔_.to (∈⁻-delete-min⁻ t≢leaf)
                (_⇔_.from ∈⇔ (inj₁ (refl _))))
 
         x≡x′ = O.≤-antisym x≤x′ x′≤x
     in
     b , t″ ,
-    (delete-min⁻′ t t≢leaf  ≡⟨⟩
-     x′ , b , t″            ≡⟨ cong (_, _) (sym x≡x′) ⟩∎
-     x  , b , t″            ∎) ,
+    (delete-min⁻ t t≢leaf  ≡⟨⟩
+     x′ , b , t″           ≡⟨ cong (_, _) (sym x≡x′) ⟩∎
+     x  , b , t″           ∎) ,
     (λ {y} →
        y ∈⁻ t′          ↝⟨ inverse (⇔⊎→×¬⇔ ∈⇔ (flip (lemma ∘ ∈→<))) ⟩
        y ∈⁻ t × y ≢ x   ↝⟨ F.id ×-cong ¬-cong _ (≡⇒↝ _ (cong (_ ≡_) x≡x′)) ⟩
-       y ∈⁻ t × y ≢ x′  ↝⟨ ⇔⊎→×¬⇔ (∈⁻-delete-min⁻′ t≢leaf) (flip (lemma ∘ <-delete-min⁻′ t≢leaf tʳᵇ)) ⟩□
+       y ∈⁻ t × y ≢ x′  ↝⟨ ⇔⊎→×¬⇔ (∈⁻-delete-min⁻ t≢leaf) (flip (lemma ∘ <-delete-min⁻ t≢leaf tʳᵇ)) ⟩□
        y ∈⁻ t″          □)
     where
     lemma : z < y → y ≡ z → ⊥₀
     lemma = (_∘ sym) ∘ O.<→≢
 
 opaque
-  unfolding delete-min⁻
+  unfolding delete-min⁻₀
 
   -- If t is red-black, every element in t is either equal to x or in
   -- t′, and x is strictly smaller than all elements in t′, then
-  -- delete-min⁻ t is just (x , t″) for some t″ that contains the same
-  -- elements as t′.
+  -- delete-min⁻₀ t is just (x , t″) for some t″ that contains the
+  -- same elements as t′.
 
-  @0 delete-min⁻-just :
+  @0 delete-min⁻₀-just :
     Red-black pc n lb ub t →
     (∀ {y} → y ∈⁻ t′ → x < y) →
     (∀ {y} → y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′) →
-    ∃ λ t″ → delete-min⁻ t ≡ just (x , t″) × (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)
-  delete-min⁻-just {t = leaf} tʳᵇ _ hyp =
+    ∃ λ t″ →
+        delete-min⁻₀ t ≡ just (x , t″) × (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)
+  delete-min⁻₀-just {t = leaf} tʳᵇ _ hyp =
     ⊥-elim (_⇔_.from hyp (inj₁ (refl _)))
-  delete-min⁻-just {t = node⁰} tʳᵇ hyp₁ hyp₂ =
+  delete-min⁻₀-just {t = node⁰} tʳᵇ hyp₁ hyp₂ =
     Σ-map id (Σ-map (cong (just ∘ Σ-map id proj₂)) id)
-      (delete-min⁻′-just node≢leaf tʳᵇ hyp₁ hyp₂ .proj₂)
+      (delete-min⁻-just node≢leaf tʳᵇ hyp₁ hyp₂ .proj₂)
 
 opaque
 
-  -- If t is red-black, then the value of delete-min⁻ t is
+  -- If t is red-black, then the value of delete-min⁻₀ t is
   -- just (x , t″) for some tree t″ that contains the same elements as
   -- t′ if and only if
   --
@@ -2126,16 +2128,16 @@ opaque
   -- * every value is in t if and only it is either equal to x or in
   --   t′.
 
-  @0 delete-min⁻-just-⇔ :
+  @0 delete-min⁻₀-just-⇔ :
     Red-black pc n lb ub t →
     (∃ λ t″ →
-       delete-min⁻ t ≡ just (x , t″) × (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)) ⇔
+       delete-min⁻₀ t ≡ just (x , t″) × (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)) ⇔
     (∀ {y} → y ∈⁻ t′ → x < y) × (∀ {y} → y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′)
-  delete-min⁻-just-⇔ t = record
+  delete-min⁻₀-just-⇔ t = record
     { to = λ (_ , eq , t′≈t″) →
-        <-delete-min⁻ eq t ∘ _⇔_.to t′≈t″ ,
-        (F.id ⊎-cong inverse t′≈t″) F.∘ ∈⁻-delete-min⁻ eq
-    ; from = uncurry (delete-min⁻-just t)
+        <-delete-min⁻₀ eq t ∘ _⇔_.to t′≈t″ ,
+        (F.id ⊎-cong inverse t′≈t″) F.∘ ∈⁻-delete-min⁻₀ eq
+    ; from = uncurry (delete-min⁻₀-just t)
     }
 
 ------------------------------------------------------------------------
@@ -2162,7 +2164,7 @@ opaque
   delete⁻′ _ (node _ leaf _ r@node⁰) | eqᵀ _ =
     false , colour-root-black r
   delete⁻′ _ (node c l@node⁰ _ r@node⁰) | eqᵀ _ =
-    case delete-min⁻′ r node≢leaf of λ
+    case delete-min⁻ r node≢leaf of λ
       (z , r) →
     del-balanceʳ c l z r
 
@@ -2239,8 +2241,8 @@ opaque
   delete⁻′ʳᵇ {n} {lb}
     (node c l@node⁰ y r@node⁰) (n′ , lʳᵇ , rʳᵇ , rinv , binv)
     | eqᵀ _ =
-    let z , b , r′ = delete-min⁻′ r node≢leaf
-        ≢0 , r′ʳᵇ  = delete-min⁻′ʳᵇ r node≢leaf rʳᵇ
+    let z , b , r′ = delete-min⁻ r node≢leaf
+        ≢0 , r′ʳᵇ  = delete-min⁻ʳᵇ r node≢leaf rʳᵇ
         b′ , t     = del-balanceʳ c l z (b , r′)
 
         ≢0′ : b′ ≡ true → n ≢ 0
@@ -2249,7 +2251,7 @@ opaque
             (≢0 (del-balanceʳ≡true→ _ b′≡true))
 
         z∈r : z ∈⁻ r
-        z∈r = _⇔_.from (∈⁻-delete-min⁻′ node≢leaf) (inj₁ (refl _))
+        z∈r = _⇔_.from (∈⁻-delete-min⁻ node≢leaf) (inj₁ (refl _))
 
         [y]<[z] : [ y ] <ᴱ [ z ]
         [y]<[z] = ∈⁻→<< rʳᵇ z∈r .proj₁
@@ -2381,9 +2383,9 @@ opaque
   ∈⁻-delete⁻′
     {t = node c t₁@node⁰ x₂ t₃@node⁰} {x} {y} (nodeʳᵇ t₁ʳᵇ t₃ʳᵇ _ _)
     | eqᵀ x≡x₂ =
-    let x₃ , b , t₄ = delete-min⁻′ t₃ node≢leaf in
+    let x₃ , b , t₄ = delete-min⁻ t₃ node≢leaf in
     y ∈⁻ del-balanceʳ c t₁ x₃ (b , t₄) .proj₂  ↝⟨ ∈⁻-del-balanceʳ ⟩
-    y ∈⁻ t₁ ⊎ y ≡ x₃ ⊎ y ∈⁻ t₄                 ↝⟨ F.id ⊎-cong inverse (∈⁻-delete-min⁻′ _) ⟩
+    y ∈⁻ t₁ ⊎ y ≡ x₃ ⊎ y ∈⁻ t₄                 ↝⟨ F.id ⊎-cong inverse (∈⁻-delete-min⁻ _) ⟩
     y ∈⁻ t₁ ⊎ y ∈⁻ t₃                          ↝⟨ record
                                                     { to = λ where
                                                         (inj₁ y∈t₁) →

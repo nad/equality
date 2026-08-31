@@ -148,10 +148,10 @@ opaque
 opaque
 
   -- A variant of set equivalence for the results returned by
-  -- delete-min (which is defined below).
+  -- delete-min₀ (which is defined below).
 
-  @0 Delete-min-≈ : (_ _ : Maybe (A × Tree)) → Type a
-  Delete-min-≈ = Maybeᴾ (_≡_ ×ᴾ _≈_)
+  @0 Delete-min₀-≈ : (_ _ : Maybe (A × Tree)) → Type a
+  Delete-min₀-≈ = Maybeᴾ (_≡_ ×ᴾ _≈_)
 
 ------------------------------------------------------------------------
 -- Heights
@@ -543,98 +543,99 @@ opaque
 
 private opaque
 
-  -- A function used in the implementation of delete-min.
+  -- A function used in the implementation of delete-min₀.
 
-  delete-min-helper-just :
+  delete-min₀-helper-just :
     (t : Tree) (result : A × Tree⁻) →
-    @0 delete-min⁻ (Tree.tree t) ≡ just result →
+    @0 delete-min⁻₀ (Tree.tree t) ≡ just result →
     A × Tree
-  delete-min-helper-just t (x , t′) eq =
+  delete-min₀-helper-just t (x , t′) eq =
     ( x
     , record
         { tree      = t′
         ; red-black =
-            let _ , t′ʳᵇ = delete-min⁻ʳᵇ _ eq (Tree.red-black t) in
+            let _ , t′ʳᵇ = delete-min⁻₀ʳᵇ _ eq (Tree.red-black t) in
             Red-black-<ˡ min-[] t′ʳᵇ
         }
     )
 
-  -- A function used in the implementation of delete-min.
+  -- A function used in the implementation of delete-min₀.
 
-  delete-min-helper :
+  delete-min₀-helper :
     (t : Tree)
     (result : Maybe (A × Tree⁻)) →
-    @0 delete-min⁻ (Tree.tree t) ≡ result →
+    @0 delete-min⁻₀ (Tree.tree t) ≡ result →
     Maybe (A × Tree)
-  delete-min-helper _ nothing  _  = nothing
-  delete-min-helper t (just r) eq = just (delete-min-helper-just t r eq)
+  delete-min₀-helper _ nothing  _  = nothing
+  delete-min₀-helper t (just r) eq =
+    just (delete-min₀-helper-just t r eq)
 
-  -- A lemma related to delete-min-helper.
+  -- A lemma related to delete-min₀-helper.
 
-  @0 Is-nothing-delete-min-helper :
+  @0 Is-nothing-delete-min₀-helper :
     (result : Maybe (A × Tree⁻))
-    {eq : delete-min⁻ (Tree.tree t) ≡ result} →
-    Is-nothing (delete-min-helper t result eq) ⇔ Is-nothing result
-  Is-nothing-delete-min-helper nothing  = F.id
-  Is-nothing-delete-min-helper (just _) = F.id
+    {eq : delete-min⁻₀ (Tree.tree t) ≡ result} →
+    Is-nothing (delete-min₀-helper t result eq) ⇔ Is-nothing result
+  Is-nothing-delete-min₀-helper nothing  = F.id
+  Is-nothing-delete-min₀-helper (just _) = F.id
 
-  -- A lemma related to delete-min-helper.
+  -- A lemma related to delete-min₀-helper.
 
-  @0 Is-just-delete-min-helper :
+  @0 Is-just-delete-min₀-helper :
     (result : Maybe (A × Tree⁻))
-    {eq : delete-min⁻ (Tree.tree t) ≡ result} →
-    Is-just (delete-min-helper t result eq) ⇔ Is-just result
-  Is-just-delete-min-helper nothing  = F.id
-  Is-just-delete-min-helper (just _) = F.id
+    {eq : delete-min⁻₀ (Tree.tree t) ≡ result} →
+    Is-just (delete-min₀-helper t result eq) ⇔ Is-just result
+  Is-just-delete-min₀-helper nothing  = F.id
+  Is-just-delete-min₀-helper (just _) = F.id
 
 opaque
 
   -- Returns and deletes the minimum element, if any. If the tree is
   -- empty, then nothing is returned.
 
-  delete-min : Tree → Maybe (A × Tree)
-  delete-min t =
-    delete-min-helper t (delete-min⁻ (Tree.tree t)) (refl _)
+  delete-min₀ : Tree → Maybe (A × Tree)
+  delete-min₀ t =
+    delete-min₀-helper t (delete-min⁻₀ (Tree.tree t)) (refl _)
 
 opaque
-  unfolding _∈_ delete-min
+  unfolding _∈_ delete-min₀
 
-  -- The function delete-min returns nothing if and only if the tree
+  -- The function delete-min₀ returns nothing if and only if the tree
   -- is empty.
 
-  @0 Is-nothing-delete-min :
-    Is-nothing (delete-min t) ⇔ (∀ {x} → ¬ x ∈ t)
-  Is-nothing-delete-min {t} =
-    Is-nothing (delete-min t)                                     ↔⟨⟩
+  @0 Is-nothing-delete-min₀ :
+    Is-nothing (delete-min₀ t) ⇔ (∀ {x} → ¬ x ∈ t)
+  Is-nothing-delete-min₀ {t} =
+    Is-nothing (delete-min₀ t)                                      ↔⟨⟩
 
     Is-nothing
-      (delete-min-helper t (delete-min⁻ (Tree.tree t)) (refl _))  ↝⟨ Is-nothing-delete-min-helper _ ⟩
+      (delete-min₀-helper t (delete-min⁻₀ (Tree.tree t)) (refl _))  ↝⟨ Is-nothing-delete-min₀-helper _ ⟩
 
-    Is-nothing (delete-min⁻ (Tree.tree t))                        ↝⟨ Is-nothing-delete-min⁻ ⟩
+    Is-nothing (delete-min⁻₀ (Tree.tree t))                         ↝⟨ Is-nothing-delete-min⁻₀ ⟩
 
-    (∀ {x} → ¬ x ∈⁻ Tree.tree t)                                  ↔⟨⟩
+    (∀ {x} → ¬ x ∈⁻ Tree.tree t)                                    ↔⟨⟩
 
-    (∀ {x} → ¬ x ∈ t)                                             □
+    (∀ {x} → ¬ x ∈ t)                                               □
 
 opaque
-  unfolding _∈_ delete-min
+  unfolding _∈_ delete-min₀
 
-  -- The value of delete-min t is just something if and only if t is
+  -- The value of delete-min₀ t is just something if and only if t is
   -- non-empty.
 
-  @0 Is-just-delete-min :
-    Is-just (delete-min t) ⇔ (∃ λ x → x ∈ t)
-  Is-just-delete-min {t} =
-    Is-just (delete-min t)                                              ↔⟨⟩
-    Is-just (delete-min-helper t (delete-min⁻ (Tree.tree t)) (refl _))  ↝⟨ Is-just-delete-min-helper _ ⟩
-    Is-just (delete-min⁻ (Tree.tree t))                                 ↝⟨ Is-just-delete-min⁻ ⟩
-    (∃ λ x → x ∈⁻ Tree.tree t)                                          ↔⟨⟩
-    (∃ λ x → x ∈ t)                                                     □
+  @0 Is-just-delete-min₀ :
+    Is-just (delete-min₀ t) ⇔ (∃ λ x → x ∈ t)
+  Is-just-delete-min₀ {t} =
+    Is-just (delete-min₀ t)                                               ↔⟨⟩
+    Is-just (delete-min₀-helper t (delete-min⁻₀ (Tree.tree t)) (refl _))  ↝⟨ Is-just-delete-min₀-helper _ ⟩
+    Is-just (delete-min⁻₀ (Tree.tree t))                                  ↝⟨ Is-just-delete-min⁻₀ ⟩
+    (∃ λ x → x ∈⁻ Tree.tree t)                                            ↔⟨⟩
+    (∃ λ x → x ∈ t)                                                       □
 
 opaque
-  unfolding _∈_ _≈_ delete-min delete-min⁻ delete-min-helper
+  unfolding _∈_ _≈_ delete-min₀ delete-min⁻₀ delete-min₀-helper
 
-  -- The value of delete-min t is just (x , t″) for some tree t″ that
+  -- The value of delete-min₀ t is just (x , t″) for some tree t″ that
   -- is set equivalent to t′ if and only if
   --
   -- * x is strictly smaller than all elements in t′ and
@@ -642,116 +643,116 @@ opaque
   -- * every value is in t if and only it is either equal to x or in
   --   t′.
 
-  @0 delete-min-just-⇔ :
+  @0 delete-min₀-just-⇔ :
     (∃ λ t″ →
-         delete-min t ≡ just (x , t″) × t′ ≈ t″) ⇔
+         delete-min₀ t ≡ just (x , t″) × t′ ≈ t″) ⇔
     (∀ {y} → y ∈ t′ → x < y) × (∀ {y} → y ∈ t ⇔ y ≡ x ⊎ y ∈ t′)
-  delete-min-just-⇔ {t@record{}} {x} {t′} =
-    (∃ λ t″ → delete-min t ≡ just (x , t″) × t′ ≈ t″)            ↝⟨ record
+  delete-min₀-just-⇔ {t@record{}} {x} {t′} =
+    (∃ λ t″ → delete-min₀ t ≡ just (x , t″) × t′ ≈ t″)           ↝⟨ record
                                                                       { to   = λ (_ , eq , equiv) → _ , lemma₁ _ eq , equiv
                                                                       ; from = λ (_ , eq , equiv) → lemma₂ _ _ eq equiv
                                                                       } ⟩
     (∃ λ t″ →
-       delete-min⁻ (Tree.tree t) ≡ just (x , t″) ×
-       (∀ {y} → y ∈ t′ ⇔ y ∈⁻ t″))                               ↝⟨ delete-min⁻-just-⇔ (Tree.red-black t) ⟩□
+       delete-min⁻₀ (Tree.tree t) ≡ just (x , t″) ×
+       (∀ {y} → y ∈ t′ ⇔ y ∈⁻ t″))                               ↝⟨ delete-min⁻₀-just-⇔ (Tree.red-black t) ⟩□
 
     (∀ {y} → y ∈ t′ → x < y) × (∀ {y} → y ∈ t ⇔ y ≡ x ⊎ y ∈ t′)  □
     where
     lemma₁ :
       (t : Tree⁻) {tʳᵇ : Red-black black n min max t} →
-      delete-min (record { tree = t; red-black = tʳᵇ }) ≡
+      delete-min₀ (record { tree = t; red-black = tʳᵇ }) ≡
         just (x , t″) →
-      delete-min⁻ t ≡ just (x , Tree.tree t″)
+      delete-min⁻₀ t ≡ just (x , Tree.tree t″)
     lemma₁ leaf  = ⊥-elim ∘ ⊎.inj₁≢inj₂
     lemma₁ node⁰ = cong (just ∘ Σ-map id Tree.tree) ∘ ⊎.cancel-inj₂
 
     lemma₂ :
       ∀ {t″}
       (result : Maybe (A × Tree⁻))
-      (eq : delete-min⁻ (Tree.tree t) ≡ result) →
+      (eq : delete-min⁻₀ (Tree.tree t) ≡ result) →
       result ≡ just (x , t″) →
       (∀ {y} → y ∈ t′ ⇔ y ∈⁻ t″) →
       ∃ λ t‴ →
-          delete-min-helper t result eq ≡ just (x , t‴) ×
+          delete-min₀-helper t result eq ≡ just (x , t‴) ×
           (∀ {y} → y ∈ t′ ⇔ y ∈ t‴)
     lemma₂ nothing _ eq′ _ =
       ⊥-elim (⊎.inj₁≢inj₂ eq′)
     lemma₂ (just _) eq eq′ equiv =
       let ≡x , ≡t″ = _↔_.from ≡×≡↔≡ (⊎.cancel-inj₂ eq′) in
-      delete-min-helper-just t _ eq .proj₂ ,
+      delete-min₀-helper-just t _ eq .proj₂ ,
       cong (λ x → just (x , _)) ≡x ,
       subst ((_ ⇔_) ∘ (_ ∈⁻_)) (sym ≡t″) equiv
 
 opaque
   unfolding _≈_
 
-  -- An ordering lemma for delete-min.
+  -- An ordering lemma for delete-min₀.
 
-  @0 <-delete-min :
-    delete-min t ≡ just (x , t′) →
+  @0 <-delete-min₀ :
+    delete-min₀ t ≡ just (x , t′) →
     y ∈ t′ → x < y
-  <-delete-min eq =
-    _⇔_.to delete-min-just-⇔ (_ , eq , F.id) .proj₁
+  <-delete-min₀ eq =
+    _⇔_.to delete-min₀-just-⇔ (_ , eq , F.id) .proj₁
 
 opaque
   unfolding _≈_
 
-  -- A membership lemma for delete-min.
+  -- A membership lemma for delete-min₀.
 
-  @0 ∈-delete-min :
-    delete-min t ≡ just (x , t′) →
+  @0 ∈-delete-min₀ :
+    delete-min₀ t ≡ just (x , t′) →
     y ∈ t ⇔ y ≡ x ⊎ y ∈ t′
-  ∈-delete-min eq =
-    _⇔_.to delete-min-just-⇔ (_ , eq , F.id) .proj₂
+  ∈-delete-min₀ eq =
+    _⇔_.to delete-min₀-just-⇔ (_ , eq , F.id) .proj₂
 
 opaque
-  unfolding _≈_ Delete-min-≈
+  unfolding _≈_ Delete-min₀-≈
 
-  -- The function delete-min respects set equivalence.
+  -- The function delete-min₀ respects set equivalence.
 
-  @0 delete-min-respects-set-equivalence :
-    t₁ ≈ t₂ → Delete-min-≈ (delete-min t₁) (delete-min t₂)
-  delete-min-respects-set-equivalence =
+  @0 delete-min₀-respects-set-equivalence :
+    t₁ ≈ t₂ → Delete-min₀-≈ (delete-min₀ t₁) (delete-min₀ t₂)
+  delete-min₀-respects-set-equivalence =
     lemma _ _ (refl _) (refl _)
     where
     lemma :
       (r₁ r₂ : Maybe (A × Tree)) →
-      r₁ ≡ delete-min t₁ →
-      r₂ ≡ delete-min t₂ →
-      t₁ ≈ t₂ → Delete-min-≈ r₁ r₂
+      r₁ ≡ delete-min₀ t₁ →
+      r₂ ≡ delete-min₀ t₂ →
+      t₁ ≈ t₂ → Delete-min₀-≈ r₁ r₂
     lemma nothing nothing _ _ _ =
       _
     lemma nothing (just _) eq₁ eq₂ t₁≈t₂ =
       ⊥-elim $
-      not-both-just-and-nothing (delete-min _)
-        (_⇔_.from Is-just-delete-min
+      not-both-just-and-nothing (delete-min₀ _)
+        (_⇔_.from Is-just-delete-min₀
            (_ ,
             _⇔_.from t₁≈t₂
-              (_⇔_.to Is-just-delete-min (subst Is-just eq₂ _)
+              (_⇔_.to Is-just-delete-min₀ (subst Is-just eq₂ _)
                  .proj₂)))
         (subst Is-nothing eq₁ _)
     lemma (just _) nothing eq₁ eq₂ t₁≈t₂ =
       ⊥-elim $
-      not-both-just-and-nothing (delete-min _)
-        (_⇔_.from Is-just-delete-min
+      not-both-just-and-nothing (delete-min₀ _)
+        (_⇔_.from Is-just-delete-min₀
            (_ ,
             _⇔_.to t₁≈t₂
-              (_⇔_.to Is-just-delete-min (subst Is-just eq₁ _)
+              (_⇔_.to Is-just-delete-min₀ (subst Is-just eq₁ _)
                  .proj₂)))
         (subst Is-nothing eq₂ _)
     lemma {t₁} {t₂} (just (x₁ , t₁′)) (just (x₂ , t₂′)) eq₁ eq₂ t₁≈t₂ =
       let t₂″ , eq , t₂′≈t₂″ =
-            _⇔_.from delete-min-just-⇔
-              ( <-delete-min (sym eq₂)
+            _⇔_.from delete-min₀-just-⇔
+              ( <-delete-min₀ (sym eq₂)
               , λ {y} →
                    y ∈ t₁            ↝⟨ t₁≈t₂ ⟩
-                   y ∈ t₂            ↝⟨ ∈-delete-min (sym eq₂) ⟩□
+                   y ∈ t₂            ↝⟨ ∈-delete-min₀ (sym eq₂) ⟩□
                    y ≡ x₂ ⊎ y ∈ t₂′  □
               )
 
           eq = ⊎.cancel-inj₂
             (just (x₁ , t₁′)  ≡⟨ eq₁ ⟩
-             delete-min t₁    ≡⟨ eq ⟩∎
+             delete-min₀ t₁   ≡⟨ eq ⟩∎
              just (x₂ , t₂″)  ∎)
       in
       cong proj₁ eq ,
