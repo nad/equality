@@ -41,7 +41,7 @@ import Nat eq as N
 import Total-order.Erased eq as TE
 
 private
-  open module O  = TE.Total-order O using (_<_; _>_)
+  open module O  = TE.Total-order O using (_<_; _>_; _≤_)
   open module EO = TE.Total-order (extended O)
     using () renaming (_<_ to _<ᴱ_)
 
@@ -1160,6 +1160,61 @@ opaque
     y ∈⁻ colour-root-black (insert⁻′ x t)  ↝⟨ ∈⁻-colour-root-black ⟩
     y ∈⁻ insert⁻′ x t                      ↝⟨ ∈⁻-insert⁻′ ⟩□
     y ≡ x ⊎ y ∈⁻ t                         □
+
+------------------------------------------------------------------------
+-- Finding the minimum element
+
+opaque
+
+  -- Finds the minimum element. The tree must be non-empty.
+
+  find-min⁻ : (t : Tree⁻) → @0 t ≢ leaf → A
+  find-min⁻ (node _ l@node⁰ y _) _   = find-min⁻ l node≢leaf
+  find-min⁻ (node _ leaf y _)    _   = y
+  find-min⁻ leaf                 hyp = ⊥-elim₀ (hyp (refl _))
+
+opaque
+  unfolding find-min⁻
+
+  -- A membership lemma for find-min⁻.
+
+  @0 find-min⁻-∈⁻ :
+    {t≢leaf : t ≢ leaf} →
+    find-min⁻ t t≢leaf ∈⁻ t
+  find-min⁻-∈⁻ {t = leaf} {t≢leaf} =
+    ⊥-elim (t≢leaf (refl _))
+  find-min⁻-∈⁻ {t = node _ leaf _ _} =
+    inj₂ (inj₁ (refl _))
+  find-min⁻-∈⁻ {t = node _ node⁰ _ _} =
+    inj₁ find-min⁻-∈⁻
+
+opaque
+  unfolding find-min⁻
+
+  -- An ordering lemma for find-min⁻.
+
+  @0 find-min⁻-≤ :
+    (t≢leaf : t ≢ leaf) →
+    Red-black pc n lb ub t →
+    x ∈⁻ t → find-min⁻ t t≢leaf ≤ x
+  find-min⁻-≤ {t = leaf} t≢leaf =
+    ⊥-elim (t≢leaf (refl _))
+  find-min⁻-≤ {t = node _ leaf _ _} _ _ (inj₂ (inj₁ x≡)) =
+    O.≤-reflexive (sym x≡)
+  find-min⁻-≤
+    {t = node _ leaf _ _} _ (nodeʳᵇ _ r _ _) (inj₂ (inj₂ x∈r))
+    with ∈⁻→<< r x∈r
+  … | []-[] <x , _ =
+    O.<→≤ <x
+  find-min⁻-≤ {t = node _ node⁰ _ _} _ (nodeʳᵇ l _ _ _) (inj₁ x∈l) =
+    find-min⁻-≤ node≢leaf l x∈l
+  find-min⁻-≤ {t = node _ l@node⁰ _ _} _ (nodeʳᵇ lʳᵇ r _ _) (inj₂ x∈)
+    with
+      EO.<-≤-trans (∈⁻→<< lʳᵇ (find-min⁻-∈⁻ {t = l}) .proj₂)
+        (case x∈ of λ where
+           (inj₁ x≡)  → EO.≤-reflexive (cong [_] (sym x≡))
+           (inj₂ x∈r) → EO.<→≤ (∈⁻→<< r x∈r .proj₁))
+  … | []-[] <x = O.<→≤ <x
 
 ------------------------------------------------------------------------
 -- Balancing functions used by deletion

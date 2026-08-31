@@ -532,54 +532,113 @@ opaque
 ------------------------------------------------------------------------
 -- Finding the minimum element
 
+private opaque
+  unfolding ∈[]
+
+  -- The type of find-min-lemma.
+
+  @0 Find-min-lemma : Type (a ⊔ o)
+  Find-min-lemma =
+    ∀ {t} → ∥ (∃ λ x → x ∈ [ t ]Q) ∥ᴱ → t ≢ T.empty
+
+  -- A lemma used below.
+
+  @0 find-min-lemma : Find-min-lemma
+  find-min-lemma {t} = Tr.rec λ @0 where
+    .truncation-is-propositionʳ →
+      ¬-propositional (lower-extensionality (lsuc a) _ ext)
+    .∣∣ʳ (x , x∈t) →
+      t ≡ T.empty       →⟨ flip (subst ((x ∈_) ∘ [_]Q)) x∈t ⟩
+      x ∈ [ T.empty ]Q  →⟨ ≡⇒↝ _ ∈[] ⟩
+      x T.∈ T.empty     →⟨ T.∉empty ⟩□
+      ⊥                 □
+
 opaque
+  unfolding Find-min-lemma
 
-  -- A merely non-empty set contains a least element.
+  -- Finds the minimum element. The set must be non-empty.
 
-  find-min :
-    {xs : Set} →
-    @0 ∥ (∃ λ x → x ∈ xs) ∥ᴱ →
-    ∃ λ (x : A) → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))
-  find-min {xs} non-empty =
-    lemma (delete-min xs) (refl _) non-empty
-    where
-    lemma :
-      (r : Maybe (A × Set)) →
-      @0 delete-min xs ≡ r →
-      @0 ∥ (∃ λ x → x ∈ xs) ∥ᴱ →
-      ∃ λ x → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))
-    lemma nothing eq ∈xs =
-      ⊥-elim₀
-        (Tr.rec
-           (λ @0 where
-              .truncation-is-propositionʳ →
-                ⊥-propositional
-              .∣∣ʳ (_ , ∈xs) →
-                _≃_.to Is-nothing-delete-min
-                  (subst Is-nothing (sym eq) _) ∈xs)
-           ∈xs)
-    lemma (just (x , _)) eq _ =
-      x ,
-      [ ( _≃_.from (∈-delete-min eq) (inj₁ (refl _))
-        , λ y∈xs →
-            case _≃_.to (∈-delete-min eq) y∈xs of λ @0 where
-              (inj₁ y≡x)   → O.≤-reflexive (sym y≡x)
-              (inj₂ y∈xs′) → O.<→≤ (<-delete-min eq y∈xs′)
-        )
-      ]
+  find-min : (xs : Set) → @0 ∥ (∃ λ x → x ∈ xs) ∥ᴱ → A
+  find-min = Q.elim λ where
+    .[]ʳ t ∈t →
+      T.find-min t (find-min-lemma ∈t)
+    .[]-respects-relationʳ {x = t₁} {y = t₂} t₁≈t₂ →
+      apply-extᴱ (lower-extensionality _ _ ext) λ _ →
+
+      subst (λ xs → @0 ∥ ∃ (λ x → x ∈ xs) ∥ᴱ → A)
+        ([]-respects-relation (λ {_} → t₁≈t₂))
+        (λ _ → T.find-min t₁ _)
+        _                                                     ≡⟨ BC.subst-0→ ⟩
+
+      subst (λ _ → A) ([]-respects-relation (λ {_} → t₁≈t₂))
+        (T.find-min t₁ _)                                     ≡⟨ subst-const _ ⟩
+
+      T.find-min t₁ _                                         ≡⟨ T.find-min-respects-set-equivalence t₁≈t₂ ⟩∎
+
+      T.find-min t₂ _                                         ∎
+    .is-setʳ _ →
+      Πᴱ-closure (lower-extensionality _ _ ext) 2 λ _ →
+      O.is-set
+
+opaque
+  unfolding find-min
+
+  -- The value returned by find-min is in the set.
+
+  @0 find-min-∈ :
+    {∈xs : ∥ (∃ λ x → x ∈ xs) ∥ᴱ} →
+    find-min xs ∈xs ∈ xs
+  find-min-∈ =
+    Q.elim-prop
+      {P = λ xs → (∈xs : ∥ (∃ λ x → x ∈ xs) ∥ᴱ) → find-min xs ∈xs ∈ xs}
+      (λ where
+         .is-propositionʳ _ →
+           Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+           ∈-propositional
+         .[]ʳ t ∈t →                               $⟨ T.find-min-∈ ⟩
+           T.find-min t (find-min-lemma ∈t) T.∈ t  →⟨ ≡⇒↝ _ $
+                                                      cong {y = find-min _} (flip T._∈_ _ ∘ (λ f → f _)) $
+                                                      sym Q.elim-[] ⟩
+           find-min [ t ]Q ∈t T.∈ t                →⟨ ≡⇒↝ _ (sym ∈[]) ⟩□
+           find-min [ t ]Q ∈t ∈ [ t ]Q             □)
+      _ _
+
+opaque
+  unfolding find-min
+
+  -- The value returned by find-min is a lower bound for the elements
+  -- in the set.
+
+  @0 find-min-≤ :
+    {∈xs : ∥ (∃ λ x → x ∈ xs) ∥ᴱ} →
+    x ∈ xs → find-min xs ∈xs ≤ x
+  find-min-≤ {x} =
+    Q.elim-prop
+      {P = λ xs →
+             (∈xs : ∥ (∃ λ x → x ∈ xs) ∥ᴱ) → x ∈ xs →
+             find-min xs ∈xs ≤ x}
+      (λ where
+         .is-propositionʳ _ →
+           Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+           Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+           O.≤-propositional
+         .[]ʳ t ∈t →
+           x ∈ [ t ]Q                            →⟨ ≡⇒↝ _ ∈[] ⟩
+           x T.∈ t                               →⟨ T.find-min-≤ ⟩
+           T.find-min t (find-min-lemma ∈t) ≤ x  →⟨ ≡⇒↝ _ $
+                                                    cong {y = find-min _} (flip _≤_ _ ∘ (λ f → f _)) $
+                                                    sym Q.elim-[] ⟩□
+           find-min [ t ]Q ∈t ≤ x                □)
+      _ _
 
 opaque
 
   -- A set is non-empty if and only if it is merely non-empty.
 
   @0 ∈⇔∥∈∥ᴱ : (∃ λ x → x ∈ xs) ⇔ ∥ (∃ λ x → x ∈ xs) ∥ᴱ
-  ∈⇔∥∈∥ᴱ {xs} = record
+  ∈⇔∥∈∥ᴱ = record
     { to   = ∣_∣
-    ; from =
-        ∥ (∃ λ x → x ∈ xs) ∥ᴱ                                 →⟨ (λ hyp → find-min hyp) ⟩
-        (∃ λ x → Erased (x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y)))  ↔⟨ (∃-cong λ _ → erased Erased↔) ⟩
-        (∃ λ x → x ∈ xs × (∀ {y} → y ∈ xs → x ≤ y))           →⟨ Σ-map id proj₁ ⟩
-        (∃ λ x → x ∈ xs)                                      □
+    ; from = λ ∈xs → find-min _ ∈xs , find-min-∈
     }
 
 ------------------------------------------------------------------------

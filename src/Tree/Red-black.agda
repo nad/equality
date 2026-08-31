@@ -37,7 +37,8 @@ import Nat eq as N
 import Total-order.Erased eq as TE
 open import Tree.Red-black.External-invariants eq O
 
-open TE.Total-order O using (_<_)
+private
+  open module O = TE.Total-order O using (_<_; _≤_)
 open Sorted-list O
 
 private variable
@@ -488,6 +489,54 @@ opaque
       y ∈ delete x t₂                                  □) ⟩□
 
     (∀ {y} → y ∈ delete x t₁ ⇔ y ∈ delete x t₂)  □
+
+------------------------------------------------------------------------
+-- Finding the minimum element
+
+opaque
+  unfolding empty empty⁻
+
+  -- Finds the minimum element. The tree must be non-empty.
+
+  find-min : (t : Tree) → @0 t ≢ empty → A
+  find-min t ≢empty =
+    find-min⁻ (Tree.tree t)
+      (Tree.tree t ≡ leaf  →⟨ _≃_.to tree-cong ⟩
+       t ≡ empty           →⟨ ≢empty ⟩□
+       ⊥                   □)
+
+opaque
+  unfolding _∈_ find-min
+
+  -- A membership lemma for find-min.
+
+  @0 find-min-∈ :
+    {≢empty : t ≢ empty} →
+    find-min t ≢empty ∈ t
+  find-min-∈ = find-min⁻-∈⁻
+
+opaque
+  unfolding _∈_ find-min
+
+  -- An ordering lemma for find-min.
+
+  @0 find-min-≤ :
+    {≢empty : t ≢ empty} →
+    x ∈ t → find-min t ≢empty ≤ x
+  find-min-≤ {t} = find-min⁻-≤ _ (Tree.red-black t)
+
+opaque
+  unfolding _≈_
+
+  -- The function find-min respects set equivalence.
+
+  @0 find-min-respects-set-equivalence :
+    {t₁≢empty : t₁ ≢ empty}
+    {t₂≢empty : t₂ ≢ empty} →
+    t₁ ≈ t₂ → find-min t₁ t₁≢empty ≡ find-min t₂ t₂≢empty
+  find-min-respects-set-equivalence t₁≈t₂ =
+    O.≤-antisym (find-min-≤ (_⇔_.from t₁≈t₂ find-min-∈))
+      (find-min-≤ (_⇔_.to t₁≈t₂ find-min-∈))
 
 ------------------------------------------------------------------------
 -- Deleting the minimum element
