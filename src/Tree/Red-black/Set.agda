@@ -86,6 +86,26 @@ opaque
   @0 Set-set : Is-set Set
   Set-set = Q./ᴱ-is-set
 
+private opaque
+  unfolding Set
+
+  -- The type of ≈≃[]≡[]-type.
+
+  @0 ≈≃[]≡[]-type : Type (a ⊔ o)
+  ≈≃[]≡[]-type =
+    ∀ {t₁ t₂} →
+    (t₁ T.≈ t₂) ≃ (_≡_ {A = Set} [ t₁ ]Q [ t₂ ]Q)
+
+  -- A lemma used below.
+
+  @0 ≈≃[]≡[] : ≈≃[]≡[]-type
+  ≈≃[]≡[] =
+    ≃[]≡[]
+      (effective₀ (lower-extensionality o o ext) prop-ext
+         T.≈-equivalence
+         (λ _ _ → T.≈-propositional (lower-extensionality _ _ ext)))
+      (T.≈-propositional (lower-extensionality _ _ ext))
+
 ------------------------------------------------------------------------
 -- Set membership
 
@@ -411,7 +431,7 @@ private opaque
          ∈-propositional (≡⊎∈-propositional ∈→<))
 
 opaque
-  unfolding T.Delete-min-≈ delete-min ∈[]
+  unfolding T.Delete-min-≈ delete-min ∈[] ≈≃[]≡[]
 
   -- A uniqueness lemma for delete-min.
 
@@ -440,11 +460,7 @@ opaque
          Σ-map id [_]Q (T.delete-min t₁ _) ≡ (x , [ t₂ ]Q)  ↔⟨ inverse ≡×≡↔≡ ⟩
 
          (let x′ , t₁′ = T.delete-min t₁ _ in
-          x′ ≡ x × [ t₁′ ]Q ≡ [ t₂ ]Q)                      ↔⟨ (inverse $ ∃-cong λ _ →
-                                                                ≃[]≡[]
-                                                                  (effective₀ (lower-extensionality o o ext) prop-ext T.≈-equivalence
-                                                                     (λ _ _ → T.≈-propositional (lower-extensionality _ _ ext)))
-                                                                  (T.≈-propositional (lower-extensionality _ _ ext))) ⟩
+          x′ ≡ x × [ t₁′ ]Q ≡ [ t₂ ]Q)                      ↔⟨ (inverse $ ∃-cong λ _ → ≈≃[]≡[]) ⟩
 
          T.Delete-min-≈ (T.delete-min t₁ _) (x , t₂)        ↝⟨ T.delete-min-unique ⟩
 
@@ -514,7 +530,7 @@ opaque
       cong just $ cong₂ _,_ x₁≡x₂ (Q.[]-respects-relation t₁≈t₂)
 
 opaque
-  unfolding T._≈_ delete-min₀ ∈[]
+  unfolding T._≈_ delete-min₀ ∈[] ≈≃[]≡[]
 
   -- There is an equivalence between "delete-min₀ xs is
   -- just (x , xs′)" and the conjunction of
@@ -588,9 +604,7 @@ opaque
     lemma {t} (just (x′ , t′)) =
       just (x′ , [ t′ ]Q) ≡ just (x , [ t ]Q)               →⟨ ⊎.cancel-inj₂ ⟩
       (x′ , [ t′ ]Q) ≡ (x , [ t ]Q)                         ↔⟨ inverse ≡×≡↔≡ ⟩
-      x′ ≡ x × [ t′ ]Q ≡ [ t ]Q                             →⟨ Σ-map id $
-                                                               Q.effective₀ (lower-extensionality o o ext) prop-ext T.≈-equivalence
-                                                                 (λ _ _ → T.≈-propositional (lower-extensionality _ _ ext)) ⟩
+      x′ ≡ x × [ t′ ]Q ≡ [ t ]Q                             →⟨ Σ-map id (_≃_.from ≈≃[]≡[]) ⟩
       x′ ≡ x × t′ T.≈ t                                     →⟨ (λ (x′≡x , t′≈t) → _ , cong (just ∘ (_, t′)) x′≡x , F.inverse t′≈t) ⟩
       (∃ λ t″ → just (x′ , t′) ≡ just (x , t″) × t T.≈ t″)  □
 
