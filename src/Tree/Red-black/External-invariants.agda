@@ -1783,8 +1783,8 @@ opaque
 
 opaque
 
-  -- Deletes the minimum element. The tree must be non-empty. If the
-  -- returned boolean is true, then
+  -- Returns and deletes the minimum element. The tree must be
+  -- non-empty. If the returned boolean is true, then
   --
   -- * the returned tree's black height is the predecessor of the
   --   input tree's black height (assuming that the input tree is
@@ -1808,8 +1808,8 @@ opaque
 
 opaque
 
-  -- Deletes the minimum element, if any. If the tree is empty, then
-  -- nothing is returned.
+  -- Returns and deletes the minimum element, if any. If the tree is
+  -- empty, then nothing is returned.
 
   delete-min⁻ : Tree⁻ → Maybe (A × Tree⁻)
   delete-min⁻ leaf    = nothing

@@ -540,8 +540,8 @@ private opaque
 
 opaque
 
-  -- Deletes the minimum element, if any. If the tree is empty, then
-  -- nothing is returned.
+  -- Returns and deletes the minimum element, if any. If the tree is
+  -- empty, then nothing is returned.
 
   delete-min : Tree → Maybe (A × Tree)
   delete-min t =

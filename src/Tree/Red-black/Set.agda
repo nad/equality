@@ -297,8 +297,8 @@ opaque
 opaque
   unfolding Set T.Delete-min-≈
 
-  -- Removes the minimum element, if any. If the set is empty, then
-  -- nothing is returned.
+  -- Returns and removes the minimum element, if any. If the set is
+  -- empty, then nothing is returned.
 
   delete-min : Set → Maybe (A × Set)
   delete-min = Q.rec λ where
