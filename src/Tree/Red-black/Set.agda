@@ -354,6 +354,136 @@ opaque
 -- Deleting the minimum element
 
 opaque
+  unfolding T.Delete-min-≈ Non-empty-lemma
+
+  -- Returns and removes the minimum element. The set must be non-empty.
+
+  delete-min : (xs : Set) → @0 Non-empty xs → A × Set
+  delete-min = Q.elim λ where
+    .is-setʳ _ →
+      Πᴱ-closure (lower-extensionality _ (lsuc a) ext) 2 λ _ →
+      ×-closure 2 O.is-set Set-set
+    .[]ʳ t ∈t →
+      Σ-map id [_]Q (T.delete-min t (non-empty-lemma ∈t))
+    .[]-respects-relationʳ {x = t₁} {y = t₂} t₁≈t₂ →
+      apply-extᴱ (lower-extensionality _ (lsuc a) ext) λ _ →
+      let x₁≡x₂ , t₁′≈t₂′ =
+            T.delete-min-respects-set-equivalence t₁≈t₂
+      in
+      subst (λ xs → @0 Non-empty xs → A × Set)
+        ([]-respects-relation (λ {_} → t₁≈t₂))
+        (λ _ → Σ-map id [_]Q (T.delete-min t₁ _))
+        _                                                           ≡⟨ BC.subst-0→ ⟩
+
+      subst (λ _ → A × Set) ([]-respects-relation (λ {_} → t₁≈t₂))
+        (Σ-map id [_]Q (T.delete-min t₁ _))                         ≡⟨ subst-const _ ⟩
+
+      Σ-map id [_]Q (T.delete-min t₁ _)                             ≡⟨ cong₂ _,_ x₁≡x₂ ([]-respects-relation (λ {_} → t₁′≈t₂′)) ⟩∎
+
+      Σ-map id [_]Q (T.delete-min t₂ _)                             ∎
+
+private opaque
+
+  -- If x is strictly below all elements in xs, then y ≡ x ⊎ y ∈ xs is
+  -- a proposition.
+
+  @0 ≡⊎∈-propositional :
+    (∀ {y} → y ∈ xs → x < y) →
+    Is-proposition (y ≡ x ⊎ y ∈ xs)
+  ≡⊎∈-propositional ∈→< =
+    ⊎-closure-propositional (λ ≡x ∈xs′ → O.<→≢ (∈→< ∈xs′) (sym ≡x))
+      O.is-set ∈-propositional
+
+  -- Certain types are propositions.
+
+  @0 ∈→<×∈⇔≡⊎∈-propositional :
+    Is-proposition
+      ((∀ {y} → y ∈ xs′ → x < y) ×
+       (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
+  ∈→<×∈⇔≡⊎∈-propositional =
+    Σ-closure 1
+      (implicit-Π-closure (lower-extensionality _ (lsuc a) ext)
+         1 λ _ →
+       Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+       O.<-propositional) λ ∈→< →
+      (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+       ⇔-closure (lower-extensionality _ _ ext) 1
+         ∈-propositional (≡⊎∈-propositional ∈→<))
+
+opaque
+  unfolding T.Delete-min-≈ delete-min ∈[]
+
+  -- A uniqueness lemma for delete-min.
+
+  @0 delete-min-unique :
+    {∈xs : Non-empty xs} →
+    (delete-min xs ∈xs ≡ (x , xs′)) ≃
+    ((∀ {y} → y ∈ xs′ → x < y) × (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
+  delete-min-unique {x} =
+    let set : Is-set (A × Set)
+        set = ×-closure 2 O.is-set Set-set
+    in
+    _↠_.from (Eq.≃↠⇔ set ∈→<×∈⇔≡⊎∈-propositional) $
+    Q.elim-prop₂
+      (λ xs xs′ →
+         (∈xs : Non-empty xs) →
+         delete-min xs ∈xs ≡ (x , xs′) ⇔
+         (∀ {y} → y ∈ xs′ → x < y) ×
+         (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
+      (λ xs₁ xs₂ →
+         Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+         ⇔-closure (lower-extensionality (lsuc a) (lsuc a) ext) 1 set
+           ∈→<×∈⇔≡⊎∈-propositional)
+      (λ t₁ t₂ ∈t₁ →
+         delete-min [ t₁ ]Q ∈t₁ ≡ (x , [ t₂ ]Q)             ↝⟨ ≡⇒↝ _ (cong (_≡ _) (cong {x = delete-min _} (λ f → f _) Q.elim-[])) ⟩
+
+         Σ-map id [_]Q (T.delete-min t₁ _) ≡ (x , [ t₂ ]Q)  ↔⟨ inverse ≡×≡↔≡ ⟩
+
+         (let x′ , t₁′ = T.delete-min t₁ _ in
+          x′ ≡ x × [ t₁′ ]Q ≡ [ t₂ ]Q)                      ↔⟨ (inverse $ ∃-cong λ _ →
+                                                                ≃[]≡[]
+                                                                  (effective₀ (lower-extensionality o o ext) prop-ext T.≈-equivalence
+                                                                     (λ _ _ → T.≈-propositional (lower-extensionality _ _ ext)))
+                                                                  (T.≈-propositional (lower-extensionality _ _ ext))) ⟩
+
+         T.Delete-min-≈ (T.delete-min t₁ _) (x , t₂)        ↝⟨ T.delete-min-unique ⟩
+
+         (∀ {y} → y T.∈ t₂ → x < y) ×
+         (∀ {y} → y T.∈ t₁ ⇔ y ≡ x ⊎ y T.∈ t₂)              ↝⟨ implicit-∀-cong _ (→-cong₁ _ (≡⇒↝ equivalence (sym ∈[])))
+                                                                 ×-cong
+                                                               implicit-∀-cong _
+                                                                 (⇔-cong _ (≡⇒↝ _ (sym ∈[])) (F.id ⊎-cong ≡⇒↝ _ (sym ∈[]))) ⟩□
+         (∀ {y} → y ∈ [ t₂ ]Q → x < y) ×
+         (∀ {y} → y ∈ [ t₁ ]Q ⇔ y ≡ x ⊎ y ∈ [ t₂ ]Q)        □)
+      _ _ _
+
+opaque
+
+  -- An ordering lemma for delete-min.
+
+  @0 <-delete-min :
+    {∈xs : Non-empty xs} →
+    let x , xs′ = delete-min xs ∈xs in
+    y ∈ xs′ → x < y
+  <-delete-min =
+    _≃_.to delete-min-unique (refl _) .proj₁
+
+opaque
+
+  -- A membership lemma for delete-min.
+
+  @0 ∈-delete-min :
+    {∈xs : Non-empty xs} →
+    let x , xs′ = delete-min xs ∈xs in
+    (y ∈ xs) ≃ (y ≡ x ⊎ y ∈ xs′)
+  ∈-delete-min =
+    _↠_.from (Eq.≃↠⇔ ∈-propositional (≡⊎∈-propositional <-delete-min))
+      (_≃_.to delete-min-unique (refl _) .proj₂)
+
+------------------------------------------------------------------------
+-- A variant of delete-min for possibly non-empty sets
+
+opaque
   unfolding Set T.Delete-min₀-≈
 
   -- Returns and removes the minimum element, if any. If the set is
@@ -382,18 +512,6 @@ opaque
     lemma nothing  nothing  _               = refl _
     lemma (just _) (just _) (x₁≡x₂ , t₁≈t₂) =
       cong just $ cong₂ _,_ x₁≡x₂ (Q.[]-respects-relation t₁≈t₂)
-
-private opaque
-
-  -- If x is strictly below all elements in xs, then y ≡ x ⊎ y ∈ xs is
-  -- a proposition.
-
-  @0 ≡⊎∈-propositional :
-    (∀ {y} → y ∈ xs → x < y) →
-    Is-proposition (y ≡ x ⊎ y ∈ xs)
-  ≡⊎∈-propositional ∈→< =
-    ⊎-closure-propositional (λ ≡x ∈xs′ → O.<→≢ (∈→< ∈xs′) (sym ≡x))
-      O.is-set ∈-propositional
 
 opaque
   unfolding T._≈_ delete-min₀ ∈[]

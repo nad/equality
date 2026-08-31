@@ -42,10 +42,10 @@ private
 open Sorted-list O
 
 private variable
-  @0 m n   : ℕ
-  @0 x y   : A
-  @0 lb ub : Extended _
-  @0 c     : Colour
+  @0 m n    : ℕ
+  @0 x x′ y : A
+  @0 lb ub  : Extended _
+  @0 c      : Colour
 
 ------------------------------------------------------------------------
 -- Red-black trees with integrated invariants
@@ -148,10 +148,19 @@ opaque
 opaque
 
   -- A variant of set equivalence for the results returned by
+  -- delete-min (which is defined below).
+
+  @0 Delete-min-≈ : (_ _ : A × Tree) → Type a
+  Delete-min-≈ = _≡_ ×ᴾ _≈_
+
+opaque
+  unfolding Delete-min-≈
+
+  -- A variant of set equivalence for the results returned by
   -- delete-min₀ (which is defined below).
 
   @0 Delete-min₀-≈ : (_ _ : Maybe (A × Tree)) → Type a
-  Delete-min₀-≈ = Maybeᴾ (_≡_ ×ᴾ _≈_)
+  Delete-min₀-≈ = Maybeᴾ Delete-min-≈
 
 ------------------------------------------------------------------------
 -- Heights
@@ -540,6 +549,101 @@ opaque
 
 ------------------------------------------------------------------------
 -- Deleting the minimum element
+
+opaque
+  unfolding empty empty⁻
+
+  -- Returns and deletes the minimum element. The tree must be
+  -- non-empty.
+
+  delete-min : (t : Tree) → @0 t ≢ empty → A × Tree
+  delete-min t t≢empty =
+    let x , _ , t′ =
+          delete-min⁻ (Tree.tree t) (t≢empty ∘ _≃_.to tree-cong)
+    in
+    x ,
+    record
+      { tree      = t′
+      ; red-black =
+          let _ , t′ʳᵇ = delete-min⁻ʳᵇ _ _ (Tree.red-black t) in
+          Red-black→Red-black-black (Red-black-<ˡ min-[] t′ʳᵇ)
+      }
+
+opaque
+  unfolding _∈_ delete-min
+
+  -- A membership lemma for delete-min.
+
+  @0 ∈-delete-min :
+    {t≢empty : t ≢ empty} →
+    let x , t′ = delete-min t t≢empty in
+    y ∈ t ⇔ y ≡ x ⊎ y ∈ t′
+  ∈-delete-min = ∈⁻-delete-min⁻ _
+
+opaque
+  unfolding _∈_ delete-min
+
+  -- An ordering lemma for delete-min.
+
+  @0 <-delete-min :
+    {t≢empty : t ≢ empty} →
+    let x , t′ = delete-min t t≢empty in
+    y ∈ t′ → x < y
+  <-delete-min {t} = <-delete-min⁻ _ (Tree.red-black t)
+
+opaque
+  unfolding _∈_ _≈_ Delete-min-≈ delete-min
+
+  -- A uniqueness lemma for delete-min.
+
+  @0 delete-min-unique :
+    {t≢empty : t ≢ empty} →
+    Delete-min-≈ (delete-min t t≢empty) (x′ , t″) ⇔
+    (∀ {y} → y ∈ t″ → x′ < y) × (∀ {y} → y ∈ t ⇔ y ≡ x′ ⊎ y ∈ t″)
+  delete-min-unique {t} {x′} {t″} {t≢empty} =
+    let x , t′ = delete-min t t≢empty in
+    record
+      { to = λ (x≡x′ , t′≈t″) →
+          (λ {y} →
+             y ∈ t″  →⟨ _⇔_.from t′≈t″ ⟩
+             y ∈ t′  →⟨ <-delete-min {t≢empty = t≢empty} ⟩
+             x < y   →⟨ O.≤-<-trans (O.≤-reflexive (sym x≡x′)) ⟩□
+             x′ < y  □) ,
+          (λ {y} →
+             y ∈ t            ↝⟨ ∈-delete-min {t≢empty = t≢empty} ⟩
+             y ≡ x  ⊎ y ∈ t′  ↝⟨ ≡⇒↝ _ (cong (_≡_ _) x≡x′) ⊎-cong t′≈t″ ⟩□
+             y ≡ x′ ⊎ y ∈ t″  □)
+      ; from = λ (x< , ∈t⇔) →
+          let x′≡x , t″≈t′ =
+                delete-min⁻-unique _ (Tree.red-black t) x< ∈t⇔
+          in
+          sym x′≡x , inverse t″≈t′
+      }
+
+opaque
+  unfolding _≈_
+
+  -- The function delete-min respects set equivalence.
+
+  @0 delete-min-respects-set-equivalence :
+    {t₁≢empty : t₁ ≢ empty}
+    {t₂≢empty : t₂ ≢ empty} →
+    t₁ ≈ t₂ →
+    Delete-min-≈ (delete-min t₁ t₁≢empty) (delete-min t₂ t₂≢empty)
+  delete-min-respects-set-equivalence
+    {t₁} {t₂} {t₂≢empty} t₁≈t₂ =
+    let x₂ , t₂′ = delete-min t₂ t₂≢empty
+
+        ∈t₁⇔ : y ∈ t₁ ⇔ y ≡ x₂ ⊎ y ∈ t₂′
+        ∈t₁⇔ {y} =
+          y ∈ t₁            ↝⟨ t₁≈t₂ ⟩
+          y ∈ t₂            ↝⟨ ∈-delete-min ⟩□
+          y ≡ x₂ ⊎ y ∈ t₂′  □
+    in
+    _⇔_.from delete-min-unique (<-delete-min , ∈t₁⇔)
+
+------------------------------------------------------------------------
+-- A variant of delete-min for possibly non-empty trees
 
 private opaque
 
