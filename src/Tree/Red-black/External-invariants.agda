@@ -2057,20 +2057,19 @@ opaque
 opaque
 
   -- If the non-empty tree t is red-black, every element in t is
-  -- either equal to x or in t′, and x is strictly smaller than all
-  -- elements in t′, then delete-min⁻ t is x , b , t″ for some b and
-  -- some t″ that contains the same elements as t′.
+  -- either equal to x or in t′, x is strictly smaller than all
+  -- elements in t′, and delete-min⁻ t is x′ , b , t″, then x is equal
+  -- to x′ and t′ contains the same elements as t″.
 
-  @0 delete-min⁻-just :
+  @0 delete-min⁻-unique :
     (t≢leaf : t ≢ leaf) →
     Red-black pc n lb ub t →
     (∀ {y} → y ∈⁻ t′ → x < y) →
     (∀ {y} → y ∈⁻ t ⇔ y ≡ x ⊎ y ∈⁻ t′) →
-    ∃ λ b → ∃ λ t″ →
-      delete-min⁻ t t≢leaf ≡ (x , b , t″) ×
-      (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)
-  delete-min⁻-just {t} {t′} {x} t≢leaf tʳᵇ ∈→< ∈⇔ =
-    let x′ , b , t″ = delete-min⁻ t t≢leaf
+    let x′ , _ , t″ = delete-min⁻ t t≢leaf in
+    x ≡ x′ × (∀ {y} → y ∈⁻ t′ ⇔ y ∈⁻ t″)
+  delete-min⁻-unique {t} {t′} {x} t≢leaf tʳᵇ ∈→< ∈⇔ =
+    let x′ , _ , t″ = delete-min⁻ t t≢leaf
 
         x≤x′ =
           P.[ O.≤-reflexive ∘ sym , O.<→≤ ∘ ∈→< ]
@@ -2084,10 +2083,7 @@ opaque
 
         x≡x′ = O.≤-antisym x≤x′ x′≤x
     in
-    b , t″ ,
-    (delete-min⁻ t t≢leaf  ≡⟨⟩
-     x′ , b , t″           ≡⟨ cong (_, _) (sym x≡x′) ⟩∎
-     x  , b , t″           ∎) ,
+    x≡x′ ,
     (λ {y} →
        y ∈⁻ t′          ↝⟨ inverse (⇔⊎→×¬⇔ ∈⇔ (flip (lemma ∘ ∈→<))) ⟩
        y ∈⁻ t × y ≢ x   ↝⟨ F.id ×-cong ¬-cong _ (≡⇒↝ _ (cong (_ ≡_) x≡x′)) ⟩
@@ -2114,8 +2110,8 @@ opaque
   delete-min⁻₀-just {t = leaf} tʳᵇ _ hyp =
     ⊥-elim (_⇔_.from hyp (inj₁ (refl _)))
   delete-min⁻₀-just {t = node⁰} tʳᵇ hyp₁ hyp₂ =
-    Σ-map id (Σ-map (cong (just ∘ Σ-map id proj₂)) id)
-      (delete-min⁻-just node≢leaf tʳᵇ hyp₁ hyp₂ .proj₂)
+    let x≡x′ , t′≈t″ = delete-min⁻-unique node≢leaf tʳᵇ hyp₁ hyp₂ in
+    _ , cong just (cong (_, _) (sym x≡x′)) , t′≈t″
 
 opaque
 
