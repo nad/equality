@@ -601,3 +601,38 @@ opaque
            Sorted min max (T.to-List t)     →⟨ subst (Sorted _ _) (sym Q.rec-[]) ⟩
            Sorted min max (to-List [ t ]Q)  □)
       _
+
+------------------------------------------------------------------------
+-- Sizes
+
+opaque
+  unfolding Set
+
+  -- The size of a finite set.
+  --
+  -- The function is erased because it is (at least) linear in the
+  -- size of the set, so it is not recommended to be used at run-time.
+
+  @0 size : Set → ℕ
+  size = Q.rec λ where
+    .[]ʳ                   → T.size
+    .[]-respects-relationʳ → T.size-respects-set-equivalence
+    .is-setʳ               → ℕ-set
+
+opaque
+  unfolding size to-List
+
+  -- The function size can be expressed using length and to-List.
+
+  @0 size≡length∘to-List : size xs ≡ length (to-List xs)
+  size≡length∘to-List =
+    Q.elim-prop {P = λ xs → size xs ≡ length (to-List xs)}
+      (λ where
+         .is-propositionʳ _ →
+           ℕ-set
+         .[]ʳ t →
+           size [ t ]Q              ≡⟨ Q.rec-[] ⟩
+           T.size t                 ≡⟨ T.size≡length∘to-List ⟩
+           length (T.to-List t)     ≡⟨ cong length (sym Q.rec-[]) ⟩∎
+           length (to-List [ t ]Q)  ∎)
+      _

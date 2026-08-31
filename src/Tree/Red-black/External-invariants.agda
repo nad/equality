@@ -117,6 +117,9 @@ height⁻ leaf           = 0
 height⁻ (node _ l _ r) = suc (N.max (height⁻ l) (height⁻ r))
 
 -- The size of a tree.
+--
+-- The function is erased because it is (at least) linear in the size
+-- of the tree, so it is not recommended to be used at run-time.
 
 @0 size⁻ : Tree⁻ → ℕ
 size⁻ leaf           = 0

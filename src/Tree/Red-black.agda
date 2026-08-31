@@ -31,6 +31,7 @@ open import Erased.Level-1 eq
 open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level.Closure eq
+open import List eq
 open import Maybe eq
 import Nat eq as N
 import Total-order.Erased eq as TE
@@ -281,12 +282,39 @@ opaque
     }
 
 ------------------------------------------------------------------------
--- Sizes and lemmas relating sizes and heights
+-- Size
 
 -- The size of a red-black tree.
+--
+-- The function is erased because it is (at least) linear in the size
+-- of the tree, so it is not recommended to be used at run-time.
 
 @0 size : Tree → ℕ
 size t = size⁻ (Tree.tree t)
+
+opaque
+  unfolding to-List
+
+  -- The function size can be expressed using length and to-List.
+
+  @0 size≡length∘to-List : size t ≡ length (to-List t)
+  size≡length∘to-List = size⁻≡length∘to-List⁻
+
+opaque
+  unfolding _≈_
+
+  -- The function size respects set equivalence.
+
+  @0 size-respects-set-equivalence :
+    t₁ ≈ t₂ → size t₁ ≡ size t₂
+  size-respects-set-equivalence {t₁} {t₂} t₁≈t₂ =
+    size t₁              ≡⟨ size≡length∘to-List ⟩
+    length (to-List t₁)  ≡⟨ cong length (_⇔_.to ≈⇔to-List≡to-List t₁≈t₂) ⟩
+    length (to-List t₂)  ≡⟨ sym size≡length∘to-List ⟩∎
+    size t₂              ∎
+
+------------------------------------------------------------------------
+-- Lemmas relating sizes and heights
 
 opaque
 
