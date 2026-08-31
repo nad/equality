@@ -122,8 +122,21 @@ opaque
   @0 ∈-propositional : Is-proposition (x ∈ xs)
   ∈-propositional = Membership _ _ .proj₂ .erased
 
+private opaque
+  unfolding _∈_
+
+  -- The type of ∈[].
+
+  ∈[]-type : Type (lsuc a ⊔ o)
+  ∈[]-type = ∀ {x t} → (x ∈ [ t ]Q) ≡ (x T.∈ t)
+
+  -- A computation rule for _∈_.
+
+  ∈[] : ∈[]-type
+  ∈[] = cong proj₁ Q.rec-[]
+
 opaque
-  unfolding Set _∈_
+  unfolding Set ∈[]
 
   -- Extensionality for sets.
 
@@ -135,9 +148,9 @@ opaque
          Set-set)
       (λ t₁ t₂ t₁≈t₂ →
          Q.[]-respects-relation λ {x} →
-           x T.∈ t₁     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
+           x T.∈ t₁     ↝⟨ ≡⇒↝ _ (sym ∈[]) ⟩
            x ∈ [ t₁ ]Q  ↝⟨ t₁≈t₂ ⟩
-           x ∈ [ t₂ ]Q  ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩□
+           x ∈ [ t₂ ]Q  ↝⟨ ≡⇒↝ _ ∈[] ⟩□
            x T.∈ t₂     □)
       _ _
 
@@ -145,7 +158,7 @@ opaque
 -- A membership test
 
 opaque
-  unfolding _∈_
+  unfolding ∈[]
 
   -- Does the element exist in the set?
 
@@ -156,7 +169,7 @@ opaque
         ∈-propositional
     .[]ʳ t →
       Dec-Erased-map
-        (x T.∈ t     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
+        (x T.∈ t     ↝⟨ ≡⇒↝ _ (sym ∈[]) ⟩
          x ∈ [ t ]Q  □)
         (T.member? x t)
 
@@ -172,13 +185,13 @@ opaque
   ∅ = [ T.empty ]Q
 
 opaque
-  unfolding ∅ _∈_
+  unfolding ∅ ∈[]
 
   -- The empty set is empty.
 
   @0 ∉∅ : ¬ x ∈ ∅
   ∉∅ {x} =
-    x ∈ [ T.empty ]Q  →⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+    x ∈ [ T.empty ]Q  →⟨ ≡⇒↝ _ ∈[] ⟩
     x T.∈ T.empty     →⟨ T.∉empty ⟩□
     ⊥                 □
 
@@ -195,7 +208,7 @@ opaque
     T.insert x Q./ᴱ-map λ _ _ → T.insert-respects-set-equivalence
 
 opaque
-  unfolding _∈_ insert _/ᴱ-map_
+  unfolding _/ᴱ-map_ insert ∈[]
 
   -- The value y is in insert x xs if and only if merely y is x or y
   -- is in xs.
@@ -209,9 +222,9 @@ opaque
              truncation-is-proposition
          .[]ʳ t →
            y ∈ insert x [ t ]Q      ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
-           y ∈ [ T.insert x t ]Q    ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩
+           y ∈ [ T.insert x t ]Q    ↝⟨ ≡⇒↝ _ ∈[] ⟩
            y T.∈ T.insert x t       ↔⟨ inverse (∥∥ᴱ≃ T.∈-propositional) ⟩
            ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ ∥∥ᴱ-cong T.∈-insert ⟩
-           y ≡ x ∥⊎∥ᴱ y T.∈ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _ ∘ proj₁) (sym Q.rec-[])) ⟩□
+           y ≡ x ∥⊎∥ᴱ y T.∈ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _) (sym ∈[])) ⟩□
            y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q    □)
       xs
