@@ -47,9 +47,10 @@ private
     a b c d ℓ ℓ₁ ℓ₂ p₁ p₂ q r : Level
     A B                       : Type a
     eq k k′ p x y             : A
-    P                         : A → Type p
+    P Q                       : A → Type p
     f g                       : A → B
     n                         : ℕ
+    x≡y                       : _ ≡ _
 
 ------------------------------------------------------------------------
 -- Some basic definitions
@@ -1620,6 +1621,28 @@ private module []-cong₁′ (ax : []-cong-axiomatisation ℓ) where
          trans (refl [ _ ]) ([]-cong [ q ])          ≡⟨ cong (flip trans _) $ sym []-cong-[refl] ⟩∎
          trans ([]-cong [ refl _ ]) ([]-cong [ q ])  ∎)
       _ _
+
+  opaque
+
+    -- A variant of subst-→ for erased function spaces.
+
+    subst-0→ :
+      {@0 P : A → Type ℓ} {@0 p : P y} {f : @0 P x → Q x} →
+      subst (λ x → @0 P x → Q x) x≡y f p ≡
+      subst Q x≡y (f (subst P (sym x≡y) p))
+    subst-0→ {Q} {P} =
+      elim₁
+        (λ x≡y →
+           ∀ (@0 p) f →
+           subst (λ x → @0 P x → Q x) x≡y f p ≡
+           subst Q x≡y (f (subst P (sym x≡y) p)))
+        (λ p f →
+           subst (λ x → @0 P x → Q x) (refl _) f p          ≡⟨ cong (λ f → f p) (subst-refl (λ x → @0 P x → Q x) _) ⟩
+           f p                                              ≡⟨ congᴱ f (sym (subst-refl _ _)) ⟩
+           f (subst P (refl _) p)                           ≡⟨ congᴱ f (cong (flip (subst P) _) (sym sym-refl)) ⟩
+           f (subst P (sym (refl _)) p)                     ≡⟨ sym (subst-refl _ _) ⟩∎
+           subst Q (refl _) (f (subst P (sym (refl _)) p))  ∎)
+        _ _ _
 
   ----------------------------------------------------------------------
   -- All h-levels are closed under Erased
