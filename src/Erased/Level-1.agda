@@ -23,6 +23,7 @@ open import Accessibility eq-J as A using (Acc; Well-founded)
 open import Bijection eq-J as Bijection using (_↔_; Has-quasi-inverse)
 open import Embedding eq-J as Emb using (Embedding; Is-embedding)
 open import Equality.Decidable-UIP eq-J
+open import Equality.Decision-procedures eq-J
 open import Equivalence eq-J as Eq using (_≃_; Is-equivalence)
 import Equivalence.Contractible-preimages eq-J as CP
 open import Equivalence.Erased.Basics eq-J as EEq
@@ -752,6 +753,26 @@ decidable⇒decidable-erased⇒Σ-decidable-erased
   decidable⇒dec-erased⇒Σ-dec-erased
     decA
     (λ eq → decP (subst P eq x₂) y₂)
+
+opaque
+
+  -- If erased equality is decidable for A, then erased equality is
+  -- decidable for List A.
+
+  Decidable-erased-equality-List :
+    Decidable-erased-equality A →
+    Decidable-erased-equality (List A)
+  Decidable-erased-equality-List _ [] [] =
+    yes [ refl _ ]
+  Decidable-erased-equality-List _ [] (_ ∷ _) =
+    no [ List.[]≢∷ ]
+  Decidable-erased-equality-List _ (_ ∷ _) [] =
+    no [ List.[]≢∷ ∘ sym ]
+  Decidable-erased-equality-List dec (x ∷ xs) (y ∷ ys) with dec x y
+  … | no  [ x≢y ] = no [ x≢y ∘ List.cancel-∷-head ]
+  … | yes [ x≡y ] with Decidable-erased-equality-List dec xs ys
+  …   | no  [ xs≢ys ] = no [ xs≢ys ∘ List.cancel-∷-tail ]
+  …   | yes [ xs≡ys ] = yes [ cong₂ _∷_ x≡y xs≡ys ]
 
 ------------------------------------------------------------------------
 -- Erased binary relations
