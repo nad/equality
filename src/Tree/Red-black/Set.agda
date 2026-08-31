@@ -63,7 +63,7 @@ opaque
   -- equivalence.
 
   Set : Type (a ⊔ o)
-  Set = T.Tree /ᴱ (λ t₁ t₂ → ∀ z → z T.∈ t₁ ⇔ z T.∈ t₂)
+  Set = T.Tree /ᴱ T._≈_
 
 private variable
   xs xs₁ xs₂ : Set
@@ -80,7 +80,7 @@ opaque
 -- Set membership
 
 private opaque
-  unfolding Set
+  unfolding Set T._≈_
 
   -- Set membership.
 
@@ -93,7 +93,7 @@ private opaque
     .[]ʳ t →
       (x T.∈ t) , [ T.∈-propositional ]
     .[]-respects-relationʳ {x = xs} {y = ys} →
-      (∀ z → z T.∈ xs ⇔ z T.∈ ys)             →⟨ _$ x ⟩
+      (∀ {z} → z T.∈ xs ⇔ z T.∈ ys)           →⟨ (λ xs≈ys → xs≈ys) ⟩
 
       x T.∈ xs ⇔ x T.∈ ys                     →⟨ prop-ext T.∈-propositional T.∈-propositional ⟩
 
@@ -134,7 +134,7 @@ opaque
          Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
          Set-set)
       (λ t₁ t₂ t₁≈t₂ →
-         Q.[]-respects-relation λ x →
+         Q.[]-respects-relation λ {x} →
            x T.∈ t₁     ↝⟨ ≡⇒↝ _ (cong proj₁ (sym Q.rec-[])) ⟩
            x ∈ [ t₁ ]Q  ↝⟨ t₁≈t₂ ⟩
            x ∈ [ t₂ ]Q  ↝⟨ ≡⇒↝ _ (cong proj₁ Q.rec-[]) ⟩□
@@ -192,15 +192,7 @@ opaque
 
   insert : A → Set → Set
   insert x =
-    T.insert x Q./ᴱ-map λ xs ys →
-      (∀ z → z T.∈ xs ⇔ z T.∈ ys)                        →⟨ (λ hyp z →
-
-        z T.∈ T.insert x xs                                    ↝⟨ T.∈-insert ⟩
-        z ≡ x ⊎ z T.∈ xs                                       ↝⟨ F.id ⊎-cong hyp z ⟩
-        z ≡ x ⊎ z T.∈ ys                                       ↝⟨ inverse T.∈-insert ⟩□
-        z T.∈ T.insert x ys                                    □) ⟩□
-
-      (∀ z → z T.∈ T.insert x xs ⇔ z T.∈ T.insert x ys)  □
+    T.insert x Q./ᴱ-map λ _ _ → T.insert-respects-set-equivalence
 
 opaque
   unfolding _∈_ insert _/ᴱ-map_

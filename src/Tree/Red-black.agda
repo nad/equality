@@ -29,7 +29,9 @@ open import Logical-equivalence using (_⇔_)
 
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
+open import Equivalence-relation eq
 open import Erased.Level-1 eq
+open import Extensionality eq
 open import Function-universe eq as F hiding (id; _∘_; if-lemma)
 import H-level eq as H-level
 open import H-level.Closure eq
@@ -1149,6 +1151,44 @@ opaque
   ∈-propositional {t} = ∈⁻-propositional (Tree.red-black t)
 
 ------------------------------------------------------------------------
+-- Set equivalence
+
+opaque
+
+  -- Set equivalence.
+
+  infix 4 _≈_
+
+  _≈_ : (_ _ : Tree) → Type a
+  t₁ ≈ t₂ = ∀ {x} → x ∈ t₁ ⇔ x ∈ t₂
+
+opaque
+  unfolding _≈_
+
+  -- The relation _≈_ is propositional (assuming function
+  -- extensionality).
+
+  @0 ≈-propositional :
+    Extensionality a a →
+    Is-proposition (t₁ ≈ t₂)
+  ≈-propositional ext =
+    implicit-Π-closure ext 1 λ _ →
+    ⇔-closure ext 1 ∈-propositional ∈-propositional
+
+opaque
+  unfolding _≈_
+
+  -- The relation _≈_ is an equivalence relation.
+
+  ≈-equivalence : Is-equivalence-relation _≈_
+  ≈-equivalence = λ where
+      .reflexive  → F.id
+      .symmetric  → λ x≈y → inverse x≈y
+      .transitive → λ x≈y y≈z → y≈z F.∘ x≈y
+    where
+    open Is-equivalence-relation
+
+------------------------------------------------------------------------
 -- A membership test
 
 opaque
@@ -1201,6 +1241,23 @@ opaque
   @0 ∈-insert :
     y ∈ insert x t ⇔ y ≡ x ⊎ y ∈ t
   ∈-insert = ∈⁻-insert⁻
+
+opaque
+  unfolding _≈_
+
+  -- The function insert respects set equivalence.
+
+  @0 insert-respects-set-equivalence :
+    t₁ ≈ t₂ → insert x t₁ ≈ insert x t₂
+  insert-respects-set-equivalence {t₁} {t₂} {x} =
+    (∀ {y} → y ∈ t₁ ⇔ y ∈ t₂)                    →⟨ (λ hyp {y} →
+
+      y ∈ insert x t₁                                  ↝⟨ ∈-insert ⟩
+      y ≡ x ⊎ y ∈ t₁                                   ↝⟨ F.id ⊎-cong hyp ⟩
+      y ≡ x ⊎ y ∈ t₂                                   ↝⟨ inverse ∈-insert ⟩□
+      y ∈ insert x t₂                                  □) ⟩□
+
+    (∀ {y} → y ∈ insert x t₁ ⇔ y ∈ insert x t₂)  □
 
 ------------------------------------------------------------------------
 -- Heights
