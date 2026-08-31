@@ -2581,3 +2581,19 @@ opaque
     size⁻ t                   ≡⟨ size⁻≡length∘to-List⁻-slow ⟩
     length (to-List⁻-slow t)  ≡⟨ cong length to-List⁻-slow≡to-List⁻ ⟩∎
     length (to-List⁻ t)       ∎
+
+------------------------------------------------------------------------
+-- An equality test
+
+opaque
+
+  infix 4 _≟⁻_
+
+  -- An equality test.
+  --
+  -- The test converts the trees to lists and compares the lists. A
+  -- direct implementation could presumably be more efficient.
+
+  _≟⁻_ : (t₁ t₂ : Tree⁻) → Dec-Erased (to-List⁻ t₁ ≡ to-List⁻ t₂)
+  t₁ ≟⁻ t₂ =
+    Decidable-erased-equality-List O._≟_ (to-List⁻ t₁) (to-List⁻ t₂)

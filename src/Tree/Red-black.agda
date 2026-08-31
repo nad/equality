@@ -292,6 +292,21 @@ opaque
     }
 
 ------------------------------------------------------------------------
+-- An equality test
+
+opaque
+  unfolding to-List
+
+  infix 4 _≟_
+
+  -- An equality test.
+
+  _≟_ : (t₁ t₂ : Tree) → Dec-Erased (t₁ ≈ t₂)
+  t₁ ≟ t₂ =
+    Dec-Erased-map (inverse ≈⇔to-List≡to-List)
+      (Tree.tree t₁ ≟⁻ Tree.tree t₂)
+
+------------------------------------------------------------------------
 -- Size
 
 -- The size of a red-black tree.

@@ -861,6 +861,25 @@ opaque
       _
 
 ------------------------------------------------------------------------
+-- An equality test
+
+opaque
+  unfolding ≈≃[]≡[]
+
+  infix 4 _≟_
+
+  -- An equality test.
+
+  _≟_ : Decidable-erased-equality Set
+  _≟_ =
+    Q.elim-prop₂ _
+      (λ _ _ →
+         BC.Is-proposition-Dec-Erased
+           (lower-extensionality (lsuc a) _ ext) Set-set)
+      (λ t₁ t₂ →
+         Dec-Erased-map (from-equivalence ≈≃[]≡[]) (t₁ T.≟ t₂))
+
+------------------------------------------------------------------------
 -- Sizes
 
 opaque
