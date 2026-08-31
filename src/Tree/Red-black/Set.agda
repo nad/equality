@@ -657,40 +657,6 @@ opaque
     y ≢ x × y ∈ xs  □
 
 opaque
-  unfolding delete-min₀ ∈[]
-
-  -- The function delete-min₀ returns nothing if and only if the set is
-  -- empty.
-
-  @0 Is-nothing-delete-min₀ :
-    Is-nothing (delete-min₀ xs) ≃ (∀ {x} → ¬ x ∈ xs)
-  Is-nothing-delete-min₀ =
-    Q.elim-prop
-      {P = λ xs → Is-nothing (delete-min₀ xs) ≃ (∀ {x} → ¬ x ∈ xs)}
-      (λ where
-         .is-propositionʳ _ →
-           Eq.left-closure (lower-extensionality _ _ ext) 0
-             (T-propositional (is-nothing (delete-min₀ _)))
-         .[]ʳ t →
-           Is-nothing (delete-min₀ [ t ]Q)                 ↝⟨ ≡⇒↝ _ (cong Is-nothing Q.rec-[]) ⟩
-           Is-nothing (Σ-map id [_]Q ⟨$⟩ T.delete-min₀ t)  ↝⟨ lemma (T.delete-min₀ _) ⟩
-           Is-nothing (T.delete-min₀ t)                    ↝⟨ _↠_.from
-                                                                (Eq.≃↠⇔ (T-propositional (is-nothing (T.delete-min₀ _)))
-                                                                   (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-                                                                    ¬-propositional (lower-extensionality _ _ ext)))
-                                                                T.Is-nothing-delete-min₀ ⟩
-           (∀ {x} → ¬ x T.∈ t)                             ↝⟨ implicit-∀-cong (lower-extensionality _ _ ext) $
-                                                              ¬-cong (lower-extensionality _ _ ext) (≡⇒↝ _ (sym ∈[])) ⟩□
-           (∀ {x} → ¬ x ∈ [ t ]Q)                          □)
-      _
-    where
-    lemma :
-      (r : Maybe (A × T.Tree)) →
-      Is-nothing (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ≃ Is-nothing r
-    lemma nothing  = F.id
-    lemma (just _) = F.id
-
-opaque
   unfolding Non-empty delete-min₀ ∈[]
 
   -- There is an equivalence between "delete-min₀ xs is
@@ -718,6 +684,25 @@ opaque
       Is-just (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ≃ Is-just r
     lemma nothing  = F.id
     lemma (just _) = F.id
+
+opaque
+
+  -- The function delete-min₀ returns nothing if and only if the set
+  -- is empty.
+
+  @0 Is-nothing-delete-min₀ :
+    Is-nothing (delete-min₀ xs) ≃ (∀ {x} → ¬ x ∈ xs)
+  Is-nothing-delete-min₀ {xs} =
+    Is-nothing (delete-min₀ xs)  ↝⟨ lemma (delete-min₀ xs) ⟩
+    ¬ Is-just (delete-min₀ xs)   ↝⟨ ¬-cong (lower-extensionality _ _ ext)
+                                      Is-just-delete-min₀ ⟩
+    ¬ Non-empty xs               ↝⟨ ¬-Non-empty-≃-∉ ⟩□
+    (∀ {x} → ¬ x ∈ xs)           □
+    where
+    lemma :
+      ∀ {a} {A : Type a} (x : Maybe A) → Is-nothing x ≃ (¬ Is-just x)
+    lemma nothing  = inverse (¬⊥↔⊤ (lower-extensionality _ _ ext))
+    lemma (just x) = inverse (from-bijection Π-left-identity)
 
 ------------------------------------------------------------------------
 -- Finding the minimum element
