@@ -412,10 +412,6 @@ import Tree.Red-black.External-invariants
 
 import Tree.Red-black
 
--- Finite sets, implemented using red-black trees.
-
-import Tree.Red-black.Set
-
 -- Some omniscience principles.
 
 import Omniscience

@@ -13,3 +13,7 @@ module README.Safe.Cubical-compatible.Quotients where
 -- along with function and propositional extensionality.
 
 import Quotient.Erased.Primitive
+
+-- Finite sets, implemented using red-black trees.
+
+import Tree.Red-black.Set
