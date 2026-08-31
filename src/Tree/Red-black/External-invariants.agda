@@ -395,23 +395,23 @@ opaque
 
   -- The lower bound can be decreased.
 
-  @0 Red-black-<ᴱˡ :
+  @0 Red-black-<ˡ :
     lb₁ <ᴱ lb₂ → Red-black pc n lb₂ ub t → Red-black pc n lb₁ ub t
-  Red-black-<ᴱˡ {t = leaf} lb₁<lb₂ (leafʳᵇ lb₂<ub n≡0) =
+  Red-black-<ˡ {t = leaf} lb₁<lb₂ (leafʳᵇ lb₂<ub n≡0) =
     leafʳᵇ (EO.<-trans lb₁<lb₂ lb₂<ub) n≡0
-  Red-black-<ᴱˡ {t = node⁰} lb₁<lb₂ (nodeʳᵇ l r rinv binv) =
-    nodeʳᵇ (Red-black-<ᴱˡ lb₁<lb₂ l) r rinv binv
+  Red-black-<ˡ {t = node⁰} lb₁<lb₂ (nodeʳᵇ l r rinv binv) =
+    nodeʳᵇ (Red-black-<ˡ lb₁<lb₂ l) r rinv binv
 
 opaque
 
   -- The upper bound can be increased.
 
-  @0 Red-black-<ᴱʳ :
+  @0 Red-black-<ʳ :
     ub₁ <ᴱ ub₂ → Red-black pc n lb ub₁ t → Red-black pc n lb ub₂ t
-  Red-black-<ᴱʳ {t = leaf} ub₁<ub₂ (leafʳᵇ lb<ub₁ n≡0) =
+  Red-black-<ʳ {t = leaf} ub₁<ub₂ (leafʳᵇ lb<ub₁ n≡0) =
     leafʳᵇ (EO.<-trans lb<ub₁ ub₁<ub₂) n≡0
-  Red-black-<ᴱʳ {t = node⁰} ub₁<ub₂ (nodeʳᵇ l r rinv binv) =
-    nodeʳᵇ l (Red-black-<ᴱʳ ub₁<ub₂ r) rinv binv
+  Red-black-<ʳ {t = node⁰} ub₁<ub₂ (nodeʳᵇ l r rinv binv) =
+    nodeʳᵇ l (Red-black-<ʳ ub₁<ub₂ r) rinv binv
 
 ------------------------------------------------------------------------
 -- Membership
@@ -2143,7 +2143,7 @@ opaque
     | eqᵀ _ =
     ⊥-elim ∘ Bool.true≢false ∘ sym ,
     nodeʳᵇ (Red-black→Red-black-black l)
-      (Red-black-<ᴱʳ <ub (Red-black→Red-black-black r))
+      (Red-black-<ʳ <ub (Red-black→Red-black-black r))
       black-child (trans binv (cong suc binv₁))
   delete⁻′ʳᵇ
     (node red (nodeᶜ red) _ leaf) (nodeʳᵇ (nodeʳᵇ _ _ rinv _) _ _ _)
@@ -2159,7 +2159,7 @@ opaque
     (nodeʳᵇ (lb< , _) (nodeʳᵇ l r _ binv₁) _ binv)
     | eqᵀ _ =
     ⊥-elim ∘ Bool.true≢false ∘ sym ,
-    nodeʳᵇ (Red-black-<ᴱˡ lb< (Red-black→Red-black-black l))
+    nodeʳᵇ (Red-black-<ˡ lb< (Red-black→Red-black-black l))
       (Red-black→Red-black-black r) black-child
       (trans binv (cong suc binv₁))
   delete⁻′ʳᵇ
@@ -2197,7 +2197,7 @@ opaque
         n′≡n‴ = if-lemma ≢0
 
         lʳᵇ′ : Red-black c n‴ lb [ z ] l
-        lʳᵇ′ = cast {t = l} n′≡n‴ (Red-black-<ᴱʳ {t = l} [y]<[z] lʳᵇ)
+        lʳᵇ′ = cast {t = l} n′≡n‴ (Red-black-<ʳ {t = l} [y]<[z] lʳᵇ)
 
         binv′ :
           Black-invariant c (if b′ then n″ else n‴)

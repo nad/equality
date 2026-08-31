@@ -429,7 +429,7 @@ private opaque
         { tree      = t′
         ; red-black =
             let _ , t′ʳᵇ = delete-min⁻ʳᵇ _ eq (Tree.red-black t) in
-            Red-black-<ᴱˡ min-[] t′ʳᵇ
+            Red-black-<ˡ min-[] t′ʳᵇ
         }
     )
 
