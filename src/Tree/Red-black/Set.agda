@@ -37,7 +37,7 @@ open import Logical-equivalence using (_⇔_)
 import Bag-equivalence eq as L
 open import Equality.Decision-procedures eq
 open import Equivalence eq as Eq using (_≃_)
-open import Equivalence.Erased eq using (_≃ᴱ_)
+import Equivalence.Erased eq as EEq
 open import Erased.Level-1 eq as Erased
 open import Function-universe eq as F hiding (id; _∘_)
 open import H-level eq as H-level hiding (Set)
@@ -47,6 +47,7 @@ open import List eq
 open import Maybe eq
 open import Monad eq
 import Nat eq as N
+open import Surjection eq using (_↠_)
 import Tree.Red-black eq O as T
 
 private
@@ -219,21 +220,21 @@ opaque
 opaque
   unfolding _/ᴱ-map_ insert ∈[]
 
-  -- The value y is in insert x xs if and only if merely y is x or y
-  -- is in xs.
+  -- There is an equivalence between "y is in insert x xs" and "merely
+  -- y is x or in xs".
 
-  @0 ∈insert⇔ : y ∈ insert x xs ⇔ y ≡ x ∥⊎∥ᴱ y ∈ xs
-  ∈insert⇔ {y} {x} {xs} =
-    Q.elim-prop {P = λ xs → y ∈ insert x xs ⇔ y ≡ x ∥⊎∥ᴱ y ∈ xs}
+  @0 ∈insert≃ : (y ∈ insert x xs) ≃ (y ≡ x ∥⊎∥ᴱ y ∈ xs)
+  ∈insert≃ {y} {x} {xs} =
+    Q.elim-prop {P = λ xs → (y ∈ insert x xs) ≃ (y ≡ x ∥⊎∥ᴱ y ∈ xs)}
       (λ where
          .is-propositionʳ _ →
-           ⇔-closure (lower-extensionality _ _ ext) 1 ∈-propositional
-             truncation-is-proposition
+           Eq.left-closure (lower-extensionality _ _ ext) 0
+             ∈-propositional
          .[]ʳ t →
            y ∈ insert x [ t ]Q      ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
            y ∈ [ T.insert x t ]Q    ↝⟨ ≡⇒↝ _ ∈[] ⟩
-           y T.∈ T.insert x t       ↔⟨ inverse (∥∥ᴱ≃ T.∈-propositional) ⟩
-           ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ ∥∥ᴱ-cong T.∈-insert ⟩
+           y T.∈ T.insert x t       ↝⟨ inverse (∥∥ᴱ≃ T.∈-propositional) ⟩
+           ∥ y T.∈ T.insert x t ∥ᴱ  ↝⟨ EEq.≃ᴱ→≃ (∥∥ᴱ-cong-⇔ T.∈-insert) ⟩
            y ≡ x ∥⊎∥ᴱ y T.∈ t       ↝⟨ ≡⇒↝ _ (cong (∥_∥ᴱ ∘ _⊎_ _) (sym ∈[])) ⟩□
            y ≡ x ∥⊎∥ᴱ y ∈ [ t ]Q    □)
       xs
@@ -253,24 +254,27 @@ opaque
 opaque
   unfolding _/ᴱ-map_ delete ∈[]
 
-  -- The value y is in delete x xs if and only if y is distinct from x
-  -- and y is in xs.
+  -- There is an equivalence between "y is in delete x xs" and "y is
+  -- distinct from x and in xs".
 
-  @0 ∈delete⇔ : y ∈ delete x xs ⇔ y ≢ x × y ∈ xs
-  ∈delete⇔ {y} {x} {xs} =
-    Q.elim-prop {P = λ xs → y ∈ delete x xs ⇔ y ≢ x × y ∈ xs}
+  @0 ∈delete≃ : (y ∈ delete x xs) ≃ (y ≢ x × y ∈ xs)
+  ∈delete≃ {y} {x} {xs} =
+    Q.elim-prop {P = λ xs → (y ∈ delete x xs) ≃ (y ≢ x × y ∈ xs)}
       (λ where
          .is-propositionʳ _ →
-           ⇔-closure (lower-extensionality _ _ ext) 1 ∈-propositional
-             (×-closure 1
-                (¬-propositional (lower-extensionality _ _ ext))
-                ∈-propositional)
+           Eq.left-closure (lower-extensionality _ _ ext) 0
+             ∈-propositional
          .[]ʳ t →
-           y ∈ delete x [ t ]Q      ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
-           y ∈ [ T.delete x t ]Q    ↝⟨ ≡⇒↝ _ ∈[] ⟩
-           y T.∈ T.delete x t       ↝⟨ T.∈-delete ⟩
-           y ≢ x × y T.∈ t          ↝⟨ ≡⇒↝ _ (cong (_×_ _) (sym ∈[])) ⟩□
-           y ≢ x × y ∈ [ t ]Q       □)
+           y ∈ delete x [ t ]Q    ↝⟨ ≡⇒↝ _ (cong (_∈_ _) Q.rec-[]) ⟩
+           y ∈ [ T.delete x t ]Q  ↝⟨ ≡⇒↝ _ ∈[] ⟩
+           y T.∈ T.delete x t     ↝⟨ _↠_.from
+                                       (Eq.≃↠⇔ T.∈-propositional
+                                          (×-closure 1
+                                             (¬-propositional (lower-extensionality _ _ ext))
+                                             T.∈-propositional))
+                                       T.∈-delete ⟩
+           y ≢ x × y T.∈ t        ↝⟨ ≡⇒↝ _ (cong (_×_ _) (sym ∈[])) ⟩□
+           y ≢ x × y ∈ [ t ]Q     □)
       xs
 
 opaque
@@ -280,7 +284,7 @@ opaque
   @0 ∉→delete≡ : ¬ x ∈ xs → delete x xs ≡ xs
   ∉→delete≡ {x} {xs} x∉xs =
     extensionality λ {y} →
-      y ∈ delete x xs  ↝⟨ ∈delete⇔ ⟩
+      y ∈ delete x xs  ↔⟨ ∈delete≃ ⟩
       y ≢ x × y ∈ xs   ↝⟨ record
                             { to   = proj₂
                             ; from = λ y∈xs → x∉xs ∘ flip (subst (_∈ _)) y∈xs , y∈xs
@@ -320,40 +324,61 @@ opaque
     lemma (just _) (just _) (x₁≡x₂ , t₁≈t₂) =
       cong just $ cong₂ _,_ x₁≡x₂ (Q.[]-respects-relation t₁≈t₂)
 
+private opaque
+
+  -- If x is strictly below all elements in xs, then y ≡ x ⊎ y ∈ xs is
+  -- a proposition.
+
+  @0 ≡⊎∈-propositional :
+    (∀ {y} → y ∈ xs → x < y) →
+    Is-proposition (y ≡ x ⊎ y ∈ xs)
+  ≡⊎∈-propositional ∈→< =
+    ⊎-closure-propositional (λ ≡x ∈xs′ → O.<→≢ (∈→< ∈xs′) (sym ≡x))
+      O.is-set ∈-propositional
+
 opaque
   unfolding T._≈_ delete-min ∈[]
 
-  -- The value of delete-min xs is just (x , xs′) if and only if
+  -- There is an equivalence between "delete-min xs is just (x , xs′)"
+  -- and the conjunction of
   --
   -- * x is strictly smaller than all elements in xs′ and
   --
   -- * every value is in xs if and only it is either equal to x or in
   --   xs′.
 
-  @0 delete-min-just-⇔ :
-    delete-min xs ≡ just (x , xs′) ⇔
-    (∀ {y} → y ∈ xs′ → x < y) × (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′)
-  delete-min-just-⇔ {x} =
+  @0 delete-min-just-≃ :
+    (delete-min xs ≡ just (x , xs′)) ≃
+    ((∀ {y} → y ∈ xs′ → x < y) × (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
+  delete-min-just-≃ {x} =
+    let set : Is-set (Maybe (A × Set))
+        set =
+          ⊎-closure 0 (H-level.mono (N.zero≤ 2) ⊤-contractible)
+            (×-closure 2 O.is-set Set-set)
+
+        prop :
+          Is-proposition
+            ((∀ {y} → y ∈ xs′ → x < y) ×
+             (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
+        prop =
+          Σ-closure 1
+            (implicit-Π-closure (lower-extensionality _ (lsuc a) ext)
+               1 λ _ →
+             Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
+             O.<-propositional) λ ∈→< →
+            (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+             ⇔-closure (lower-extensionality _ _ ext) 1
+               ∈-propositional (≡⊎∈-propositional ∈→<))
+    in
+    _↠_.from (Eq.≃↠⇔ set prop) $
     Q.elim-prop₂
       (λ xs xs′ →
          delete-min xs ≡ just (x , xs′) ⇔
          (∀ {y} → y ∈ xs′ → x < y) ×
          (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′))
-      (λ _ _ →
-         ⇔-closure (lower-extensionality (lsuc a) (lsuc a) ext) 1
-           (⊎-closure 0 (H-level.mono (N.zero≤ 2) ⊤-contractible)
-              (×-closure 2 O.is-set Set-set))
-           (Σ-closure 1
-              (implicit-Π-closure (lower-extensionality _ (lsuc a) ext)
-                 1 λ _ →
-               Π-closure (lower-extensionality _ (lsuc a) ext) 1 λ _ →
-               O.<-propositional) λ ∈→< →
-              (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-               ⇔-closure (lower-extensionality _ _ ext) 1
-                 ∈-propositional
-                 (⊎-closure-propositional
-                    (λ ≡x ∈xs′ → O.<→≢ (∈→< ∈xs′) (sym ≡x))
-                    O.is-set ∈-propositional))))
+      (λ xs₁ xs₂ →
+         ⇔-closure (lower-extensionality (lsuc a) (lsuc a) ext) 1 set
+           prop)
       (λ t₁ t₂ →
          delete-min [ t₁ ]Q ≡ just (x , [ t₂ ]Q)                    ↝⟨ ≡⇒↝ _ (cong (_≡ _) Q.rec-[]) ⟩
 
@@ -402,7 +427,7 @@ opaque
     (∀ {y} → y ∈ xs′ → x < y) →
     (∀ {y} → y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′) →
     delete-min xs ≡ just (x , xs′)
-  delete-min-just = curry (_⇔_.from delete-min-just-⇔)
+  delete-min-just = curry (_≃_.from delete-min-just-≃)
 
 opaque
 
@@ -411,7 +436,7 @@ opaque
   @0 <-delete-min :
     delete-min xs ≡ just (x , xs′) →
     y ∈ xs′ → x < y
-  <-delete-min eq = _⇔_.to delete-min-just-⇔ eq .proj₁
+  <-delete-min eq = _≃_.to delete-min-just-≃ eq .proj₁
 
 opaque
 
@@ -419,8 +444,11 @@ opaque
 
   @0 ∈-delete-min :
     delete-min xs ≡ just (x , xs′) →
-    y ∈ xs ⇔ y ≡ x ⊎ y ∈ xs′
-  ∈-delete-min eq = _⇔_.to delete-min-just-⇔ eq .proj₂
+    (y ∈ xs) ≃ (y ≡ x ⊎ y ∈ xs′)
+  ∈-delete-min eq =
+    _↠_.from
+      (Eq.≃↠⇔ ∈-propositional (≡⊎∈-propositional (<-delete-min eq))) $
+    _≃_.to delete-min-just-≃ eq .proj₂
 
 opaque
 
@@ -428,9 +456,12 @@ opaque
 
   @0 ∈-delete-min-≢ :
     delete-min xs ≡ just (x , xs′) →
-    y ∈ xs′ ⇔ y ≢ x × y ∈ xs
+    (y ∈ xs′) ≃ (y ≢ x × y ∈ xs)
   ∈-delete-min-≢ {xs} {x} {xs′} {y} eq =
-    y ∈ xs′         ↝⟨ inverse (⇔⊎→×¬⇔ (∈-delete-min eq) (flip ((_∘ sym) ∘ O.<→≢ ∘ <-delete-min eq))) ⟩
+    y ∈ xs′         ↝⟨ inverse $
+                       ≃⊎→×¬≃ (from-equivalence (∈-delete-min eq))
+                         (flip ((_∘ sym) ∘ O.<→≢ ∘ <-delete-min eq))
+                         (lower-extensionality _ _ ext) ⟩
     y ∈ xs × y ≢ x  ↔⟨ ×-comm ⟩□
     y ≢ x × y ∈ xs  □
 
@@ -441,59 +472,60 @@ opaque
   -- empty.
 
   @0 Is-nothing-delete-min :
-    Is-nothing (delete-min xs) ⇔ (∀ {x} → ¬ x ∈ xs)
+    Is-nothing (delete-min xs) ≃ (∀ {x} → ¬ x ∈ xs)
   Is-nothing-delete-min =
     Q.elim-prop
-      {P = λ xs → Is-nothing (delete-min xs) ⇔ (∀ {x} → ¬ x ∈ xs)}
+      {P = λ xs → Is-nothing (delete-min xs) ≃ (∀ {x} → ¬ x ∈ xs)}
       (λ where
          .is-propositionʳ _ →
-           ⇔-closure (lower-extensionality _ _ ext) 1
+           Eq.left-closure (lower-extensionality _ _ ext) 0
              (T-propositional (is-nothing (delete-min _)))
-             (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
-              ¬-propositional (lower-extensionality _ _ ext))
          .[]ʳ t →
            Is-nothing (delete-min [ t ]Q)                 ↝⟨ ≡⇒↝ _ (cong Is-nothing Q.rec-[]) ⟩
            Is-nothing (Σ-map id [_]Q ⟨$⟩ T.delete-min t)  ↝⟨ lemma (T.delete-min _) ⟩
-           Is-nothing (T.delete-min t)                    ↝⟨ T.Is-nothing-delete-min ⟩
-           (∀ {x} → ¬ x T.∈ t)                            ↝⟨ implicit-∀-cong _ $
-                                                             ¬-cong _ (≡⇒↝ _ (sym ∈[])) ⟩
+           Is-nothing (T.delete-min t)                    ↝⟨ _↠_.from
+                                                               (Eq.≃↠⇔ (T-propositional (is-nothing (T.delete-min _)))
+                                                                  (implicit-Π-closure (lower-extensionality _ _ ext) 1 λ _ →
+                                                                   ¬-propositional (lower-extensionality _ _ ext)))
+                                                               T.Is-nothing-delete-min ⟩
+           (∀ {x} → ¬ x T.∈ t)                            ↝⟨ implicit-∀-cong (lower-extensionality _ _ ext) $
+                                                             ¬-cong (lower-extensionality _ _ ext) (≡⇒↝ _ (sym ∈[])) ⟩□
            (∀ {x} → ¬ x ∈ [ t ]Q)                         □)
       _
     where
     lemma :
       (r : Maybe (A × T.Tree)) →
-      Is-nothing (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ⇔ Is-nothing r
+      Is-nothing (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ≃ Is-nothing r
     lemma nothing  = F.id
     lemma (just _) = F.id
 
 opaque
   unfolding delete-min ∈[]
 
-  -- The value of delete-min xs is just something if and only if xs is
-  -- (merely) non-empty.
+  -- There is an equivalence between "delete-min xs is just something"
+  -- and "xs is merely non-empty".
 
   @0 Is-just-delete-min :
-    Is-just (delete-min xs) ⇔ ∥ (∃ λ x → x ∈ xs) ∥ᴱ
+    Is-just (delete-min xs) ≃ ∥ (∃ λ x → x ∈ xs) ∥ᴱ
   Is-just-delete-min =
     Q.elim-prop
-      {P = λ xs → Is-just (delete-min xs) ⇔ ∥ (∃ λ x → x ∈ xs) ∥ᴱ}
+      {P = λ xs → Is-just (delete-min xs) ≃ ∥ (∃ λ x → x ∈ xs) ∥ᴱ}
       (λ where
          .is-propositionʳ _ →
-           ⇔-closure (lower-extensionality _ _ ext) 1
-             (T-propositional (is-just (delete-min _)))
+           Eq.right-closure (lower-extensionality _ _ ext) 0
              truncation-is-proposition
          .[]ʳ t →
            Is-just (delete-min [ t ]Q)                 ↝⟨ ≡⇒↝ _ (cong Is-just Q.rec-[]) ⟩
            Is-just (Σ-map id [_]Q ⟨$⟩ T.delete-min t)  ↝⟨ lemma (T.delete-min _) ⟩
            Is-just (T.delete-min t)                    ↔⟨ inverse (∥∥ᴱ≃ (T-propositional (is-just (T.delete-min _)))) ⟩
-           ∥ Is-just (T.delete-min t) ∥ᴱ               ↝⟨ ∥∥ᴱ-cong T.Is-just-delete-min ⟩
+           ∥ Is-just (T.delete-min t) ∥ᴱ               ↝⟨ EEq.≃ᴱ→≃ (∥∥ᴱ-cong-⇔ T.Is-just-delete-min) ⟩
            ∥ (∃ λ x → x T.∈ t) ∥ᴱ                      ↝⟨ ∥∥ᴱ-cong (∃-cong λ _ → ≡⇒↝ _ (sym ∈[])) ⟩□
            ∥ (∃ λ x → x ∈ [ t ]Q) ∥ᴱ                   □)
       _
     where
     lemma :
       (r : Maybe (A × T.Tree)) →
-      Is-just (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ⇔ Is-just r
+      Is-just (Σ-map id ([_]Q {R = T._≈_}) ⟨$⟩ r) ≃ Is-just r
     lemma nothing  = F.id
     lemma (just _) = F.id
 
@@ -523,14 +555,14 @@ opaque
               .truncation-is-propositionʳ →
                 ⊥-propositional
               .∣∣ʳ (_ , ∈xs) →
-                _⇔_.to Is-nothing-delete-min
+                _≃_.to Is-nothing-delete-min
                   (subst Is-nothing (sym eq) _) ∈xs)
            ∈xs)
     lemma (just (x , _)) eq _ =
       x ,
-      [ ( _⇔_.from (∈-delete-min eq) (inj₁ (refl _))
+      [ ( _≃_.from (∈-delete-min eq) (inj₁ (refl _))
         , λ y∈xs →
-            case _⇔_.to (∈-delete-min eq) y∈xs of λ @0 where
+            case _≃_.to (∈-delete-min eq) y∈xs of λ @0 where
               (inj₁ y≡x)   → O.≤-reflexive (sym y≡x)
               (inj₂ y∈xs′) → O.<→≤ (<-delete-min eq y∈xs′)
         )
