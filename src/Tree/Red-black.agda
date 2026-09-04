@@ -188,49 +188,13 @@ opaque
       suc (N.max (height⁻ l) (height⁻ r))  ∎≤
 
 opaque
-  unfolding Red-invariant Black-invariant
 
   -- The height is at most one plus twice the black height.
 
   @0 height≤1+2*black-height :
     ∀ t → height t N.≤ 1 + 2 * Tree.black-height t
-  height≤1+2*black-height = lemmaᵇ _ ∘ Tree.red-black
-    where
-    mutual
-      lemmaᵇ :
-        ∀ t → Red-black black n lb ub t → height⁻ t N.≤ 1 + 2 * n
-      lemmaᵇ {n} leaf (leafʳᵇ _ n≡0) =
-        N.zero≤ _
-      lemmaᵇ {n} (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
-        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ black-case l r l-ok r-ok n≡1+m ⟩
-        2 * n                              N.≤⟨ N.pred≤ _ ⟩∎
-        1 + 2 * n                          ∎≤
-      lemmaᵇ {n} (node red l _ r) (m , l-ok , r-ok , _ , n≡m) =
-        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (lemmaʳ l l-ok) (lemmaʳ r r-ok) ⟩
-        1 + N.max (2 * m) (2 * m)          N.≡⟨ cong (1 +_) (N.max-idempotent _) ⟩≤
-        1 + 2 * m                          N.≡⟨ cong ((1 +_) ∘ (2 *_)) (sym n≡m) ⟩≤
-        1 + 2 * n                          N.∎≤
-
-      lemmaʳ : ∀ t → Red-black red n lb ub t → height⁻ t N.≤ 2 * n
-      lemmaʳ leaf (leafʳᵇ _ n≡0) =
-        N.zero≤ _
-      lemmaʳ (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
-        black-case l r l-ok r-ok n≡1+m
-      lemmaʳ (node red _ _ _) (nodeʳᵇ _ _ rinv _) =
-        ⊥-elim (not-red-red rinv)
-
-      black-case :
-        ∀ l r →
-        Red-black black m lb [ x ] l →
-        Red-black black m [ x ] ub r →
-        n ≡ 1 + m →
-        1 + N.max (height⁻ l) (height⁻ r) N.≤ 2 * n
-      black-case {m} {n} l r l-ok r-ok n≡1+m =
-        1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (lemmaᵇ l l-ok) (lemmaᵇ r r-ok) ⟩
-        1 + N.max (1 + 2 * m) (1 + 2 * m)  N.≡⟨ cong suc (N.max-idempotent _) ⟩≤
-        2 + 2 * m                          N.≡⟨ sym (N.*-+-distribˡ 2 {n = 1}) ⟩≤
-        2 * suc m                          N.≡⟨ cong (2 *_) (sym n≡1+m) ⟩≤
-        2 * n                              N.∎≤
+  height≤1+2*black-height t =
+    height⁻≤1+2*black-height (Tree.tree t) (Tree.red-black t)
 
 opaque
 

@@ -449,6 +449,67 @@ opaque
 
       2 * 2 ^ N.max (height⁻ l) (height⁻ r)  N.∎≤
 
+opaque
+ unfolding Black-invariant
+ mutual
+
+  private
+
+    -- A lemma used below.
+
+    @0 black-case :
+      ∀ l r →
+      Red-black black m lb [ x ] l →
+      Red-black black m [ x ] ub r →
+      n ≡ 1 + m →
+      1 + N.max (height⁻ l) (height⁻ r) N.≤ 2 * n
+    black-case {m} {n} l r l-ok r-ok n≡1+m =
+      1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono
+                                              N.max-mono (height⁻≤1+2*black-height l l-ok) (height⁻≤1+2*black-height r r-ok) ⟩
+      1 + N.max (1 + 2 * m) (1 + 2 * m)  N.≡⟨ cong suc (N.max-idempotent _) ⟩≤
+      2 + 2 * m                          N.≡⟨ sym (N.*-+-distribˡ 2 {n = 1}) ⟩≤
+      2 * suc m                          N.≡⟨ cong (2 *_) (sym n≡1+m) ⟩≤
+      2 * n                              N.∎≤
+
+  -- For a red-black tree with a red parent colour the height is at
+  -- most twice the black height.
+
+  @0 height⁻≤2*black-height :
+    ∀ t →
+    Red-black red n lb ub t →
+    height⁻ t N.≤ 2 * n
+  height⁻≤2*black-height {n} leaf _ =
+    0      N.≤⟨ N.zero≤ _ ⟩∎
+    2 * n  ∎≤
+  height⁻≤2*black-height
+    {n} (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+    1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ black-case l r l-ok r-ok n≡1+m ⟩∎
+    2 * n                              ∎≤
+  height⁻≤2*black-height (nodeᶜ red) (nodeʳᵇ _ _ rinv _) =
+    ⊥-elim (not-red-red rinv)
+
+  -- For a red-black tree the height is at most one plus twice the
+  -- black height.
+
+  @0 height⁻≤1+2*black-height :
+    ∀ t →
+    Red-black pc n lb ub t →
+    height⁻ t N.≤ 1 + 2 * n
+  height⁻≤1+2*black-height {n} leaf _ =
+    0          N.≤⟨ N.zero≤ _ ⟩∎
+    1 + 2 * n  ∎≤
+  height⁻≤1+2*black-height
+    {n} (node black l _ r) (nodeʳᵇ l-ok r-ok _ n≡1+m) =
+    1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ black-case l r l-ok r-ok n≡1+m ⟩
+    2 * n                              N.≤⟨ N.pred≤ _ ⟩∎
+    1 + 2 * n                          ∎≤
+  height⁻≤1+2*black-height
+    {n} (node red l _ r) (m , l-ok , r-ok , _ , n≡m) =
+    1 + N.max (height⁻ l) (height⁻ r)  N.≤⟨ N.≤-refl N.+-mono N.max-mono (height⁻≤2*black-height l l-ok) (height⁻≤2*black-height r r-ok) ⟩
+    1 + N.max (2 * m) (2 * m)          N.≡⟨ cong (1 +_) (N.max-idempotent _) ⟩≤
+    1 + 2 * m                          N.≡⟨ cong ((1 +_) ∘ (2 *_)) (sym n≡m) ⟩≤
+    1 + 2 * n                          N.∎≤
+
 ------------------------------------------------------------------------
 -- Membership
 
