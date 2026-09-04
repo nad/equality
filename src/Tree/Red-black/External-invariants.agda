@@ -108,46 +108,6 @@ private variable
   @0 l l₁ l₂ r r₁ r₂ t′ t₁ t₃ t₅ : Tree⁻
 
 ------------------------------------------------------------------------
--- Heights and sizes
-
--- The height of a tree.
-
-@0 height⁻ : Tree⁻ → ℕ
-height⁻ leaf           = 0
-height⁻ (node _ l _ r) = suc (N.max (height⁻ l) (height⁻ r))
-
--- The size of a tree.
---
--- The function is erased because it is (at least) linear in the size
--- of the tree, so it is not recommended to be used at run-time.
-
-@0 size⁻ : Tree⁻ → ℕ
-size⁻ leaf           = 0
-size⁻ (node _ l _ r) = suc (size⁻ l + size⁻ r)
-
-opaque
-
-  -- A lemma relating the size of a tree to its height.
-
-  @0 size⁻≤2^height⁻∸1 : size⁻ t N.≤ 2 ^ height⁻ t ∸ 1
-  size⁻≤2^height⁻∸1 {t} = lemma t N.∸-mono N.≤-refl
-    where
-    lemma : ∀ t → 1 + size⁻ t N.≤ 2 ^ height⁻ t
-    lemma leaf =
-      N.≤-refl
-    lemma (node _ l _ r) =
-      2 + size⁻ l + size⁻ r                  N.≡⟨ N.suc+≡+suc (1 + _) ⟩≤
-
-      (1 + size⁻ l) + (1 + size⁻ r)          N.≤⟨ lemma l N.+-mono lemma r ⟩
-
-      2 ^ height⁻ l + 2 ^ height⁻ r          N.≤⟨ N.≤-refl N.⁺^-mono N.ˡ≤max (height⁻ l) _ N.+-mono
-                                                  N.≤-refl N.⁺^-mono N.ʳ≤max (height⁻ l) _ ⟩
-      2 ^ N.max (height⁻ l) (height⁻ r) +
-      2 ^ N.max (height⁻ l) (height⁻ r)      N.≡⟨ sym (N.2*≡+ (2 ^ N.max (height⁻ l) _)) ⟩≤
-
-      2 * 2 ^ N.max (height⁻ l) (height⁻ r)  N.∎≤
-
-------------------------------------------------------------------------
 -- Some simple lemmas
 
 opaque
@@ -448,6 +408,46 @@ opaque
     leafʳᵇ (EO.<-trans lb<ub₁ ub₁<ub₂) n≡0
   Red-black-<ʳ {t = node⁰} ub₁<ub₂ (nodeʳᵇ l r rinv binv) =
     nodeʳᵇ l (Red-black-<ʳ ub₁<ub₂ r) rinv binv
+
+------------------------------------------------------------------------
+-- Heights and sizes
+
+-- The height of a tree.
+
+@0 height⁻ : Tree⁻ → ℕ
+height⁻ leaf           = 0
+height⁻ (node _ l _ r) = suc (N.max (height⁻ l) (height⁻ r))
+
+-- The size of a tree.
+--
+-- The function is erased because it is (at least) linear in the size
+-- of the tree, so it is not recommended to be used at run-time.
+
+@0 size⁻ : Tree⁻ → ℕ
+size⁻ leaf           = 0
+size⁻ (node _ l _ r) = suc (size⁻ l + size⁻ r)
+
+opaque
+
+  -- A lemma relating the size of a tree to its height.
+
+  @0 size⁻≤2^height⁻∸1 : size⁻ t N.≤ 2 ^ height⁻ t ∸ 1
+  size⁻≤2^height⁻∸1 {t} = lemma t N.∸-mono N.≤-refl
+    where
+    lemma : ∀ t → 1 + size⁻ t N.≤ 2 ^ height⁻ t
+    lemma leaf =
+      N.≤-refl
+    lemma (node _ l _ r) =
+      2 + size⁻ l + size⁻ r                  N.≡⟨ N.suc+≡+suc (1 + _) ⟩≤
+
+      (1 + size⁻ l) + (1 + size⁻ r)          N.≤⟨ lemma l N.+-mono lemma r ⟩
+
+      2 ^ height⁻ l + 2 ^ height⁻ r          N.≤⟨ N.≤-refl N.⁺^-mono N.ˡ≤max (height⁻ l) _ N.+-mono
+                                                  N.≤-refl N.⁺^-mono N.ʳ≤max (height⁻ l) _ ⟩
+      2 ^ N.max (height⁻ l) (height⁻ r) +
+      2 ^ N.max (height⁻ l) (height⁻ r)      N.≡⟨ sym (N.2*≡+ (2 ^ N.max (height⁻ l) _)) ⟩≤
+
+      2 * 2 ^ N.max (height⁻ l) (height⁻ r)  N.∎≤
 
 ------------------------------------------------------------------------
 -- Membership
