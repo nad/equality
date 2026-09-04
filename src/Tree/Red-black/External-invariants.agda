@@ -30,7 +30,7 @@ open import Logical-equivalence using (_⇔_)
 
 import Bag-equivalence eq as L
 open import Equality.Decision-procedures eq
-open import Equivalence eq using (_≃_)
+open import Equivalence eq as Eq using (_≃_)
 open import Erased.Level-1 eq
 open import Function-universe eq as F hiding (id; _∘_; if-lemma)
 import H-level eq as H-level
@@ -51,7 +51,7 @@ private variable
   @0 b                              : Bool
   @0 m n n′ n₁ n₂                   : ℕ
   @0 xs                             : List _
-  @0 x x₂ x₄ y z                    : A
+  @0 x x₁ x₂ x₄ y z                 : A
   @0 b₁ b₂ b₃ lb lb₁ lb₂ ub ub₁ ub₂ : Extended _
 
 ------------------------------------------------------------------------
@@ -81,7 +81,7 @@ pattern red   = false
 pattern black = true
 
 private variable
-  @0 c pc : Colour
+  @0 c c₁ c₂ pc : Colour
 
 opaque
 
@@ -104,8 +104,8 @@ pattern nodeᶜ c = node c _ _ _
 pattern node⁰   = node _ _ _ _
 
 private variable
-  t                  : Tree⁻
-  @0 l r t′ t₁ t₃ t₅ : Tree⁻
+  t                              : Tree⁻
+  @0 l l₁ l₂ r r₁ r₂ t′ t₁ t₃ t₅ : Tree⁻
 
 ------------------------------------------------------------------------
 -- Heights and sizes
@@ -148,7 +148,7 @@ opaque
       2 * 2 ^ N.max (height⁻ l) (height⁻ r)  N.∎≤
 
 ------------------------------------------------------------------------
--- A simple lemma
+-- Some simple lemmas
 
 opaque
 
@@ -160,6 +160,33 @@ opaque
     F : Tree⁻ → Type
     F node⁰ = ⊤
     F leaf  = ⊥
+
+opaque
+
+  -- The node constructor is injective.
+
+  @0 node-injective :
+    node c₁ l₁ x₁ r₁ ≡ node c₂ l₂ x₂ r₂ →
+    c₁ ≡ c₂ × l₁ ≡ l₂ × x₁ ≡ x₂ × r₁ ≡ r₂
+  node-injective {c₁} {l₁} {x₁} {r₁} {c₂} {l₂} {x₂} {r₂} =
+    node c₁ l₁ x₁ r₁ ≡ node c₂ l₂ x₂ r₂                  ↔⟨ inverse (Eq.≃-≡ equiv) ⟩
+    inj₂ (c₁ , l₁ , x₁ , r₁) ≡ inj₂ (c₂ , l₂ , x₂ , r₂)  ↝⟨ ⊎.cancel-inj₂ ⟩
+    (c₁ , l₁ , x₁ , r₁) ≡ (c₂ , l₂ , x₂ , r₂)            ↔⟨ (∃-cong λ _ →
+                                                             (∃-cong λ _ → inverse ≡×≡↔≡) F.∘
+                                                             inverse ≡×≡↔≡) F.∘
+                                                            inverse ≡×≡↔≡ ⟩
+    c₁ ≡ c₂ × l₁ ≡ l₂ × x₁ ≡ x₂ × r₁ ≡ r₂                □
+    where
+    equiv : Tree⁻ ≃ (⊤ ⊎ Colour × Tree⁻ × A × Tree⁻)
+    equiv = Eq.↔→≃
+      (λ where
+         leaf           → inj₁ tt
+         (node c l x r) → inj₂ (c , l , x , r))
+      P.[ _ , _ ]
+      P.[ refl ∘ inj₁ , refl ∘ inj₂ ]
+      (λ where
+         leaf           → refl _
+         (node _ _ _ _) → refl _)
 
 ------------------------------------------------------------------------
 -- Red-black trees
