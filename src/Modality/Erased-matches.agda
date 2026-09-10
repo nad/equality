@@ -1,9 +1,10 @@
 ------------------------------------------------------------------------
 -- Some results that hold for a modality, implemented using
--- --erased-matches
+-- --erased-matches=non-dependent
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --cubical-compatible --erased-matches #-}
+{-# OPTIONS
+      --safe --cubical-compatible --erased-matches=non-dependent #-}
 
 open import Equality
 import Modality.Basics

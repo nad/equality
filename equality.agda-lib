@@ -4,6 +4,7 @@ include: src
 flags:
   --no-import-sorts
   --erasure
+  --erased-matches=empty
   --hidden-argument-puns
   --warning=noShouldBeEtaRecordPattern
   --warning=noUnsupportedIndexedMatch

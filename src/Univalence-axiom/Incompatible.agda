@@ -8,10 +8,10 @@
 
 -- The K rule is turned on in order to enable some of the definitions
 -- below. The K rule itself is not needed, but at the time of writing
--- Agda only allows erased matches for identity types if the K rule is
--- turned on.
+-- Agda with --safe enabled only allows unrestricted erased matches
+-- for identity types if the K rule is turned on.
 
-{-# OPTIONS --with-K --safe #-}
+{-# OPTIONS --safe --with-K --erased-matches=unrestricted #-}
 
 module Univalence-axiom.Incompatible where
 

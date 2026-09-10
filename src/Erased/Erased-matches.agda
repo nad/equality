@@ -1,9 +1,10 @@
 ------------------------------------------------------------------------
 -- Results related to Erased that are implemented using
--- --erased-matches
+-- --erased-matches=non-dependent
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --cubical-compatible --erased-matches #-}
+{-# OPTIONS
+      --safe --cubical-compatible --erased-matches=non-dependent #-}
 
 open import Equality
 

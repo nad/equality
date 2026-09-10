@@ -18,17 +18,10 @@ private
   variable
     a p q : Level
 
--- Erased A is like A, but the values are (supposed to be) erased at
--- run-time.
+-- The type Erased is re-exported from Agda.Builtin.Erased.Erased.
 
-record Erased (@0 A : Type a) : Type a where
-  no-eta-equality
-  pattern
-  constructor [_]
-  field
-    @0 erased : A
-
-open Erased public
+open import Agda.Builtin.Erased.Erased public
+  using (Erased; [_]; erased)
 
 -- A variant of [_] that does not take an erased argument.
 

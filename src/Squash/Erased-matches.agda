@@ -1,8 +1,10 @@
 ------------------------------------------------------------------------
--- Code related to Squash that uses --erased-matches
+-- Code related to Squash that uses --erased-matches=non-dependent
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --cubical-compatible --prop --erased-matches #-}
+{-# OPTIONS
+      --safe --cubical-compatible --prop
+      --erased-matches=non-dependent #-}
 
 open import Equality
 

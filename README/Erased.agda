@@ -20,11 +20,11 @@
 -- definitions use bijections (functions with quasi-inverses) instead
 -- of equivalences. Some other differences are mentioned below.
 
--- This file is not checked using --safe, because some parts use
--- --cubical, and some parts use --with-K. However, all files
--- imported below use --safe.
+-- This file is not checked using --safe: some parts use --cubical,
+-- and some parts use "--with-K --erased-matches=unrestricted".
+-- However, all files imported below use --safe.
 
-{-# OPTIONS --cubical --with-K #-}
+{-# OPTIONS --cubical --with-K --erased-matches=unrestricted #-}
 
 module README.Erased where
 

@@ -9,7 +9,8 @@
 
 {-# OPTIONS
       --cubical --with-K --guardedness --sized-types --prop
-      --erased-funext --erased-propext --erased-quotients #-}
+      --erased-funext --erased-propext --erased-quotients
+      --erased-matches=unrestricted #-}
 
 module README where
 
@@ -22,9 +23,15 @@ import README.Safe.Cubical-compatible
 
 import README.Safe.Cubical-compatible.Quotients
 
--- "Safe" code that uses --cubical-compatible and --erased-matches.
+-- "Safe" code that uses --cubical-compatible and
+-- --erased-matches=non-dependent.
 
-import README.Safe.Cubical-compatible.Erased-matches
+import README.Safe.Cubical-compatible.Erased-matches.Non-dependent
+
+-- "Safe" code that uses --cubical-compatible and
+-- --erased-matches=restricted.
+
+import README.Safe.Cubical-compatible.Erased-matches.Restricted
 
 -- "Safe" code that uses --cubical-compatible and --prop.
 
@@ -55,7 +62,7 @@ import README.Safe.Cubical.Erased
 
 import README.Safe.Cubical
 
--- "Safe" code that uses --with-K.
+-- "Safe" code that uses --with-K and --erased-matches=unrestricted.
 
 import README.Safe.With-K
 
@@ -69,8 +76,8 @@ import README.Unsafe
 import README.Unsafe.Sized-types
 
 -- Code related to the paper "Logical properties of a modality for
--- erasure". This code uses both --cubical and --with-K, but not at
--- the same time, except in the module README.Erased, which for that
--- reason cannot use --safe.
+-- erasure". This code uses both --cubical and "--with-K
+-- --erased-matches=unrestricted", but not at the same time, except in
+-- the module README.Erased, which for that reason cannot use --safe.
 
 import README.Erased

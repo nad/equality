@@ -1,9 +1,11 @@
 ------------------------------------------------------------------------
 -- Safe modules that use --cubical-compatible, --prop and
--- --erased-matches
+-- --erased-matches=non-dependent
 ------------------------------------------------------------------------
 
-{-# OPTIONS --safe --cubical-compatible --prop --erased-matches #-}
+{-# OPTIONS
+      --safe --cubical-compatible --prop
+      --erased-matches=non-dependent #-}
 
 module README.Safe.Cubical-compatible.Prop.Erased-matches where
 
