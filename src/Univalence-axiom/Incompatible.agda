@@ -109,6 +109,85 @@ module Bad-subst₂
       ]
 
 ------------------------------------------------------------------------
+-- A certain kind of cast function is incompatible with erased
+-- univalence if []-cong is available
+
+module Bad-cast
+  -- This module uses the standard identity type.
+  (open Equality.Propositional)
+  (open Erased.Box-cong-axiomatisation equality-with-J)
+  (open Univalence-axiom equality-with-J)
+  -- Instead of using postulated univalence the code uses a module
+  -- parameter.
+  (@0 univalence : Univalence lzero)
+  -- It is assumed that []-cong is available.
+  (ax : ∀ {a} → []-cong-axiomatisation a)
+  (open Erased equality-with-J ax)
+  -- It is assumed that there is a cast function with the following
+  -- type:
+  (cast : {A B : Erased Type} → A ≡ B → A .erased → B .erased)
+  -- In erased contexts this cast function is assumed to be pointwise
+  -- equal to an instance of subst.
+  (@0 cast≡subst :
+        {A B : Erased Type} {x : A .erased}
+        (eq : A ≡ B) → cast eq x ≡ subst erased eq x)
+  where
+
+  open Equality.Decision-procedures equality-with-J
+  open Function-universe equality-with-J hiding (id; _∘_)
+
+  -- An equality between Bool and Bool, implemented using univalence
+  -- and the not function.
+
+  @0 swap : Bool ≡ Bool
+  swap = swap-as-an-equality univalence
+
+  -- A boolean that should be true.
+  --
+  -- The given implicit arguments are explicit to make it clear that
+  -- the only difference between the right-hand sides of
+  -- should-be-true and should-be-false below is the penultimate
+  -- argument of cast, which is erased. These two right-hand
+  -- sides should thus be compiled to code that behaves in the same
+  -- way. However, as can be seen below one is equal to true, and the
+  -- other is equal to false.
+
+  should-be-true : Bool
+  should-be-true =
+    cast {A = [ Bool ]} {B = [ Bool ]} ([]-cong [ refl ]) true
+
+  -- A boolean that should be false.
+
+  should-be-false : Bool
+  should-be-false =
+    cast {A = [ Bool ]} {B = [ Bool ]} ([]-cong [ swap ]) true
+
+  -- The boolean should-be-true is equal to true.
+
+  is-true : should-be-true ≡ true
+  is-true =
+    Dec→Stable (_ Bool.≟ _)
+      [ cast ([]-cong [ refl ]) true           ≡⟨ cong (flip cast _) []-cong-[refl] ⟩
+        cast {B = [ Bool ]} refl true          ≡⟨ cast≡subst _ ⟩
+        subst {y = [ Bool ]} erased refl true  ≡⟨⟩
+        true                                   ∎
+      ]
+
+  -- The boolean should-be-false is equal to false.
+
+  is-false : should-be-false ≡ false
+  is-false =
+    Dec→Stable (_ Bool.≟ _)
+      [ cast ([]-cong [ swap ]) true          ≡⟨ cast≡subst ([]-cong [ swap ]) ⟩
+        subst erased ([]-cong [ swap ]) true  ≡⟨ cong (flip (subst _) _) $ []-cong-[]≡cong-[] {x≡y = swap} ⟩
+        subst erased (cong [_]→ swap) true    ≡⟨ sym $ subst-∘ _ _ swap ⟩
+        subst (erased ∘ [_]→) swap true       ≡⟨⟩
+        subst id swap true                    ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence {A≡B = swap} ⟩
+        ≡⇒→ swap true                         ≡⟨ cong (_$ true) $ ≡⇒→-≃⇒≡ equivalence univalence ⟩∎
+        false                                 ∎
+      ]
+
+------------------------------------------------------------------------
 -- A variant of subst that takes an erased "motive" is incompatible
 -- with erased univalence if []-cong is available
 
@@ -124,9 +203,7 @@ module Bad-subst₁
   (ax : ∀ {a} → []-cong-axiomatisation a)
   where
 
-  open Equality.Decision-procedures equality-with-J
   open Erased equality-with-J ax
-  open Function-universe equality-with-J hiding (id; _∘_)
 
   -- A problematic variant of subst.
 
@@ -140,59 +217,10 @@ module Bad-subst₁
     (eq : x ≡ y) → bad-subst₁ P eq p ≡ subst P eq p
   bad-subst₁≡subst refl = refl
 
-  -- An equality between Bool and Bool, implemented using univalence
-  -- and the not function.
+  -- An instantiation of Bad-cast.
 
-  @0 swap : Bool ≡ Bool
-  swap = swap-as-an-equality univalence
-
-  -- A boolean that should be true.
-  --
-  -- The given implicit arguments are explicit to make it clear that
-  -- the only difference between the right-hand sides of
-  -- should-be-true and should-be-false below is the penultimate
-  -- argument of bad-subst₁, which is erased. These two right-hand
-  -- sides should thus be compiled to code that behaves in the same
-  -- way. However, as can be seen below one is equal to true, and the
-  -- other is equal to false.
-
-  should-be-true : Bool
-  should-be-true =
-    bad-subst₁ {a = lsuc lzero} {p = lzero}
-      {A = Erased {a = lsuc lzero} (Type lzero)} {x = [ Bool ]}
-      {y = [ Bool ]} (erased {a = lsuc lzero} {A = Type})
-      ([]-cong [ refl ]) true
-
-  -- A boolean that should be false.
-
-  should-be-false : Bool
-  should-be-false =
-    bad-subst₁ {a = lsuc lzero} {p = lzero}
-      {A = Erased {a = lsuc lzero} (Type lzero)} {x = [ Bool ]}
-      {y = [ Bool ]} (erased {a = lsuc lzero} {A = Type})
-      ([]-cong [ swap ]) true
-
-  -- The boolean should-be-true is equal to true.
-
-  is-true : should-be-true ≡ true
-  is-true =
-    bad-subst₁ erased ([]-cong [ refl ]) true   ≡⟨ cong (flip (bad-subst₁ erased) _) []-cong-[refl] ⟩
-    bad-subst₁ {y = [ Bool ]} erased refl true  ≡⟨⟩
-    true                                        ∎
-
-  -- The boolean should-be-false is equal to false.
-
-  is-false : should-be-false ≡ false
-  is-false =
-    Dec→Stable (_ Bool.≟ _)
-      [ bad-subst₁ erased ([]-cong [ swap ]) true  ≡⟨ bad-subst₁≡subst ([]-cong [ swap ]) ⟩
-        subst erased ([]-cong [ swap ]) true       ≡⟨ cong (flip (subst _) _) $ []-cong-[]≡cong-[] {x≡y = swap} ⟩
-        subst erased (cong [_]→ swap) true         ≡⟨ sym $ subst-∘ _ _ swap ⟩
-        subst (erased ∘ [_]→) swap true            ≡⟨⟩
-        subst id swap true                         ≡⟨ subst-id-in-terms-of-≡⇒↝ equivalence {A≡B = swap} ⟩
-        ≡⇒→ swap true                              ≡⟨ cong (_$ true) $ ≡⇒→-≃⇒≡ equivalence univalence ⟩∎
-        false                                      ∎
-      ]
+  open Bad-cast univalence ax (bad-subst₁ erased) bad-subst₁≡subst
+    public
 
 ------------------------------------------------------------------------
 -- An identity type with erased arguments
