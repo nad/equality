@@ -466,3 +466,78 @@ module Bad-id₂
         ≡⇒→ swap true                                    ≡⟨ cong (_$ true) $ →Id₀ $ ≡⇒→-≃⇒≡ F₁.equivalence univalence ⟩∎
         false                                            ∎
       ]
+
+------------------------------------------------------------------------
+-- A "box" type with an erased type argument is incompatible with
+-- erased univalence in the presence of []-cong
+
+module Bad-box′
+  -- This module uses the standard identity type.
+  (open Equality.Propositional)
+  (open Erased.Box-cong-axiomatisation equality-with-J)
+  (open Univalence-axiom equality-with-J)
+  -- Instead of using postulated univalence the code uses a module
+  -- parameter.
+  (@0 univalence : ∀ {a} → Univalence a)
+  -- It is assumed that []-cong is available.
+  (ax : ∀ {a} → []-cong-axiomatisation a)
+  -- It is also assumed that a "box" type with an erased type argument
+  -- is available.
+  (Box       : ∀ {a} → @0 Type a → Type a)
+  (box       : ∀ {a} {@0 A : Type a} → A → Box A)
+  (unbox     : ∀ {a} {@0 A : Type a} → Box A → A)
+  (unbox-box : ∀ {a} {@0 A : Type a} {x : A} → unbox (box x) ≡ x)
+  where
+
+  open Erased equality-with-J ax
+
+  -- A problematic variant of subst.
+
+  bad-subst₁ :
+    {A : Type a} {x y : A} (@0 P : A → Type p) → x ≡ y → P x → P y
+  bad-subst₁ P eq p =
+    unbox (subst (λ x → Box (P (x .erased))) ([]-cong [ eq ]) (box p))
+
+  -- In erased contexts bad-subst₁ is pointwise equal to subst.
+
+  @0 bad-subst₁≡subst :
+    (eq : x ≡ y) → bad-subst₁ P eq p ≡ subst P eq p
+  bad-subst₁≡subst {x} {P} {p} refl =
+    unbox (subst (λ x → Box (P (x .erased))) ([]-cong [ refl ]) (box p))  ≡⟨ cong (λ eq → unbox (subst (λ x → Box (P (x .erased))) eq _))
+                                                                               []-cong-[refl] ⟩
+    unbox (subst {x = [ x ]} (λ x → Box (P (x .erased))) refl (box p))    ≡⟨⟩
+    unbox (box p)                                                         ≡⟨ unbox-box ⟩∎
+    p                                                                     ∎
+
+  -- An instantiation of Bad-cast.
+
+  open Bad-cast univalence ax (bad-subst₁ erased) bad-subst₁≡subst
+    public
+
+-- An instantiation of the module above with a concrete "box" type.
+
+module Bad-box
+  -- This module uses the standard identity type.
+  (open Equality.Propositional)
+  (open Erased.Box-cong-axiomatisation equality-with-J)
+  (open Univalence-axiom equality-with-J)
+  -- Instead of using postulated univalence the code uses a module
+  -- parameter.
+  (@0 univalence : ∀ {a} → Univalence a)
+  -- It is also assumed that []-cong is available.
+  (ax : ∀ {a} → []-cong-axiomatisation a)
+  where
+
+  -- A "box" type. The (explicit) type argument is erased, but not the
+  -- constructor argument.
+
+  record Box (@0 A : Type a) : Type a where
+    no-eta-equality
+    pattern
+    constructor [_]
+    field
+      unbox : A
+
+  -- An instantiation of Bad-box′.
+
+  open Bad-box′ univalence ax Box [_] Box.unbox refl public
