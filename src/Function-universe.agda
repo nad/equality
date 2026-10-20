@@ -2331,6 +2331,7 @@ private
     where
     to = ∀-cong-→ (Embedding.to ⊚ B₁↣B₂)
 
+    ext₂ : Extensionality _ b₂
     ext₂ = lower-extensionality lzero b₁ ext
 
     opaque

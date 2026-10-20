@@ -1165,7 +1165,10 @@ private opaque
   where
   open _≃_
 
+  ext₁ : Extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂)
   ext₁ = lower-extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁) ext
+
+  ext₂ : Extensionality (a₁ ⊔ b₁) (a₁ ⊔ b₁)
   ext₂ = lower-extensionality (a₂ ⊔ b₂) (a₂ ⊔ b₂) ext
 
   opaque
