@@ -109,8 +109,8 @@ private opaque
     r : Q.Rec T._≈_ (∃ λ (B : Type a) → Erased (Is-proposition B))
     r .is-setʳ =
       Is-set-∃-Erased-Is-proposition ext propext
-    r .[]ʳ t =
-      (x T.∈ t) , [ T.∈-propositional ]
+    r .[]ʳ xs =
+      (x T.∈ xs) , [ T.∈-propositional ]
     r .[]-respects-relationʳ {x = xs} {y = ys} =
       (∀ {z} → z T.∈ xs ⇔ z T.∈ ys)           →⟨ (λ xs≈ys → xs≈ys) ⟩
 
