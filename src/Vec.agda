@@ -14,7 +14,8 @@ open import Prelude
 open import Bijection eq using (_↔_)
 open Derived-definitions-and-properties eq
 open import Function-universe eq hiding (id; _∘_)
-open import List eq using (length)
+open import List eq as L using (length)
+open import H-level.Closure eq
 open import Surjection eq using (_↠_; ↠-≡)
 import Vec.Dependent.Basics eq as DVec
 
@@ -163,6 +164,51 @@ from-list (x ∷ xs) = x , from-list xs
     (length (to-list (x , xs)) , from-list (to-list (x , xs)))
       ≡
     (suc n , x , xs)                                            □
+
+opaque
+
+  -- If a vector of length n is converted to a list, then the list has
+  -- length n.
+
+  length-to-list :
+    {A : Type a} (xs : Vec A n) → length (to-list xs) ≡ n
+  length-to-list xs =
+    cong proj₁ (_↔_.left-inverse-of ∃Vec↔List (_ , xs))
+
+opaque
+
+  -- A lemma relating index and L.index.
+
+  index≡index-to-list :
+    {A : Type a} (xs : Vec A n) (i : Fin n) →
+    index xs i ≡
+    L.index (to-list xs) (subst Fin (sym (length-to-list xs)) i)
+  index≡index-to-list {A} xs i =
+    index xs i                                                    ≡⟨ helper _ xs _ ⟩
+    L.index (to-list xs) (subst Fin (≡ltl xs) i)                  ≡⟨ cong (λ eq → L.index (to-list xs) (subst Fin eq i)) (ℕ-set _ _) ⟩∎
+    L.index (to-list xs) (subst Fin (sym (length-to-list xs)) i)  ∎
+    where
+    -- A variant of sym (length-to-list xs) that computes in a
+    -- different way.
+
+    ≡ltl : (xs : Vec A n) → n ≡ length (to-list xs)
+    ≡ltl {n = zero}  _ = refl _
+    ≡ltl {n = suc _} _ = cong suc (≡ltl _)
+
+    helper :
+      ∀ n (xs : Vec A n) (i : Fin n) →
+      index xs i ≡ L.index (to-list xs) (subst Fin (≡ltl xs) i)
+    helper (suc _) (x , xs) fzero =
+      x                                                                ≡⟨⟩
+      L.index (x ∷ to-list xs) fzero                                   ≡⟨ cong (L.index (x ∷ to-list xs)) (sym (push-subst-inj₁ _ _)) ⟩
+      L.index (x ∷ to-list xs) (subst (Fin ∘ suc) (≡ltl xs) fzero)     ≡⟨ cong (L.index (x ∷ to-list xs)) (subst-∘ _ _ _) ⟩∎
+      L.index (x ∷ to-list xs) (subst Fin (cong suc (≡ltl xs)) fzero)  ∎
+    helper (suc _) (x , xs) (fsuc i) =
+      index xs i                                                          ≡⟨ helper _ xs _ ⟩
+      L.index (to-list xs) (subst Fin (≡ltl xs) i)                        ≡⟨⟩
+      L.index (x ∷ to-list xs) (fsuc (subst Fin (≡ltl xs) i))             ≡⟨ cong (L.index (x ∷ to-list xs)) (sym (push-subst-inj₂ _ _)) ⟩
+      L.index (x ∷ to-list xs) (subst (Fin ∘ suc) (≡ltl xs) (fsuc i))     ≡⟨ cong (L.index (x ∷ to-list xs)) (subst-∘ _ _ _) ⟩∎
+      L.index (x ∷ to-list xs) (subst Fin (cong suc (≡ltl xs)) (fsuc i))  ∎
 
 ------------------------------------------------------------------------
 -- Some properties
