@@ -985,6 +985,16 @@ opaque
   suc m + n ∸ n  ≡⟨ +∸≡ n ⟩∎
   suc m          ∎
 
+opaque
+
+  -- A variant of +∸≡.
+
+  [+]∸≡ : ∀ m → (m + n) ∸ m ≡ n
+  [+]∸≡ {n} m =
+    (m + n) ∸ m  ≡⟨ cong (_∸ m) (+-comm m) ⟩
+    (n + m) ∸ m  ≡⟨ +∸≡ m ⟩∎
+    n            ∎
+
 -- If you subtract a number from itself, then the answer is zero.
 
 ∸≡0 : ∀ n → n ∸ n ≡ 0
@@ -1006,6 +1016,16 @@ opaque
   1 + ((k ∸ n) + n)  ≡⟨ cong (1 +_) (∸+≡ n≤k) ⟩
   1 + k              ≡⟨ 1+k≡m ⟩∎
   m                  ∎
+
+opaque
+
+  -- A variant of ∸+≡.
+
+  +[∸]≡ : m ≤ n → m + (n ∸ m) ≡ n
+  +[∸]≡ {m} {n} m≤n =
+    m + (n ∸ m)  ≡⟨ +-comm m ⟩
+    n ∸ m + m    ≡⟨ ∸+≡ m≤n ⟩∎
+    n            ∎
 
 -- If you subtract a number and then add it again, then you get
 -- something that is greater than or equal to what you started with.
