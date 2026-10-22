@@ -24,6 +24,10 @@ open import List eq
 open import Nat eq as Nat using (_≤_; ≤-refl; ≤-step; _<_; pred)
 open import Univalence-axiom eq
 
+private variable
+  A : Type _
+  x : A
+
 ------------------------------------------------------------------------
 -- Some bijections relating Fin and ∃
 
@@ -227,6 +231,19 @@ largest≡Fin↔< {n} =
   p₁ = subst (_< suc n) (Fin↔<≡⌞⌟ (largest n))
              (proj₂ (_↔_.to (Fin↔< (suc n)) (largest n)))
   p₂ = subst (_< suc n) (largest-correct n) p₁
+
+opaque
+
+  -- A lemma relating index and index-with-default.
+
+  index-with-default≡index :
+    (xs : List A) {i : Fin (length xs)} →
+    index-with-default x xs ⌞ i ⌟ ≡
+    index xs i
+  index-with-default≡index []       {i = ()}
+  index-with-default≡index (_ ∷ _)  {i = fzero}  = refl _
+  index-with-default≡index (_ ∷ xs) {i = fsuc _} =
+    index-with-default≡index xs
 
 ------------------------------------------------------------------------
 -- Weakening

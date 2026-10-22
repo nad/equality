@@ -45,6 +45,13 @@ List-elim :
 List-elim P n c []       = n
 List-elim P n c (x ∷ xs) = c x xs (List-elim P n c xs)
 
+-- The head of a list. If the list is empty, then the given element is
+-- returned.
+
+head-with-default : {@0 A : Type a} → A → List A → A
+head-with-default x []      = x
+head-with-default _ (x ∷ _) = x
+
 -- The tail of a list. Returns [] if the list is empty.
 
 tail : {@0 A : Type a} → List A → List A
@@ -157,6 +164,14 @@ index : {@0 A : Type a} (xs : List A) → Fin (length xs) → A
 index []       ()
 index (x ∷ xs) fzero    = x
 index (x ∷ xs) (fsuc i) = index xs i
+
+-- Finds the element at the given position, if any, and otherwise the
+-- "default" value is returned.
+
+index-with-default : {@0 A : Type a} → A → List A → ℕ → A
+index-with-default x []       _       = x
+index-with-default _ (y ∷ ys) zero    = y
+index-with-default x (_ ∷ ys) (suc n) = index-with-default x ys n
 
 -- A lookup function.
 
