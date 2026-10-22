@@ -762,6 +762,25 @@ accessible : ∀ n → Acc n
 accessible = well-founded-elim _ λ _ → acc
 
 ------------------------------------------------------------------------
+-- More properties related to _*_
+
+opaque
+
+  -- A variant of *-cancellativeʳ.
+
+  *-cancellativeʳ′ : n ≢ 0 → m₁ * n ≡ m₂ * n → m₁ ≡ m₂
+  *-cancellativeʳ′ {n = zero}  hyp = ⊥-elim (hyp (refl _))
+  *-cancellativeʳ′ {n = suc _} _   = *-cancellativeʳ
+
+opaque
+
+  -- A variant of *-cancellativeˡ.
+
+  *-cancellativeˡ′ : m ≢ 0 → m * n₁ ≡ m * n₂ → n₁ ≡ n₂
+  *-cancellativeˡ′ {m = zero}  hyp = ⊥-elim (hyp (refl _))
+  *-cancellativeˡ′ {m = suc m} _   = *-cancellativeˡ m
+
+------------------------------------------------------------------------
 -- An alternative definition of the ordering
 
 -- The following ordering can be used to define a function by
