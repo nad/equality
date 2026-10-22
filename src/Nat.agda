@@ -145,6 +145,30 @@ suc+≡+suc (suc m) = cong suc (suc+≡+suc m)
 ≢1+ zero    p = 0≢+ p
 ≢1+ (suc m) p = ≢1+ m (cancel-suc p)
 
+opaque
+
+  -- If the sum of two numbers is equal to the second one, then the
+  -- first one is zero.
+
+  +≡→≡0ˡ : m + n ≡ n → m ≡ 0
+  +≡→≡0ˡ {m = zero}      = λ _ → refl _
+  +≡→≡0ˡ {m = suc m} {n} =
+    suc (m + n) ≡ n  →⟨ trans (cong suc (+-comm n)) ⟩
+    suc (n + m) ≡ n  →⟨ ≢1+ _ ∘ sym ⟩
+    ⊥                →⟨ ⊥-elim ⟩□
+    suc m ≡ 0        □
+
+opaque
+
+  -- If the sum of two numbers is equal to the first one, then the
+  -- second one is zero.
+
+  +≡→≡0ʳ : m + n ≡ m → n ≡ 0
+  +≡→≡0ʳ {m} {n} =
+    m + n ≡ m  →⟨ trans (+-comm n) ⟩
+    n + m ≡ m  →⟨ +≡→≡0ˡ ⟩□
+    n ≡ 0      □
+
 -- Addition is left cancellative.
 
 +-cancellativeˡ : ∀ {m n₁ n₂} → m + n₁ ≡ m + n₂ → n₁ ≡ n₂
