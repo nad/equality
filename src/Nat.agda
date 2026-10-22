@@ -1128,6 +1128,20 @@ pred≡∸1 : ∀ n → pred n ≡ n ∸ 1
 pred≡∸1 zero    = refl _
 pred≡∸1 (suc _) = refl _
 
+opaque
+
+  -- An alternative characterisation of _≤_.
+
+  ≤⇔∃≡+ : m ≤ n ⇔ ∃ λ k → n ≡ k + m
+  ≤⇔∃≡+ {m} {n} = record
+    { to   = λ m≤n → n ∸ m , sym (∸+≡ m≤n)
+    ; from = λ (k , eq) →
+        m      ≡⟨⟩≤
+        0 + m  ≤⟨ zero≤ _ +-mono ≤-refl ⟩
+        k + m  ≡⟨ sym eq ⟩≤
+        n      ∎≤
+    }
+
 ------------------------------------------------------------------------
 -- Minimum and maximum
 
