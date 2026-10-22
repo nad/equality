@@ -1522,6 +1522,20 @@ opaque
 
 opaque
 
+  -- A number is at least 1 if and only if it is non-zero.
+
+  1≤⇔≢0 : 1 ≤ n ⇔ n ≢ 0
+  1≤⇔≢0 {n = zero} = record
+    { to   = ⊥-elim ∘ ≮0 _
+    ; from = ⊥-elim ∘ (_$ refl _)
+    }
+  1≤⇔≢0 {n = suc _} = record
+    { to   = λ _ → 0≢+ ∘ sym
+    ; from = λ _ → suc≤suc (zero≤ _)
+    }
+
+opaque
+
   -- If pred n is zero, then n is zero or one.
 
   pred≡0→ : pred n ≡ 0 → n ≤ 1
