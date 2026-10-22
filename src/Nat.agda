@@ -1308,6 +1308,33 @@ min≤ʳ m n =
   max n m  ≡⟨ max-comm n _ ⟩≤
   max m n  ∎≤
 
+opaque
+
+  -- If the maximum of two numbers has an upper bound, then both
+  -- numbers have the same upper bound.
+
+  max≤→≤ : max m n ≤ o → m ≤ o × n ≤ o
+  max≤→≤ {m = zero}                          n≤o = zero≤ _ , n≤o
+  max≤→≤ {m = suc _} {n = zero}              m<o = m<o , zero≤ _
+  max≤→≤ {m = suc _} {n = suc _} {o = zero}  <0  = ⊥-elim (≮0 _ <0)
+  max≤→≤ {m = suc _} {n = suc _} {o = suc _} hyp =
+    Σ-map suc≤suc suc≤suc (max≤→≤ (suc≤suc⁻¹ hyp))
+
+opaque
+
+  -- If the minimum of two numbers has a lower bound, then both
+  -- numbers have the same lower bound.
+
+  ≤min→≤ : m ≤ min n o → m ≤ n × m ≤ o
+  ≤min→≤ {n = zero} m≤0 =
+    m≤0 , ≤-trans m≤0 (zero≤ _)
+  ≤min→≤ {n = suc _} {o = zero} m≤0 =
+    ≤-trans m≤0 (zero≤ _) , m≤0
+  ≤min→≤ {m = zero} {n = suc _} {o = suc _} _ =
+    zero≤ _ , zero≤ _
+  ≤min→≤ {m = suc _} {n = suc _} {o = suc _} hyp =
+    Σ-map suc≤suc suc≤suc (≤min→≤ (suc≤suc⁻¹ hyp))
+
 -- A kind of distributivity property for max and _∸_.
 
 max-∸ : ∀ m n o → max (m ∸ o) (n ∸ o) ≡ max m n ∸ o
