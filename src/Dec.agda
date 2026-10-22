@@ -39,23 +39,16 @@ Dec-preserves A⇔B = record
 -- If A and B are decided, then A × B is.
 
 Dec-× : Dec A → Dec B → Dec (A × B)
-Dec-× =
-  [ (λ a → [ (λ b → yes (a , b))
-           , (λ ¬b → no (¬b ∘ proj₂))
-           ])
-  , (λ ¬a _ → no (¬a ∘ proj₁))
-  ]
+Dec-× (yes p) (yes q) = yes (p , q)
+Dec-× (no p)  _       = no (p ∘ proj₁)
+Dec-× _       (no p)  = no (p ∘ proj₂)
 
 -- If A and B are decided, then A ⊎ B is.
 
 Dec-⊎ : Dec A → Dec B → Dec (A ⊎ B)
-Dec-⊎ =
-  [ (λ a _ → yes (inj₁ a))
-  , (λ ¬a →
-       [ (λ b → yes (inj₂ b))
-       , (λ ¬b → no [ ¬a , ¬b ])
-       ])
-  ]
+Dec-⊎ (yes p) _       = yes (inj₁ p)
+Dec-⊎ _       (yes p) = yes (inj₂ p)
+Dec-⊎ (no p)  (no q)  = no [ p , q ]
 
 -- If A is decided, then ¬ ¬ A implies A.
 
