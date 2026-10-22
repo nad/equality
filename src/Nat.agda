@@ -1266,6 +1266,22 @@ max-assoc (suc m) {n = zero}              = refl _
 max-assoc (suc m) {n = suc n} {o = zero}  = refl _
 max-assoc (suc m) {n = suc n} {o = suc o} = cong suc (max-assoc m)
 
+opaque
+
+  -- Zero is a right zero for min.
+
+  min-right-zero : min n 0 ≡ 0
+  min-right-zero {n = zero}  = refl _
+  min-right-zero {n = suc _} = refl _
+
+opaque
+
+  -- Zero is a right identity for max.
+
+  max-right-identity : max n 0 ≡ n
+  max-right-identity {n = zero}  = refl _
+  max-right-identity {n = suc _} = refl _
+
 -- The minimum is less than or equal to both arguments.
 
 min≤ˡ : ∀ m n → min m n ≤ m
