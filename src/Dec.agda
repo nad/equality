@@ -55,3 +55,10 @@ Dec-⊎ (no p)  (no q)  = no [ p , q ]
 decided-stable : Dec A → @0 ¬ ¬ A → A
 decided-stable (yes x) _ = x
 decided-stable (no f)  g = ⊥-elim₀ (g f)
+
+opaque
+
+  -- If d : Dec A and d is yes something, then A is inhabited.
+
+  Dec→T→ : (d : Dec A) → T d → A
+  Dec→T→ (yes p) _ = p
