@@ -241,6 +241,59 @@ map-drop               zero    = refl _
 map-drop {xs = []}     (suc n) = refl _
 map-drop {xs = x ∷ xs} (suc n) = map-drop n
 
+opaque
+
+  -- A lemma relating length and take.
+
+  length-take : length (take n xs) ≡ min n (length xs)
+  length-take {n = zero}               = refl _
+  length-take {n = suc _} {xs = []}    = refl _
+  length-take {n = suc _} {xs = _ ∷ _} = cong suc length-take
+
+opaque
+
+  -- A lemma relating length and drop.
+
+  length-drop : ∀ n → length (drop n xs) ≡ length xs ∸ n
+  length-drop              zero    = refl _
+  length-drop {xs = []}    (suc _) = refl _
+  length-drop {xs = _ ∷ _} (suc n) = length-drop n
+
+opaque
+
+  -- A simplification lemma for drop.
+
+  drop-[] : ∀ n → drop {A = A} n [] ≡ []
+  drop-[] zero    = refl _
+  drop-[] (suc _) = refl _
+
+opaque
+
+  -- A fusion lemma for drop.
+
+  drop-drop : ∀ m → drop n (drop m xs) ≡ drop (m + n) xs
+  drop-drop                  zero    = refl _
+  drop-drop {n} {xs = []}    (suc _) = drop-[] n
+  drop-drop     {xs = _ ∷ _} (suc m) = drop-drop m
+
+opaque
+
+  -- A lemma relating drop and tail.
+
+  tail≡drop-1 : (xs : List A) → tail xs ≡ drop 1 xs
+  tail≡drop-1 []      = refl _
+  tail≡drop-1 (_ ∷ _) = refl _
+
+opaque
+
+  -- A fusion lemma for drop and tail.
+
+  drop-tail : (xs : List A) → drop n (tail xs) ≡ drop (suc n) xs
+  drop-tail {n} xs =
+    drop n (tail xs)    ≡⟨ cong (drop n) (tail≡drop-1 xs) ⟩
+    drop n (drop 1 xs)  ≡⟨ drop-drop {xs = xs} 1 ⟩∎
+    drop (suc n) xs     ∎
+
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
 
