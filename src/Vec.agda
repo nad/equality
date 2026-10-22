@@ -22,7 +22,7 @@ private variable
   a b c p : Level
   A B     : Type a
   f g     : A → B
-  n       : ℕ
+  m n     : ℕ
 
 ------------------------------------------------------------------------
 -- The type
@@ -88,6 +88,20 @@ head = proj₁
 
 tail : Vec A (suc n) → Vec A n
 tail = proj₂
+
+-- Removes a prefix from the vector.
+
+drop : Vec A (m + n) → Vec A n
+drop {m = zero}  xs = xs
+drop {m = suc _} xs = drop (tail xs)
+
+-- Appends two vectors.
+
+infixr 5 _++_
+
+_++_ : Vec A m → Vec A n → Vec A (m + n)
+_++_ {m = zero}  xs       ys = ys
+_++_ {m = suc _} (x , xs) ys = x , xs ++ ys
 
 ------------------------------------------------------------------------
 -- Conversions to and from lists
@@ -166,3 +180,23 @@ map-cong :
   ∀ {n} {xs : Vec A n} →
   (∀ x → f x ≡ g x) → map f xs ≡ map g xs
 map-cong f≡g = DVec.map-cong f≡g
+
+opaque
+
+  -- A lemma relating drop and _++_.
+
+  drop-++ :
+    {A : Type a} {ys : Vec A n} (xs : Vec A m) →
+    drop (xs ++ ys) ≡ ys
+  drop-++ {m = zero}  _        = refl _
+  drop-++ {m = suc _} (_ , xs) = drop-++ xs
+
+opaque
+
+  -- A lemma relating drop and replicate.
+
+  drop-replicate :
+    ∀ {A : Type a} {x : A} m →
+    drop {m = m} {n = n} (replicate x) ≡ replicate x
+  drop-replicate zero    = refl _
+  drop-replicate (suc m) = drop-replicate m
