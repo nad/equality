@@ -601,6 +601,14 @@ pred-mono {m} {n} (≤-step′ {k} m≤k 1+k≡n) =
   k       ≡⟨ cong pred 1+k≡n ⟩≤
   pred n  ∎≤
 
+opaque
+
+  -- The number suc (pred n) is at least as large as n.
+
+  ≤suc-pred : n ≤ suc (pred n)
+  ≤suc-pred {n = zero}  = zero≤ _
+  ≤suc-pred {n = suc _} = ≤-refl
+
 -- _+_ is monotone.
 
 infixl 6 _+-mono_
