@@ -781,6 +781,45 @@ opaque
   *-cancellativeˡ′ {m = suc m} _   = *-cancellativeˡ m
 
 ------------------------------------------------------------------------
+-- More properties related to _^_
+
+opaque
+
+  -- It is not the case that "at least two raised to the power of at
+  -- least 1" is equal to 1.
+
+  2+^1+≢1 : ∀ n → (2 + m) ^ (1 + n) ≢ 1
+  2+^1+≢1 {m} n hyp =
+    +≮ m
+      (1 + m + 1          ≡⟨ cong suc (+-comm m) ⟩≤
+       2 + m              ≤⟨ ≤^+ n ⟩
+       (2 + m) ^ (1 + n)  ≡⟨ hyp ⟩≤
+       1                  ∎≤)
+
+opaque
+
+  -- Exponentiation is right cancellative for bases greater than or
+  -- equal to two.
+
+  ^-cancellativeʳ : (2 + m) ^ n₁ ≡ (2 + m) ^ n₂ → n₁ ≡ n₂
+  ^-cancellativeʳ {m} {n₁ = zero} {n₂ = zero} _ =
+    refl _
+  ^-cancellativeʳ {m} {n₁ = zero} {n₂ = suc n₂} =
+    1 ≡ (2 + m) ^ (1 + n₂)  →⟨ 2+^1+≢1 n₂ ∘ sym ⟩
+    ⊥                       →⟨ ⊥-elim ⟩□
+    0 ≡ 1 + n₂              □
+  ^-cancellativeʳ {m} {n₁ = suc n₁} {n₂ = zero} =
+    (2 + m) ^ (1 + n₁) ≡ 1  →⟨ 2+^1+≢1 n₁ ⟩
+    ⊥                       →⟨ ⊥-elim ⟩□
+    1 + n₁ ≡ 0              □
+  ^-cancellativeʳ {m} {n₁ = suc n₁} {n₂ = suc n₂} =
+    (2 + m) ^ (1 + n₁) ≡ (2 + m) ^ (1 + n₂)          →⟨ id ⟩
+    (2 + m) * (2 + m) ^ n₁ ≡ (2 + m) * (2 + m) ^ n₂  →⟨ *-cancellativeˡ (1 + m) ⟩
+    (2 + m) ^ n₁ ≡ (2 + m) ^ n₂                      →⟨ ^-cancellativeʳ ⟩
+    n₁ ≡ n₂                                          →⟨ cong suc ⟩□
+    1 + n₁ ≡ 1 + n₂                                  □
+
+------------------------------------------------------------------------
 -- An alternative definition of the ordering
 
 -- The following ordering can be used to define a function by
