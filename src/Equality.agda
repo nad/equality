@@ -684,6 +684,34 @@ module Derived-definitions-and-properties
              (λ x → K (λ {x} p → refl x ≡ p) (λ x → refl (refl x)))
     }
 
+  opaque
+
+    -- Given K (for certain universe levels) one can derive a variant
+    -- of K.
+
+    K¹ :
+      K-rule a a →
+      {A : Type a} {x : A}
+      (P : x ≡ x → Type p) →
+      P (refl x) →
+      (x≡x : x ≡ x) → P x≡x
+    K¹ K P p _ =
+      subst P (_⇔_.to K⇔UIP K _ _) p
+
+  opaque
+    unfolding K¹
+
+    -- A "computation" rule for K¹.
+
+    K¹-refl :
+      {K : K-rule a a} {A : Type a} {x : A} {P : x ≡ x → Type p}
+      {p : P (refl x)} →
+      K¹ K P p (refl x) ≡ p
+    K¹-refl {K} {x} {P} {p} =
+      subst P (_⇔_.to K⇔UIP K _ _) p  ≡⟨ cong (flip (subst _) _) (_⇔_.to K⇔UIP K _ _) ⟩
+      subst P (refl (refl x)) p       ≡⟨ subst-refl _ _ ⟩∎
+      p                               ∎
+
   -- A bunch of lemmas that can be used to rearrange equalities.
 
   opaque

@@ -1442,6 +1442,31 @@ private module []-cong₁′ (ax : []-cong-axiomatisation ℓ) where
     (@0 x≡y : x ≡ y) → P x≡y
   elimᴱ {y} P p = elim₁ᴱ P (p y)
 
+  opaque
+
+    -- If the K rule is available, then a variant of K that takes an
+    -- erased proof is also available.
+
+    K¹ᴱ :
+      K-rule ℓ ℓ →
+      {@0 A : Type ℓ} {@0 x : A} (P : @0 x ≡ x → Type p) →
+      P (refl x) →
+      (@0 x≡x : x ≡ x) → P x≡x
+    K¹ᴱ K P p x≡x =
+      substᴱ P (_⇔_.to K⇔UIP K _ _) p
+
+  opaque
+
+    -- A variant of K¹ᴱ.
+
+    Kᴱ :
+      K-rule ℓ ℓ →
+      {@0 A : Type ℓ} (P : {@0 x : A} → @0 x ≡ x → Type p) →
+      (∀ (@0 x) → P (refl x)) →
+      {@0 x : A} (@0 x≡x : x ≡ x) → P x≡x
+    Kᴱ K P p x≡x =
+      K¹ᴱ K P (p _) x≡x
+
   -- A variant of cong that takes an erased equality proof.
 
   congᴱ :
@@ -1557,6 +1582,33 @@ private module []-cong₁′ (ax : []-cong-axiomatisation ℓ) where
        r x                                    ≡⟨ sym $ elim-refl _ _ ⟩∎
        elim (λ x → P x) (λ x → r x) (refl _)  ∎)
     eq
+
+  opaque
+    unfolding K¹ᴱ
+
+    -- A "computation rule" for K¹ᴱ.
+
+    K¹ᴱ-refl :
+      {K : K-rule ℓ ℓ} →
+      {@0 A : Type ℓ} {@0 x : A} {P : @0 x ≡ x → Type p}
+      {p : P (refl x)} →
+      K¹ᴱ K P p (refl x) ≡ p
+    K¹ᴱ-refl {K} {x} {P} {p} =
+      substᴱ P (_⇔_.to K⇔UIP K _ _) p  ≡⟨ congᴱ (λ eq → substᴱ P eq _) (_⇔_.to K⇔UIP K _ _) ⟩
+      substᴱ P (refl (refl x)) p       ≡⟨ substᴱ-refl {P = P} ⟩∎
+      p                                ∎
+
+  opaque
+    unfolding Kᴱ
+
+    -- A "computation rule" for Kᴱ.
+
+    Kᴱ-refl :
+      {K : K-rule ℓ ℓ} →
+      {@0 A : Type ℓ} {P : {@0 x : A} → @0 x ≡ x → Type p}
+      {p : ∀ (@0 x) → P (refl x)} {@0 x : A} →
+      Kᴱ K P p (refl x) ≡ p x
+    Kᴱ-refl = K¹ᴱ-refl
 
   -- A "computation rule" for congᴱ.
 
