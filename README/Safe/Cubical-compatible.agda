@@ -294,6 +294,10 @@ import Vec.Function
 
 import Vec.Dependent
 
+-- N-ary functions.
+
+import N-ary
+
 -- Some properties related to the const function.
 
 import Const
