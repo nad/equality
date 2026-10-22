@@ -103,6 +103,12 @@ _++_ : Vec A m → Vec A n → Vec A (m + n)
 _++_ {m = zero}  xs       ys = ys
 _++_ {m = suc _} (x , xs) ys = x , xs ++ ys
 
+-- A vector with every element in Fin n.
+
+all-numbers : Vec (Fin n) n
+all-numbers {n = zero}  = _
+all-numbers {n = suc _} = fzero , map fsuc all-numbers
+
 ------------------------------------------------------------------------
 -- Conversions to and from lists
 
