@@ -93,10 +93,10 @@ opaque
   Same-difference-+
     {i₁ = a , b} {j₁ = c , d} {i₂ = e , f} {j₂ = g , h} eq₁ eq₂ =
     (a + e) + (d + h)  ≡⟨ solve 4 (λ a d e h → (a :+ e) :+ (d :+ h) := (a :+ d) :+ (e :+ h))
-                            (refl _) a _ _ _ ⟩
+                            a _ _ _ ⟩
     (a + d) + (e + h)  ≡⟨ cong₂ _+_ eq₁ eq₂ ⟩
     (b + c) + (f + g)  ≡⟨ solve 4 (λ b c f g → (b :+ c) :+ (f :+ g) := (b :+ f) :+ (c :+ g))
-                            (refl _) b _ _ _ ⟩∎
+                            b _ _ _ ⟩∎
     (b + f) + (c + g)  ∎
 
 opaque
@@ -167,7 +167,7 @@ private opaque
                                                                          (c :+ d :+ e :+ g :+ j :+ l :+ m :+ o) :=
                                                                          (((a :+ b) :+ (c :+ d)) :+ ((a :+ e) :+ (f :+ g))) :+
                                                                          (((o :+ l) :+ (f :+ p)) :+ ((j :+ b) :+ (m :+ p))))
-                                                                      (refl _) a _ c _ _ _ _ _ _ _ _ _ ⟩
+                                                                      a _ c _ _ _ _ _ _ _ _ _ ⟩
       (((a + b) + (c + d)) + ((a + e) + (f + g))) +
       (((o + l) + (f + p)) + ((j + b) + (m + p)))                ≡⟨ eq ⟩
 
@@ -178,7 +178,7 @@ private opaque
                                                                          (((g :+ m) :+ (n :+ k)) :+ ((c :+ h) :+ (o :+ n))) :=
                                                                          con 2 :* ((h :+ i) :+ (n :+ k)) :+
                                                                          (c :+ d :+ e :+ g :+ j :+ l :+ m :+ o))
-                                                                      (refl _) c _ _ _ h _ _ k _ _ _ _ ⟩∎
+                                                                      c _ _ _ h _ _ k _ _ _ _ ⟩∎
       2 * ((h + i) + (n + k)) + (c + d + e + g + j + l + m + o)  ∎
 
 opaque

@@ -180,7 +180,7 @@ abstract
     to-ℕ (suc n)            ≡⟨⟩
     to-ℕ (false ∷ˢ suc n′)  ≡⟨ to-ℕ-∷ˢ false (suc n′) ⟩
     2 ⊛ to-ℕ (suc n′)       ≡⟨ cong (2 ⊛_) (to-ℕ-suc n′) ⟩
-    2 ⊛ N.suc (to-ℕ n′)     ≡⟨ solve 1 (λ n → con 2 :* (con 1 :+ n) := con 2 :+ con 2 :* n) (refl _) _ ⟩
+    2 ⊛ N.suc (to-ℕ n′)     ≡⟨ solve 1 (λ n → con 2 :* (con 1 :+ n) := con 2 :+ con 2 :* n) _ ⟩
     2 ⊕ 2 ⊛ to-ℕ n′         ≡⟨⟩
     N.suc (to-ℕ n)          ∎
 
@@ -290,7 +290,7 @@ abstract
 
     to-ℕ-add-with-carry₂ b m@(_ ∷ _) [] =
       to-ℕ (add-with-carry₁ b m)        ≡⟨ to-ℕ-add-with-carry₁ b m ⟩
-      from-Bool b ⊕ to-ℕ m              ≡⟨ solve 2 (λ b c → b :+ c := b :+ (c :+ con 0)) (refl _) (from-Bool b) _ ⟩
+      from-Bool b ⊕ to-ℕ m              ≡⟨ solve 2 (λ b c → b :+ c := b :+ (c :+ con 0)) (from-Bool b) _ ⟩
       from-Bool b ⊕ (to-ℕ m ⊕ 0)        ≡⟨⟩
       from-Bool b ⊕ (to-ℕ m ⊕ to-ℕ [])  ∎
 
@@ -298,7 +298,7 @@ abstract
       to-ℕ (false ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ-∷ˢ false (add-with-carry₂ false m′ n′) ⟩
       2 ⊛ to-ℕ (add-with-carry₂ false m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ-add-with-carry₂ false m′ n′) ⟩
       2 ⊛ (to-ℕ m′ ⊕ to-ℕ n′)                      ≡⟨ solve 2 (λ c d → con 2 :* (c :+ d) := con 2 :* c :+ con 2 :* d)
-                                                        (refl _) (to-ℕ m′) _ ⟩
+                                                        (to-ℕ m′) _ ⟩
       2 ⊛ to-ℕ m′ ⊕ 2 ⊛ to-ℕ n′                    ≡⟨⟩
       to-ℕ m ⊕ to-ℕ n                              ∎
 
@@ -306,7 +306,7 @@ abstract
       to-ℕ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ to-ℕ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ-add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ (to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) := con 2 :* c :+ (con 1 :+ con 2 :* d))
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       2 ⊛ to-ℕ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ n′)             ≡⟨⟩
       to-ℕ m ⊕ to-ℕ n                             ∎
 
@@ -314,7 +314,7 @@ abstract
       to-ℕ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ to-ℕ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ-add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ (to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) := con 1 :+ con 2 :* c :+ con 2 :* d)
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       1 ⊕ 2 ⊛ to-ℕ m′ ⊕ 2 ⊛ to-ℕ n′               ≡⟨⟩
       to-ℕ m ⊕ to-ℕ n                             ∎
 
@@ -322,7 +322,7 @@ abstract
       to-ℕ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
       2 ⊛ to-ℕ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ-add-with-carry₂ true m′ n′) ⟩
       2 ⊛ (1 ⊕ to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) := con 1 :+ con 2 :* c :+ (con 1 :+ con 2 :* d))
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       1 ⊕ 2 ⊛ to-ℕ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ n′)         ≡⟨⟩
       to-ℕ m ⊕ to-ℕ n                             ∎
 
@@ -330,7 +330,7 @@ abstract
       to-ℕ (true ∷ˢ add-with-carry₂ false m′ n′)  ≡⟨ to-ℕ-∷ˢ true (add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ to-ℕ (add-with-carry₂ false m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ-add-with-carry₂ false m′ n′) ⟩
       1 ⊕ 2 ⊛ (to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 1 :+ con 2 :* (c :+ d) := con 1 :+ con 2 :* c :+ con 2 :* d)
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       1 ⊕ 2 ⊛ to-ℕ m′ ⊕ 2 ⊛ to-ℕ n′               ≡⟨⟩
       1 ⊕ to-ℕ m ⊕ to-ℕ n                         ∎
 
@@ -338,7 +338,7 @@ abstract
       to-ℕ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
       2 ⊛ to-ℕ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ-add-with-carry₂ true m′ n′) ⟩
       2 ⊛ (1 ⊕ to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) := con 1 :+ con 2 :* c :+ (con 1 :+ con 2 :* d))
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       1 ⊕ 2 ⊛ to-ℕ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ n′)         ≡⟨⟩
       1 ⊕ to-ℕ m ⊕ to-ℕ n                         ∎
 
@@ -346,7 +346,7 @@ abstract
       to-ℕ (false ∷ˢ add-with-carry₂ true m′ n′)  ≡⟨ to-ℕ-∷ˢ false (add-with-carry₂ true m′ n′) ⟩
       2 ⊛ to-ℕ (add-with-carry₂ true m′ n′)       ≡⟨ cong (2 ⊛_) (to-ℕ-add-with-carry₂ true m′ n′) ⟩
       2 ⊛ (1 ⊕ to-ℕ m′ ⊕ to-ℕ n′)                 ≡⟨ solve 2 (λ c d → con 2 :* (con 1 :+ c :+ d) := con 2 :+ con 2 :* c :+ con 2 :* d)
-                                                       (refl _) (to-ℕ m′) _ ⟩
+                                                       (to-ℕ m′) _ ⟩
       2 ⊕ 2 ⊛ to-ℕ m′ ⊕ 2 ⊛ to-ℕ n′               ≡⟨⟩
       1 ⊕ to-ℕ m ⊕ to-ℕ n                         ∎
 
@@ -355,7 +355,7 @@ abstract
       1 ⊕ 2 ⊛ to-ℕ (add-with-carry₂ true m′ n′)  ≡⟨ cong ((1 ⊕_) ∘ (2 ⊛_)) (to-ℕ-add-with-carry₂ true m′ n′) ⟩
       1 ⊕ 2 ⊛ (1 ⊕ to-ℕ m′ ⊕ to-ℕ n′)            ≡⟨ solve 2
                                                       (λ c d → con 1 :+ con 2 :* (con 1 :+ c :+ d) := con 2 :+ con 2 :* c :+ (con 1 :+ con 2 :* d))
-                                                      (refl _) (to-ℕ m′) _ ⟩
+                                                      (to-ℕ m′) _ ⟩
       2 ⊕ 2 ⊛ to-ℕ m′ ⊕ (1 ⊕ 2 ⊛ to-ℕ n′)        ≡⟨⟩
       1 ⊕ to-ℕ m ⊕ to-ℕ n                        ∎
 
@@ -424,7 +424,7 @@ abstract
     to-ℕ n ⊕ to-ℕ (false ∷ˢ m * n)  ≡⟨ cong (to-ℕ n ⊕_) (to-ℕ-∷ˢ false (m * n)) ⟩
     to-ℕ n ⊕ 2 ⊛ to-ℕ (m * n)       ≡⟨ cong (λ x → to-ℕ n ⊕ 2 ⊛ x) (to-ℕ-* m _) ⟩
     to-ℕ n ⊕ 2 ⊛ (to-ℕ m ⊛ to-ℕ n)  ≡⟨ solve 2 (λ m n → n :+ con 2 :* (m :* n) := (con 1 :+ con 2 :* m) :* n)
-                                         (refl _) (to-ℕ m) _ ⟩
+                                         (to-ℕ m) _ ⟩
     (1 ⊕ 2 ⊛ to-ℕ m) ⊛ to-ℕ n       ≡⟨⟩
     to-ℕ (true ∷ m) ⊛ to-ℕ n        ∎
 

@@ -20,7 +20,6 @@ open import H-level eq as H-level
 open import H-level.Closure eq
 open import Monad eq hiding (map)
 open import Nat eq
-open import Nat.Solver eq
 
 private variable
   a b c ℓ p : Level
@@ -563,9 +562,8 @@ sum-nats-< (suc (suc n)) =
   sum (suc n ∷ nats-< (suc n))       ≡⟨⟩
   suc n + sum (nats-< (suc n))       ≡⟨ cong (suc n +_) (sum-nats-< (suc n)) ⟩
   suc n + ⌊ suc n * n /2⌋            ≡⟨ sym $ ⌊2*+/2⌋≡ (suc n) ⟩
-  ⌊ 2 * suc n + suc n * n /2⌋        ≡⟨ cong ⌊_/2⌋ (solve 1 (λ n → con 2 :* (con 1 :+ n) :+ (con 1 :+ n) :* n :=
-                                                                   con 1 :+ n :+ (con 1 :+ n :+ n :* (con 1 :+ n)))
-                                                          (refl _) n) ⟩
+  ⌊ 2 * suc n + suc n * n /2⌋        ≡⟨ cong ⌊_/2⌋ (cong₂ _+_ (2*≡+ (suc n)) (*-comm (suc n))) ⟩
+  ⌊ (suc n + suc n) + n * suc n /2⌋  ≡⟨ cong ⌊_/2⌋ (sym (+-assoc (suc n))) ⟩
   ⌊ suc n + (suc n + n * suc n) /2⌋  ≡⟨⟩
   ⌊ suc (suc n) * suc n /2⌋          ∎
 

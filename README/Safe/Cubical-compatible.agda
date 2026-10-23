@@ -160,10 +160,6 @@ import Equality.Instances-related
 
 import Nat.Eliminator
 
--- A solver for certain natural number equalities.
-
-import Nat.Solver
-
 -- Some definitions related to the binary sum type former.
 
 import Sum
@@ -297,6 +293,14 @@ import Vec.Dependent
 -- N-ary functions.
 
 import N-ary
+
+-- Normal forms used by Nat.Solver.
+
+import Nat.Solver.Normal
+
+-- A solver for certain natural number equalities.
+
+import Nat.Solver
 
 -- Some properties related to the const function.
 

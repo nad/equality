@@ -2,119 +2,184 @@
 -- A solver for certain natural number equalities
 ------------------------------------------------------------------------
 
--- The standard library's solver is used.
+-- The code is based on "Proving Equalities in a Commutative Ring Done
+-- Right in Coq" by Grégoire and Mahboubi, but specialised to natural
+-- numbers.
+
+-- Note that the implementation uses propositional equality.
 
 {-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
 
-module Nat.Solver
-  {reflexive} (eq : ∀ {a p} → Equality-with-J a p reflexive) where
+module Nat.Solver {e⁺} (eq : ∀ {a p} → Equality-with-J a p e⁺) where
 
 open Derived-definitions-and-properties eq
 
-import Equality.Propositional as EP
-open import Equality.Instances-related
+open import Dec
+open import Logical-equivalence using (_⇔_)
 open import Prelude
 
-open import Bijection eq using (_↔_)
-open import Function-universe eq
+open import Fin eq as Fin using (⌞_⌟)
+import List eq as L
+open import N-ary eq
+open import Nat.Solver.Normal eq as N hiding (⟦_⟧)
+open import Vec eq
 
-open import Data.Nat.Solver
-open import Data.Vec as Vec
-open import Data.Vec.N-ary
-open import Function.Bundles using (Equivalence)
-import Relation.Binary.Reflection
-import Relation.Binary.PropositionalEquality as P
+private variable
+  m n : ℕ
+  ρ   : Vec ℕ n
 
-open +-*-Solver public using (_:=_; _:+_; _:*_; _:^_)
-open +-*-Solver.Polynomial public using (con)
+------------------------------------------------------------------------
+-- Polynomials
 
-open +-*-Solver hiding (solve)
-open Relation.Binary.Reflection (P.setoid _) var ⟦_⟧ ⟦_⟧↓ correct
-  using (close)
+-- Polynomials. The polynomials are indexed by the number of
+-- variables.
 
-private
+infixr 9 _:^_
+infixl 8 _:*_
+infixl 7 _:+_
 
-  -- Some simple lemmas.
+data Polynomial (m : ℕ) : Type where
+  _:+_ _:*_ : (p₁ p₂ : Polynomial m) → Polynomial m
+  con       : (n : ℕ) → Polynomial m
+  var       : (x : Fin m) → Polynomial m
+  _:^_      : (p : Polynomial m) (n : ℕ) → Polynomial m
 
-  ≡↔≡ : ∀ {a} {A : Type a} {x y : A} → x ≡ y ↔ x P.≡ y
-  ≡↔≡ = proj₁ (all-equality-types-isomorphic eq EP.equality-with-J)
+-- Semantics of polynomials.
 
-  ≡→≡ : ∀ {a} {A : Type a} {x y : A} → x ≡ y → x P.≡ y
-  ≡→≡ = _↔_.to ≡↔≡
+⟦_⟧ : Polynomial n → Vec ℕ n → ℕ
+⟦ p₁ :+ p₂ ⟧ ρ = ⟦ p₁ ⟧ ρ + ⟦ p₂ ⟧ ρ
+⟦ p₁ :* p₂ ⟧ ρ = ⟦ p₁ ⟧ ρ * ⟦ p₂ ⟧ ρ
+⟦ con n ⟧    ρ = n
+⟦ var x ⟧    ρ = index ρ x
+⟦ p :^ n ⟧   ρ = ⟦ p ⟧ ρ ^ n
 
-  ≡←≡ : ∀ {a} {A : Type a} {x y : A} → x P.≡ y → x ≡ y
-  ≡←≡ = _↔_.from ≡↔≡
+------------------------------------------------------------------------
+-- Normalisation
 
--- A variant of +-*-Solver.solve.
+-- Normalisation of polynomials.
 
-solve :
-  ∀ n (f : N-ary n (Polynomial n)
-                   (Polynomial n × Polynomial n)) →
-  Eqʰ n _≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧↓)
-            (curryⁿ ⟦ proj₂ (close n f) ⟧↓) →
-  Eq  n _≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧)
-            (curryⁿ ⟦ proj₂ (close n f) ⟧)
-solve n f =
-  Eqʰ n _≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧↓)
-            (curryⁿ ⟦ proj₂ (close n f) ⟧↓)                        ↝⟨ Eqʰ-to-Eq n _≡_ ⟩
+normalise : Polynomial m → Normal
+normalise (p₁ :+ p₂) = normalise p₁ +ᴺ normalise p₂
+normalise (p₁ :* p₂) = normalise p₁ *ᴺ normalise p₂
+normalise (con n)    = con n
+normalise (var x)    = varᴺ ⌞ x ⌟
+normalise (p :^ n)   = normalise p ^ᴺ n
 
-  Eq n _≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧↓)
-           (curryⁿ ⟦ proj₂ (close n f) ⟧↓)                         ↔⟨⟩
+opaque
+  unfolding Canonical
 
-  ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) ≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))       ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟩
+  -- Normalisation produces canonical normal forms.
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) ≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs)) $ⁿ xs)  ↝⟨ (∀-cong _ λ xs → ≡⇒↝ _ $ ≡←≡ $ left-inverse _ xs) ⟩
+  normalise-canonical : (p : Polynomial m) → Canonical (normalise p)
+  normalise-canonical (p₁ :+ p₂) =
+    +ᴺ-Canonical _ _ (normalise-canonical p₁)
+      (normalise-canonical p₂)
+  normalise-canonical (p₁ :* p₂) =
+    *ᴺ-Canonical _ _ (normalise-canonical p₁)
+      (normalise-canonical p₂)
+  normalise-canonical (con n) =
+    _
+  normalise-canonical (var _) =
+    varᴺ-Canonical _
+  normalise-canonical (p :^ n) =
+    ^ᴺ-Canonical n (normalise-canonical p)
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) ≡
-     (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))                        ↝⟨ (∀-cong _ λ _ → ≡→≡) ⟩
+opaque
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) P.≡
-     (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))                        ↝⟨ (∀-cong _ λ xs → ≡⇒↝ _ $ sym $ ≡←≡ $ left-inverse _ xs) ⟩
+  -- Normalisation is correctly defined (ignoring canonicity).
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) P.≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs)) $ⁿ xs)  ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟩
+  normalise-correct :
+    (p : Polynomial m) →
+    N.⟦ normalise p ⟧ (to-list ρ) ≡ ⟦ p ⟧ ρ
+  normalise-correct {ρ} (p₁ :+ p₂) =
+    N.⟦ normalise p₁ +ᴺ normalise p₂ ⟧ (to-list ρ)                   ≡⟨ +ᴺ-correct (normalise p₁) (normalise p₂) ⟩
+    N.⟦ normalise p₁ ⟧ (to-list ρ) + N.⟦ normalise p₂ ⟧ (to-list ρ)  ≡⟨ cong₂ _+_ (normalise-correct p₁) (normalise-correct p₂) ⟩∎
+    ⟦ p₁ ⟧ ρ + ⟦ p₂ ⟧ ρ                                              ∎
+  normalise-correct {ρ} (p₁ :* p₂) =
+    N.⟦ normalise p₁ *ᴺ normalise p₂ ⟧ (to-list ρ)                   ≡⟨ *ᴺ-correct (normalise p₁) (normalise p₂) ⟩
+    N.⟦ normalise p₁ ⟧ (to-list ρ) * N.⟦ normalise p₂ ⟧ (to-list ρ)  ≡⟨ cong₂ _*_ (normalise-correct p₁) (normalise-correct p₂) ⟩∎
+    ⟦ p₁ ⟧ ρ * ⟦ p₂ ⟧ ρ                                              ∎
+  normalise-correct (con n) =
+    n  ∎
+  normalise-correct {ρ} (var x) =
+    let eq = sym (length-to-list ρ) in
+    N.⟦ varᴺ ⌞ x ⌟ ⟧ (to-list ρ)                           ≡⟨ varᴺ-correct ⌞ x ⌟ ⟩
+    L.index-with-default 0 (to-list ρ) ⌞ x ⌟               ≡⟨ cong (L.index-with-default _ (to-list ρ)) (sym (Fin.⌞subst⌟ _ _)) ⟩
+    L.index-with-default 0 (to-list ρ) ⌞ subst Fin eq x ⌟  ≡⟨ Fin.index-with-default≡index (to-list ρ) ⟩
+    L.index (to-list ρ) (subst Fin eq x)                   ≡⟨ sym (index≡index-to-list ρ _) ⟩∎
+    index ρ x                                              ∎
+  normalise-correct {ρ} (p :^ n) =
+    N.⟦ normalise p ^ᴺ n ⟧ (to-list ρ)  ≡⟨ ^ᴺ-correct (normalise p) n ⟩
+    N.⟦ normalise p ⟧ (to-list ρ) ^ n   ≡⟨ cong (_^ n) (normalise-correct p) ⟩∎
+    ⟦ p ⟧ ρ ^ n                         ∎
 
-  ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧↓ $ⁿ xs) P.≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧↓ $ⁿ xs))       ↔⟨⟩
+------------------------------------------------------------------------
+-- The solver
 
-  Eq n P._≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧↓)
-             (curryⁿ ⟦ proj₂ (close n f) ⟧↓)                       ↝⟨ Eq-to-Eqʰ n P._≡_ ⟩
+-- All variables.
 
-  Eqʰ n P._≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧↓)
-              (curryⁿ ⟦ proj₂ (close n f) ⟧↓)                      ↝⟨ +-*-Solver.solve n f ⟩
+all-vars : Vec (Polynomial n) n
+all-vars = map var all-numbers
 
-  Eq n P._≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧)
-             (curryⁿ ⟦ proj₂ (close n f) ⟧)                        ↔⟨⟩
+opaque
 
-  ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) P.≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))        ↝⟨ Equivalence.to (uncurry-∀ⁿ n) ⟩
+  -- A solver for natural number equalities.
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) P.≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs)) $ⁿ xs)   ↝⟨ (∀-cong _ λ xs → ≡⇒↝ _ $ ≡←≡ $ left-inverse _ xs) ⟩
+  solve :
+    ∀ n (f : N-ary n (Polynomial n) (Polynomial n × Polynomial n)) →
+    let p₁ , p₂ = _$ⁿ_ {n = n} f all-vars in
+    {ok : T (normalise p₁ N.≟ normalise p₂)} →
+    Eqⁿ n (curryⁿ ⟦ p₁ ⟧) (curryⁿ ⟦ p₂ ⟧)
+  solve n f {ok} =
+    let ⟦_⟧′ : Normal → N-ary n ℕ ℕ
+        ⟦ p ⟧′ = curryⁿ (N.⟦ p ⟧ ∘ to-list)
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) P.≡
-     (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))                         ↝⟨ (∀-cong _ λ _ → ≡←≡) ⟩
+        eq₁ : (p : Polynomial n) →
+              Eqⁿ n ⟦ normalise p ⟧′ (curryⁿ ⟦ p ⟧)
+        eq₁ p = curryⁿ-cong n λ _ → normalise-correct p
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) ≡
-     (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))                         ↝⟨ (∀-cong _ λ xs → ≡⇒↝ _ $ sym $ ≡←≡ $ left-inverse _ xs) ⟩
+        p₁ , p₂ = _$ⁿ_ {n = n} f all-vars
 
-  (∀ (xs : Vec _ n) →
-     (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) ≡
-                    (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs)) $ⁿ xs)   ↝⟨ Equivalence.from (uncurry-∀ⁿ n) ⟩
+        eq₂ : Eqⁿ n ⟦ normalise p₁ ⟧′ ⟦ normalise p₂ ⟧′
+        eq₂ =
+          subst (λ p → Eqⁿ n ⟦ normalise p₁ ⟧′ ⟦ p ⟧′)
+            (_⇔_.to (≟-correct (normalise p₁) (normalise p₂)) ok)
+            (reflⁿ n)
+    in
+    transⁿ n (transⁿ n (symⁿ n (eq₁ p₁)) eq₂) (eq₁ p₂)
 
-  ∀ⁿ n (curryⁿ λ xs → (curryⁿ ⟦ proj₁ (close n f) ⟧ $ⁿ xs) ≡
-                      (curryⁿ ⟦ proj₂ (close n f) ⟧ $ⁿ xs))        ↔⟨⟩
+-- A synonym of _,_. See the examples below for uses of this synonym.
 
-  Eq n _≡_ (curryⁿ ⟦ proj₁ (close n f) ⟧)
-           (curryⁿ ⟦ proj₂ (close n f) ⟧)                          □
+infix 4 _:=_
+
+_:=_ : Polynomial n → Polynomial n → Polynomial n × Polynomial n
+_:=_ = _,_
+
+opaque
+
+  -- An example.
+
+  _ :
+    ∀ m n →
+    m + 2 + n * (2 + m) ^ 2 ≡
+    1 + m + n * 4 * (1 + m) + m * n * m + 1
+  _ = solve 2
+        (λ m n →
+           m :+ con 2 :+ n :* (con 2 :+ m) :^ 2 :=
+           con 1 :+ m :+ n :* con 4 :* (con 1 :+ m) :+
+           m :* n :* m :+ con 1)
+
+opaque
+
+  -- Another example.
+
+  _ :
+    ∀ a b c d e f g →
+    (a + b + c + d + e + f + g) ^ 8 ≡
+    (g + f + e + d + c + b + a) ^ 8
+  _ = solve 7
+        (λ a b c d e f g →
+           (a :+ b :+ c :+ d :+ e :+ f :+ g) :^ 8 :=
+           (g :+ f :+ e :+ d :+ c :+ b :+ a) :^ 8)
