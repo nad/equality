@@ -53,6 +53,13 @@ opaque
   0≢+ : {n : ℕ} → zero ≢ suc n
   0≢+ 0≡+ = subst Zero 0≡+ tt
 
+opaque
+
+  -- A variant of 0≢+.
+
+  +≢0 : suc n ≢ zero
+  +≢0 = 0≢+ ∘ sym
+
 -- The suc constructor is cancellative.
 
 cancel-suc : {m n : ℕ} → suc m ≡ suc n → m ≡ n
