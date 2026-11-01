@@ -6,8 +6,6 @@
 -- Right in Coq" by Grégoire and Mahboubi, but specialised to natural
 -- numbers.
 
--- Note that the implementation uses propositional equality.
-
 {-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
@@ -17,13 +15,12 @@ module Nat.Solver.Normal
 
 open Derived-definitions-and-properties eq
 
-open import Equality.Instances-related
-import Equality.Propositional as EP
 open import Logical-equivalence using (_⇔_)
 open import Prelude
 
 open import Bijection eq using (_↔_)
 open import Bool eq
+open import Equality.Decision-procedures eq
 open import Function-universe eq as F hiding (id; _∘_)
 open import List eq
 open import Nat eq as N hiding (_≟_)
@@ -31,32 +28,6 @@ open import Nat eq as N hiding (_≟_)
 private variable
   k k₁ k₂ m m₁ m₂ n n₁ n₂ n₃ n₄ x : ℕ
   ρ                               : List ℕ
-
-------------------------------------------------------------------------
--- Some lemmas related to propositional equality
-
--- The code uses the "with … in …" construction, which uses
--- propositional equality.
-
-opaque
-
-  -- Conversion to and from propositional equality.
-
-  ≡↔≡ : {A : Type} {x y : A} → x ≡ y ↔ x EP.≡ y
-  ≡↔≡ = all-equality-types-isomorphic _ EP.equality-with-J .proj₁
-
-opaque
-
-  -- Conversion between "n₁ <= n₂ is equal to a certain boolean" and
-  -- n₁ ≤ n₂/n₂ ≤ n₁.
-
-  <=≡true→≤ : (n₁ <= n₂) EP.≡ true → n₁ ≤ n₂
-  <=≡true→≤ = _↔_.to T[<=]↔≤ ∘ _↔_.from T↔≡true ∘ _↔_.from ≡↔≡
-
-  <=≡false→≥ : (n₁ <= n₂) EP.≡ false → n₂ ≤ n₁
-  <=≡false→≥ =
-    ≰→≥ ∘ _⇔_.to (¬-cong _ (_↔_.logical-equivalence T[<=]↔≤)) ∘
-    _⇔_.from (¬T↔≡false _) ∘ _↔_.from ≡↔≡
 
 ------------------------------------------------------------------------
 -- Normal forms of polynomials
@@ -151,48 +122,39 @@ opaque
   -- Injectivity lemmas.
 
   con-injective : con m₁ ≡ con m₂ → m₁ ≡ m₂
-  con-injective = _↔_.from ≡↔≡ ∘ lemma ∘ _↔_.to ≡↔≡
-    where
-    lemma : con m₁ EP.≡ con m₂ → m₁ EP.≡ m₂
-    lemma EP.refl = EP.refl
+  con-injective = cong λ where
+    (con m) → m
+    _       → 0
 
   lift-injective : lift n₁ p₁ ≡ lift n₂ p₂ → n₁ ≡ n₂ × p₁ ≡ p₂
   lift-injective =
-    Σ-map (_↔_.from ≡↔≡) (_↔_.from ≡↔≡) ∘ lemma ∘ _↔_.to ≡↔≡
-    where
-    lemma : lift n₁ p₁ EP.≡ lift n₂ p₂ → n₁ EP.≡ n₂ × p₁ EP.≡ p₂
-    lemma EP.refl = EP.refl , EP.refl
+    _↔_.from ≡×≡↔≡ ∘ cong λ where
+      (lift n p) → n , p
+      _          → 0 , con 0
 
   *x^1++-injective :
     p₁ *x^1+ k₁ + p₂ ≡ p₃ *x^1+ k₂ + p₄ → k₁ ≡ k₂ × p₁ ≡ p₃ × p₂ ≡ p₄
   *x^1++-injective =
-    Σ-map (_↔_.from ≡↔≡) (Σ-map (_↔_.from ≡↔≡) (_↔_.from ≡↔≡)) ∘ lemma ∘
-    _↔_.to ≡↔≡
-    where
-    lemma :
-      p₁ *x^1+ k₁ + p₂ EP.≡ p₃ *x^1+ k₂ + p₄ →
-      k₁ EP.≡ k₂ × p₁ EP.≡ p₃ × p₂ EP.≡ p₄
-    lemma EP.refl = EP.refl , EP.refl , EP.refl
+    _↔_.from (≡×≡↔≡ F.∘ ∃-cong (λ _ → ≡×≡↔≡)) ∘ cong λ where
+      (p₁ *x^1+ k + p₂) → k , p₁ , p₂
+      _                 → 0 , con 0 , con 0
 
   -- Disjointness lemmas.
 
   lift≢con : lift n p ≢ con m
-  lift≢con {n} = lemma ∘ _↔_.to ≡↔≡
-    where
-    lemma : lift n p EP.≢ con m
-    lemma ()
+  lift≢con = Bool.true≢false ∘ cong λ where
+    (con _) → false
+    _       → true
 
   *x^1++≢con : p₁ *x^1+ k + p₂ ≢ con m
-  *x^1++≢con {m} = lemma ∘ _↔_.to ≡↔≡
-    where
-    lemma : p₁ *x^1+ k + p₂ EP.≢ con m
-    lemma ()
+  *x^1++≢con = Bool.true≢false ∘ cong λ where
+    (con _) → false
+    _       → true
 
   *x^1++≢lift : p₁ *x^1+ k + p₂ ≢ lift n p₃
-  *x^1++≢lift {n} = lemma ∘ _↔_.to ≡↔≡
-    where
-    lemma : p₁ *x^1+ k + p₂ EP.≢ lift n p₃
-    lemma ()
+  *x^1++≢lift = Bool.true≢false ∘ cong λ where
+    (lift _ _) → false
+    _          → true
 
 opaque
 
@@ -766,11 +728,9 @@ opaque mutual
       ⟦ lift-helper n₁ p₁ n₂ p₂ ⟧ ρ ≡
       ⟦ p₁ ⟧ (drop (suc n₁) ρ) +
       ⟦ p₂ ⟧ (drop (suc n₂) ρ)
-    lift-helper-correct {ρ} n₁ p₁ n₂ p₂ with n₁ <= n₂ in leq
-    … | true =
-      let n₁≤n₂ : n₁ ≤ n₂
-          n₁≤n₂ = <=≡true→≤ leq
-      in
+    lift-helper-correct {ρ} n₁ p₁ n₂ p₂
+      with n₁ <= n₂ | T[<=]↔≤ {m = n₁} {n = n₂}
+    … | true | n₁≤n₂↔ =
       ⟦ plus-lift p₁ (n₂ ∸ n₁) p₂ ⟧ (drop (suc n₁) ρ)      ≡⟨ plus-lift-correct p₁ (n₂ ∸ n₁) p₂ ⟩
 
       ⟦ p₁ ⟧ (drop (suc n₁) ρ) +
@@ -778,12 +738,9 @@ opaque mutual
                                                               drop-drop {xs = ρ} (suc n₁) ⟩
       ⟦ p₁ ⟧ (drop (suc n₁) ρ) +
       ⟦ p₂ ⟧ (drop (suc n₁ + (n₂ ∸ n₁)) ρ)                 ≡⟨ cong ((⟦ p₁ ⟧ _ +_) ∘ ⟦ p₂ ⟧ ∘ flip drop ρ ∘ suc) $
-                                                              +[∸]≡ n₁≤n₂ ⟩∎
+                                                              +[∸]≡ (_↔_.to n₁≤n₂↔ _) ⟩∎
       ⟦ p₁ ⟧ (drop (suc n₁) ρ) + ⟦ p₂ ⟧ (drop (suc n₂) ρ)  ∎
-    … | false =
-      let n₂≤n₁ : n₂ ≤ n₁
-          n₂≤n₁ = <=≡false→≥ leq
-      in
+    … | false | n₁≤n₂↔ =
       ⟦ lift-plus (n₁ ∸ n₂) p₁ p₂ ⟧ (drop (suc n₂) ρ)      ≡⟨ lift-plus-correct (n₁ ∸ n₂) p₁ p₂ ⟩
 
       ⟦ p₁ ⟧ (drop (n₁ ∸ n₂) (drop (suc n₂) ρ)) +
@@ -791,7 +748,7 @@ opaque mutual
                                                               drop-drop {xs = ρ} (suc n₂) ⟩
       ⟦ p₁ ⟧ (drop (suc n₂ + (n₁ ∸ n₂)) ρ) +
       ⟦ p₂ ⟧ (drop (suc n₂) ρ)                             ≡⟨ cong ((_+ ⟦ p₂ ⟧ _) ∘ ⟦ p₁ ⟧ ∘ flip drop ρ ∘ suc) $
-                                                              +[∸]≡ n₂≤n₁ ⟩∎
+                                                              +[∸]≡ (≰→≥ (_↔_.from n₁≤n₂↔)) ⟩∎
       ⟦ p₁ ⟧ (drop (suc n₁) ρ) + ⟦ p₂ ⟧ (drop (suc n₂) ρ)  ∎
 
   -- The function times-plus is correctly defined.
@@ -855,11 +812,8 @@ opaque mutual
       ⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ +
       (⟦ p₂ ⟧ ρ * head ρ ^ suc k₂ + ⟦ p₃ ⟧ (tail ρ))
     times-helper-correct {ρ} p₁ k₁ p₂ k₂ p₃
-      with k₁ <= k₂ in leq
-    … | true =
-      let k₁≤k₂ : k₁ ≤ k₂
-          k₁≤k₂ = <=≡true→≤ leq
-      in
+      with k₁ <= k₂ | T[<=]↔≤ {m = k₁} {n = k₂}
+    … | true | k₁≤k₂↔ =
       ⟦ plus-times p₁ p₂ (k₂ ∸ k₁) ⟧ ρ * head ρ ^ suc k₁ +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ cong (flip _+_ _ ∘ flip _*_ _) $
                                                                          plus-times-correct p₁ p₂ (k₂ ∸ k₁) ⟩
@@ -869,16 +823,13 @@ opaque mutual
       (⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ +
        ⟦ p₂ ⟧ ρ * head ρ ^ (k₂ ∸ k₁) * head ρ ^ suc k₁) +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ cong (flip _+_ (⟦ p₃ ⟧ (tail ρ)) ∘ _+_ (⟦ p₁ ⟧ _ * _)) $
-                                                                         *^∸*^suc≡*^suc (⟦ p₂ ⟧ _) k₁≤k₂ ⟩
+                                                                         *^∸*^suc≡*^suc (⟦ p₂ ⟧ _) ( (_↔_.to k₁≤k₂↔ _)) ⟩
       (⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ + ⟦ p₂ ⟧ ρ * head ρ ^ suc k₂) +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ sym (+-assoc (⟦ p₁ ⟧ _ * _)) ⟩∎
 
       ⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ +
       (⟦ p₂ ⟧ ρ * head ρ ^ suc k₂ + ⟦ p₃ ⟧ (tail ρ))                  ∎
-    … | false =
-      let k₂≤k₁ : k₂ ≤ k₁
-          k₂≤k₁ = <=≡false→≥ leq
-      in
+    … | false | k₁≤k₂↔ =
       ⟦ times-plus p₁ (k₁ ∸ k₂) p₂ ⟧ ρ * head ρ ^ suc k₂ +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ cong (flip _+_ _ ∘ flip _*_ _) $
                                                                          times-plus-correct p₁ (k₁ ∸ k₂) p₂ ⟩
@@ -888,7 +839,7 @@ opaque mutual
       (⟦ p₁ ⟧ ρ * head ρ ^ (k₁ ∸ k₂) * head ρ ^ suc k₂ +
        ⟦ p₂ ⟧ ρ * head ρ ^ suc k₂) +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ cong (flip _+_ (⟦ p₃ ⟧ (tail ρ)) ∘ flip _+_ (⟦ p₂ ⟧ _ * _)) $
-                                                                         *^∸*^suc≡*^suc (⟦ p₁ ⟧ _) k₂≤k₁ ⟩
+                                                                         *^∸*^suc≡*^suc (⟦ p₁ ⟧ _) ((≰→≥ (_↔_.from k₁≤k₂↔))) ⟩
       (⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ + ⟦ p₂ ⟧ ρ * head ρ ^ suc k₂) +
       ⟦ p₃ ⟧ (tail ρ)                                                 ≡⟨ sym (+-assoc (⟦ p₁ ⟧ _ * _)) ⟩∎
 
@@ -1037,11 +988,8 @@ opaque mutual
     ⟦ lift-times (suc n) p₁ p₂ ⟧ ρ      ≡⟨ lift-times-correct (suc _) _ p₂ ⟩∎
     ⟦ p₁ ⟧ (drop (suc n) ρ) * ⟦ p₂ ⟧ ρ  ∎
   *ᴺ-correct {ρ} (p₁ *x^1+ k₁ + p₂) (p₃ *x^1+ k₂ + p₄)
-    with k₁ <= k₂ in leq
-  … | true =
-    let k₁≤k₂ : k₁ ≤ k₂
-        k₁≤k₂ = <=≡true→≤ leq
-    in
+    with k₁ <= k₂ | T[<=]↔≤ {m = k₁} {n = k₂}
+  … | true | k₁≤k₂↔ =
     ⟦ times-plusᶜ
         (times-plusᶜ
            (times-plusᶜ (p₁ *ᴺ p₃) (suc k₁) (lift-times 1 p₂ p₃))
@@ -1064,14 +1012,11 @@ opaque mutual
      head ρ ^ (k₂ ∸ k₁) +
      ⟦ p₁ ⟧ ρ * ⟦ p₄ ⟧ (tail ρ)) *
     head ρ ^ suc k₁ +
-    ⟦ p₂ ⟧ (tail ρ) * ⟦ p₄ ⟧ (tail ρ)                              ≡⟨ *-lemma₁ (⟦ p₁ ⟧ _) k₁≤k₂ ⟩∎
+    ⟦ p₂ ⟧ (tail ρ) * ⟦ p₄ ⟧ (tail ρ)                              ≡⟨ *-lemma₁ (⟦ p₁ ⟧ _) (_↔_.to k₁≤k₂↔ _) ⟩∎
 
     (⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ + ⟦ p₂ ⟧ (tail ρ)) *
     (⟦ p₃ ⟧ ρ * head ρ ^ suc k₂ + ⟦ p₄ ⟧ (tail ρ))                 ∎
-  … | false =
-    let k₂≤k₁ : k₂ ≤ k₁
-        k₂≤k₁ = <=≡false→≥ leq
-    in
+  … | false | k₁≤k₂↔ =
     ⟦ times-plusᶜ
         (times-plusᶜ
            (times-plusᶜ (p₁ *ᴺ p₃) (suc k₂) (times-lift p₁ 1 p₄))
@@ -1094,7 +1039,7 @@ opaque mutual
      head ρ ^ (k₁ ∸ k₂) +
      ⟦ p₂ ⟧ (tail ρ) * ⟦ p₃ ⟧ ρ) *
     head ρ ^ suc k₂ +
-    ⟦ p₂ ⟧ (tail ρ) * ⟦ p₄ ⟧ (tail ρ)                              ≡⟨ *-lemma₂ (⟦ p₁ ⟧ _) k₂≤k₁ ⟩∎
+    ⟦ p₂ ⟧ (tail ρ) * ⟦ p₄ ⟧ (tail ρ)                              ≡⟨ *-lemma₂ (⟦ p₁ ⟧ _) (≰→≥ (_↔_.from k₁≤k₂↔)) ⟩∎
 
 
     (⟦ p₁ ⟧ ρ * head ρ ^ suc k₁ + ⟦ p₂ ⟧ (tail ρ)) *
@@ -1114,24 +1059,20 @@ opaque mutual
     ⟦ p₁ *ᴺ con m ⟧ (drop (suc n) ρ)   ≡⟨ *ᴺ-correct p₁ _ ⟩∎
     ⟦ p₁ ⟧ (drop (suc n) ρ) * m        ∎
   lift-times-correct {ρ} (suc n₁) p₁ (lift n₂ p₂)
-    with n₁ <= n₂ in leq
-  … | true =
-    let n₁≤n₂ : n₁ ≤ n₂
-        n₁≤n₂ = <=≡true→≤ leq
-    in
+    with n₁ <= n₂ | T[<=]↔≤ {m = n₁} {n = n₂}
+  … | true | n₁≤n₂↔ =
     ⟦ liftᴺ (suc n₁) (times-lift p₁ (n₂ ∸ n₁) p₂) ⟧ ρ                     ≡⟨ liftᴺ-correct (suc _) (times-lift _ (_ ∸ n₁) _) ⟩
     ⟦ times-lift p₁ (n₂ ∸ n₁) p₂ ⟧ (drop (suc n₁) ρ)                      ≡⟨ times-lift-correct _ (_ ∸ n₁) _ ⟩
     ⟦ p₁ ⟧ (drop (suc n₁) ρ) * ⟦ p₂ ⟧ (drop (n₂ ∸ n₁) (drop (suc n₁) ρ))  ≡⟨ cong (_*_ (⟦ p₁ ⟧ _) ∘ ⟦ p₂ ⟧) (drop-drop {xs = ρ} (suc n₁)) ⟩
-    ⟦ p₁ ⟧ (drop (suc n₁) ρ) * ⟦ p₂ ⟧ (drop (suc n₁ + (n₂ ∸ n₁)) ρ)       ≡⟨ cong (_*_ (⟦ p₁ ⟧ _) ∘ ⟦ p₂ ⟧ ∘ flip drop ρ ∘ suc) (+[∸]≡ n₁≤n₂) ⟩∎
+    ⟦ p₁ ⟧ (drop (suc n₁) ρ) * ⟦ p₂ ⟧ (drop (suc n₁ + (n₂ ∸ n₁)) ρ)       ≡⟨ cong (_*_ (⟦ p₁ ⟧ _) ∘ ⟦ p₂ ⟧ ∘ flip drop ρ ∘ suc) $
+                                                                             +[∸]≡ (_↔_.to n₁≤n₂↔ _) ⟩∎
     ⟦ p₁ ⟧ (drop (suc n₁) ρ) * ⟦ p₂ ⟧ (drop (suc n₂) ρ)                   ∎
-  … | false =
-    let n₂≤n₁ : n₂ ≤ n₁
-        n₂≤n₁ = <=≡false→≥ leq
-    in
+  … | false | n₁≤n₂↔ =
     ⟦ liftᴺ (suc n₂) (lift-times (n₁ ∸ n₂) p₁ p₂) ⟧ ρ                     ≡⟨ liftᴺ-correct (suc _) (lift-times (_ ∸ n₂) _ _) ⟩
     ⟦ lift-times (n₁ ∸ n₂) p₁ p₂ ⟧ (drop (suc n₂) ρ)                      ≡⟨ lift-times-correct (_ ∸ n₂) _ _ ⟩
     ⟦ p₁ ⟧ (drop (n₁ ∸ n₂) (drop (suc n₂) ρ)) * ⟦ p₂ ⟧ (drop (suc n₂) ρ)  ≡⟨ cong (flip _*_ _ ∘ ⟦ p₁ ⟧) (drop-drop {xs = ρ} (suc n₂)) ⟩
-    ⟦ p₁ ⟧ (drop (suc n₂ + (n₁ ∸ n₂)) ρ) * ⟦ p₂ ⟧ (drop (suc n₂) ρ)       ≡⟨ cong (flip _*_ _ ∘ ⟦ p₁ ⟧ ∘ flip drop ρ ∘ suc) (+[∸]≡ n₂≤n₁) ⟩∎
+    ⟦ p₁ ⟧ (drop (suc n₂ + (n₁ ∸ n₂)) ρ) * ⟦ p₂ ⟧ (drop (suc n₂) ρ)       ≡⟨ cong (flip _*_ _ ∘ ⟦ p₁ ⟧ ∘ flip drop ρ ∘ suc) $
+                                                                             +[∸]≡ (≰→≥ (_↔_.from n₁≤n₂↔)) ⟩∎
     ⟦ p₁ ⟧ (drop (suc n₁) ρ) * ⟦ p₂ ⟧ (drop (suc n₂) ρ)                   ∎
   lift-times-correct {ρ} (suc n) p₁ (p₂ *x^1+ k + p₃) =
     ⟦ lift-times (suc n) p₁ p₂ *x^ suc k + lift-times n p₁ p₃ ⟧ ρ  ≡⟨ *x^+-correct (lift-times (suc _) _ p₂) (suc _) _ ⟩
@@ -1204,10 +1145,9 @@ opaque
   -- If OK-as-arg-1 p holds, then p is not con 0.
 
   OK-as-arg-1→≢con-0 : OK-as-arg-1 p → p ≢ con 0
-  OK-as-arg-1→≢con-0 hyp = lemma hyp ∘ _↔_.to ≡↔≡
-    where
-    lemma : OK-as-arg-1 p → p EP.≢ con 0
-    lemma {p = con _} hyp EP.refl = hyp (refl _)
+  OK-as-arg-1→≢con-0 {p = con _}         = _∘ con-injective
+  OK-as-arg-1→≢con-0 {p = lift _ _}      = λ _ → lift≢con
+  OK-as-arg-1→≢con-0 {p = _ *x^1+ _ + _} = λ _ → *x^1++≢con
 
 opaque
   unfolding Plus
@@ -1215,10 +1155,8 @@ opaque
   -- If Plus p holds, then p is not an application of con.
 
   Plus→≢con : Plus p → p ≢ con m
-  Plus→≢con hyp = lemma hyp ∘ _↔_.to ≡↔≡
-    where
-    lemma : Plus p → p EP.≢ con m
-    lemma {p = con _} hyp EP.refl = hyp
+  Plus→≢con {p = lift _ _}      _ = lift≢con
+  Plus→≢con {p = _ *x^1+ _ + _} _ = *x^1++≢con
 
 opaque
   unfolding Plus

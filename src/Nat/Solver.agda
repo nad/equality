@@ -6,8 +6,6 @@
 -- Right in Coq" by Grégoire and Mahboubi, but specialised to natural
 -- numbers.
 
--- Note that the implementation uses propositional equality.
-
 {-# OPTIONS --cubical-compatible --safe #-}
 
 open import Equality
