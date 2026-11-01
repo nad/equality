@@ -123,7 +123,7 @@ interval-contractible = [1] , sym ∘ f
 -- A simplification lemma for rec p p.
 
 rec-const :
-  ∀ {p} {P : Type p} (p : P) (p≡p : p ≡ p) i →
+  ∀ {P : Type p} (p : P) (p≡p : p ≡ p) i →
   rec p p p≡p i ≡ p
 rec-const p p≡p i =
   rec p p p≡p i    ≡⟨ cong (rec p p p≡p) (mono₁ 0 interval-contractible i [0]) ⟩∎

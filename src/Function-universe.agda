@@ -30,7 +30,7 @@ open import Prelude as P hiding (id) renaming (_∘_ to _⊚_)
 open import Surjection eq as Surjection using (_↠_; Split-surjective)
 
 private variable
-  a b : Level
+  a b p : Level
 
 ------------------------------------------------------------------------
 -- The universe
@@ -652,7 +652,7 @@ opaque
   -- One can express subst in terms of ≡⇒↝.
 
   subst-in-terms-of-≡⇒↝ :
-    ∀ k {a p} {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
+    ∀ k {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
     subst P x≡y p ≡ to-implication (≡⇒↝ k (cong P x≡y)) p
   subst-in-terms-of-≡⇒↝ k x≡y P p = elim¹
 
@@ -667,7 +667,7 @@ opaque
     x≡y
 
   subst-in-terms-of-inverse∘≡⇒↝ :
-    ∀ k {a p} {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
+    ∀ k {A : Type a} {x y} (x≡y : x ≡ y) (P : A → Type p) p →
     subst P (sym x≡y) p ≡
     to-implication (inverse (≡⇒↝ ⌊ k ⌋-sym (cong P x≡y))) p
   subst-in-terms-of-inverse∘≡⇒↝ k x≡y P p =
@@ -679,7 +679,7 @@ opaque
   -- A variant of subst-in-terms-of-≡⇒↝ for cong₂.
 
   ≡⇒↝-cong₂≡subst-subst :
-    ∀ k {a b p} {A : Type a} {B : Type b} {x y u v}
+    ∀ k {A : Type a} {B : Type b} {x y u v}
       {x≡y : x ≡ y} {u≡v : u ≡ v} {P : A → B → Type p} {p} →
     to-implication (≡⇒↝ k (cong₂ P x≡y u≡v)) p ≡
     subst (P _) u≡v (subst (flip P _) x≡y p)
