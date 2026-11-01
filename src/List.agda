@@ -294,6 +294,18 @@ opaque
     drop n (drop 1 xs)  ≡⟨ drop-drop {xs = xs} 1 ⟩∎
     drop (suc n) xs     ∎
 
+opaque
+
+  -- One can express index-with-default using head-with-default and
+  -- drop.
+
+  index-head-drop :
+    ∀ i → index-with-default x ys i ≡ head-with-default x (drop i ys)
+  index-head-drop {ys = []}    zero    = refl _
+  index-head-drop {ys = []}    (suc _) = refl _
+  index-head-drop {ys = _ ∷ _} zero    = refl _
+  index-head-drop {ys = _ ∷ _} (suc i) = index-head-drop i
+
 -- The function foldr _∷_ [] is pointwise equal to the identity
 -- function.
 
