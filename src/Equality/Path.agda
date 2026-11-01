@@ -28,7 +28,7 @@ open import Agda.Primitive.Cubical public
   using (I; Partial; PartialP)
   renaming (i0 to 0̲; i1 to 1̲;
             IsOne to Is-one; itIsOne to is-one;
-            primINeg to -_; primIMin to min; primIMax to max;
+            primINeg to infix 8 -_; primIMin to min; primIMax to max;
             primComp to comp; primHComp to hcomp;
             primTransp to transport)
 

@@ -27,12 +27,12 @@ import Nat eq as Nat
 open Agda.Builtin.Int public
   using ()
   hiding (module Int)
-  renaming (Int to ℤ; pos to +_; negsuc to -[1+_])
+  renaming (Int to ℤ; pos to infix 8 +_; negsuc to -[1+_])
 
 module ℤ where
   open Agda.Builtin.Int.Int public
     using ()
-    renaming (pos to +_; negsuc to -[1+_])
+    renaming (pos to infix 8 +_; negsuc to -[1+_])
 
 private
   variable
